@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crispr - Aspiring Scientist Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #76d4f5, #015f73);
+            padding: 20px;
+        }
+
+        .roboto-slim {
+          font-family: "Roboto", sans-serif;
+          font-optical-sizing: auto;
+          font-weight: 200;
+          font-style: normal;
+          font-variation-settings:
+            "wdth" 100;
+          font-size: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .left-panel, .right-panel {
+            padding: 60px;
+            flex: 1;
+        }
+
+        .left-panel {
+            background-color: #015f73;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .left-panel h1 {
+            color: #004c80;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .left-panel p {
+            font-size: 1.2rem;
+            color: #333;
+            text-align: center;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-panel h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .right-panel p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .input-group {
+            display: flex;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            outline: none;
+        }
+
+        .input-group div {
+            padding: 15px 10px;
+            font-size: 1rem;
+            border: none;
+            outline: none;
+            background-color: #f4f4f4;
+            min-width: 75px;
+            text-align: center;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        .otp .otpEntry { 
+            max-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+
+        .continue-btn {
+            background-color: #015f73;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 400;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .continue-btn:hover {
+            background-color: #034756;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            color: #555;
+        }
+
+        .footer-links a:hover {
+            color: #004c80;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-panel, .right-panel {
+                padding: 40px;
+            }
+
+            .left-panel h1 {
+                font-size: 2rem;
+            }
+
+            .right-panel h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .left-panel, .right-panel {
+                padding: 30px;
+            }
+
+            .left-panel h1, .right-panel h2 {
+                font-size: 1.5rem;
+            }
+
+            .continue-btn {
+                font-size: 1rem;
+                padding: 12px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+
+        .toaster {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        }
+        .toaster.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .toaster.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Loader container */
+        .loader {
+          width: 30px;
+          height: 30px;
+          border: 2px solid #ffffff;
+          border-top: 2px solid #ffb706;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        /* Keyframe animation for spinning */
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="toaster" class="toaster"></div>
+    <div class="container">
+        <div class="left-panel">
+            <h1 style="text-align: center;"><img src="../assets/logo/crispr-logo-for-dark-bg.png" width="60%" style="max-width: 400px; min-width: 200px;"></h1>
+            <p class="roboto-slim" style="font-size: 18px !important; line-height: 24px; color: #fdfdfd">Hello aspring Scientist, <br>your journey to <span style="font-weight: 300;">IISER</span> starts here. 🎉</p>
+        </div>
+        <div class="right-panel">
+            
+                <div id="loginStep1">
+                    <h2>Login</h2>
+                    <p style="font-weight: 300;">Please enter your mobile number to continue.</p>
+
+                    <div class="input-group">
+                        <div>🇮🇳 <b>+91</b></div>
+                        <input id="mobile" type="tel" style="font-weight: bold;" maxlength="10" required>
+                    </div>
+                </div>
+
+                <div id="loginStep2" style="display: none">
+                    <h2>Login <span style="font-weight: 300; font-size: 50%;">as 9043XXXX76</span></h2>
+                    <p style="font-weight: 300;">Please enter the one-time passcode.</p>
+                    <p style="font-weight: 300; font-size: 12px; margin: 0 0 10px 0;"></p>
+                    <div class="input-group otp" style="border: 1px solid transparent;">
+                        <input class="otpEntry" style="margin-left: 0" id="otp1" type="tel" maxlength="1" required>
+                        <input class="otpEntry" id="otp2" type="tel" maxlength="1" required>
+                        <input class="otpEntry" id="otp3" type="tel" maxlength="1" required>
+                        <input class="otpEntry" style="margin-right: 0" id="otp4" type="tel" maxlength="1" required>
+                    </div>
+                </div>
+                <button class="continue-btn" id="loginStep1Button" onclick="sendOTP()" style="position: relative;">
+                    Continue
+                    <span id="loginLoader1" style="display: none; position: absolute; right: 10px; top: 10px"><div class="loader"></div></span>
+                </button>
+                <button class="continue-btn" id="loginStep2Button" onclick="processLogin()" style="display: none; position: relative;">
+                    Login Now
+                    <span id="loginLoader2" style="display: none; position: absolute; right: 10px; top: 10px"><div class="loader"></div></span>
+                </button>
+
+                <!-- Error Messages -->
+                <div style="position: relative; margin-top: 5px; height: 15px; display: block;">
+                    <p id="mobileError" style="margin: 0; font-size: 12px; color: rgb(230, 113, 113); text-align: left;"></p>
+                </div>
+            <div class="footer-links">
+                <p style="font-size: 11px; text-align: left; margin: 0; padding: 0; width: 100%;">By continuing you agree to all our <a href="#" style="text-decoration: underline;">Terms and Conditions</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        function sendOTP() {
+
+            var mobileNumber = document.getElementById('mobile').value;
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+            if (indianMobileRegex.test(mobileNumber)) {
+
+                //Disable button
+                document.getElementById("loginStep1Button").disabled = true;
+
+                showToaster("You are not registered.")
+
+
+
+
+
+                //Call Login API
+                document.getElementById("loginLoader1").style.display = 'block';
+                  setTimeout(() => {
+                    
+
+                    //Post Success
+                    document.getElementById("loginStep1Button").style.display = 'none';
+                    document.getElementById("loginLoader1").style.display = 'none';
+                    document.getElementById("loginStep1").style.display = 'none';
+                    document.getElementById("loginStep1Button").disabled = false;
+                    document.getElementById("loginStep2").style.display = 'block';
+                    document.getElementById("loginStep2Button").style.display = 'block';
+                    document.getElementById('otp1').focus();
+
+
+
+
+                  }, 3000);
+
+
+
+            }
+        }
+
+        function processLogin() {
+            var mobileNumber = document.getElementById('mobile').value;
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+            if (indianMobileRegex.test(mobileNumber)) {
+                const otp = getOTP();
+                if(otp.length != 4) {
+                    showToaster("Please enter all 4 digits of one-time passcode")
+                    document.getElementById('otp4').focus();
+                    return;
+                }
+
+
+
+
+                //Loader
+                document.getElementById("loginLoader2").style.display = 'block';
+                setTimeout(() => {
+
+                    //Loader end:
+                    document.getElementById("loginLoader2").style.display = 'none';
+
+                    document.getElementById('otp4').focus();
+
+                }, 3000)
+
+                console.log('hitting '+ mobileNumber + ' with ' + otp)
+                
+                return;
+            }
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('start')
+            document.getElementById('mobile').focus();
+        });
+
+
+        // Function to move focus to the next OTP input
+        function moveToNext(currentInput, nextInputId) {
+            if (currentInput.value.length === 1) {
+                document.getElementById(nextInputId).focus();
+            }
+        }
+
+        // Function to handle OTP submission
+        function submitOtp() {
+            const otp = getOTP();
+
+            console.log('Submitted OTP:', otp);
+        }
+
+        function getOTP(argument) {
+            const otp1 = document.getElementById('otp1').value;
+            const otp2 = document.getElementById('otp2').value;
+            const otp3 = document.getElementById('otp3').value;
+            const otp4 = document.getElementById('otp4').value;
+            const otp = otp1 + otp2 + otp3 + otp4;
+            return otp;
+        }
+
+        // Function to handle backspace and move focus backward
+        function handleBackspace(currentInput, previousInputId) {
+            if (currentInput.value.length === 0 && previousInputId) {
+                document.getElementById(previousInputId).focus();
+            }
+        }
+
+        // Add event listeners to OTP inputs
+        document.getElementById('otp1').addEventListener('input', function() {
+            moveToNext(this, 'otp2');
+        });
+
+        document.getElementById('otp2').addEventListener('input', function() {
+            moveToNext(this, 'otp3');
+        });
+
+        document.getElementById('otp3').addEventListener('input', function() {
+            moveToNext(this, 'otp4');
+        });
+
+        document.getElementById('otp4').addEventListener('input', function() {
+            if (this.value.length === 1) {
+                submitOtp();
+            }
+        });
+
+        // Add keydown event listeners for backspace
+        document.getElementById('otp1').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, null); // No previous input for otp1
+            }
+        });
+
+        document.getElementById('otp2').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp1');
+            }
+        });
+
+        document.getElementById('otp3').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp2');
+            }
+        });
+
+        document.getElementById('otp4').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp3');
+            }
+        });
+
+        function validateMobile(mobileNumber) {
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+
+            if (indianMobileRegex.test(mobileNumber)) {
+                document.getElementById('mobileError').innerHTML = '';
+            } else {
+                document.getElementById('mobileError').innerHTML = 'Invalid Mobile Number';
+            }
+        }
+        document.getElementById('mobile').addEventListener('change', function() {
+            validateMobile(this.value);
+        });
+        document.getElementById('mobile').addEventListener('input', function() {
+            if(this.value.length == 10)
+                validateMobile(this.value);
+            else {
+                document.getElementById('mobileError').innerHTML = '';
+            }
+        });
+
+        function showToaster(message) {
+            const toaster = document.getElementById('toaster');
+            toaster.textContent = message;
+            toaster.classList.add('show');
+
+            setTimeout(() => {
+                toaster.classList.remove('show');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>

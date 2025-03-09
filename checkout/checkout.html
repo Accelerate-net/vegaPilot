@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link type="text/css" href="../assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
+    <script src="../assets/js/jquery.js"></script>
+    <script src="cart.js"></script>
+</head>
+<body>
+    <header class="header">
+        <img src="../assets/logo/crispr-logo-for-dark-bg.png" alt="allbirds logo">
+    </header>
+
+    <div id="toaster" class="toaster"></div>
+    <div class="container" id="containerContent">
+        <section class="form-section">
+            <div class="loginSection">
+
+                <div id="loginStep1">
+                    <h2>Login / Register</h2>
+                    <div class="input-group">
+                        <div>🇮🇳 <b>+91</b></div>
+                        <input id="mobile" type="tel" style="font-weight: bold;" maxlength="10" required="">
+                    </div>
+                    <button class="continue-btn" id="loginStep1Button" onclick="sendOTP()" style="position: relative;">
+                        Continue
+                        <span id="loginLoader1" style="display: none; position: absolute; right: 10px; top: 10px"><div class="loader"></div></span>
+                    </button>
+                </div>
+
+                <div id="loginStep2" style="display: none;">
+                    <h2>Login / Register <span style="font-weight: 300; font-size: 50%;">as 9043XXXX76</span></h2>
+                    <p style="font-weight: 300;">Please enter the one-time passcode.</p>
+                    <p style="font-weight: 300; font-size: 12px; margin: 0 0 10px 0;"></p>
+                    <div class="input-group otp" style="border: 1px solid transparent;">
+                        <input class="otpEntry" style="margin-left: 0" id="otp1" type="tel" maxlength="1" required>
+                        <input class="otpEntry" id="otp2" type="tel" maxlength="1" required>
+                        <input class="otpEntry" id="otp3" type="tel" maxlength="1" required>
+                        <input class="otpEntry" style="margin-right: 0" id="otp4" type="tel" maxlength="1" required>
+
+                    </div>
+                    <button class="continue-btn" id="loginStep2Button" onclick="processLogin()" style="display: none; position: relative;">
+                        Login Now
+                        <span id="loginLoader2" style="display: none; position: absolute; right: 10px; top: 10px"><div class="loader"></div></span>
+                    </button>
+                </div>
+
+                <div id="loginStep3" style="display: none;">
+                    <h2>Logged in <span style="font-weight: 300; font-size: 70%;">as Abhijith</span></h2>
+                    <div class="input-group">
+                        <div>🇮🇳 <b>+91</b></div>
+                        <input id="mobileRegistered" type="tel" style="font-weight: bold;" maxlength="10" required="" disabled>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="addressSection" id="billingAddressView" style="display: none">
+                <h2>Billing Address</h2>
+                <div class="billing-group">
+                    <input type="text" placeholder="Full Name" id="fullname">
+                </div>
+                <div class="billing-group">
+                    <input type="text" placeholder="Address" id="address">
+                    <input type="text" placeholder="Locality or Landmark" id="locality">
+                </div>
+                <div class="billing-group">
+                    <input type="text" placeholder="City" id="city">
+                    <input type="text" placeholder="State" id="state">
+                    <input type="tel" placeholder="Pincode" maxlength="6" id="pincode">
+                </div>
+                <input type="text" placeholder="Email for Communication" id="email">
+            </div>
+            
+            <section class="payment-section">
+                <p>By placing this order, you agree to our <a href="#">Terms of Service</a> and understand our <a href="#">Privacy Policy</a>.</p>
+            </section>
+        </section>
+
+        <section class="summary-section">
+            <h2>Order Summary</h2>
+            
+            <div class="cartItems" id="crisprCartItems">
+            </div>
+
+            <div class="apply-section" id="giftVoucherSection">
+            </div>
+
+            <div id="crisprCartSummary"></div>
+
+            <button class="pay-btn" id="payNowButton" style="background: gray;">Pay Now</button>
+        </section>
+    </div>
+
+
+<script>
+
+        function sendOTP() {
+
+            var mobileNumber = document.getElementById('mobile').value;
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+            if (indianMobileRegex.test(mobileNumber)) {
+
+                //Disable button
+                document.getElementById("loginStep1Button").disabled = true;
+
+                showToaster("You are not registered.")
+
+
+
+
+
+                //Call Login API
+                document.getElementById("loginLoader1").style.display = 'block';
+                  setTimeout(() => {
+
+                    //Post Success
+                    document.getElementById("loginStep1Button").style.display = 'none';
+                    document.getElementById("loginLoader1").style.display = 'none';
+                    document.getElementById("loginStep1").style.display = 'none';
+                    document.getElementById("loginStep1Button").disabled = false;
+                    document.getElementById("loginStep2").style.display = 'block';
+                    document.getElementById("loginStep2Button").style.display = 'block';
+                    document.getElementById('otp1').focus();
+
+
+                  }, 3000);
+
+
+
+            }
+        }
+
+        function processLogin() {
+            var mobileNumber = document.getElementById('mobile').value;
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+            if (indianMobileRegex.test(mobileNumber)) {
+                const otp = getOTP();
+                if(otp.length != 4) {
+                    showToaster("Please enter all 4 digits of one-time passcode")
+                    document.getElementById('otp4').focus();
+                    return;
+                }
+
+
+                //Loader
+                document.getElementById("loginLoader2").style.display = 'block';
+                setTimeout(() => {
+
+                    //Loader end:
+                    document.getElementById("loginLoader2").style.display = 'none';
+                    document.getElementById("loginStep2").style.display = 'none';
+                    document.getElementById("loginStep3").style.display = 'block';
+
+                    //Set details to Cookie, and localstorate. Refresh should not lose.
+                    document.getElementById("mobileRegistered").value = mobileNumber;
+
+
+                    //Billing address mandatory to proceed (prefilled for regd user)
+                    document.getElementById("billingAddressView").style.display = 'block';
+
+
+                    document.getElementById('otp4').focus();
+
+                }, 3000)
+
+                console.log('hitting '+ mobileNumber + ' with ' + otp)
+                
+                return;
+            }
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('start')
+            document.getElementById('mobile').focus();
+        });
+
+
+        // Function to move focus to the next OTP input
+        function moveToNext(currentInput, nextInputId) {
+            if (currentInput.value.length === 1) {
+                document.getElementById(nextInputId).focus();
+            }
+        }
+
+        // Function to handle OTP submission
+        function submitOtp() {
+            const otp = getOTP();
+
+            console.log('Submitted OTP:', otp);
+        }
+
+        function getOTP(argument) {
+            const otp1 = document.getElementById('otp1').value;
+            const otp2 = document.getElementById('otp2').value;
+            const otp3 = document.getElementById('otp3').value;
+            const otp4 = document.getElementById('otp4').value;
+            const otp = otp1 + otp2 + otp3 + otp4;
+            return otp;
+        }
+
+        // Function to handle backspace and move focus backward
+        function handleBackspace(currentInput, previousInputId) {
+            if (currentInput.value.length === 0 && previousInputId) {
+                document.getElementById(previousInputId).focus();
+            }
+        }
+
+        // Add event listeners to OTP inputs
+        document.getElementById('otp1').addEventListener('input', function() {
+            moveToNext(this, 'otp2');
+        });
+
+        document.getElementById('otp2').addEventListener('input', function() {
+            moveToNext(this, 'otp3');
+        });
+
+        document.getElementById('otp3').addEventListener('input', function() {
+            moveToNext(this, 'otp4');
+        });
+
+        document.getElementById('otp4').addEventListener('input', function() {
+            if (this.value.length === 1) {
+                submitOtp();
+            }
+        });
+
+        // Add keydown event listeners for backspace
+        document.getElementById('otp1').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, null); // No previous input for otp1
+            }
+        });
+
+        document.getElementById('otp2').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp1');
+            }
+        });
+
+        document.getElementById('otp3').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp2');
+            }
+        });
+
+        document.getElementById('otp4').addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                handleBackspace(this, 'otp3');
+            }
+        });
+
+        function validateMobile(mobileNumber) {
+            const indianMobileRegex = /^[6-9]\d{9}$/;
+
+            if (indianMobileRegex.test(mobileNumber)) {
+                document.getElementById('mobileError').innerHTML = '';
+            } else {
+                document.getElementById('mobileError').innerHTML = 'Invalid Mobile Number';
+            }
+        }
+        document.getElementById('mobile').addEventListener('change', function() {
+            validateMobile(this.value);
+        });
+        document.getElementById('mobile').addEventListener('input', function() {
+            if(this.value.length == 10)
+                validateMobile(this.value);
+            else {
+                document.getElementById('mobileError').innerHTML = '';
+            }
+        });
+
+        function showToaster(message) {
+            const toaster = document.getElementById('toaster');
+            toaster.textContent = message;
+            toaster.classList.add('show');
+
+            setTimeout(() => {
+                toaster.classList.remove('show');
+            }, 3000);
+        }
+
+    </script>
+
+
+
+</body>
+</html>

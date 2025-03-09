@@ -1,0 +1,66 @@
+QUESTION BANK
+
+QuestionId - indexed
+QuestionDisplayKey (for UI only) - indexed
+Question
+Question (Mobile View)
+Solution
+Solution URL
+pyqType = IAT / IIT / NONE
+pyqYear = 2020 / 2022 / 0
+questionType = MCQ
+answerType = SINGLE_OPTION
+answer = A
+questionMode = IMAGE_MCQ
+level = 1 EASY /  2 MEDIUM / 3 HARD
+rating = 1.1 to 5.0
+averageTimeToSolveProblem = 30 sec
+createdBy
+createdOn
+lastUpdatedBy
+lastUpdatedOn
+verified = true / false
+cassificationLevel1 = PHYSICS / CHEMISTRY / BIOLOGY / MATHS -- indexed
+cassificationLevel2 = Laws of Motion / Principle of Atom -- indexed
+
+
+
+
+EXAM
+
+Name = Ace IAT 2025
+Brief = Practice for the IAT 2025 Exam
+Image = Display Image
+Special Notes = Terms & Conditions
+Total Duration = 90 min
+Total Number of Questions = 60
+Multiple Attempts Allowed = YES
+Scheduled Exam = NO
+Challenge Question Allowed = YES
+Number of Sections = 4
+Switch Sections Allowed = NO
+Marking Scheme = [Correct / Negative / Unattended]
+Sections = [
+	{
+		name:
+		duration:
+		total questions:
+		questions: [1,2,3,4]
+	}
+]
+Status = DRAFT / PUBLISHED
+
+
+
+ATTEMPT
+id
+examId
+candidateId
+startTime
+scheduledEndTime
+actualEndTime
+endReason
+submissionData
+ipAddress
+macAddress
+status = 0 / 1 / 2
