@@ -540,7 +540,7 @@ angular.module('questionBankApp', ['ngCookies'])
             width: 1800,
             height: 540,
             fillColor: '#fff',
-            imageSmoothingEnabled: false,
+            imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high',
           });
           
@@ -568,6 +568,7 @@ angular.module('questionBankApp', ['ngCookies'])
              .then(function(response) {
                 if(response.data.status == "success"){
                   $scope.modifyQuestionData.url = image;
+                  $scope.canvasData.destroy();
                 } else {
                   $scope.showToaster("Question failed to update");
                 }
@@ -646,7 +647,7 @@ angular.module('questionBankApp', ['ngCookies'])
             width: 1200,
             height: 540,
             fillColor: '#fff',
-            imageSmoothingEnabled: false,
+            imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high',
           });
           
@@ -674,6 +675,7 @@ angular.module('questionBankApp', ['ngCookies'])
              .then(function(response) {
                 if(response.data.status == "success"){
                   $scope.modifyQuestionData.solutionURL = image;
+                  $scope.canvasDataSolution.destroy();
                 } else {
                   $scope.showToaster("Solution failed to update");
                 }
