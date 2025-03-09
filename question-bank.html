@@ -226,6 +226,7 @@
                                           <tr class="odd gradeX" ng-repeat="questionData in listData track by $index" ng-click="openQuestion(questionData)">
                                              <td>{{questionData.id}}
                                                 <i ng-if="questionData.verified" class="fa fa-check-circle verifiedQuestion" title="Verified"></i>
+                                                <i ng-if="questionData.hasSolution" class="fa fa-book verifiedQuestion" title="Solution Added"></i>
                                                 <i ng-if="questionData.challenged" class="fa fa-warning challengedQuestion" title="Challenged"></i>
                                                 <span class="copyQuestion" title="Copy" ng-click="copyToClipboard(questionData.id, $event)">
                                                    <i class="fa fa-clone" aria-hidden="true"></i>
@@ -336,7 +337,7 @@
                                              <img ng-src="{{modifyQuestionData.solutionURL}}" width="100%" ng-if="isPhotoAttachedSolution">
 
                                              <span style="display: flex; padding: 15px" ng-if="!isPhotoAttachedSolution && modifyQuestionData.solutionStorePath && modifyQuestionData.solutionStorePath != ''">
-                                                <i class="fa fa-external-link-square" style="font-size: 120%; margin: 3px 10px 0 0;"></i>
+                                                <i class="fa fa-trash-o" style="font-size: 120%; margin: 3px 10px 0 0; cursor: pointer;" ng-click="modifyQuestionData.solutionStorePath = ''"></i>
                                                 <a class="solutionPathStoreLink" ng-href="{{modifyQuestionData.solutionStorePath}}" style="text-align: left; padding: 0 !important; word-break: break-word; overflow-wrap: break-word; white-space: normal; display: inline-block; max-width: 100%;" target="_blank">{{modifyQuestionData.solutionStorePath}}</a>
                                              </span>
 
