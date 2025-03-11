@@ -45,14 +45,54 @@ Sections = [
 		name:
 		duration:
 		total questions:
-		questions: [1,2,3,4]
+		questions: [1 : [marking_scheme],2,3,4]
 	}
 ]
 Status = DRAFT / PUBLISHED
 
 
+marking_schemes: ENUM
+1. +4 / -1 / 0
 
-ATTEMPT
+
+EXAM SERIES
+name = Mock Tests Complimentary
+brief = "take this awesome test series"
+tests = JSON [101, 102, 104 : locked, 105 : locked, multiple attempts allowed]
+status = 0 DRAFT / 1 ACTIVE / 2 discontinues (no more purchasable)
+originalPrice = 1000
+taxApplicable = JSON {"GST" : 18%}
+currentSellingPrice = 499
+displayImageURL
+createdBy
+createdOn
+lastUpdatedBy
+lastUpdatedOn
+
+[
+    {
+        "testId": 1001,
+        "status": 1,
+        "multipleAttempsAllowed": 1,
+        "reAttemptPeriod": "2880", --> after howmany hours to re-attempt
+        "previewWindowType": 1, --> preview enabled / fixed / from when to when
+        "previewWindowStart": "0", --> since submitted
+        "previewWindowEnd": "2880", --> until 48 hours
+        "scheduledExam": 0, --> YES / NO
+        "scheduleStart": "epoch", --> during this period only
+        "scheduleEnd": "epoch"
+    }
+]
+
+
+
+
+COURSES ENROLLED
+Course / Exam Series
+
+
+
+EXAM ATTEMPTS
 id
 examId
 candidateId

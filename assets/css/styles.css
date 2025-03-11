@@ -30456,9 +30456,21 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   color: #008cff;
 }
 
+.questionSectionButton:active, .questionSectionButton:hover {
+  background-color: #01a9f4 !important;
+}
+
+.questionSectionButton:active .sectionTitleExam, .questionSectionButton:hover .sectionTitleExam {
+  color: #ffffff !important;
+}
+
 .questionSectionButtonActive {
   margin-left: 5px !important;
-  background: #03a9f4 !important;
+  background: #01a9f4 !important;
+}
+
+.questionSectionButtonActive:active, .questionSectionButtonActive:hover {
+  background: #2196f3 !important;
 }
 
 .questionSectionButtonActive .sectionTitleExam {
@@ -30926,4 +30938,19 @@ body.sidebar-collapsed .smartViewIconTop .smartViewIconTopColor:hover {
     opacity: 0;
     transform: translateY(-100px);
 }
+
+@keyframes blinkRed {
+  0% { background-color: #ff7979; }
+  50% { background-color: transparent; }
+  100% { background-color: #ff7979; }
+}
+
+.panel-body.blinkingRed {
+  animation: blinkRed 1s infinite;
+}
+
+.panel-body.blinkingRedStopped {
+  background: #ff7979 !important;
+}
+
 

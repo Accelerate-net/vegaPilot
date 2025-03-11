@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Avenxo Admin Theme - shared on themelock.com</title>
+    <title>Ongoing Exam</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,106 +26,106 @@
     <![endif]-->
     <!-- The following CSS are included as plugins and can be removed if unused-->
     
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/attempt-exam.js"></script>
 
     </head>
 
-    <body class="animated-content">
-        
-        <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+    <body class="animated-content" ng-app="attemptExamApp" ng-controller="attemptExamController" ng-cloak>
+        <div id="examErrorBanner" style="display: none; justify-content: center; align-items: center; height: 100vh; background-color: #fff; margin: 0;" ng-show="!examDetailsFound">
+		    <div style="background-color: #4a4a4a; color: white; padding: 20px 40px; border-radius: 8px; font-size: 18px; text-align: center; margin: 30px;">
+		        <p><b style="font-size: 150%">No active exam found.</b><br>The exam you’re trying to attempt may have already ended.<br>You can start a fresh exam from the Candidate Portal. Let’s keep the preparation going strong.</p>
+		        <button style="margin-top: 20px; padding: 10px 20px; background-color: white; color: #4a4a4a; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;" onclick="window.location.href='/'">
+		            Go to Candidate Portal
+		        </button>
+		    </div>
+		</div>
 
-	<div class="logo-area">		
-		<span class="navbar-brand" href=""></span>
-		<h1 style="margin: 14px 0 0 0; font-size: 24px;"><span style="margin-right: 10px; font-size: 80%; color: #8fa8c4;"><i class="ti ti-write"></i></span>Aim IISER Series - 1</h1>
-	</div><!-- logo-area -->
-
-	<ul class="nav navbar-nav toolbar pull-right" style="padding-right: 10px;">
-        <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
-            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-fullscreen"></i></span></i></a>
-        </li>
-		
-		<li class="dropdown toolbar-icon-bg">
-			<a href="#" class="hasnotifications dropdown-toggle" data-toggle='dropdown'><span class="icon-bg"><i class="ti ti-bell"></i></span><span class="badge badge-deeporange">2</span></a>
-			<div class="dropdown-menu notifications arrow">
-				<div class="topnav-dropdown-header">
-					<span><span ><img src="assets/logo/crispr-logo-for-bright-bg.png" height="20px" style="margin-top: -2px;"></span> Insights</span>
-				</div>
-				<div class="scroll-pane">
-					<ul class="media-list scroll-content">
-						<li class="media notification-warning">
-							<a href="#">
-								<div class="media-left">
-									<span class="notification-icon"><i class="ti ti-time"></i></span>
-								</div>
-								<div class="media-body">
-									<h4 class="notification-heading">You're going slow. 8 questions attempted in last 30 mins.<br><i class="ti ti-light-bulb" style="font-size: 80%"></i><b> Pro Tip:</b> Switch to short length questions</h4>
-									<span class="notification-time">8 mins ago</span>
-								</div>
-							</a>
-						</li>
-						<li class="media notification-info">
-							<a href="#">
-								<div class="media-left">
-									<span class="notification-icon"><i class="ti ti-cup"></i></span>
-								</div>
-								<div class="media-body">
-									<h4 class="notification-heading">You are on Fire! Keep up the speed, your accuracy is good.</h4>
-									<span class="notification-time">24 mins ago</span>
-								</div>
-							</a>
-						</li>
-						<li class="media notification-danger">
-							<a href="#">
-								<div class="media-left">
-									<span class="notification-icon"><i class="fa fa-exclamation-triangle"></i></span>
-								</div>
-								<div class="media-body">
-									<h4 class="notification-heading">You are going too fast. Mind your Accuracy, it's low 15% in last 30 mins.</h4>
-									<span class="notification-time">80 mins ago</span>
-								</div>
-							</a>
-						</li>
-						<li class="media notification-indigo">
-							<a href="#">
-								<div class="media-left">
-									<span class="notification-icon"><i class="ti ti-timer"></i></span>
-								</div>
-								<div class="media-body">
-									<h4 class="notification-heading">You have already spent 60 mins in Physics.<br><i class="ti ti-light-bulb" style="font-size: 80%"></i><b> Pro Tip:</b> Switch to next Section</h4>
-									<span class="notification-time">110 mins ago</span>
-								</div>
-							</a>
-						</li>
-					</ul>
-				</div>
-				<div class="topnav-dropdown-footer">
-					<a href="#"><i class="fa fa-bell-slash-o" style="margin-right: 5px"></i>Stop Sending Insights</a>
-				</div>
+        <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner" ng-show="examDetailsFound">
+			<div class="logo-area">		
+				<span class="navbar-brand" href=""></span>
+				<h1 style="margin: 14px 0 0 0; font-size: 24px;"><span style="margin-right: 10px; font-size: 80%; color: #8fa8c4;"><i class="ti ti-write"></i></span>{{examMetadata.title}}</h1>
 			</div>
-		</li>
 
-		<li class="toolbar-trigger toolbar-icon-bg" id="trigger-sidebar">
-			<a data-toggle="tooltips" data-placement="right" title="See Intelligent Insights">
-				<span class="icon-bg smartViewIconTop">
-					<i class="ti ti-dashboard smartViewIconTopColor"></i>
-				</span>
-			</a>
-        </li>
+			<ul class="nav navbar-nav toolbar pull-right" style="padding-right: 10px;">
+		        <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+		            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-fullscreen"></i></span></i></a>
+		        </li>
+				
+				<li class="dropdown toolbar-icon-bg">
+					<a href="#" class="hasnotifications dropdown-toggle" data-toggle='dropdown'><span class="icon-bg"><i class="ti ti-bell"></i></span><span class="badge badge-deeporange">2</span></a>
+					<div class="dropdown-menu notifications arrow">
+						<div class="topnav-dropdown-header">
+							<span><span ><img src="assets/logo/crispr-logo-for-bright-bg.png" height="20px" style="margin-top: -2px;"></span> Insights</span>
+						</div>
+						<div class="scroll-pane">
+							<ul class="media-list scroll-content">
+								<li class="media notification-warning">
+									<a href="#">
+										<div class="media-left">
+											<span class="notification-icon"><i class="ti ti-time"></i></span>
+										</div>
+										<div class="media-body">
+											<h4 class="notification-heading">You're going slow. 8 questions attempted in last 30 mins.<br><i class="ti ti-light-bulb" style="font-size: 80%"></i><b> Pro Tip:</b> Switch to short length questions</h4>
+											<span class="notification-time">8 mins ago</span>
+										</div>
+									</a>
+								</li>
+								<li class="media notification-info">
+									<a href="#">
+										<div class="media-left">
+											<span class="notification-icon"><i class="ti ti-cup"></i></span>
+										</div>
+										<div class="media-body">
+											<h4 class="notification-heading">You are on Fire! Keep up the speed, your accuracy is good.</h4>
+											<span class="notification-time">24 mins ago</span>
+										</div>
+									</a>
+								</li>
+								<li class="media notification-danger">
+									<a href="#">
+										<div class="media-left">
+											<span class="notification-icon"><i class="fa fa-exclamation-triangle"></i></span>
+										</div>
+										<div class="media-body">
+											<h4 class="notification-heading">You are going too fast. Mind your Accuracy, it's low 15% in last 30 mins.</h4>
+											<span class="notification-time">80 mins ago</span>
+										</div>
+									</a>
+								</li>
+								<li class="media notification-indigo">
+									<a href="#">
+										<div class="media-left">
+											<span class="notification-icon"><i class="ti ti-timer"></i></span>
+										</div>
+										<div class="media-body">
+											<h4 class="notification-heading">You have already spent 60 mins in Physics.<br><i class="ti ti-light-bulb" style="font-size: 80%"></i><b> Pro Tip:</b> Switch to next Section</h4>
+											<span class="notification-time">110 mins ago</span>
+										</div>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="topnav-dropdown-footer">
+							<a href="#"><i class="fa fa-bell-slash-o" style="margin-right: 5px"></i>Stop Sending Insights</a>
+						</div>
+					</div>
+				</li>
 
-<!-- 
-		<span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
-			<a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-				<span class="icon-bg smartViewIconTop">
-					<i class="ti ti-cup"></i>
-				</span>
-			</a>
-		</span>
- -->
+				<li class="toolbar-trigger toolbar-icon-bg" id="trigger-sidebar">
+					<a data-toggle="tooltips" data-placement="right" title="See Intelligent Insights">
+						<span class="icon-bg smartViewIconTop">
+							<i class="ti ti-dashboard smartViewIconTopColor"></i>
+						</span>
+					</a>
+		        </li>
+			</ul>
+		</header>
 
-	</ul>
-
-</header>
-
-        <div id="wrapper">
+        <div id="wrapper" ng-show="examDetailsFound">
             <div id="layout-static">
 
                 <div class="static-content-wrapper">
@@ -139,29 +139,17 @@
 													<div class="inbox-mail-heading">
 														<div class="clearfix">
 															<div class="pull-left">
-														        <button href="app-inbox.html" class="btn btn-lg btn-default"><i class="ti ti-angle-left"></i></button>
+														        <button class="btn btn-lg btn-default" ng-click="moveSectionLeft()"><i class="ti ti-angle-left"></i></button>
 														        <div class="btn-group">
-										                            <button class="btn btn-lg btn-default questionSectionButton questionSectionButtonActive">
-										                            	<span class="sectionTitleExam">Physics</span>
-										                            	<span class="questionSectionInfo"><i class="fa fa-info"></i></span>
-										                            </button>
-										                            <button class="btn btn-lg btn-default questionSectionButton">
-										                            	<span class="sectionTitleExam">Chemisty</span>
-										                            	<span class="questionSectionInfo"><i class="fa fa-info"></i></span>
-										                            </button>
-										                            <button class="btn btn-lg btn-default questionSectionButton">
-										                            	<span class="sectionTitleExam">Mathematics</span>
-										                            	<span class="questionSectionInfo"><i class="fa fa-info"></i></span>
-										                            </button>
-										                            <button class="btn btn-lg btn-default questionSectionButton">
-										                            	<span class="sectionTitleExam">Biology</span>
+										                            <button class="btn btn-lg btn-default-alt questionSectionButton" ng-repeat="sectionTiles in sectionDetails track by $index" ng-click="loadSection($index + 1)" ng-class="{'questionSectionButtonActive' : isActiveSection($index + 1)}">
+										                            	<span class="sectionTitleExam">{{sectionTiles}}</span>
 										                            	<span class="questionSectionInfo"><i class="fa fa-info"></i></span>
 										                            </button>
 										                        </div>
-										                        <button class="btn btn-lg btn-default" style="margin-left: 5px;"><i class="ti ti-angle-right"></i></button>
+										                        <button class="btn btn-lg btn-default" ng-click="moveSectionRight()" style="margin-left: 5px;"><i class="ti ti-angle-right"></i></button>
 														    </div>
 														    <div class="pull-right hidden-xs">
-														    	<button class="btn btn-warning pull-right" style="font-size: 12px; font-weight: 400; text-transform: none; margin-top: 5px; margin-right: 5px;"><i class="ti ti-tablet" style="margin-right: 5px"></i>Calculator</button>
+														    	<button class="btn btn-warning pull-right" id="show-calculator-button" style="font-size: 12px; font-weight: 400; text-transform: none; margin-top: 5px; margin-right: 5px;"><i class="ti ti-tablet" style="margin-right: 5px"></i>Calculator</button>
 														    </div>
 														</div>
 													</div>
@@ -176,15 +164,13 @@
 													<div class="inbox-read-details clearfix">
 														<div class="pull-left">
 															<h3 class="examQuestionTitle">
-																<span>Question 1</span>
+																<span>Question {{displayingQuestion.number}}</span>
 															</h3>
 															
 														</div>
 														<div class="pull-right">
-															<div class="smartQuestionTimer">
-																<span class="timerView">
-																	<i class="ti ti-timer"></i>
-																	00:30
+															<div class="smartQuestionTimer" ng-show="showQuestionLevelInsights">
+																<span class="timerView" id="currentQuestionTimer">
 																</span>
 															</div>
 															
@@ -203,48 +189,46 @@
 													</div>
 
 													<!-- Smart Progress Bar -->
-													<div class="smartQuestionLevelProgressBar">
+													<div class="smartQuestionLevelProgressBar" ng-show="showQuestionLevelInsights">
 														<div class="progress showProgress">
-							                                <div class="progress-bar progress-bar-success" style="width: 50%"></div>
-							                                <div class="progress-bar progress-bar-warning" style="width: 30%"></div>
-							                                <div class="progress-bar progress-bar-danger" style="width: 10%"></div>
+							                                <div class="progress-bar" ng-class="getProgressBarClass()" ng-style="{'width': currentQuestionTimePercentageLapsed + '%'}"> </div>
 							                          	</div>
 						                          	</div>
 
 													<div class="msg-body">
 														<div class="questionAttemptImage">
-															<img src="/Users/abhijithcs/workspace/scripts/pdf-to-image/image-output/Page_3.jpg" width="80%">
+															<img ng-src="{{displayingQuestion.url}}" width="80%">
 														</div>
 														<div class="questionAttemptOptions">
 															<div class="row" style="padding: 0 10px;">
 																<div class="col-md-12">
-																	<div class="radio block questionOptionBlock">
+																	<div class="radio block questionOptionBlock" ng-class="{'questionOptionSelected': displayingQuestion.answer == 'A'}" ng-click="submitCurrentQuestionAnswer(displayingQuestion.questionDisplayKey, 'A')">
 																		<label class="questionOptionLabel">
-																			<input type="radio" style="position: relative;"> 
+																			<input type="radio" style="position: relative;" ng-model="displayingQuestion.answer" ng-value="'A'"> 
 																			<label class="innerLabel">A</label>
 																		</label>
 																	</div>
 																</div>
 																<div class="col-md-12">
-																	<div class="radio block questionOptionBlock questionOptionSelected">
+																	<div class="radio block questionOptionBlock" ng-class="{'questionOptionSelected': displayingQuestion.answer == 'B'}" ng-click="submitCurrentQuestionAnswer(displayingQuestion.questionDisplayKey, 'B')">
 																		<label class="questionOptionLabel">
-																			<input type="radio" style="position: relative;"> 
+																			<input type="radio" style="position: relative;" ng-model="displayingQuestion.answer" ng-value="'B'"> 
 																			<label class="innerLabel">B</label>
 																		</label>
 																	</div>
 																</div>
 																<div class="col-md-12">
-																	<div class="radio block questionOptionBlock">
+																	<div class="radio block questionOptionBlock" ng-class="{'questionOptionSelected': displayingQuestion.answer == 'C'}" ng-click="submitCurrentQuestionAnswer(displayingQuestion.questionDisplayKey, 'C')">
 																		<label class="questionOptionLabel">
-																			<input type="radio" style="position: relative;"> 
+																			<input type="radio" style="position: relative;" ng-model="displayingQuestion.answer" ng-value="'C'"> 
 																			<label class="innerLabel">C</label>
 																		</label>
 																	</div>
 																</div>
 																<div class="col-md-12">
-																	<div class="radio block questionOptionBlock">
+																	<div class="radio block questionOptionBlock" ng-class="{'questionOptionSelected': displayingQuestion.answer == 'D'}" ng-click="submitCurrentQuestionAnswer(displayingQuestion.questionDisplayKey, 'D')">
 																		<label class="questionOptionLabel">
-																			<input type="radio" style="position: relative;"> 
+																			<input type="radio" style="position: relative;" ng-model="displayingQuestion.answer" ng-value="'D'"> 
 																			<label class="innerLabel">D</label>
 																		</label>
 																	</div>
@@ -256,11 +240,11 @@
 													<div class="msg-attachments row" style="margin: 0">
 														<div class="row">
 															<div class="col-md-6">
-																<button class="btn btn-inverse-alt">Mark for Review & Next</button>
-																<button class="btn btn-inverse-alt">Clear Response</button>
+																<button ng-click="markForReviewAndNext(displayingQuestion.questionDisplayKey, displayingQuestion.answer)" class="btn btn-inverse-alt btn-lg">Mark for Review & Next</button>
+																<button ng-click="clearResponseForQuestion(displayingQuestion.questionDisplayKey)" class="btn btn-inverse-alt btn-lg">Clear Response</button>
 															</div>
 															<div class="col-md-6">
-																<button class="btn btn-primary pull-right">Save & Next</button>
+																<button class="btn btn-primary btn-lg pull-right" ng-click="saveAndNext(displayingQuestion.sectionId, displayingQuestion.number, displayingQuestion.questionDisplayKey, displayingQuestion.answer)">Save & Next</button>
 															</div>
 														</div>
 													</div>
@@ -271,14 +255,15 @@
 										<div class="col-md-3">
 
 											<div class="panel" style="margin: 0 0 20px 0; box-shadow: none; border: 2px solid #008cff; border-radius: 0;">
-								                <div class="panel-body" style="padding: 10px 6px !important">
-													<div class="timer-container">
-					                			    	<label class="timerLabel">Time Left</label>
+								                <div class="panel-body" id="timerContainer" style="padding: 10px 6px !important; border-radius: 0;">
+												    <div class="timer-container">
+												        <label class="timerLabel">Time Left</label>
 												        <div id="timerCountDown">
-												        	<span class="hours">03</span><span class="colon blink">:</span><span class="minutes">29</span><span class="colon blink">:</span><span class="seconds">52</span>
+												            <span class="hours">00</span><span class="colon blink">:</span><span class="minutes">00</span><span class="colon blink">:</span><span class="seconds">00</span>
 												        </div>
 												    </div>
-								                </div>
+												</div>
+
 								            </div>
 
 
@@ -286,13 +271,13 @@
 								                <div class="panel-body examNavigation" style="padding: 10px 6px !important">
 								                	<div class="row">
 								            			<div class="col-md-2">
-								            				<span><span class="square questionAnswered">2</span></span>
+								            				<span><span class="square questionAnswered">{{answerDisplaySummaryMatric(4)}}</span></span>
 								            			</div>
 								            			<div class="col-md-4">
 								            				<span class="attemptSummaryText">Answered</span>
 								            			</div>
 								            			<div class="col-md-2">
-								            				<span><span class="square questionNotAnswered">1</span></span>
+								            				<span><span class="square questionNotAnswered">{{answerDisplaySummaryMatric(1)}}</span></span>
 								            			</div>
 								            			<div class="col-md-4">
 								            				<span class="attemptSummaryText">Not Answered</span>
@@ -300,13 +285,13 @@
 								                	</div>
 								                	<div class="row">
 								            			<div class="col-md-2">
-								            				<span><span class="square notVisited">12</span></span>
+								            				<span><span class="square notVisited">{{answerDisplaySummaryMatric(0)}}</span></span>
 								            			</div>
 								            			<div class="col-md-4">
 								            				<span class="attemptSummaryText">Not Visited</span>
 								            			</div>
 								            			<div class="col-md-2">
-								            				<span><span class="square markedForRevew">1</span></span>
+								            				<span><span class="square markedForRevew">{{answerDisplaySummaryMatric(2)}}</span></span>
 								            			</div>
 								            			<div class="col-md-4">
 								            				<span class="attemptSummaryText">Marked for Review</span>
@@ -314,7 +299,7 @@
 								                	</div>
 								                	<div class="row">
 								            			<div class="col-md-2">
-								            				<span><span class="square answeredAndMarkedForRevew">11</span></span>
+								            				<span><span class="square answeredAndMarkedForRevew">{{answerDisplaySummaryMatric(3)}}</span></span>
 								            			</div>
 								            			<div class="col-md-8">
 								            				<span class="attemptSummaryText">Answered & Marked for Review (will also be evaluated)</span>
@@ -325,27 +310,11 @@
 
 											<div class="panel" style="margin: 0 0 10px 0">
 												<div class="panel-heading" style="background-color: #008cff; height: 30px;">
-													<h2 style="color: #ffffff !important; padding: 6px 0; margin: 0">Physics</h2>
+													<h2 style="color: #ffffff !important; padding: 6px 0; margin: 0">{{currentSection.name}}</h2>
 												</div>
 								                <div class="panel-body examNavigation">
 								                	<div class="navigation">
-												        <span><span class="square questionAnswered">1</span></span>
-												        <span><span class="square questionAnswered">2</span></span>
-												        <span><span class="square questionNotAnswered">3</span></span>
-												        <span><span class="square markedForRevew">4</span></span>
-												        <span><span class="square answeredAndMarkedForRevew">5</span></span>
-												        <span><span class="square notVisited">6</span></span>
-												        <span><span class="square notVisited">7</span></span>
-												        <span><span class="square notVisited">8</span></span>
-												        <span><span class="square notVisited">9</span></span>
-												        <span><span class="square notVisited">10</span></span>
-												        <span><span class="square notVisited">11</span></span>
-												        <span><span class="square notVisited">12</span></span>
-												        <span><span class="square notVisited">13</span></span>
-												        <span><span class="square notVisited">14</span></span>
-												        <span><span class="square notVisited">15</span></span>
-												        <span><span class="square notVisited">16</span></span>
-												        <span><span class="square notVisited">17</span></span>
+												        <span ng-click="loadSectionWithQuestion(currentSection.id, key)" ng-repeat="(key, question) in currentSection.questions"><span class="square" ng-class="getAnswerDisplayButton(question.questionDisplayKey)">{{key}}</span></span>
 												    </div>
 								                </div>
 								            </div>
@@ -363,13 +332,8 @@
 					</footer>
                 </div>
 
-
-                <!-- Calculator -->
-                <!-- <div style="position: fixed; bottom: 1rem; left: 40%; opacity: 1; background: #f7f8fa; box-shadow: 0px 0px 8px 2px #dedede; overflow-y: auto;"><iframe src="calculator-widget/calculator.html" width="463" height="310" style="border: none;"></iframe><button style="position: absolute; top: 2px; right: 4px; border: none; background: #444; color: white; font-weight: bold; font-size: 15px; cursor: pointer;"><i class="ti ti-close"></i></button> </div> -->
-
-
 				<!-- Calculator -->
-				<div id="calculator-container" style="position: fixed; top: 140px; left: 40%; opacity: 1; background: #f7f8fa; box-shadow: 0px 0px 8px 2px #dedede; overflow-y: hidden;">
+				<div id="calculator-container" style="position: fixed; top: 140px; left: 40%; opacity: 1; background: #f7f8fa; box-shadow: 0px 0px 8px 2px #dedede; overflow-y: hidden; display: none;">
 				    <div id="calculator-handle" style="width: 100%; height: 36px; background: #444; color: white; text-align: right; cursor: move;">
 				    	<p style="display: inline-block; text-align: left; float: left; margin: 8px;">Scientific Calculator <span style="margin-left: 8px; margin-top: 1px; position: absolute; opacity: .6;"><i class="ti ti-move"></i></span> <img src="assets/logo/crispr-logo-for-dark-bg.png" class="brandLogo"></p>
 				        <button id="close-calculator" style="border: none; background: none; color: white; font-weight: bold; font-size: 15px; cursor: pointer; margin: 7px;">

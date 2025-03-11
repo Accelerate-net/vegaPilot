@@ -49,6 +49,7 @@ $(document).ready(function() {
         const calculatorContainer = document.getElementById('calculator-container');
         const calculatorHandle = document.getElementById('calculator-handle');
         const closeCalculatorButton = document.getElementById('close-calculator');
+        const showCalculatorButton = document.getElementById('show-calculator-button');
 
         let isDragging = false;
         let offsetX, offsetY;
@@ -126,38 +127,7 @@ $(document).ready(function() {
             // localStorage.removeItem('calculatorPosition');
         });
 
-
-
-
-        // EXAM COUNT DOWN
-        function startTimer(duration, display) {
-            let timer = duration, hours, minutes, seconds;
-            const hoursSpan = display.querySelector('.hours');
-            const minutesSpan = display.querySelector('.minutes');
-            const secondsSpan = display.querySelector('.seconds');
-            const colons = display.querySelectorAll('.blink');
-
-            const interval = setInterval(function () {
-                hours = parseInt(timer / 3600, 10);
-                minutes = parseInt((timer % 3600) / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-
-                hoursSpan.textContent = hours < 10 ? "0" + hours : hours;
-                minutesSpan.textContent = minutes < 10 ? "0" + minutes : minutes;
-                secondsSpan.textContent = seconds < 10 ? "0" + seconds : seconds;
-
-                if (--timer < 0) {
-                    clearInterval(interval);
-                    hoursSpan.textContent = "00";
-                    minutesSpan.textContent = "00";
-                    secondsSpan.textContent = "00";
-                }
-            }, 1000);
-        }
-
-        window.onload = function () {
-            const totalTime = 3 * 3600 + 29 * 60 + 52; // 3 hours, 29 minutes, 52 seconds
-            const display = document.querySelector('#timerCountDown');
-            startTimer(totalTime, display);
-        };
+        showCalculatorButton.addEventListener('click', () => {
+            calculatorContainer.style.display = 'block';
+        });
 });
