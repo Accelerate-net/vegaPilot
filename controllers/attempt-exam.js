@@ -34,9 +34,17 @@ angular.module('attemptExamApp', ['ngCookies'])
     $scope.displayingQuestion = {};
 
     //Preferences
-    $scope.showQuestionLevelInsights = true;
+    $scope.criprInsightsEnabled = localStorage.getItem("criprInsightsEnabled") ? localStorage.getItem("criprInsightsEnabled") == 1 : false;
     $scope.currentQuestionTimePercentageLapsed = 0;
     $scope.currentQuestionAnswered = false;
+
+    $scope.toggleCrisprInsights = function() {
+        var toggleValue = localStorage.getItem("criprInsightsEnabled") ? localStorage.getItem("criprInsightsEnabled") == 1 : false;
+        $scope.criprInsightsEnabled = !toggleValue;
+        localStorage.setItem("criprInsightsEnabled", $scope.criprInsightsEnabled ? 1 : 0);
+    }
+
+
 
     $scope.updateSectionNamesList = function(examData) {
         $scope.sectionDetails = Object.values(examData).map(section => section.name);
@@ -90,7 +98,7 @@ angular.module('attemptExamApp', ['ngCookies'])
     $scope.saveAndNext = function(currentSectionId, currentQuestionId, currentQuestionKey, answerOpted) {
 
         //Make it dynamic
-        if(answerOpted != 'A' && answerOpted != 'B' && answerOpted != 'C' && answerOpted != 'D') {
+        if(answerOpted != '' && answerOpted != 'A' && answerOpted != 'B' && answerOpted != 'C' && answerOpted != 'D') {
             return;
         }
 
@@ -114,7 +122,7 @@ angular.module('attemptExamApp', ['ngCookies'])
             nextQuestion = parseInt(currentQuestionId) + 1
         }
 
-        $scope.displayQuestionFromSection(nextSection, nextQuestion);
+        $scope.loadSectionWithQuestion(nextSection, nextQuestion);
     }
 
     $scope.loadSectionWithQuestion = function(sectionId, questionId) {
@@ -258,7 +266,7 @@ angular.module('attemptExamApp', ['ngCookies'])
     $scope.processAnswerSubmission = function(questionKey, answerOpted) {
         var examSubmissionData = localStorage.getItem("examSubmissionData") ? JSON.parse(localStorage.getItem("examSubmissionData")) : {};
         examSubmissionData[questionKey] = {
-            "t": ANSWER_MODES.ANSWERED,
+            "t": answerOpted == '' ? ANSWER_MODES.NOT_ANSWERED : ANSWER_MODES.ANSWERED,
             "a": answerOpted
         }
         localStorage.setItem("examSubmissionData", JSON.stringify(examSubmissionData));
@@ -309,7 +317,7 @@ angular.module('attemptExamApp', ['ngCookies'])
         $scope.answerDisplayContentRefresh();
     }
 
-    $scope.markForReviewAndNext = function(questionKey, answerOpted) {
+    $scope.markForReviewAndNext = function(currentSectionId, currentQuestionId, questionKey, answerOpted) {
         //Make it dynamic
         var answerRightly = true;
         if(answerOpted != 'A' && answerOpted != 'B' && answerOpted != 'C' && answerOpted != 'D') {
@@ -326,6 +334,26 @@ angular.module('attemptExamApp', ['ngCookies'])
         }
         localStorage.setItem("examSubmissionData", JSON.stringify(examSubmissionData));
         $scope.answerDisplayContentRefresh();
+
+        var nextSection, nextQuestion;
+        var numberOfQuestionsInCurrentSection = Object.keys($scope.examDetails[currentSectionId].questions).length;
+        
+        if(currentQuestionId == numberOfQuestionsInCurrentSection) { //Move to next section
+            nextSection = parseInt(currentSectionId) + 1;
+
+            var totalSections = parseInt($scope.examMetadata.numberOfSections);
+            if(nextSection > totalSections) //End of exam
+                return;
+
+
+            $scope.loadSection(nextSection);
+            return;
+        } else {
+            nextSection = currentSectionId;
+            nextQuestion = parseInt(currentQuestionId) + 1
+        }
+
+        $scope.loadSectionWithQuestion(nextSection, nextQuestion);
     }
 
 
@@ -429,14 +457,17 @@ angular.module('attemptExamApp', ['ngCookies'])
                 $scope.forceSubmitExam(); //Auto Submit
             }
 
-            if(hours == 0 && minutes < 2) { //less than 1 minute left
-                document.getElementById("timerContainer").classList.add("blinkingRed");
-                document.getElementById("timerContainer").classList.remove("blinkingRedStopped");
-            }
-            if(hours == 0 && minutes == 0 && seconds < 10) { //less than 10 seconds
-                console.log('remove')
-                document.getElementById("timerContainer").classList.remove("blinkingRed");
-                document.getElementById("timerContainer").classList.add("blinkingRedStopped");
+            //Red Timer Alerting
+            if(criprInsightsEnabled) {
+                if(hours == 0 && minutes < 2) { //less than 1 minute left
+                    document.getElementById("timerContainer").classList.add("blinkingRed");
+                    document.getElementById("timerContainer").classList.remove("blinkingRedStopped");
+                }
+                if(hours == 0 && minutes == 0 && seconds < 10) { //less than 10 seconds
+                    console.log('remove')
+                    document.getElementById("timerContainer").classList.remove("blinkingRed");
+                    document.getElementById("timerContainer").classList.add("blinkingRedStopped");
+                }
             }
 
         }, 1000);

@@ -55,7 +55,7 @@
 		            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-fullscreen"></i></span></i></a>
 		        </li>
 				
-				<li class="dropdown toolbar-icon-bg">
+				<li class="dropdown toolbar-icon-bg" ng-show="criprInsightsEnabled">
 					<a href="#" class="hasnotifications dropdown-toggle" data-toggle='dropdown'><span class="icon-bg"><i class="ti ti-bell"></i></span><span class="badge badge-deeporange">2</span></a>
 					<div class="dropdown-menu notifications arrow">
 						<div class="topnav-dropdown-header">
@@ -169,7 +169,7 @@
 															
 														</div>
 														<div class="pull-right">
-															<div class="smartQuestionTimer" ng-show="showQuestionLevelInsights">
+															<div class="smartQuestionTimer" ng-show="criprInsightsEnabled">
 																<span class="timerView" id="currentQuestionTimer">
 																</span>
 															</div>
@@ -189,8 +189,8 @@
 													</div>
 
 													<!-- Smart Progress Bar -->
-													<div class="smartQuestionLevelProgressBar" ng-show="showQuestionLevelInsights">
-														<div class="progress showProgress">
+													<div class="smartQuestionLevelProgressBar">
+														<div class="progress showProgress" ng-show="criprInsightsEnabled">
 							                                <div class="progress-bar" ng-class="getProgressBarClass()" ng-style="{'width': currentQuestionTimePercentageLapsed + '%'}"> </div>
 							                          	</div>
 						                          	</div>
@@ -240,7 +240,7 @@
 													<div class="msg-attachments row" style="margin: 0">
 														<div class="row">
 															<div class="col-md-6">
-																<button ng-click="markForReviewAndNext(displayingQuestion.questionDisplayKey, displayingQuestion.answer)" class="btn btn-inverse-alt btn-lg">Mark for Review & Next</button>
+																<button ng-click="markForReviewAndNext(displayingQuestion.sectionId, displayingQuestion.number, displayingQuestion.questionDisplayKey, displayingQuestion.answer)" class="btn btn-inverse-alt btn-lg">Mark for Review & Next</button>
 																<button ng-click="clearResponseForQuestion(displayingQuestion.questionDisplayKey)" class="btn btn-inverse-alt btn-lg">Clear Response</button>
 															</div>
 															<div class="col-md-6">
@@ -353,8 +353,13 @@
 							        		<span><img src="assets/logo/crispr-logo-for-dark-bg.png" height="24px" style="margin-top: -2px;"></span>
 							        		<span>insights™</span>
 							        	</h4>
+							        	<button class="btn btn-danger disable btn-sm pull-right" style="position: relative; right: -6px; top: -23px;" ng-click="toggleCrisprInsights()" ng-show="criprInsightsEnabled">Stop</button>
 							        </div>
-							        <div class="widget-body">
+							        <div class="widget-body" style="margin: 0; padding: 20px;" ng-show="!criprInsightsEnabled">
+							        	<p style="color: #e7e7e7; line-height: 24px; font-weight: 300;">Get real-time insights as you tackle your practice test. A practice exam isn’t just about answering quality questions — it’s about mastering time management and applying smart strategies under pressure. Crispr Insights delivers intelligent feedback during your exam to help you optimize your approach. You can switch it off anytime - if you would prefer distraction-free, real-like mock test experience.</p>
+							        	<button class="btn btn-info btn-sm btn-block" ng-click="toggleCrisprInsights()">Enable Insights</button>
+							        </div>
+							        <div class="widget-body" ng-show="criprInsightsEnabled">
 
 							            <!-- Progress Tracker -->
 							        	<div class="col-md-12" style="margin-top: 10px; padding: 0 8px;">
