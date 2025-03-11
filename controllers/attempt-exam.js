@@ -212,9 +212,9 @@ angular.module('attemptExamApp', ['ngCookies'])
                 const display = document.querySelector('#timerCountDown');
                 $scope.startTimer(totalTimeRemaining, display);
 
-            } else if(response.data.status == "error") {
-                $scope.examDetailsFound.examFound = false;
-                alert(response.data.message)
+            } else {
+                $scope.examDetailsFound = false;
+                document.getElementById("examErrorBanner").style.display = 'flex';
             }
         });
       }
