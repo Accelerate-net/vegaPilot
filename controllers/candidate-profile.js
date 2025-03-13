@@ -7,18 +7,166 @@ angular.module('CandidateProfileApp', ['ngCookies'])
 
 .controller('candidateProfileController', function($scope, $http, $interval, $cookies) {
 
-      $scope.name = "Abhijith";
-      $scope.myPhotoURL = "https://abhijithcs.in/assets/images/avatar.jpg";
+    //Check if logged in
+    if($cookies.get("crispriteUserToken")){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "candidate-profile.html";
+    }
 
-      
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("crispriteUserToken")){
+        $cookies.remove("crispriteUserToken");
+        window.location = "candidate-login/index.html";
+      }
+    }
+
+    function getUserToken() {
+      return "Bearer " + $cookies.get("crispriteUserToken");  
+    }
+
+    //Default Tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTab = urlParams.get('currentTab');
+    $scope.activeTab = currentTab ? currentTab : 1;
+
+    document.getElementById("profileTab"+ $scope.activeTab).click();
+
+    $scope.changeActiveTab = function(tabId) {
+      const url = new URL(window.location);
+      url.searchParams.set("currentTab", tabId);
+      window.history.pushState({}, '', url);
+      $scope.activeTab = tabId;
+    }
+
+    $scope.getActiveClass = function(tabId) {
+      return tabId == $scope.activeTab ? "active" : "";
+    }
+
+
+    $scope.originaProfileData = {};
+    $scope.profileData = {};
+    $scope.fetchProfileData = function() {
+        $http({
+          method  : 'GET',
+          url     : 'http://akbarmanjeri.in/crispr-apis/user/user-profile.php',
+          headers : {
+            'Content-Type': 'application/json',
+            'Authorization': getUserToken()
+          }
+         })
+         .then(function(response) {
+            if(response.data.status == "success"){
+                $scope.originaProfileData = response.data.data;
+                $scope.profileData = response.data.data;
+                $scope.profileFound = true;
+            } else {
+                $scope.profileFound = false;
+            }
+        });
+    }
+
+    $scope.fetchProfileData();
+
+
+    $scope.saveProfile = function(profileData) {
+      $scope.profileData.dob = document.getElementById('dob_edit').value;
+      var yearOfPassing = parseInt(profileData.yearOfPassing);
+      if(yearOfPassing < 2000 || yearOfPassing > 2030)
+        yearOfPassing = '';
+
+      var updateData = {
+          "name": profileData.name,
+          "about": profileData.about,
+          "dob": profileData.dob,
+          "gender": profileData.gender,
+          "place": profileData.place,
+          "fatherName": profileData.fatherName,
+          "motherName": profileData.motherName,
+          "aspiration": profileData.aspiration,
+          "classOfStudy": profileData.classOfStudy,
+          "board": profileData.board,
+          "yearOfPassing": yearOfPassing,
+          "lastInstitution": profileData.lastInstitution,
+          "communicationMobile": profileData.communicationMobile,
+          "email": profileData.email
+      }
+
+      $http({
+          method  : 'POST',
+          url     : 'http://akbarmanjeri.in/crispr-apis/user/update-profile.php',
+          data    : updateData,
+          headers : {
+            'Content-Type': 'application/json',
+            'Authorization': getUserToken()
+          }
+         })
+         .then(function(response) {
+            if(response.data.status == "success"){
+                alert('profile updated')
+            } else {
+              console.log('failed')
+            }
+      });
+    
+    }
+
+
+
+    $scope.resetProfile = function() {
+      const number = $scope.profileData.registeredNumber;
+      $scope.profileData = {};
+      $scope.profileData.registeredNumber = number; 
+    }
+
+    $scope.getParentsNames = function(profileData) {
+      var mother = profileData.motherName || '';
+      var father = profileData.fatherName || '';
+
+      if (mother && father) {
+          return mother + " & " + father;
+      } else if (mother) {
+          return mother;
+      } else if (father) {
+          return father;
+      } else {
+          return "";
+      }
+    };
+
+    $scope.getBoardAndYearOfPassing = function(profileData) {
+      var board = profileData.board || '';
+      var year = parseInt(profileData.yearOfPassing) || '';
+      if(year < 1)
+        year = '';
+
+      if (board && year) {
+          return board + " / " + year;
+      } else if (board) {
+          return board;
+      } else if (year) {
+          return year;
+      } else {
+          return "";
+      }
+    }
+
+
+
+
+      //Updating Image
+
       //Image Cropper
       $scope.myImage = '';
       $scope.myCroppedImage = '';
       
-        var image = "";
-        $scope.cropBoxData;
-        $scope.canvasData;
-        $scope.cropper;
+      var image = "";
+      $scope.cropBoxData;
+      $scope.canvasData;
+      $scope.cropper;
   
       var handleFileSelect = function(evt) {
         var file = evt.currentTarget.files[0];
@@ -33,20 +181,22 @@ angular.module('CandidateProfileApp', ['ngCookies'])
               autoCropArea: 0.9,
               scalable: false,
               ready: function () {
-                // Strict mode: set crop box data first
-                $scope.cropper.setCropBoxData($scope.cropBoxData).setCanvasData($scope.canvasData);
-              }
-            });           
-      }, 1000);
-      $scope.photoLoadedToFrame = true;
+                  // Strict mode: set crop box data first
+                  $scope.cropper.setCropBoxData($scope.cropBoxData).setCanvasData($scope.canvasData);
+                }
+              });           
+            }, 1000);
+              $scope.photoLoadedToFrame = true;
           });
         };
         reader.readAsDataURL(file);
       };
-      angular.element(document.querySelector('#fileInput')).on('change', handleFileSelect);
       
+      angular.element(document.querySelector('#fileInput')).on('change', handleFileSelect);
+   
+
+
    $scope.attachPhoto = function(){
-    console.log('hello')
     $('#imageModal').modal('show');   
     $scope.photoLoadedToFrame = false;  
    }
@@ -76,20 +226,22 @@ angular.module('CandidateProfileApp', ['ngCookies'])
 
 
     $scope.saveCandidatePhoto = function(photoURL){
-          var data = {};
-          data.token = $cookies.get("accelerateVegaDeskAdmin");
-          data.url = photoURL;
-
-          console.log(data)
-
+          var data = {
+            "photo" : photoURL
+          };
           $http({
             method  : 'POST',
-            url     : 'https://accelerateengine.app/food-engine/apis/epreditperson.php',
+            url     : 'http://akbarmanjeri.in/crispr-apis/user/upload-profile-photo.php',
             data    : data,
-            headers : {'Content-Type': 'application/x-www-form-urlencoded'}
+            headers : {
+              'Content-Type': 'application/json',
+              'Authorization': getUserToken()
+            }
            })
            .then(function(response) {            
-              
+              if(response.data.status == "success") {
+                $scope.profileData.photo = response.data.data;
+              }
           });   
     };
 

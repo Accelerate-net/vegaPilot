@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
 
         * {
@@ -253,7 +254,7 @@
         <div class="right-panel">
             
                 <div id="loginStep1">
-                    <h2>Login</h2>
+                    <h2>Login / Register</h2>
                     <p style="font-weight: 300;">Please enter your mobile number to continue.</p>
 
                     <div class="input-group">
@@ -263,7 +264,7 @@
                 </div>
 
                 <div id="loginStep2" style="display: none">
-                    <h2>Login <span style="font-weight: 300; font-size: 50%;">as 9043XXXX76</span></h2>
+                    <h2>Continue <span style="font-weight: 300; font-size: 50%;"><span id="loginAttemptingMobile"></span></span></h2>
                     <p style="font-weight: 300;">Please enter the one-time passcode.</p>
                     <p style="font-weight: 300; font-size: 12px; margin: 0 0 10px 0;"></p>
                     <div class="input-group otp" style="border: 1px solid transparent;">
@@ -294,49 +295,95 @@
 
     <script>
 
+        function maskedMobileNumber(mobileNumber) {
+            if (typeof mobileNumber !== 'string' || mobileNumber.length !== 10) {
+                return "";
+            }
+
+            const digits = mobileNumber.split('');
+            // Mask the 3rd, 4th, 6th, and 7th positions with 'X'
+            digits[2] = 'X'; // 3rd position (index 2)
+            digits[3] = 'X'; // 4th position (index 3)
+            digits[5] = 'X'; // 6th position (index 5)
+            digits[6] = 'X'; // 7th position (index 6)
+
+            return digits.join('');
+        }
+
         function sendOTP() {
+
+            //Update URL param
+            const url = new URL(window.location);
+            url.searchParams.set("step", 1);
+            window.history.pushState({}, '', url);
 
             var mobileNumber = document.getElementById('mobile').value;
             const indianMobileRegex = /^[6-9]\d{9}$/;
+
             if (indianMobileRegex.test(mobileNumber)) {
 
                 //Disable button
                 document.getElementById("loginStep1Button").disabled = true;
 
-                showToaster("You are not registered.")
-
-
-
-
-
                 //Call Login API
                 document.getElementById("loginLoader1").style.display = 'block';
-                  setTimeout(() => {
-                    
 
-                    //Post Success
-                    document.getElementById("loginStep1Button").style.display = 'none';
-                    document.getElementById("loginLoader1").style.display = 'none';
-                    document.getElementById("loginStep1").style.display = 'none';
-                    document.getElementById("loginStep1Button").disabled = false;
-                    document.getElementById("loginStep2").style.display = 'block';
-                    document.getElementById("loginStep2Button").style.display = 'block';
-                    document.getElementById('otp1').focus();
+                var authData = {
+                  "url": "http://akbarmanjeri.in/crispr-apis/user/authenticate.php",
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Content-Type": "application/json"
+                  },
+                  "data": JSON.stringify({
+                    "username": mobileNumber
+                  }),
+                };
 
+                $.ajax(authData).done(function (authResponse) {
+                    var response = JSON.parse(authResponse);
+                    if(response.status == "success") {
+                        showToaster(response.message);
 
+                        //Update URL param
+                        const url = new URL(window.location);
+                        url.searchParams.set("key", response.data);
+                        url.searchParams.set("step", 2);
+                        window.history.pushState({}, '', url);
 
+                        //Post Success
+                        setTimeout(() => {
+                            document.getElementById("loginStep1Button").style.display = 'none';
+                            document.getElementById("loginLoader1").style.display = 'none';
+                            document.getElementById("loginStep1").style.display = 'none';
+                            document.getElementById("loginStep1Button").disabled = false;
+                            document.getElementById("loginStep2").style.display = 'block';
+                            document.getElementById("loginStep2Button").style.display = 'block';
+                            document.getElementById('otp1').focus();
+                            document.getElementById('loginAttemptingMobile').innerHTML = 'as ' + maskedMobileNumber(mobileNumber);
+                        }, 500);
 
-                  }, 3000);
-
-
-
+                    } else {
+                        showToaster(response.error);
+                        //Post Failure
+                        document.getElementById("loginLoader1").style.display = 'none';
+                        document.getElementById("loginStep1Button").disabled = false;
+                    }
+                });
+            } else {
+                showToaster("Enter a valid mobile number");
             }
         }
 
         function processLogin() {
             var mobileNumber = document.getElementById('mobile').value;
             const indianMobileRegex = /^[6-9]\d{9}$/;
-            if (indianMobileRegex.test(mobileNumber)) {
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const key = urlParams.get('key');
+
+
+            if (indianMobileRegex.test(mobileNumber) && key) {
                 const otp = getOTP();
                 if(otp.length != 4) {
                     showToaster("Please enter all 4 digits of one-time passcode")
@@ -344,29 +391,57 @@
                     return;
                 }
 
-
-
-
                 //Loader
                 document.getElementById("loginLoader2").style.display = 'block';
-                setTimeout(() => {
 
-                    //Loader end:
-                    document.getElementById("loginLoader2").style.display = 'none';
 
-                    document.getElementById('otp4').focus();
+                var loginData = {
+                  "url": "http://akbarmanjeri.in/crispr-apis/user/login.php",
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Content-Type": "application/json"
+                  },
+                  "data": JSON.stringify({
+                    "username": mobileNumber,
+                    "passcode": otp,
+                    "key": key
+                  }),
+                };
 
-                }, 3000)
+                $.ajax(loginData).done(function (loginResponse) {
+                    var response = JSON.parse(loginResponse);
+                    if(response.status == "success") {
+                        //Set token in cookies
+                        console.log(response.data);
 
-                console.log('hitting '+ mobileNumber + ' with ' + otp)
-                
+                        //Set cookies
+                        var now = new Date();
+                        now.setDate(now.getDate() + 7);
+                        $cookies.put("crispriteUserToken", response.data, {
+                            expires: now
+                        });
+
+                        //Loader end:
+                        document.getElementById("loginLoader2").style.display = 'none';
+
+                        window.location.href = "../candidate-profile.html";
+                    } else {
+                        showToaster(response.error ?? "Something went wrong");
+                        
+                        //Loader end:
+                        document.getElementById("loginLoader2").style.display = 'none';
+                        document.getElementById('otp4').focus();
+                    }
+                });
                 return;
+            } else {
+                showToaster('Something went wrong');
             }
 
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('start')
             document.getElementById('mobile').focus();
         });
 
@@ -381,8 +456,6 @@
         // Function to handle OTP submission
         function submitOtp() {
             const otp = getOTP();
-
-            console.log('Submitted OTP:', otp);
         }
 
         function getOTP(argument) {
