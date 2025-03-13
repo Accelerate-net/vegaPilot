@@ -417,10 +417,8 @@
 
                         //Set cookies
                         var now = new Date();
-                        now.setDate(now.getDate() + 7);
-                        $cookies.put("crispriteUserToken", response.data, {
-                            expires: now
-                        });
+                        now.setDate(now.getDate() + 7); // Set expiration to 7 days from now
+                        document.cookie = "crispriteUserToken=" + encodeURIComponent(response.data) + "; expires=" + now.toUTCString() + "; path=/";
 
                         //Loader end:
                         document.getElementById("loginLoader2").style.display = 'none';
