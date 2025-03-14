@@ -161,7 +161,7 @@
         }
 
         function getUserTokenForCart() {
-            return getCookieByNameForCart('crispriteUserToken');
+            return "Bearer " + getCookieByNameForCart('crispriteUserToken');
         }
 
         function logoutCurrentUser() {

@@ -283,7 +283,7 @@ $(document).ready(function() {
 	}
 
 	function getUserToken() {
-		return getCookieByName('crispriteUserToken');
+		return "Bearer " + getCookieByName('crispriteUserToken');
 	}
 
 
@@ -351,7 +351,7 @@ $(document).ready(function() {
 	function initiatePayment() {
 		var myCart = retrieveCart();
 		var discountsData = retrieveDiscount();
-		console.log(JSON.stringify(myCart), JSON.stringify(discountsData))
+
 		var mobile = document.getElementById("mobile").value;
 		var name = document.getElementById("fullname").value;
 		var address = document.getElementById("address").value;
@@ -360,6 +360,8 @@ $(document).ready(function() {
 		var pincode = document.getElementById("pincode").value;
 		var state = document.getElementById("state").value;
 		var email = document.getElementById("email").value;
+
+		var payableAmount = 100;
 
 		var billingAddress = {
 		    "mobile": mobile,
@@ -378,87 +380,78 @@ $(document).ready(function() {
 		//2. If failed, clear cache
 		//3. Else initiate payment
 
-
-
 		var createOrderAPI = {
-		  "url": "http://akbarmanjeri.in/crispr-apis/user/checkout/process-purchase.php",
-		  "method": "POST",
-		  "timeout": 0,
-		  "headers": {
-		    "Authorization": getUserToken(),
-		    "Content-Type": "application/json"
-		  },
-		  "data": JSON.stringify({
-		    "cart": [
-		      {
-		        "courseId": "CR0001",
-		        "sellingPrice": 499000,
-		        "number": 1
-		      },
-		      {
-		        "courseId": "CR0002",
-		        "sellingPrice": 49900,
-		        "number": 1
-		      }
-		    ],
-		    "discount": {
-		      "code": "HELLO50",
-		      "amount": 10000
-		    },
-		    "totalPayable": 538900,
-		    "billingAddress": {
-		      "mobile": "",
-		      "name": "Rajesh",
-		      "address": "",
-		      "locality": "",
-		      "city": "",
-		      "pincode": "",
-		      "state": "",
-		      "email": "hello@howare.com"
-		    }
-		  }),
+			  "url": "http://akbarmanjeri.in/crispr-apis/user/checkout/process-purchase.php",
+			  "method": "POST",
+			  "timeout": 0,
+			  "headers": {
+			    "Authorization": getUserToken(),
+			    "Content-Type": "application/json"
+			  },
+			  "data": JSON.stringify({
+			    "cart": [
+			      {
+			        "courseId": "CR0001",
+			        "sellingPrice": 499000,
+			        "number": 1
+			      },
+			      {
+			        "courseId": "CR0002",
+			        "sellingPrice": 49900,
+			        "number": 1
+			      }
+			    ],
+			    "discount": {
+			      "code": "HELLO50",
+			      "amount": 10000
+			    },
+			    "totalPayable": payableAmount,
+			    "billingAddress": billingAddress
+			  });
 		};
 
 		$.ajax(createOrderAPI).done(function (response) {
-			console.log('SUCCESS ORDER')
-		  	console.log(response);
+			if(response.status == "success") {
+				var paymentDetails = response.data;
+	            var options = {
+	                "key": paymentDetails.key,
+	                "order_id": paymentDetails.order,
+	                "amount": payableAmount,
+	                "name": "Crispr Learning",
+	                "description": "Payment for Online Order",
+	                "image": "https://accelerate.net.in/assets/logo/crispr-logo-for-bright-bg.png",
+	                "handler": function (payment_response){
+	                    var data = {};
+	                    data.orderID = paymentDetails.order;
+	                    data.transactionID = payment_response.razorpay_payment_id;
+	                    data.razorpay_order_id = payment_response.razorpay_order_id;
+	                    data.razorpay_signature = payment_response.razorpay_signature;
 
-		            var options = {
-                        "key": response.key,
-                        "order_id": response.data,
-                        "amount": 10000,
-                        "name": "Zaitoon",
-                        "description": "Payment for Online Order",
-                        "image": "https://accelerate.net.in/assets/logo/crispr-logo-for-dark-bg.png",
-                        "handler": function (payment_response){
-                            var data = {};
-                            data.orderID = response.data;
-                            data.transactionID = payment_response.razorpay_payment_id;
-                            data.razorpay_order_id = payment_response.razorpay_order_id;
-                            data.razorpay_signature = payment_response.razorpay_signature;
+	                    processPayment(data);
+		    			function processPayment() {
+		    				console.log(JSON.stringify(data))
+		    			}
+	            	},
+	                "prefill": {
+	                    "name": name,
+	                    "contact": mobile,
+	                    "email": email
+	                },
+	                "notes": {
+	                    "Crispr Order #": paymentDetails.transactionId
+	                },
+	                "theme": {
+	                    "color": "#016375"
+	                }
+	            };
 
+	            var rzp1 = new Razorpay(options);
+	            rzp1.open();
+	            e.preventDefault();
 
-                            processPayment(data);
-			    			function processPayment() {
-			    				console.log(JSON.stringify(data))
-			    			}
-                    	},
-                        "prefill": {
-                            "name": "Sample",
-                            "contact": "9043960876",
-                            "email": "sample@gmail.com"
-                        },
-                        "notes": {
-                            "Zaitoon Order ID": "in0001"
-                        },
-                        "theme": {
-                            "color": "#016375"
-                        }
-                    };
-
-                    var rzp1 = new Razorpay(options);
-                    rzp1.open();
-                    e.preventDefault();
+            } else {
+            	showToaster(response.error || "Something went wrong, payment was not initiated");
+            }
 		});
 
 
