@@ -63,6 +63,10 @@ $(document).ready(function() {
 
 	function retrieveCart() {
 	    var cartItemsData = localStorage.getItem("crisprCart");
+	    if(!cartItemsData) {
+	    	cartItemsData = [];
+	    	localStorage.setItem("crisprCart", JSON.stringify(cartItemsData));
+	    }
 	    if (cartItemsData) {
 	        try {
 	            return JSON.parse(cartItemsData);
@@ -83,14 +87,15 @@ $(document).ready(function() {
 
 	function renderCheckoutPage() {
 		//1. Check for any new add request
-			const urlParams = new URLSearchParams(window.location.search);
-			const itemId = urlParams.get('addItem');
-			if (itemId) {
-				addToCart(itemId)
-				removeUrlParam('addItem')
-			}
+		const urlParams = new URLSearchParams(window.location.search);
+		const itemId = urlParams.get('addItem');
+		if (itemId) {
+			addToCart(itemId)
+			removeUrlParam('addItem')
+		}
+
 		//2. Render Cart
-			renderCartForUser();
+		renderCartForUser();
 	}
 
 	function renderCartForUser() {
@@ -102,34 +107,71 @@ $(document).ready(function() {
         }
 	}
 
-	function addToCart(itemIdToAdd) {
-		var itemData = {
-	        "itemId": itemIdToAdd,
-	        "title": "Dream IISER - IAT 2025 Crash Course",
-	        "type": "COURSE",
-	        "unitPrice": 599000,
-	        "number": 1,
-	        "displayImage": "",
-	        "applicableTotalTax": 1800
-	    }
+	function showPageRenderingLoader() {
+		console.log('started loader')
+	}
 
-	    removeDiscount();
+	function hidePageRenderingLoader() {
+		console.log('ended loader')
+	}
 
-	    var myCart = retrieveCart();
-	    var isFound = false;
-        for (var i = 0; i < myCart.length; i++) {
-            var cartItem = myCart[i];
-            if (cartItem.itemId == itemIdToAdd) {
-                cartItem.number++;
-                isFound = true;
-            }
-        }
+	function showToaster(message) {
+		console.log('Toaster: ' + message)
+	}
 
-        if(!isFound)
-        	myCart.push(itemData);
+	function addToCart(courseId) {
+		console.log('adding item: ' + courseId)
+		showPageRenderingLoader();
 
-        localStorage.setItem("crisprCart", JSON.stringify(myCart));
-        renderCartForUser(myCart);
+		var courseRequest = {
+          "url": "http://akbarmanjeri.in/crispr-apis/public/courses.php?code="+courseId,
+          "method": "POST",
+          "timeout": 0,
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        };
+
+		$.ajax(courseRequest).done(function (courseResponse) {
+	        if(courseResponse.status == "success" && courseResponse.data && courseResponse.data['code'] == courseId) {
+	        	hidePageRenderingLoader();
+
+	        	const courseData = courseResponse.data;
+
+			    removeDiscount();
+
+				var itemData = {
+			        "itemId": courseData.code,
+			        "title": courseData.title,
+			        "type": courseData.type,
+			        "unitPrice": courseData.sellingPrice,
+			        "number": 1,
+			        "displayImage": courseData.photo,
+			        "extrasDetails": courseData.taxDetails,
+			        "applicableTotalTax": 0
+			    }
+
+			    var myCart = retrieveCart();
+			    var isFound = false;
+		        for (var i = 0; i < myCart.length; i++) {
+		            var cartItem = myCart[i];
+		            if (cartItem.itemId == courseId) {
+		                cartItem.number++;
+		                isFound = true;
+		            }
+		        }
+
+		        if(!isFound)
+		        	myCart.push(itemData);
+
+		        localStorage.setItem("crisprCart", JSON.stringify(myCart));
+		        //renderCartForUser(myCart);
+		        window.location.reload(true);
+	        } else {
+	        	hidePageRenderingLoader();
+	            showToaster("Course selected is invalid or no more available for purchase");
+	        }
+	    });
 	}
 
 	function removeFromCart(itemIdToRemove){
@@ -159,7 +201,7 @@ $(document).ready(function() {
 		if(cartItem.displayImage)
 			return cartItem.displayImage;
 
-		if(cartItem.type == "TEST")
+		if(cartItem.type == "Test Series")
 			return DEFAULT_TEST_PIC;
 
 		return DEFAULT_COURSE_PIC;
@@ -233,10 +275,27 @@ $(document).ready(function() {
 		renderCartForUser();
 	}
 
+
+	const cookies = document.cookie;
+	function getCookieByName(name) {
+	    var match = cookies.match('(?:^|; )' + name + '=([^;]*)');
+	    return match ? decodeURIComponent(match[1]) : null;
+	}
+
+	function getUserToken() {
+		return getCookieByName('crispriteUserToken');
+	}
+
+
 	function checkForDiscounts(giftCode) {
 		//Call API - pass cart
-		setDiscountCache(10000, giftCode);
-		renderCartForUser();
+		const userToken = getUserToken();
+		if(!userToken) {
+			showToaster("Please Login to apply discounts")
+		} else {
+			setDiscountCache(10000, giftCode);
+			renderCartForUser();
+		}
 	}
 
 	function getFormattedCouponCode(discountsData) {
@@ -302,17 +361,118 @@ $(document).ready(function() {
 		var state = document.getElementById("state").value;
 		var email = document.getElementById("email").value;
 
-		console.log(mobile, name, address, locality,city, pincode, state, email)
+		var billingAddress = {
+		    "mobile": mobile,
+		    "name": name,
+		    "address": address,
+		    "locality": locality,
+		    "city": city,
+		    "pincode": pincode,
+		    "state": state,
+		    "email": email
+		};
+
+
+		console.log(JSON.stringify(billingAddress))
 		//1. Call API to validate
 		//2. If failed, clear cache
 		//3. Else initiate payment
 
-		showToaster("Please provide all the details");
+
+
+		var createOrderAPI = {
+		  "url": "http://akbarmanjeri.in/crispr-apis/user/checkout/process-purchase.php",
+		  "method": "POST",
+		  "timeout": 0,
+		  "headers": {
+		    "Authorization": getUserToken(),
+		    "Content-Type": "application/json"
+		  },
+		  "data": JSON.stringify({
+		    "cart": [
+		      {
+		        "courseId": "CR0001",
+		        "sellingPrice": 499000,
+		        "number": 1
+		      },
+		      {
+		        "courseId": "CR0002",
+		        "sellingPrice": 49900,
+		        "number": 1
+		      }
+		    ],
+		    "discount": {
+		      "code": "HELLO50",
+		      "amount": 10000
+		    },
+		    "totalPayable": 538900,
+		    "billingAddress": {
+		      "mobile": "",
+		      "name": "Rajesh",
+		      "address": "",
+		      "locality": "",
+		      "city": "",
+		      "pincode": "",
+		      "state": "",
+		      "email": "hello@howare.com"
+		    }
+		  }),
+		};
+
+		$.ajax(createOrderAPI).done(function (response) {
+			console.log('SUCCESS ORDER')
+		  	console.log(response);
+
+		            var options = {
+                        "key": $scope.paymentKey,
+                        "order_id": response.data.reference,
+                        "amount": response.data.amount*100,
+                        "name": "Zaitoon",
+                        "description": "Payment for Online Order",
+                        "image": "https://www.accelerateengine.app/food-engine/apis/images/razor_icon.png",
+                        "handler": function (payment_response){
+                            var data = {};
+                            data.orderID = response.data.orderid;
+                            data.transactionID = payment_response.razorpay_payment_id;
+                            data.razorpay_order_id = payment_response.razorpay_order_id;
+                            data.razorpay_signature = payment_response.razorpay_signature;
+
+
+                            processPayment(data);
+			    			function processPayment() {
+			    				console.log(JSON.stringify(data))
+			    			}
+                    	},
+                        "prefill": {
+                            "name": temp_user.name,
+                            "contact": temp_user.mobile,
+                            "email": temp_user.email
+                        },
+                        "notes": {
+                            "Zaitoon Order ID": response.data.orderid
+                        },
+                        "theme": {
+                            "color": "#e74c3c"
+                        }
+                    };
+
+                    var rzp1 = new Razorpay(options);
+                    rzp1.open();
+                    e.preventDefault();
+		});
+
+
+
+
+
+		//showToaster("Please provide all the details");
 	}
 
 
-	document.getElementById("payNowButton").addEventListener("click", function(event) {
-	    initiatePayment();
-	});
+	if(document.getElementById("payNowButton")) {
+		document.getElementById("payNowButton").addEventListener("click", function(event) {
+		    initiatePayment();
+		});
+	}
 
 });
