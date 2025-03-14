@@ -407,7 +407,7 @@ $(document).ready(function() {
 			    },
 			    "totalPayable": payableAmount,
 			    "billingAddress": billingAddress
-			  });
+			  })
 		};
 
 		$.ajax(createOrderAPI).done(function (response) {
