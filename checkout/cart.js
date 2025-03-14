@@ -424,15 +424,15 @@ $(document).ready(function() {
 		  	console.log(response);
 
 		            var options = {
-                        "key": $scope.paymentKey,
-                        "order_id": response.data.reference,
-                        "amount": response.data.amount*100,
+                        "key": response.key,
+                        "order_id": response.data,
+                        "amount": 10000,
                         "name": "Zaitoon",
                         "description": "Payment for Online Order",
-                        "image": "https://www.accelerateengine.app/food-engine/apis/images/razor_icon.png",
+                        "image": "https://accelerate.net.in/assets/logo/crispr-logo-for-dark-bg.png",
                         "handler": function (payment_response){
                             var data = {};
-                            data.orderID = response.data.orderid;
+                            data.orderID = response.data;
                             data.transactionID = payment_response.razorpay_payment_id;
                             data.razorpay_order_id = payment_response.razorpay_order_id;
                             data.razorpay_signature = payment_response.razorpay_signature;
@@ -444,15 +444,15 @@ $(document).ready(function() {
 			    			}
                     	},
                         "prefill": {
-                            "name": temp_user.name,
-                            "contact": temp_user.mobile,
-                            "email": temp_user.email
+                            "name": "Sample",
+                            "contact": "9043960876",
+                            "email": "sample@gmail.com"
                         },
                         "notes": {
-                            "Zaitoon Order ID": response.data.orderid
+                            "Zaitoon Order ID": "in0001"
                         },
                         "theme": {
-                            "color": "#e74c3c"
+                            "color": "#016375"
                         }
                     };
 
