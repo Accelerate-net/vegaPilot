@@ -19,7 +19,7 @@ angular.module('AdminLoginApp', ['ngCookies'])
         data.password = $scope.password;
         $http({
           method  : 'POST',
-          url     : 'http://akbarmanjeri.in/crispr-apis/restricted/login/authenticate.php',
+          url     : 'https://crisprtech.app/crispr-apis/restricted/login/authenticate.php',
           data    : data,
           headers : {'Content-Type': 'application/x-www-form-urlencoded'}
          })

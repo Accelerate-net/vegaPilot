@@ -41,7 +41,7 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.renderSummaryTiles = function(){
             $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/list-summary.php',
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/list-summary.php',
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -64,7 +64,7 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.filterAllQuestions = function(page, records, type) {
             $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/list.php?page='+page+'&records='+records+'&filter='+type,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/list.php?page='+page+'&records='+records+'&filter='+type,
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -179,7 +179,7 @@ angular.module('questionBankApp', ['ngCookies'])
           
           $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/read-single.php?id='+id,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/read-single.php?id='+id,
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -217,7 +217,7 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.seekQuestionBySequenceNumber = function(seekNumber) {
           $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/read-in-sequence.php?sequence='+seekNumber,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/read-in-sequence.php?sequence='+seekNumber,
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -318,7 +318,7 @@ angular.module('questionBankApp', ['ngCookies'])
         if($scope.modifyQuestionData.challenged) {
           $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/reset-challenge.php?id='+modifyQuestionData.id,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/reset-challenge.php?id='+modifyQuestionData.id,
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -339,7 +339,7 @@ angular.module('questionBankApp', ['ngCookies'])
         
         $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/update-verified.php?id='+modifyQuestionData.id+'&verified='+verified_number,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/update-verified.php?id='+modifyQuestionData.id+'&verified='+verified_number,
               headers : {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -455,7 +455,7 @@ angular.module('questionBankApp', ['ngCookies'])
 
             $http({
               method  : 'POST',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/update-question-details.php?id='+questionId,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/update-question-details.php?id='+questionId,
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
@@ -558,7 +558,7 @@ angular.module('questionBankApp', ['ngCookies'])
             }
             $http({
               method  : 'POST',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/update-question-image.php?id='+questionId,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/update-question-image.php?id='+questionId,
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
@@ -578,7 +578,7 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.removeSolutionImage = function(questionId) {
             $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/remove-solution-image.php?id='+questionId,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/remove-solution-image.php?id='+questionId,
               headers : {
                 'Content-Type': 'application/json',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")
@@ -665,7 +665,7 @@ angular.module('questionBankApp', ['ngCookies'])
             }
             $http({
               method  : 'POST',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/update-solution-image.php?id='+questionId,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/update-solution-image.php?id='+questionId,
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
@@ -687,7 +687,7 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.removePhotoSolution = function(questionId) {
             $http({
               method  : 'GET',
-              url     : 'http://akbarmanjeri.in/crispr-apis/restricted/question-bank/reset-solution-image.php?id='+questionId,
+              url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/reset-solution-image.php?id='+questionId,
               headers : {
                 'Content-Type': 'application/json',
                 'x-access-token': $cookies.get("vegaPilotAdminToken")

@@ -124,7 +124,7 @@ $(document).ready(function() {
 		showPageRenderingLoader();
 
 		var courseRequest = {
-          "url": "http://akbarmanjeri.in/crispr-apis/public/courses.php?code="+courseId,
+          "url": "https://crisprtech.app/crispr-apis/public/courses.php?code="+courseId,
           "method": "POST",
           "timeout": 0,
           "headers": {
@@ -381,7 +381,7 @@ $(document).ready(function() {
 		//3. Else initiate payment
 
 		var createOrderAPI = {
-			  "url": "http://akbarmanjeri.in/crispr-apis/user/checkout/process-purchase.php",
+			  "url": "https://crisprtech.app/crispr-apis/user/checkout/process-purchase.php",
 			  "method": "POST",
 			  "timeout": 0,
 			  "headers": {

@@ -52,7 +52,7 @@ angular.module('CandidateProfileApp', ['ngCookies'])
     $scope.fetchProfileData = function() {
         $http({
           method  : 'GET',
-          url     : 'http://akbarmanjeri.in/crispr-apis/user/user-profile.php',
+          url     : 'https://crisprtech.app/crispr-apis/user/user-profile.php',
           headers : {
             'Content-Type': 'application/json',
             'Authorization': getUserToken()
@@ -97,7 +97,7 @@ angular.module('CandidateProfileApp', ['ngCookies'])
 
       $http({
           method  : 'POST',
-          url     : 'http://akbarmanjeri.in/crispr-apis/user/update-profile.php',
+          url     : 'https://crisprtech.app/crispr-apis/user/update-profile.php',
           data    : updateData,
           headers : {
             'Content-Type': 'application/json',
@@ -231,7 +231,7 @@ angular.module('CandidateProfileApp', ['ngCookies'])
           };
           $http({
             method  : 'POST',
-            url     : 'http://akbarmanjeri.in/crispr-apis/user/upload-profile-photo.php',
+            url     : 'https://crisprtech.app/crispr-apis/user/upload-profile-photo.php',
             data    : data,
             headers : {
               'Content-Type': 'application/json',

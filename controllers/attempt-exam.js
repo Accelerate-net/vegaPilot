@@ -181,7 +181,7 @@ angular.module('attemptExamApp', ['ngCookies'])
         }
         $http({
           method  : 'POST',
-          url     : 'http://akbarmanjeri.in/crispr-apis/user/fetch-exam.php',
+          url     : 'https://crisprtech.app/crispr-apis/user/fetch-exam.php',
           data    :  data,
           headers : {
             'Content-Type': 'application/json',
