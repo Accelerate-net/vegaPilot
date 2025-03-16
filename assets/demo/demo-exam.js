@@ -1,5 +1,13 @@
 $(document).ready(function() {
 
+
+    // $('#bootbox-demo-3').click(function(){
+    //     bootbox.confirm("Are you sure?", function(result) {
+    //      alert("Confirm result: "+result);
+    //  }); 
+    // });
+
+
     // EasyPieChart
 
         try {

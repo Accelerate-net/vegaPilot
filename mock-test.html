@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Avenxo Admin Theme - shared on themelock.com</title>
+    <title>Test Series</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,18 +28,6 @@
     
 <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">                      		<!-- FullScreen Editor -->
 
-	
-	<!-- Custom Styling -->
-	<style>
-		.about-table th {
-		  width: 30% !important;
-		}
-		
-		.about-table td {
-		  width: 70% !important;
-		}
-
-	</style>
 
 
     </head>
@@ -48,33 +36,33 @@
         
         <header id="topnav" class="navbar navbar-teal navbar-fixed-top" role="banner">
 
-	<div class="logo-area">
-		<span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
-			<a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-				<span class="icon-bg">
-					<i class="ti ti-menu"></i>
+			<div class="logo-area">
+				<span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+					<a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+						<span class="icon-bg">
+							<i class="ti ti-menu"></i>
+						</span>
+					</a>
 				</span>
-			</a>
-		</span>
-		
-		<span class="navbar-brand"></span>
-	</div><!-- logo-area -->
+				
+				<span class="navbar-brand"></span>
+			</div><!-- logo-area -->
 
-	<ul class="nav navbar-nav toolbar pull-right">
+			<ul class="nav navbar-nav toolbar pull-right">
 
-		<li class="dropdown toolbar-icon-bg">
-			<a href="#" class="dropdown-toggle username" data-toggle="dropdown">
-				<img class="img-circle" src="https://abhijithcs.in/assets/images/avatar.jpg" alt="Abhijith C S"/>
-			</a>
-			<ul class="dropdown-menu userinfo arrow">
-				<li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Profile</span></a></li>
-				<li><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+				<li class="dropdown toolbar-icon-bg">
+					<a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+						<img class="img-circle" src="https://abhijithcs.in/assets/images/avatar.jpg" alt="Abhijith C S"/>
+					</a>
+					<ul class="dropdown-menu userinfo arrow">
+						<li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Profile</span></a></li>
+						<li><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+					</ul>
+				</li>
+
 			</ul>
-		</li>
 
-	</ul>
-
-</header>
+		</header>
 
         <div id="wrapper">
             <div id="layout-static">
@@ -103,206 +91,113 @@
                             	<div data-widget-group="group1" class="ui-sortable">
 							
 
-							<div class="row" ng-show="!createView">
-		                        <div class="col-md-3">
-		                           <div class="info-tile info-tile-alt tile-info quickFilterDisabled quickFilter" ng-click="quickFilterQuestionBank('ALL')" title="Show All Questions" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px);">
-		                              <div class="tile-icon"><i class="ti ti-view-list-alt"></i></div>
-		                              <div class="tile-heading"><span>Questions Attempted</span></div>
-		                              <div class="tile-body"><span>319</span></div>
-		                              <div class="tile-footer"><span class="text-grey tileBottom">with 76% accuracy over 7 tests</span></div>
+							<div class="row" ng-show="!createView" style="padding: 60px 10px 30px 0; background: #083e58; margin: -10px -16px 20px;">
+								<div class="col-md-3">
+									<div style="display: flex ; align-items: flex-end; gap: 10px; height: 126px; margin-bottom: 10px;">
+									    <img src="https://abhijithcs.in/assets/images/avatar.jpg" style="width: 80px; height: 80px; border-radius: 50%; align-self: flex-end;">
+									    <span style="font-size: 26px; font-weight: 300; align-self: flex-end; color: #FFF; margin-bottom: 10px;">Welcome Abhijith!</span>
+									</div>
+								</div>
+								<div class="col-md-1"></div>
+		                        <div class="col-md-2">
+		                           <div class="info-tile info-tile-alt tile-blue" title="Accuracy across all the tests attempted" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px); margin: 0;">
+		                              <div class="tile-heading"><span>Strike Rate <i class="fa fa-flash" style="margin-left: 5px"></i></span></div>
+		                              <div class="tile-body" style="text-align: left"><span>72.1%</span></div>
+		                              <div class="tile-footer" style="left: 16px !important; right: unset;"><span class="text-grey tileBottom">from 7 attempted tests</span></div>
 		                           </div>
 		                        </div>
-		                        <div class="col-md-3">
-		                           <div class="info-tile info-tile-alt tile-orange quickFilterDisabled quickFilter" ng-click="quickFilterQuestionBank('UNVERIFIED')" title="Filter Unverified Questions" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px);">
-		                              <div class="tile-icon"><i class="ti ti-help"></i></div>
-		                              <div class="tile-heading"><span>PYQs Solved</span></div>
-		                              <div class="tile-body"><span>43</span></div>
-		                              <div class="tile-footer"><span class="text-grey tileBottom">with 90% accuracy</span></div>
+		                        <div class="col-md-2">
+		                           	<div class="info-tile info-tile-alt tile-blue" title="Avg. score across all the tests attempted" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px); margin: 0">
+		                              <div class="tile-heading"><span>Avg Score <i class="fa fa-bar-chart" style="margin-left: 5px"></i></span></div>
+		                              <div class="tile-body" style="text-align: left"><span>180/240</span></div>
+		                              <div class="tile-footer" style="left: 16px !important; right: unset;"><span class="text-default tileBottom">from 7 attempted tests</span></div>
 		                           </div>
 		                        </div>
-		                        <div class="col-md-3">
-		                           <div class="info-tile info-tile-alt tile-danger quickFilterDisabled quickFilter" ng-click="quickFilterQuestionBank('CHALLENGED')" title="Filter Challenged Questions" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px);">
-		                              <div class="tile-icon"><i class="ti ti-alert"></i></div>
-		                              <div class="tile-heading"><span>Strong Subject</span></div>
-		                              <div class="tile-body"><span>BIOLOGY</span></div>
-		                              <div class="tile-footer"><span class="text-default tileBottom">contributes 56% to total</span></div>
+		                        <div class="col-md-2">
+		                           <div class="info-tile info-tile-alt tile-blue" title="Total PYQs solved" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px); margin: 0">
+		                              <div class="tile-heading"><span>PYQs Solved <i class="fa fa-check" style="margin-left: 5px"></i></span></div>
+		                              <div class="tile-body" style="text-align: left"><span>43</span></div>
+		                              <div class="tile-footer" style="left: 16px !important; right: unset;"><span class="text-grey tileBottom">from 500 questions</span></div>
 		                           </div>
 		                        </div>
-		                        <div class="col-md-3">
-		                           <div class="info-tile info-tile-alt tile-indigo quickFilterDisabled" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px);">
-		                              <div class="tile-icon"><i class="ti ti-bar-chart-alt"></i></div>
-		                              <div class="tile-heading"><span>Question Levels</span></div>
-		                              <div class="tile-body"><span>1 : 4 : 2</span></div>
-		                              <div class="tile-footer"><span class="text-default tileBottom">Easy : Medium : Hard</span></div>
+		                        <div class="col-md-2">
+		                           <div class="info-tile info-tile-alt tile-blue" title="Your strong subject" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px); margin: 0">
+		                              <div class="tile-heading"><span>Strong Subject <i class="fa fa-star" style="margin-left: 5px"></i></span></div>
+		                              <div class="tile-body" style="text-align: left"><span>Biology</span></div>
+		                              <div class="tile-footer" style="left: 16px !important; right: unset;"><span class="text-default tileBottom">contributes 56% to total</span></div>
 		                           </div>
 		                        </div>
 		                    </div>
 
-							<div class="row">
-								<div class="col-md-4">
-									<div class="panel panel-midnightblue" style="margin: 0">
-										<div class="panel-heading" style="margin: 0">
-											<h2 class="profileSubTitle">Tests Enrolled</h2>
-										</div>
-									</div>
-									<div class="list-group list-group-alternate mb-n nav nav-tabs" style="margin: 0">
-										<a href="#" role="tab" data-toggle="tab" class="list-group-item active flex-tab">
-										  <img src="https://img.icons8.com/color/96/system-information.png" alt="Icon">
-										  Mock Test Series - Complimentary
-										</a>
-										<a href="#" role="tab" data-toggle="tab" class="list-group-item flex-tab">
-										  <img src="https://img.icons8.com/color/96/system-information.png" alt="Icon">
-										  IAT Gear Up - 2025
-										</a>
-									</div>	
-								</div>
-								<div class="col-md-8">
-										<!-- MOCK TEST PROGRESS -->
-										<div class="panel panel-midnightblue">
-											<div class="panel-heading">
-												<h2 class="profileSubTitle">Mock Test Series - Complimentary</h2>
-											</div>
-											<div class="panel-body">
-												<div class="row">
-													<div class="col-md-12">
-														<ul class="timeline">
-															<li class="timeline-success">
-																<div class="timeline-icon"><i class="ti ti-check"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">Monday, November 21, 2013</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">Completed <b>Aim IISER Series - 1</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Attempted 59 of 60 Questions <i class="fa fa-circle mockSummarySplit"></i> 45 Correct Answers with 85% Accuracy<i class="fa fa-circle mockSummarySplit"></i> Total Score 124 of 200</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#" style="text-decoration: underline;">View Report and Solution</a> <i class="mockSummarySplit"></i> <a href="#" style="text-decoration: underline;">Attempt Again</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline-success">
-																<div class="timeline-icon"><i class="ti ti-check"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">Wednesday, November 23, 2013</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">Completed <b>Aim IISER Series - 2</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Attempted 12 of 60 Questions <i class="fa fa-circle mockSummarySplit"></i> 12 Correct Answers with 100% Accuracy<i class="fa fa-circle mockSummarySplit"></i> Total Score 14 of 200</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#" style="text-decoration: underline;">View Report and Solution</a> <i class="mockSummarySplit"></i> <a href="#" style="text-decoration: underline;">Attempt Again</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline-success">
-																<div class="timeline-icon"><i class="ti ti-check"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">Thursday, November 24, 2013</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">Completed <b>Aim IISER Series - 3</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Attempted 60 of 60 Questions <i class="fa fa-circle mockSummarySplit"></i> 30 Correct Answers with 50% Accuracy<i class="fa fa-circle mockSummarySplit"></i> Total Score 70 of 200</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#" style="text-decoration: underline;">View Report and Solution</a> <i class="mockSummarySplit"></i> <a href="#" style="text-decoration: underline;">Attempt Again</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline-primary">
-																<div class="timeline-icon"><i class="ti ti-timer"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">IN PROGRESS</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">You are taking <b>Aim IISER Series - 4</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestAvailable"><i class="ti ti-control-forward"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">AVAILABLE</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">You can attempt <b>Aim IISER Series - 5</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#" style="text-decoration: underline;">Attempt Now</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestAvailable"><i class="ti ti-control-forward"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">AVAILABLE</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0">You can attempt <b>Aim IISER Series - 6</b></h4>
-																		<p>IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#" style="text-decoration: underline;">Attempt Now</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestIcon"><i class="ti ti-lock"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">LOCKED</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0" class="lockedMockTestText">No access to <b>Aim IISER Series - 7</b></h4>
-																		<p class="lockedMockTestText">IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#"><i class="ti ti-unlock" style="margin-right: 5px"></i> Unlock Now</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestIcon"><i class="ti ti-lock"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">LOCKED</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0" class="lockedMockTestText">No access to <b>Aim IISER Series - 8</b></h4>
-																		<p class="lockedMockTestText">IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#"><i class="ti ti-unlock" style="margin-right: 5px"></i> Unlock Now</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestIcon"><i class="ti ti-lock"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">LOCKED</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0" class="lockedMockTestText">No access to <b>Aim IISER Series - 9</b></h4>
-																		<p class="lockedMockTestText">IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#"><i class="ti ti-unlock" style="margin-right: 5px"></i> Unlock Now</a></span>
-																	</div>
-																</div>
-															</li>
-															<li class="timeline">
-																<div class="timeline-icon lockedMockTestIcon"><i class="ti ti-lock"></i></div>
-																<div class="timeline-body">
-																	<div class="timeline-header">
-																		<span class="date">LOCKED</span>
-																	</div>
-																	<div class="timeline-content">
-																		<h4 style="margin-bottom: 0" class="lockedMockTestText">No access to <b>Aim IISER Series - 10</b></h4>
-																		<p class="lockedMockTestText">IAT Mock <i class="fa fa-circle mockSummarySplit"></i> Total 60 Questions <i class="fa fa-circle mockSummarySplit"></i> Duration of 180 mins</p>
-																		<span style="margin-top: 10px; display: block;"><a href="#"><i class="ti ti-unlock" style="margin-right: 5px"></i> Unlock Now</a></span>
-																	</div>
-																</div>
-															</li>
+							<div class="row" style="padding-bottom: 100px;">
 
-														</ul>
-													</div>
-												</div>
-											</div>
-										</div>
+								<div class="col-md-12">
+										<div class="selectCourseBar-container">
+									        <div class="selectCourseBar-header">
+									            <div class="selectCourseBar-icon">
+									                <img src="https://img.icons8.com/color/96/system-information.png" width="24px">
+									            </div>
+									            <h2 class="selectCourseBar-title">Subscribed Test Series</h2>
+									        </div>
+									        <div class="selectCourseBar-scroll-container">
+									            <div class="selectCourseBar-options">
+									                <a href="https://razorpay.com/assisted-discovery/?step=accept-payments" class="selectCourseBar-option">Mock Test Series - Complimentary</a>
+									                <a href="https://razorpay.com/assisted-discovery/?step=make-payments" class="selectCourseBar-option">IAT Gear Up - 2025</a>
+									            </div>
+									        </div>
+									    </div>
 								</div>
+
+								<div class="col-md-8">
+									    <div class="courseContentContainer">
+									        <div class="courseContentTile">
+									            <div class="courseContentIcon">
+									                <img src="https://img.icons8.com/color/48/checked--v1.png" alt="checked"/>
+									            </div>
+									            <img src="https://framerusercontent.com/images/PO3jvnd7SsSrVTmlNhcBgaCbic.webp" alt="Payroll for Startups">
+									            <div class="courseContentTileContent">
+									                <h5>Payroll for Startups</h5>
+									                <p>Master payroll and compliance with a solution built just for startups</p>
+									                <a href="#">Sign Up</a>
+									                <a href="#">Know More</a>
+									            </div>
+									        </div>
+									        <div class="courseContentTile blockedCourseContent">
+									            <div class="courseContentIcon">
+									                <img src="https://img.icons8.com/color/48/lock--v1.png" alt="lock"/>
+									            </div>
+									            <img src="https://framerusercontent.com/images/kBkn3kow2IEQLe8kETylFOwTY.webp" alt="Payroll for CAs">
+									            <div class="courseContentTileContent">
+									                <h5>Payroll for CAs</h5>
+									                <p>Transform payroll and compliance for your clients with RazorpayX</p>
+									                <a href="#" class="courseContentPurchase">Unlock</a>
+									            </div>
+									        </div>
+									        <div class="courseContentTile">
+									            <div class="courseContentIcon">
+									                <img src="https://img.icons8.com/color/48/unlock--v1.png" alt="unlock"/>
+									            </div>
+									            <img src="https://framerusercontent.com/images/fZzv5kzp6j1r6W6yYgbQ530SebA.webp" alt="Payroll for Enterprises">
+									            <div class="courseContentTileContent">
+									                <h5>Payroll for Enterprises</h5>
+									                <p>Get India's No.1 payroll software for enterprises with RazorpayX</p>
+									                <a href="#">Sign Up</a>
+									                <a href="#">Know More</a>
+									            </div>
+									        </div>
+									    </div>
+								</div>
+
+
+								<div class="col-md-4">
+		                           <div class="info-tile info-tile-alt" style="visibility: visible; opacity: 1; display: block; transform: translateY(0px);">
+		                              <div class="tile-heading"><span>Score Progress</span></div>
+		                              <div id="socialstats" style="height: 215px;" class="mt-sm mb-sm"></div></div>
+		                           </div>
+								</div>
+
 							</div>
+
 
 								</div>
                             </div> <!-- .container-fluid -->
@@ -342,6 +237,17 @@
 
 <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
 
+
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.min.js"></script>             	<!-- Flot Main File -->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.pie.min.js"></script>             <!-- Flot Pie Chart Plugin -->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.stack.min.js"></script>       	<!-- Flot Stacked Charts Plugin -->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.orderBars.min.js"></script>   	<!-- Flot Ordered Bars Plugin-->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.resize.min.js"></script>          <!-- Flot Responsive -->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.tooltip.min.js"></script> 		<!-- Flot Tooltips -->
+<script type="text/javascript" src="assets/plugins/charts-flot/jquery.flot.spline.js"></script> 				<!-- Flot Curved Lines -->
+
+
+
 <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
 
 <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
@@ -359,7 +265,7 @@
 <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>            			<!-- Fullscreen Editor -->
 <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script> 	<!-- Bootbox -->
 
-<script type="text/javascript" src="assets/demo/demo-candidate-profile.js"></script>
+<script type="text/javascript" src="assets/demo/demo-mock-test.js"></script>
 
     <!-- End loading page level scripts-->
 

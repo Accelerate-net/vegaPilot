@@ -104,3 +104,44 @@ submissionData
 ipAddress
 macAddress
 status = 0 / 1 / 2
+
+
+
+
+REPORTS
+Questions streak
+Strike Rate
+Strong Area
+Subject wise classification
+Total attempted / correct
+Easy / Medium / Hard ratio
+PYQs in paper (correct answered)
+Pace of questions (time taken per questions)
+Section wise question attemts v/s time 
+
+
+1. [Session Wise] Total / Attempted / Correct
+2. Crispr Insights Sent
+3. [Subject Wise] Percentage of Right Attempts
+4. Strike Rate - Time spent on each qn v/s ideal time
+   - Questions covered in ideal time range (60%) v/s not (40%)
+   - Time spent on right answers alone
+   - Avg. time spent on wrong answers
+   - Revisited and marked wrongly
+   - Revisit Percentage (what percentage of questions re-visited)
+
+5. Chapter Wise Marks Distribution
+6. Time Spent on Each quesion (Green CORRECT/ Red WRONG / Blue UNATTEMPT)
+7. Chapter Wise Accuracy (Phy: Correct 80% / 20% worng)
+8. Chapter Wise Levels (and Overall) Easy Medium Hard
+
+
+
+Boxes:
+1. Total Marks (answered with accuracy)
+2. Strong Subject (56% marks contributed)
+3. Question level
+4. Accuracy (Strike Rate)
+5. Global Rank
+6. 
+

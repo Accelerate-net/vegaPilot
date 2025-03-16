@@ -5,7 +5,7 @@ angular.module('attemptExamApp', ['ngCookies'])
 }])
 
 
-.controller('attemptExamController', function($scope, $http, $interval, $cookies) {
+.controller('attemptExamController', function($scope, $http, $interval, $cookies, $timeout) {
 
     const ANSWER_MODES = Object.freeze({
         NOT_VISITED: 0,
@@ -472,5 +472,101 @@ angular.module('attemptExamApp', ['ngCookies'])
 
         }, 1000);
     }
+
+
+
+    //SUBMIT FINAL
+
+    function combineSubmissionData(submissionData, timeTrackerData) {
+        let result = {};
+        
+        // Process submissionData
+        for (let key in submissionData) {
+            let { t, a } = submissionData[key];
+            
+            if ([3, 4].includes(t) && timeTrackerData.hasOwnProperty(key)) {
+                result[key] = {
+                    ts: timeTrackerData[key],
+                    a: a
+                };
+            }
+        }
+        
+        // Include remaining keys from timeTrackerData
+        for (let key in timeTrackerData) {
+            if (!result.hasOwnProperty(key)) {
+                result[key] = {
+                    ts: timeTrackerData[key],
+                    a: ""
+                };
+            }
+        }
+        
+        return result;
+    }
+
+    $scope.submitExamFinal = function() {
+        var submissionData = localStorage.getItem("examSubmissionData") ? JSON.parse(localStorage.getItem("examSubmissionData")) : {};
+        var timeTrackerData = localStorage.getItem("questionTimeTracker") ? JSON.parse(localStorage.getItem("questionTimeTracker")) : {};
+        var finalSubmissionData = combineSubmissionData(submissionData, timeTrackerData);
+        console.log(JSON.stringify(finalSubmissionData));
+    }
+
+    $scope.countdown = 5;
+    $scope.countdownElement = document.getElementById("countdown");
+    $scope.isSubmitClicked = false;
+
+    $scope.submitExamConfirmation = function() {
+        bootbox.confirm({
+                title: "<p style='color: red; font-size: 24px; margin: 0; font-weight: bold;'>Confirm Submission</p>",
+                message: "<p style='color: #444; font-size: 18px; font-weight: 300; line-height: 28px;'>The exam will be ended immediately if you proceed. Once submitted, you will not able to take the same test in next 48 hours. Do you really want to continue?<br><br><b>Note: If you want, you can take a break,but timer will not pause.</b></p>",
+                buttons: {
+                    cancel: {
+                        label: "Continue Exam",
+                        className: "btn-default" // Red button
+                    },
+                    confirm: {
+                        label: "Submit Exam",
+                        className: "btn-success"
+                    }
+                },
+                callback: function (result) {
+                    if(result) {
+                        $scope.countdownElement.textContent = "Submitting";
+                        $scope.submitExamFinal();
+                    } else {
+                        document.getElementById("bootbox-demo-3").classList.remove("active");
+                        $scope.countdownElement.textContent = "Submit Exam"
+                        $scope.countdown = 5;
+                        $scope.isSubmitClicked = false;
+                    }
+                }
+            });
+    }
+
+    $scope.getExamConfirmation = function() {
+
+        if($scope.isSubmitClicked)
+            return;
+
+        $scope.isSubmitClicked = true;
+        document.getElementById("bootbox-demo-3").classList.add("active");
+
+        $scope.startCountdown = function() {
+            $scope.countdownElement.textContent = `Submitting in ${$scope.countdown}s`;
+            $scope.countdown--;
+
+            // If countdown is greater than 0, call $timeout again
+            if ($scope.countdown >= 0) {
+                $timeout($scope.startCountdown, 1000);
+            } else {
+                $scope.countdownElement.textContent = "Confirm Submission";
+                $scope.submitExamConfirmation();
+            }
+        };
+
+        $scope.startCountdown();
+    }
+
 
 });
