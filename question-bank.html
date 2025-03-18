@@ -357,7 +357,7 @@
                                  <div action="" class="form-horizontal row-border" ng-show="modifyQuestionData.id">
                                     <div class="form-group" style="padding: 5px 15px">
                                        <div class="col-sm-1" style="padding: 2px">
-                                          <label class="control-label questionWindowLabel"><tag ng-class="{'questionWindowLabelNotCompleted': !modifyQuestionData.averageTimeTaken}">Avg Time <span ng-if="modifyQuestionData.averageTimeTaken > 0">= {{(modifyQuestionData.averageTimeTaken/60).toFixed(1)}} min</span></tag></label>
+                                          <label class="control-label questionWindowLabel"><tag ng-class="{'questionWindowLabelNotCompleted': !modifyQuestionData.averageTimeTaken}">Avg Time <span ng-if="modifyQuestionData.averageTimeTaken > 0">= {{(modifyQuestionData.averageTimeTaken/60).toFixed(1)}}m</span></tag></label>
                                           <input ng-model="modifyQuestionData.averageTimeTaken" type="text" class="form-control" placeholder="in seconds" maxlength="4" style="font-weight: bold;">
                                           <span style="display: block; width: 300%; text-align: left;">
                                              <span class="yearEasySelect" ng-click="modifyQuestionData.averageTimeTaken = 30">30s</span>
