@@ -24,6 +24,10 @@ angular.module('questionBankApp', ['ngCookies'])
         }
       }
 
+      function getAdminTokenFromCookie() {
+        return $cookies.get("vegaPilotAdminToken");
+      }
+
       $scope.maxResultsShown = 10; //Records
 
       $scope.summaryTileData = {
@@ -41,8 +45,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/list-summary.php',
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -64,8 +68,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/list.php?page='+page+'&records='+records+'&filter='+type,
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -179,8 +183,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/read-single.php?id='+id,
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -217,8 +221,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/read-in-sequence.php?sequence='+seekNumber,
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -318,8 +322,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/reset-challenge.php?id='+modifyQuestionData.id,
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -339,8 +343,8 @@ angular.module('questionBankApp', ['ngCookies'])
               method  : 'GET',
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/update-verified.php?id='+modifyQuestionData.id+'&verified='+verified_number,
               headers : {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'Content-Type': 'application/json',
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -457,7 +461,7 @@ angular.module('questionBankApp', ['ngCookies'])
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -560,7 +564,7 @@ angular.module('questionBankApp', ['ngCookies'])
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -579,7 +583,7 @@ angular.module('questionBankApp', ['ngCookies'])
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/remove-solution-image.php?id='+questionId,
               headers : {
                 'Content-Type': 'application/json',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -667,7 +671,7 @@ angular.module('questionBankApp', ['ngCookies'])
               data    : data,
               headers : {
                 'Content-Type': 'application/json',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
@@ -688,7 +692,7 @@ angular.module('questionBankApp', ['ngCookies'])
               url     : 'https://crisprtech.app/crispr-apis/restricted/question-bank/reset-solution-image.php?id='+questionId,
               headers : {
                 'Content-Type': 'application/json',
-                'x-access-token': $cookies.get("vegaPilotAdminToken")
+                'X-Access-Token': getAdminTokenFromCookie()
               }
              })
              .then(function(response) {
