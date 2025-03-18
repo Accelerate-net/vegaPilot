@@ -35,13 +35,21 @@ angular.module('AdminLoginApp', ['ngCookies'])
               });
 
               window.location = "question-bank.html";
-              
+
             } else{
               $scope.isLoginError = true;
               $scope.warnMsg = response.data.error;
             }
         });
     }
-})
 
-  ;
+
+    $scope.checkIfLoggedIn = function() {
+      if($cookies.get("vegaPilotAdminToken")){
+        window.location = "question-bank.html";
+      }
+    }
+
+    $scope.checkIfLoggedIn();
+
+});
