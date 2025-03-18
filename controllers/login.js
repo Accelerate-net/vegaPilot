@@ -35,6 +35,7 @@ angular.module('AdminLoginApp', ['ngCookies'])
               });
 
               window.location = "question-bank.html";
+              
             } else{
               $scope.isLoginError = true;
               $scope.warnMsg = response.data.error;
