@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Stock Register</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">                        <!-- Select2 -->
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/stockregister.js"></script>
+
+      <script>
+			$(window).ready(function() {
+				$('#loading').hide();
+			});		
+		</script>
+		
+      
+      <!-- For Form -->
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+   </head>
+
+   <body class="animated-content" ng-app="inventoryApp" ng-controller="inventoryController" ng-cloak>   
+      <div id="loading"></div>
+      <header id="topnav" class="navbar navbar-fixed-top navbar-midnightblue" role="banner">      
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; color: #ffd042; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-bluegray">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li><a href="index.html"><i class="ti ti-layout-grid2"></i><span>Table Manager</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="redeem.html"><i class="ti ti-gift"></i><span>Redeem Coupon</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <li><a href="guest-profile.html"><i class="ti ti-user"></i><span>Guest Details</span></a></li>
+                              <li><a href="referals.html"><i class="ti ti-star"></i><span>Referral Program</span></a></li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-id-badge"></i><span>Human Resources</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="people.html">People</a></li>
+                                    <li><a href="attendance.html">Attendance</a></li>
+                                    <li><a href="salary-slips.html">Salary Slips</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-package"></i><span>Inventory</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="inventory-stock.html">Stock</a></li>
+                                    <li><a href="inventory-stock-register.html">Stock Register</a></li>
+                                    <li><a href="inventory-vendors.html">Vendors</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-settings"></i><span>Tools</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="resources-steward.html">Stewards</a></li>
+                                    <li><a href="resources-reservationchannel.html">Reservation Channels</a></li>
+                                    <li><a href="tables.html">Tables List</a></li>
+                                    <!--<li><a href="settings.html">Account Settings</a></li>-->
+                                 </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+		    <div class="static-content">
+		    
+<div class="page-content">
+                    <ol class="breadcrumb">
+                    </ol>
+                     <div class="container-fluid">
+                        <div class="row">
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('out')" id="combosTabButton">
+                                 <div class="tile-icon"><i class="ti ti-export" id="combosIcon"></i></div>
+                                 <div class="tile-heading" id="combosTitle"><span>Stock Out</span></div>
+                                 <div class="tile-body" id="combosCount">
+                                 	<span ng-if="figure_active_out != undefined">{{figure_active_out}}</span>
+                                 	<span ng-if="figure_active_out == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="combosTag"><span class="text-default">Entries</span></div>
+                              </div>
+                           </div>    
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('purchases')" id="promotionsTabButton">
+                                 <div class="tile-icon"><i class="ti ti-import" id="promotionsIcon"></i></div>
+                                 <div class="tile-heading" id="promotionsTitle"><span>Purchases</span></div>
+                                 <div class="tile-body" id="promotionsCount">
+                                 	<span ng-if="figure_active_purchases != undefined">{{figure_active_purchases}}</span>
+                                 	<span ng-if="figure_active_purchases == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="promotionsTag"><span class="text-default">Entries</span></div>
+                              </div>
+                           </div>    
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('payments')" id="couponsTabButton">
+                                 <div class="tile-icon"><i class="fa fa-inr" id="couponsIcon"></i></div>
+                                 <div class="tile-heading" id="couponsTitle"><span>Payments</span></div>
+                                 <div class="tile-body" id="couponsCount">
+                                 	<span ng-if="figure_active_payments != undefined">{{figure_active_payments}}</span>
+                                 	<span ng-if="figure_active_payments == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="couponsTag"><span class="text-default">Entries</span></div>
+                              </div>
+                           </div>                                                      
+                           
+                        </div>
+                        <div class="">
+                           <div class="row">
+				<div class="col-md-6">
+                                 <div class="panel panel-teal" style="margin-bottom: 10px">
+                                    <div class="panel-heading" style="background: #2980b9 !important">
+                                       <h2 style="color: #FFF">{{marketingType}} History</h2>
+                                       					   <div class="pull-right hidden-xs" ng-if="isContentFound">
+									    	<strong>{{currentDisplayPage}}</strong> of <strong>{{totalDisplayPages}}</strong>
+									    	<div class="btn-group ml-sm" ng-if="totalDisplayPages != 1">
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != 1" ng-click="initializeContent(marketingType, currentDisplayPage-1)"><i class="ti ti-angle-left"></i></a>
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != totalDisplayPages" ng-click="initializeContent(marketingType, currentDisplayPage+1)"><i class="ti ti-angle-right"></i></a>
+							                        </div>
+									    </div>                                        
+                                    </div>
+                                    <div class="panel-body no-padding">
+                                       <p ng-if="!active_content.length" style="padding: 20px; text-align: center" class="ng-scope">There are no {{marketingType}} history.</p>
+                                       <!-- Display Stock Out -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'out' && isContentFound">
+                                          <thead>
+                                             <tr>
+                                                <td></td>
+                                                <td>Name</td>
+                                                <td>Date</td>
+                                                <td>Quantity</td>
+                                                
+                                                <td></td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{((currentDisplayPage - 1) * 10) + ($index + 1)}}</td>
+                                                <td ng-style="getRandomColor(content.inventoryCode)">{{content.inventoryName}}</td>
+                                                <td>{{content.date}}</td>
+                                                <td>
+                                                   {{content.quantity}}
+                                                   <tag style="font-size: 70%">{{content.unit}}</tag>
+                                                   <tag style="color: #f39c12" ng-if="content.remarks && content.remarks != ''"><i class="fa fa-comment-o"></i></tag>
+                                                </td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDeleteStockOut(content)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       <!-- Display Purchases -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'purchases' && isContentFound">
+                                          <thead>
+                                             <tr>
+                                                <td></td>
+                                                <td>Date</td>
+                                                <td>Inventory</td>
+                                                <td>Quantity</td>
+                                                <td>Vendor</td>
+                                                <td>Amount</td>
+                                                <td></td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{((currentDisplayPage - 1) * 10) + ($index + 1)}}</td>
+                                                <td>{{content.date}}</td>
+                                                <td ng-style="getRandomColor(content.inventoryCode)">{{content.inventoryName}}</td>
+                                                <td>
+                                                   {{content.quantity}}
+                                                   <tag style="font-size: 70%">{{content.unit}}</tag>
+                                                   <tag style="color: #f39c12" ng-if="content.comments && content.comments != ''"><i class="fa fa-comment-o"></i></tag>
+                                                </td>
+                                                <td>{{content.vendorName}}</td>
+                                                <td><i class="fa fa-inr"></i> {{content.amount}}</td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDeletePurchase(content)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       
+                                       <!-- Display Coupons -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'payments' && isContentFound">
+                                         <thead>
+                                             <tr>
+                                                <td></td>
+                                                <td>Date</td>
+                                                <td>Amount</td>
+                                                <td>Mode</td>
+                                                <td>Credited To</td>
+                                                <td></td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{((currentDisplayPage - 1) * 10) + ($index + 1)}}</td>
+                                                <td>{{content.date}}</td>
+                                                <td>
+                                                   <i class="fa fa-inr"></i> {{content.amount}}
+                                                   <tag style="color: #f39c12" ng-if="content.reference && content.reference != ''"><i class="fa fa-comment-o"></i></tag>
+                                                </td>
+                                                <td>{{content.mode}}</td>
+                                                <td>
+                                                   {{content.paymentTo ? content.paymentTo : 'Unknown'}}
+                                                   <tag style="display: block; font-size: 70%; color: #95a5a6" ng-if="content.paymentFor && content.paymentFor != ''">for {{content.paymentFor}}</tag>
+                                                </td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDeletePayment(content)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                                                              
+                                    </div>
+                                 </div>
+	                                 <div class="btn btn-success" style="float: right" ng-if="!newComboWindowFlag && !newPromoWindowFlag && !newCouponWindowFlag" ng-click="showNewContentWindow()"><i class="ti ti-plus"></i> Add New</div>	                                 
+                              </div>
+                              
+                              
+                              
+                              
+                              <!-- WIZARDS SECTION -->
+                              <div class="col-md-6" ng-show="newComboWindowFlag || newPromoWindowFlag || newCouponWindowFlag">
+                              
+                            	 <!-- STOCK OUT -->
+                                 <div class="panel panel-bluegray" ng-show="newComboWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>Mark New Stock-Out Entry</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                             	<div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Inventory Name</label>
+                                                   <div style="padding: 0 0 0 16px; display: -webkit-box">
+                                                      <select id="dropStockOutInventory" class="js-example-basic-single col-sm-10" class="form-control" style="padding: 0">
+                                                         
+                                                      </select>
+                                                   </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Quantity</label>
+                                                   <div class="col-sm-6">
+                                                      <input type="number" class="form-control"  ng-model="addNewContent.quantity">
+                                                   </div>
+                                                   <label class="col-sm-2 control-label" style="padding-left: 0; text-align: left" id="unitDisplayPart"></label>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Date</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" id="inventory_date" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Remarks</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.remarks" placeholder="Any remarks" class="form-control" style="color: #3498db;">
+                                                   </div>
+                                                </div>
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                              
+                              	 <!-- PURCHASES -->
+                                 <div class="panel panel-bluegray" ng-show="newPromoWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Purchase</h2>
+                                    </div>
+                                    <div class="panel-body">
+
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Vendor</label>
+                                                   <div style="padding: 0 0 0 16px; display: -webkit-box">
+                                                      <select id="dropPurchaseVendor" class="js-example-basic-single col-sm-10" class="form-control" style="padding: 0">
+                                                         
+                                                      </select>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Inventory</label>
+                                                   <div style="padding: 0 0 0 16px; display: -webkit-box">
+                                                      <select id="dropPurchaseInventory" class="js-example-basic-single col-sm-10" class="form-control" style="padding: 0">
+                                                         
+                                                      </select>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Purchased Quantity</label>
+                                                   <div class="col-sm-6">
+                                                      <input type="number"  ng-model="addNewContent.unitsPurchased" class="form-control">
+                                                   </div>
+                                                   <label class="col-sm-2 control-label" style="padding-left: 0; text-align: left" id="unitDisplayPartPurchase"></label>
+                                                   
+                                                </div> 
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Date of Purchase</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" id="purchase_date" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Total Amount</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="number"  ng-model="addNewContent.totalAmount" class="form-control">
+                                                   </div>
+                                                </div> 
+                                                <div class="form-group">
+                                                      <label for="form-name" class="col-sm-3 control-label">Mode of Payment</label>
+                                                      <div class="col-sm-8">
+                                                         <select class="form-control" style="height: 40px" ng-model="addNewContent.paymentMode">
+                                                            <option value="CREDIT">Credit</option>
+                                                            <option value="CHEQUE">Cheque</option>
+                                                            <option value="CASH">Cash</option>
+                                                         </select>
+                                                      </div>
+                                                      
+                                                </div> 
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Remarks</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text"  ng-model="addNewContent.comments" class="form-control">
+                                                   </div>
+                                                </div>     
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>                                    
+                                 </div>
+                                 
+                                 <!-- PAYMENT -->
+                                 <div class="panel panel-bluegray" ng-show="newCouponWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Payment</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                                
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Paying Vendor</label>
+                                                   <div style="padding: 0 0 0 16px; display: -webkit-box">
+                                                      <select id="dropPaymentVendor" class="js-example-basic-single col-sm-10" class="form-control" style="padding: 0">
+                                                         
+                                                      </select>
+                                                   </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Payment For</label>
+                                                   <div style="padding: 0 0 0 16px; display: -webkit-box">
+                                                      <select id="dropPaymentInventory" class="js-example-basic-single col-sm-10" class="form-control" style="padding: 0">
+                                                         
+                                                      </select>
+                                                   </div>
+                                                </div>                                                
+                                             	
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Amount</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="number"  ng-model="addNewContent.totalAmount" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Mode of Payment</label>
+                                                   <div class="col-sm-8">
+                                                      <select class="form-control" ng-model="addNewContent.paymentMode">
+                                                         <option value="CREDIT">Credit</option>
+                                                         <option value="CHEQUE">Cheque</option>
+                                                         <option value="CASH">Cash</option>
+                                                      </select>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Payment Reference</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text"  ng-model="addNewContent.paymentReference" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Date of Payment</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" id="payment_date" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Comments</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text"  ng-model="addNewContent.extraComments" class="form-control">
+                                                   </div>
+                                                </div>
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 
+                                 
+                                 
+                              </div>
+
+                           <div class="col-md-6" ng-show="editComboWindowFlag || editPromoWindowFlag || editCouponWindowFlag">
+                           </div>
+                              
+               
+
+
+
+
+               <!-- View Modal -->
+					<div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">								
+								<div class="modal-body">
+									<div ng-if="marketingType == 'out'">
+   									<p style="margin: 0; font-size: 21px; color: #34495e" >{{viewContent.inventoryName}} <tag style="font-weight: 300; color: gray">x {{viewContent.quantity}} <tag style="font-size: 70%">{{viewContent.unit}}</tag></tag></p>
+                              <p style="font-size: 12px;">Item Category: <tag style="text-transform: uppercase; padding: 2px 4px; color: #3498db">{{viewContent.category}}</tag></p>
+   									<p style="margin: 0 0 5px 0; font-weight: 300; color: #7f8c8d; font-size: 18px"><tag ng-if="viewContent.remarks && viewContent.remarks != ''">Remarks: <i>{{viewContent.remarks}}</i></tag></p>
+    									<p style="margin: 0; color: #bdc3c7">Added by <tag style="font-weight: bold; color: #2ecc71">{{viewContent.createdAdmin}}</tag> on <tag style="font-weight: bold; color: #2ecc71">{{viewContent.date}}</tag></p>
+                           </div>
+
+                           <div ng-if="marketingType == 'purchases'">
+                              <h1>Purchase of <b>{{viewContent.inventoryName}}</b></h1>
+
+                              <table class="table table-striped m-n">
+                                 <tbody>
+
+                                    <tr>
+                                       <td>Item Category</td>
+                                       <td>{{viewContent.category}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Date of Purchase</td>
+                                       <td>{{viewContent.date}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Quantity</td>
+                                       <td>{{viewContent.quantity}} <tag style="font-size: 70%">{{viewContent.unit}}</tag></td>
+                                    </tr>
+                                    <tr>
+                                       <td>Total Amount</td>
+                                       <td><i class="fa fa-inr"></i> {{viewContent.amount}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Payment Status</td>
+                                       <td>{{viewContent.isPaid ? 'Paid Purchase' : 'Unpaid'}}</td>
+                                    </tr>
+                                    <tr ng-if="viewContent.isPaid">
+                                       <td>Mode of Payment</td>
+                                       <td>{{viewContent.mode}}</td>
+                                    </tr>
+                                    <tr ng-if="viewContent.comments && viewContent.comments != ''">
+                                       <td>Comments</td>
+                                       <td><i>{{viewContent.comments}}</i></td>
+                                    </tr>
+                                    <tr>
+                                       <td>Vendor Name</td>
+                                       <td>{{viewContent.vendorName}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Entry Added By</td>
+                                       <td>{{viewContent.createdAdmin}}</td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+
+
+                           <div ng-if="marketingType == 'payments'">
+                              <h1>Payment 
+                                 <span ng-if="viewContent.paymentTo && viewContent.paymentTo != ''">made to <b>{{viewContent.paymentTo}}</b></span>
+                                 <span ng-if="((!viewContent.paymentTo || viewContent.paymentTo == '') && (viewContent.paymentFor && viewContent.paymentFor != ''))">made for <b>{{viewContent.paymentFor}}</b></span>
+                              </h1>
+
+                              <table class="table table-striped m-n">
+                                 <tbody>
+
+                                    <tr ng-if="viewContent.paymentTo && viewContent.paymentTo != ''">
+                                       <td>Paid To</td>
+                                       <td>{{viewContent.paymentTo}}</td>
+                                    </tr>
+                                    <tr ng-if="viewContent.paymentFor && viewContent.paymentFor != ''">
+                                       <td>Paid For</td>
+                                       <td>{{viewContent.paymentFor}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Date of Payment</td>
+                                       <td>{{viewContent.date}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Total Amount</td>
+                                       <td><i class="fa fa-inr"></i> {{viewContent.amount}}</td>
+                                    </tr>
+                                    <tr>
+                                       <td>Mode of Payment</td>
+                                       <td>{{viewContent.mode}}</td>
+                                    </tr>
+                                    <tr ng-if="viewContent.reference && viewContent.reference != ''">
+                                       <td>Payment Reference</td>
+                                       <td>{{viewContent.reference}}</td>
+                                    </tr>
+                                    <tr ng-if="viewContent.comments && viewContent.comments != ''">
+                                       <td>Comments</td>
+                                       <td><i>{{viewContent.comments}}</i></td>
+                                    </tr>
+                                    <tr>
+                                       <td>Entry Added By</td>
+                                       <td>{{viewContent.createdAdmin}}</td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+
+
+									
+								</div>
+								<div class="modal-footer" style="padding: 0">
+									<button style="border: none; width: 100%; height: 40px;" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+					
+
+					
+								
+					<!-- DELETE STOCK OUT Confirmation Modal -->
+					<div class="modal fade" id="deleteStockOutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">																						
+								<div class="modal-footer">
+									<h2 class="modal-title" style="font-size: 16px; color: #95a5a6; margin-bottom: 15px; text-align: left">Do you really want to delete the entry of {{deleteItemQuantity}} units of <strong style="color: #e74c3c">{{deleteItemName}}</strong> of {{deleteItemDate}} from the Stock Register?</h2>									
+									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-danger" ng-click="deleteStockOutContent(deleteUID)">Delete</button>
+									<p style="color: #e74c3c; margin: 10px 0px 0px 0px; text-align: center;">{{deleteError}}</p>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+
+               <!-- DELETE PAYMENT Confirmation Modal -->
+               <div class="modal fade" id="deletePaymentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                     <div class="modal-content">                                                                  
+                        <div class="modal-footer">
+                           <h2 class="modal-title" style="font-size: 16px; color: #95a5a6; margin-bottom: 15px; text-align: left">Do you really want to delete the entry for the payment of <i class="fa fa-inr"></i> {{deleteItemAmount}} <span ng-if="deleteItemVendor"> made to <strong style="color: #e74c3c">{{deleteItemVendor}}</strong></span><span ng-if="deleteItemName"> for {{deleteItemName}}</span> on {{deleteItemDate}}?</h2>                         
+                           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                           <button type="button" class="btn btn-danger" ng-click="deletePaymentContent(deleteUID)">Delete</button>
+                           <p style="color: #e74c3c; margin: 10px 0px 0px 0px; text-align: center;">{{deleteError}}</p>
+                        </div>
+                     </div><!-- /.modal-content -->
+                  </div><!-- /.modal-dialog -->
+               </div><!-- /.modal -->
+
+               <!-- DELETE PURCHASE Confirmation Modal -->
+               <div class="modal fade" id="deletePurchaseModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                     <div class="modal-content">                                                                  
+                        <div class="modal-footer">
+                           <h2 class="modal-title" style="font-size: 16px; color: #95a5a6; margin-bottom: 15px; text-align: left">Do you really want to delete the entry for the purchase of {{deleteItemQuantity}} units of <strong style="color: #e74c3c">{{deleteItemName}}</strong> from {{deleteItemVendor}} on {{deleteItemDate}}?</h2>                         
+                           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                           <button type="button" class="btn btn-danger" ng-click="deletePurchaseContent(deleteUID)">Delete</button>
+                           <p style="color: #e74c3c; margin: 10px 0px 0px 0px; text-align: center;">{{deleteError}}</p>
+                        </div>
+                     </div><!-- /.modal-content -->
+                  </div><!-- /.modal-dialog -->
+               </div><!-- /.modal -->	
+					
+                           </div>
+                        </div>
+			
+
+			</div> <!-- Container fluid -->
+		      </div> <!-- Page content -->
+		    </div>
+		
+		</div>
+
+
+
+         </div>
+      </div>
+            
+      
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+<script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>                 	<!-- Typeahead for Autocomplete -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+<script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>                            <!-- Advanced Select Boxes -->
+
+<script type="text/javascript" src="assets/plugins/form-validation/jquery.validate.min.js"></script>  					<!-- Validate Plugin -->
+<script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>  								<!-- Stepy Plugin -->
+<script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>     		<!-- Tokenfield -->
+<script type="text/javascript" src="assets/demo/demo-formwizard.js"></script>
+<script type="text/javascript" src="assets/demo/demo-formcomponents.js"></script>
+
+
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
+
+    
+   </body>
+</html>

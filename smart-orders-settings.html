@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Acceleron Luna</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/smart-orders.js"></script>
+   <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+
+</head>
+
+   <body class="animated-content" ng-app="SmartOrdersApp" ng-controller="smartOrdersSettingsController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+           <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+
+                           <div class="row">
+
+                              <div class="col-md-1">
+                              </div>
+
+                              <div class="col-md-10">
+                                 <div class="panel panel-bluegray"  data-widget='{"draggable": "false"}'>
+                                    <div class="panel-heading">
+                                       <h2>Configured QR Codes</h2>
+                                    </div>
+                                    <div class="panel-body smartOrderSettings">
+                                       <div id="earnings" class="mt-sm mb-sm">
+
+                                          <div class="table-responsive">
+                                             <table class="table table-condensed">
+<!--                                                	<col width="60%">
+                                               	<col width="20%">                                               	
+  						                                  <col width="20%"> -->
+                                                <thead>
+                                                   <tr>
+                                                      <th>Tables</th>
+                                                      <th>QR Active</th>
+                                                      <th>Payment</th>
+                                                      <th>Maintainance Status</th>
+                                                      <th>Assigned Captain</th>
+                                                      <th>Last Updated</th>
+                                                      <th>Scanner</th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody>
+                                                   <tr ng-repeat="qrData in qrConfigData" class="currentRow">
+                                                      <td><tag class="tableBowl">{{qrData.table}}</tag></td>
+                                                      <td>
+                                                        <tag ng-if="qrData.isQrEnabled" class="activeButton" ng-click="updateSettings(qrData, 'QR', false)">
+                                                            <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                        <tag ng-if="!qrData.isQrEnabled" class="notActiveButton" ng-click="updateSettings(qrData, 'QR', true)">
+                                                            <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                      </td>
+                                                      <td>
+                                                        <tag ng-if="qrData.isPaymentEnabled" class="activeButton" ng-click="updateSettings(qrData, 'PAYMENT', false)">
+                                                            <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                        <tag ng-if="!qrData.isPaymentEnabled" class="notActiveButton" ng-click="updateSettings(qrData, 'PAYMENT', true)">
+                                                            <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                      </td>
+                                                      <td class="cell">
+                                                        <tag ng-if="qrData.isMaintainMode" class="activeButtonYellow" ng-click="updateSettings(qrData, 'MAINTAIN', false)">
+                                                            <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                        <tag ng-if="!qrData.isMaintainMode" class="activeButtonGrey" ng-click="updateSettings(qrData, 'MAINTAIN', true)">
+                                                            <i class="fa fa-circle" aria-hidden="true"></i>
+                                                        </tag>
+                                                      </td>
+                                                      <td class="cell">
+                                                        <tag ng-if="qrData.isCaptainAssigned" class="captainAssigned" ng-click="assignCaptain(qrData)" ng-style="getRandomColorForCaptains(qrData.assignedCaptainCode)">
+                                                          <i class="fa fa-check" aria-hidden="true" style="font-size: 11px; position: absolute; right: 5px; top: 3px;"></i>
+                                                          {{qrData.assignedCaptainName}}</tag>
+                                                        <tag ng-if="!qrData.isCaptainAssigned" class="captainUnassigned" ng-click="assignCaptain(qrData)">not assigned</tag>
+                                                      </td>
+                                                      <td class="cell">
+                                                          <tag>{{getFormattedTime(qrData.lastUpdated, 'DATE')}}</tag>
+                                                          <tag class="timeText">{{getFormattedTime(qrData.lastUpdated, 'TIME')}}</tag>
+                                                      </td>
+                                                      <td class="cell">
+                                                        <tag class="downloadButton" ng-click="getScannerDownloadLink(qrData)">Download</tag>
+                                                      </td>
+
+                                                   </tr>
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+      
+      
+    <!-- ADD CUSTOM ITEM - Modal -->
+    <div id="chooseCaptainModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 0px">
+          <div class="modal-header" style="color: #27ae60">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title" id="customOptionsTitle">Assign a Captain to Table #{{selectedQrData.table}}</h4>
+          </div>
+          <div class="modal-body">
+            <tag ng-class="getCaptainClass(selectedQrData, staff)" ng-repeat="staff in allStaffList track by $index" ng-click="assignCaptainToTable(selectedQrData, staff)">{{staff.name}}<tag class="defaultCaptainTick"><i class="fa fa-check"></i></tag>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+      <!-- Load site level scripts -->
+      <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+
+   </body>
+</html>

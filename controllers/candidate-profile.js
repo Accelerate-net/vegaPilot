@@ -32,7 +32,10 @@ angular.module('candidateProfileApp', ['ngCookies'])
 
 
 
-        $scope.profileData = {};
+        $scope.profileData = {
+          "name": "Hashim"
+        };
+        $scope.profileName = "Hashim";
 
         $scope.fetchProfileData = function(){
             $http({

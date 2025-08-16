@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Zaitoon Standard Menu</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+   
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/standard-menu.js"></script>
+  
+  
+        <!-- CROPPER -->
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet"> 
+   
+   <script>
+	             function getCookie(cname) {
+		        var name = cname + "=";
+		        var decodedCookie = decodeURIComponent(document.cookie);
+		        var ca = decodedCookie.split(';');
+		        for(var i = 0; i < ca.length; i++) {
+		            var c = ca[i];
+		            while (c.charAt(0) == ' ') {
+		                c = c.substring(1);
+		            }
+		            if (c.indexOf(name) == 0) {
+		                return c.substring(name.length, c.length);
+		            }
+		        }
+		        return "";
+		      }
+	    
+   </script>
+
+</head>
+
+   <body class="animated-content" ng-app="StandardMenuApp" ng-controller="standardMenuController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 19px; font-weight: 300;">Standard Menu</h1>
+        </div>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+         
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+
+                           <div class="row" ng-show="!isShowingStandardisationWindow">
+
+                              <div class="col-md-4">
+                                 <div class="panel panel-teal" data-widget='{"draggable": "false"}'>
+                                    <div class="panel-heading">
+                                       <h2>Cuisines</h2>
+                                    </div>
+                                    <div class="panel-body no-padding">
+                                       <table class="table m-n table-hover">
+                                          <tbody>
+                                             <tr ng-repeat="main in menu">
+                                                <td ng-click="showCuisineItems(main.mainType)" style="font-size: 24px; font-weight: 300; cursor: pointer">{{main.mainName}}</td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                    </div>
+                                 </div>
+                              </div>
+                              
+                              <div class="col-md-8">
+                                 <div class="panel panel-bluegray">
+                                    <div class="panel-heading">
+                                       <h2 ng-if="cuisine" style="font-size: 21px">{{cuisine.mainName}}</h2>
+                                    </div>
+                                    <div class="panel-body" ng-if="cuisine">
+                                       <div id="earnings" class="mt-sm mb-sm">
+                                          <!-- Order Data -->
+                                          <div class="table-responsive">
+                                             <table class="table table-condensed" ng-repeat="subtype in cuisine.subCategories">
+                                               	<col width="60%">
+                                               	<col width="20%">                                               	
+  						<col width="20%">
+                                                <thead>
+                                                   <tr>
+                                                      <th style="font-size: 21px; color: #e74c3c" colspan="3">{{subtype.subName}}</th>
+                                                      <th></th>
+                                                      <th></th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody>
+                                                   <tr ng-repeat="item in subtype.items">
+                                                      <td><b style="margin-right: 10px; color: #10a4e6">{{item.itemCode}}</b> {{item.itemName}}<i ng-if="item.photoURL != ''" class="fa fa-image" style="margin-left: 5px; color: #62bf62;"></i></td>
+                                                      <td> <i class="fa fa-inr" style="color: gray; font-size: 70%"></i> {{item.itemPrice}} </td>
+                                                      <td>
+                                                      	<button ng-if="item.isDone" ng-click="openStandardisationWindow(item.itemCode);" class="btn btn-sm btn-success" style="width: 100%">Standardised</button>
+                                                      	<button ng-if="!item.isDone" ng-click="openStandardisationWindow(item.itemCode);" class="btn btn-sm btn-danger" style="width: 100%">Pending</button>
+                                                      </td>
+                                                   </tr>
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                 </div>
+                              </div>
+                              
+                           </div> <!-- row -->
+
+
+
+
+                           <div class="row" ng-show="isShowingStandardisationWindow">
+
+                              
+                              <div class="col-md-5">
+                                 <div class="panel panel-bluegray">
+                                    <div class="panel-heading">
+                                       <h2 ng-if="cuisine" style="font-size: 21px">{{cuisine.mainName}}</h2>
+                                    </div>
+                                    <div class="panel-body" ng-if="cuisine">
+                                       <div id="earnings" class="mt-sm mb-sm">
+                                          <!-- Order Data -->
+                                          <div class="table-responsive">
+                                             <table class="table table-condensed" ng-repeat="subtype in cuisine.subCategories">
+                                               	<col width="60%">
+                                               	<col width="20%">                                               	
+  						<col width="20%">
+                                                <thead>
+                                                   <tr>
+                                                      <th style="font-size: 21px; color: #e74c3c" colspan="3">{{subtype.subName}}</th>
+                                                      <th></th>
+                                                      <th></th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody>
+                                                   <tr ng-repeat="item in subtype.items">
+                                                      <td><b style="margin-right: 10px; color: #10a4e6">{{item.itemCode}}</b> {{item.itemName}}<i ng-if="item.photoURL != ''" class="fa fa-image" style="margin-left: 5px; color: #62bf62;"></i></td>
+                                                      <td> <i class="fa fa-inr" style="color: gray; font-size: 70%"></i> {{item.itemPrice}} </td>
+                                                      <td>
+                                                      	<button ng-if="item.isDone" ng-click="openStandardisationWindow(item.itemCode);" class="btn btn-sm btn-success" style="width: 100%">Standardised</button>
+                                                      	<button ng-if="!item.isDone" ng-click="openStandardisationWindow(item.itemCode);" class="btn btn-sm btn-danger" style="width: 100%">Pending</button>
+                                                      </td>
+                                                   </tr>
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                 </div>
+                              </div>
+                              
+                              <div class="col-md-7">
+                                 <div class="panel panel-teal">
+                                    <div class="panel-heading">
+                                       <h2 style="color: #FFF; font-size: 21px; text-transform: none; font-weight: 300;">Standard Values for <b>{{standardisationContent.itemName}}</b></h2>
+                                    </div>
+
+                                    <!-- Item Content -->
+
+                                    <div class="panel-body">
+                                       <form class="grid-form">
+                                       
+                                          <fieldset>
+                                             <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Item Registration</legend>
+                                             <div data-row-span="2">
+                                                <div data-field-span="1">
+                                                   <label>Item Code</label>
+                                                   <input style="color: #3498db" ng-model="standardisationContent.itemCode" type="text">
+                                                </div>
+                                                <div data-field-span="1">
+                                                   <label>Item Name</label>
+                                                   <input style="color: #d7593e; font-weight: bold" ng-model="standardisationContent.itemName" type="text">
+                                                </div>
+                                             </div>
+                                             <div data-row-span="2">
+                                                <div data-field-span="1">
+                                                   <label>Main Category</label>
+                                                   <select class="form-control" ng-model="standardisationContent.mainCategory" ng-change="updateSubCategories()" style="height: 40px">
+                                                      <option value="ARABIAN" title="Arabian">Arabian</option>
+                                                      <option value="CHINESE" title="Chinese">Chinese</option>
+                                                      <option value="INDIAN" title="Indian">Indian</option>
+                                                      <option value="DESSERTS" title="Desserts">Desserts</option>
+                                                   </select>
+                                                </div>
+                                                <div data-field-span="1">
+                                                   <label>Sub Category</label>
+                                                   <select class="form-control" ng-model="standardisationContent.subCategory" style="height: 40px">
+                                                      <option ng-repeat="sub_cat in subCategoryList" value="{{sub_cat.value}}" title="{{sub_cat.name}}">{{sub_cat.name}}</option>
+                                                   </select>
+                                                </div>
+                                             </div>
+                                           </fieldset>
+					  
+					   <fieldset style="margin-top: 30px">
+                                             <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Custom Pricing</legend>
+                                             <div data-row-span="3">
+                                                <div data-field-span="2">
+                                                   <label>Custom Pricing</label>
+                                                   <button class="btn btn-sm" ng-click="standardisationContent.isCustom = 0; clearCustomPricing();" ng-class="{'btn-danger': standardisationContent.isCustom == 0}" style="width: 100px">No</button>
+                                                   <button class="btn btn-sm" ng-click="standardisationContent.isCustom = 1;" ng-class="{'btn-success': standardisationContent.isCustom == 1}" style="width: 100px">Yes</button>
+                                                </div>
+                                                <div data-field-span="1">
+                                                   <label>{{standardisationContent.isCustom == 1 ? 'Price Range' : 'Standard Price'}}</label>
+                                                   <input ng-model="standardisationContent.itemPrice" ng-disabled="standardisationContent.isCustom == 1" type="text">
+                                                </div>
+                                             </div>
+                                             <div data-row-span="3" ng-repeat="choice in standardisationContent.custom track by $index">
+                                                <div data-field-span="2" style="position: relative">
+                                                   <label>Custom Choice {{$index + 1}}</label>
+                                                   <input ng-model="standardisationContent.custom[$index].customName" ng-change="adjustCompositionChoiceName($index)" type="text">
+                                                   <button class="btn btn-sm" ng-click="removeChoice($index)" style="position: absolute; top: 30px; right: 10px;"><i class="fa fa-times"></i></button>
+                                                </div>
+                                                <div data-field-span="1">
+                                                   <label>Price</label>
+                                                   <input ng-model="standardisationContent.custom[$index].customPrice" ng-change="adjustPriceRange()" type="text">
+                                                </div>
+                                             </div>
+                                             <button ng-click="addMoreChoice()" class="btn btn-sm btn-default" ng-if="standardisationContent.isCustom == 1" style="margin-top: 5px; float: right;">Add Choice</button>
+                                             
+                                          </fieldset>   
+                                        
+                                          
+                                             
+                                          <fieldset style="margin-top: 30px">
+                                             <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Properties</legend>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Primary Classification</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.isVeg = 0" ng-class="{'btn-danger': standardisationContent.isVeg == 0}" style="min-width: 100px; text-transform: none;">Non-Veg</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.isVeg = 1;" ng-class="{'btn-success': standardisationContent.isVeg == 1}" style="min-width: 100px; text-transform: none;">Veg</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.isVeg = 3" ng-class="{'btn-warning': standardisationContent.isVeg == 3}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Major Non-Veg Content</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 1" ng-class="{'btn-success': standardisationContent.majorContent == 1}" style="min-width: 100px; text-transform: none;">Chicken</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 2;" ng-class="{'btn-success': standardisationContent.majorContent == 2}" style="min-width: 100px; text-transform: none;">Mutton</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 3" ng-class="{'btn-success': standardisationContent.majorContent == 3}" style="min-width: 100px; text-transform: none;">Fish</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 4" ng-class="{'btn-success': standardisationContent.majorContent == 4}" style="min-width: 100px; text-transform: none;">Prawns</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 5" ng-class="{'btn-success': standardisationContent.majorContent == 5}" style="min-width: 100px; text-transform: none;">Egg</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.majorContent = 0" ng-class="{'btn-primary': standardisationContent.majorContent == 0}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Spice Level</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.spiceLevel = 1;" ng-class="{'btn-danger': standardisationContent.spiceLevel == 1}" style="min-width: 100px; text-transform: none;">Spicy</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.spiceLevel = 2" ng-class="{'btn-success': standardisationContent.spiceLevel == 2}" style="min-width: 100px; text-transform: none;">Non Spicy</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.spiceLevel = 3" ng-class="{'btn-warning': standardisationContent.spiceLevel == 3}" style="min-width: 100px; text-transform: none;">Sweetened Spicy</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.spiceLevel = 0" ng-class="{'btn-primary': standardisationContent.spiceLevel == 0}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Bone or Boneless</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.boneType = 1;" ng-class="{'btn-warning': standardisationContent.boneType == 1}" style="min-width: 100px; text-transform: none;">Bone</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.boneType = 2" ng-class="{'btn-success': standardisationContent.boneType == 2}" style="min-width: 100px; text-transform: none;">Boneless</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.boneType = 0" ng-class="{'btn-primary': standardisationContent.boneType == 0}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Type of Cooking</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.cookingType = 1;" ng-class="{'btn-success': standardisationContent.cookingType == 1}" style="min-width: 100px; text-transform: none;">Gravy</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.cookingType = 2" ng-class="{'btn-success': standardisationContent.cookingType == 2}" style="min-width: 100px; text-transform: none;">Semi Gravy</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.cookingType = 3" ng-class="{'btn-success': standardisationContent.cookingType == 3}" style="min-width: 100px; text-transform: none;">Fry</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.cookingType = 4" ng-class="{'btn-success': standardisationContent.cookingType == 4}" style="min-width: 100px; text-transform: none;">Deep Fry</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.cookingType = 0" ng-class="{'btn-primary': standardisationContent.cookingType == 0}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                             <div data-row-span="1">
+                                                <div data-field-span="1">
+                                                   <label>Fry Method</label>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.fryType = 1;" ng-class="{'btn-success': standardisationContent.fryType == 1}" style="min-width: 100px; text-transform: none;">Oil Fry</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.fryType = 2" ng-class="{'btn-success': standardisationContent.fryType == 2}" style="min-width: 100px; text-transform: none;">Tawa Fry</button>
+                                                   <button class="btn btn-sm chooserButton" ng-click="standardisationContent.fryType = 0" ng-class="{'btn-primary': standardisationContent.fryType == 0}" style="min-width: 100px; text-transform: none;">Not Applicable</button>
+                                                </div>
+                                             </div>
+                                            </fieldset>
+                                            
+                                            
+                                             <fieldset style="margin-top: 30px">
+                                                <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Avg. Serving Time <tag style="font-weight: 300 !important; text-transform: none !important;">(in Minutes)</tag></legend>
+                                                <div data-row-span="1">
+                                                   <div data-field-span="1">
+                                                      <label>Time to Serve since Order is Taken</label>
+                                                      <input ng-model="standardisationContent.cookingTime" style="font-size: 32px;" type="text">
+                                                   </div>
+                                                </div>
+                                             </fieldset>
+                                             
+                                             
+                                            <fieldset style="margin-top: 30px">
+                                             <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Major Composition</legend>
+                                             <div data-row-span="3" ng-repeat="ingredient in standardisationContent.composition track by $index" ng-init="parentIndex = $index">
+                                                <div data-field-span="2" style="position: relative">
+                                                   <label>Raw Ingredient {{$index + 1}}</label>
+                                                   <select class="form-control" ng-model="standardisationContent.composition[$index].name" style="height: 40px; width: 75%">
+                                                      <option value="CHICKEN" title="Chicken">Chicken</option>
+                                                      <option value="CHICKEN_PIECE" title="Chicken Piece">Chicken Piece</option>
+                                                      <option value="CURD" title="Curd">Curd</option>
+                                                      <option value="EGG" title="Egg">Egg</option>
+                                                      <option value="FISH" title="Fish">Fish</option>
+                                                      <option value="GULAB" title="Gulab Jamun">Gulab Jamun</option>
+                                                      <option value="ICECREAM" title="Icecream Scoop">Icecream Scoop</option>
+                                                      <option value="KUBOOS" title="Kuboos">Kuboos</option>
+                                                      <option value="MUTTON" title="Mutton">Mutton</option>
+                                                      <option value="MILK" title="Milk">Milk</option>
+                                                      <option value="PANEER" title="Paneer">Paneer</option>
+                                                      <option value="RICE" title="Rice">Rice</option>
+                                                   </select>
+                                                   <button class="btn btn-sm" ng-click="removeIngredient($index)" style="position: absolute; top: 30px; right: 10px;"><i class="fa fa-times"></i></button>
+                                                </div>
+                                                <div data-field-span="1">
+                                                
+	                                           <box style="border-bottom: 1px dashed" ng-repeat="portion in standardisationContent.custom track by $index" ng-if="standardisationContent.isCustom == 1">
+	                                                   <label>{{portion.customName}} QUANTITY <tag style="text-transform: none">(in ml or gm or number)</tag></label>
+	                                                   <input ng-model="standardisationContent.composition[parentIndex].quantity[$index].value" type="text">
+	                                           </box>
+	                                           
+	                                           <box style="border-bottom: 1px dashed" ng-if="standardisationContent.isCustom == 0">
+	                                                   <label>QUANTITY <tag style="text-transform: none">(in ml or gm or number)</tag></label>
+	                                                   <input ng-model="standardisationContent.composition[$index].quantity[0].value" type="text">
+	                                           </box>
+	                                           
+                                                </div>
+                                             </div>
+                                             <p style="margin: 0; padding: 10px; font-size: 18px; font-weight: 300; color: red;" ng-if="standardisationContent.composition == '' || !standardisationContent.composition">Please update major raw materials required for the preparation of {{standardisationContent.itemName}}.</p>
+                                             <button ng-click="addMoreIngredient()" class="btn btn-sm btn-default" style="margin-top: 5px; float: right;">Add Ingredient</button>
+                                           </fieldset>   
+                                          
+                                             
+                                          
+                                          <fieldset style="margin-top: 30px">
+                                             <legend style="font-size: 14px !important; color: #FFF !important; background: #8b8e90; text-align: left; letter-spacing: 1px; text-transform: uppercase; font-weight: 300 !important; padding-left: 12px !important;">Item Photo</legend>
+                                             <div data-row-span="3">
+                                                <div data-field-span="1">
+                                                   <button ng-if="isPhotoAttached" ng-click="attachPhoto()" class="btn-default btn pull-left btn-outline" style="margin: 0 10px 0 0; display: inline-block;"> <i class="fa fa-picture-o" style="padding-right: 5px; color: #bdc3c7"></i> Change Image</button>
+                                                   <button ng-if="isPhotoAttached" ng-click="removePhoto()" class="btn-default btn btn-outline" style="margin: 10px 0 0 0; display: inline-block;"> <i class="fa fa-trash-o" style="padding-right: 5px; color: #bdc3c7"></i> Remove Image</button>
+
+                                                   <button class="btn-default btn pull-left btn-outline" ng-if="!isPhotoAttached" ng-click="attachPhoto()">Select Image</button>
+                                                </div>
+                                                <div data-field-span="2" ng-if="isPhotoAttached">
+                                                   <label>Current Photo</label>
+                                                   <img ng-src="{{myPhotoURL}}" width="240px" style="border: 2px solid #27ae60" ng-if="isPhotoAttached">
+                                                </div>
+                                             </div>
+                                          </fieldset>
+                                          
+                                          <div class="clearfix pt-md">
+                                             <p ng-if="errorMessage" style="color: red;text-align: center;">{{errorMessage}}</p>
+                                             <div class="pull-right">
+                                                <button style="float: right" class="btn-primary btn" ng-click="updateCurrentItem()">Save</button>
+                                                <button style="margin-right: 10px" class="btn-default btn" ng-click="cancelStandardisationView()">Cancel</button>
+                                             </div>
+                                          </div>
+                                       </form>
+                                    </div> <!-- item content -->
+
+
+                                 </div>
+                              </div>
+                              
+                              
+                              
+                           </div> <!-- row : displaying -->
+                           
+                           
+                           
+                                <!-- INFO BAR - TOAST -->
+        			<div id="loadingbar"></div>                                  
+                           
+                           
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+      
+
+
+
+      <!-- Image Modal -->
+      <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+         <div class="modal-dialog">
+            <div class="modal-content" style="width: 810px">
+               <div class="modal-body">
+                  <div class="row" style="padding: 15px">
+                     <button class="btn-success btn pull-right" ng-click="saveAttachment()" style="margin-left: 5px" ng-show="photoLoadedToFrame">Save</button>
+                     <button type="button" class="btn btn-default pull-right" data-dismiss="modal">Close</button>
+                     <div style="padding:5px 10px; background:#00ad2d; border:1px solid #00ad2d; position:relative; color:#fff; border-radius:2px; text-align:center; float:left; cursor:pointer">Select an Image<input type="file" id="fileInput" style="position: absolute; z-index: 1000; opacity: 0; cursor: pointer; right: 0; top: 0; height: 100%; font-size: 24px; width: 100%;"/></div>
+                  </div>
+                  <div style="margin-top: 10px">
+                     <img id="image" ng-src="{{myImage}}" style="max-width: 100%;">
+                  </div>
+                  <p style="margin: 0; padding-top: 15px; color: #bdc3c7">Upload High Quality image only. Use minimum 853x480 resolution(Width: 853px Height: 480px). Only JPG, PNG files supported.</p>
+               </div>
+            </div>
+            <!-- /.modal-content -->
+         </div>
+         <!-- /.modal-dialog -->
+      </div>
+      <!-- /.modal -->
+      
+      
+
+      <!-- Load site level scripts -->
+      <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+
+   </body>
+</html>

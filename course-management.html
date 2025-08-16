@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Course Management - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Course Management System">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">
+
+      <style type="text/css">
+         .courseRow:hover{ cursor: pointer; }
+         .module-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
+         .module-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #007bff; }
+         .module-header { background: #f8f9fa; padding: 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #ddd; }
+         .module-title { font-size: 18px; font-weight: bold; color: #333; margin: 0; }
+         .chapter-item { border: 1px solid #e9ecef; border-radius: 6px; margin: 10px; padding: 15px; background: white; transition: all 0.2s ease; }
+         .chapter-item:hover { border-color: #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+         .chapter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+         .chapter-title { font-weight: bold; color: #333; margin: 0; }
+         .chapter-code { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+         .parts-list { margin-top: 10px; }
+         .part-item { display: flex; align-items: center; padding: 8px; margin: 5px 0; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #007bff; }
+         .part-number { background: #007bff; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 10px; }
+         .part-info { flex: 1; }
+         .part-title { font-weight: bold; color: #333; margin: 0; }
+         .part-details { font-size: 11px; color: #666; margin: 0; }
+         .classification-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 2px; }
+         .classification-level1 { background-color: #007bff; color: white; }
+         .classification-level2 { background-color: #28a745; color: white; }
+         .info-tile { transition: all 0.3s ease; }
+         .info-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+         .filterAppliedTile { border: 2px solid #007bff !important; box-shadow: 0 0 10px rgba(0,123,255,0.3); }
+         .button-icon { cursor: pointer; padding: 8px; border-radius: 4px; margin-left: 5px; transition: all 0.2s ease; }
+         .button-icon:hover { background: #f0f0f0; color: #007bff; }
+         .filterAppliedBank { background: #007bff !important; color: white !important; }
+         .copyQuestion { cursor: pointer; margin-left: 8px; color: #666; transition: color 0.2s ease; }
+         .copyQuestion:hover { color: #007bff; }
+         .copiedMessage { background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; position: absolute; z-index: 1000; }
+         .alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+         .alert-info h3 { margin-top: 0; color: #0c5460; }
+         .panel-ctrls { position: absolute; right: 12px; top: 14px; }
+         .btn-group .btn { border-radius: 0; }
+         .btn-group .btn:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+         .btn-group .btn:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+         .tab-content { padding: 20px 0; }
+         .nav-tabs > li > a { border-radius: 4px 4px 0 0; margin-right: 2px; }
+         .nav-tabs > li.active > a { background-color: #007bff; color: white; border-color: #007bff; }
+         .video-thumbnail { width: 40px; height: 30px; border-radius: 4px; object-fit: cover; border: 1px solid #ddd; }
+         .part-selection { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px; }
+         .part-selection-item { display: flex; align-items: center; padding: 10px; margin: 5px 0; border: 1px solid #e9ecef; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+         .part-selection-item:hover { border-color: #007bff; background: #f8f9fa; }
+         .part-selection-item.selected { border-color: #28a745; background: #d4edda; }
+         .part-selection-item input[type="checkbox"] { margin-right: 10px; }
+         .part-selection-info { flex: 1; margin-left: 10px; }
+         .part-selection-title { font-weight: bold; margin: 0; }
+         .part-selection-details { font-size: 11px; color: #666; margin: 0; }
+         .module-structure { background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 10px 0; }
+         .module-structure-title { font-weight: bold; color: #333; margin-bottom: 10px; }
+         .module-structure-item { display: flex; align-items: center; padding: 8px; margin: 5px 0; background: white; border-radius: 4px; border-left: 3px solid #28a745; }
+         .module-structure-number { background: #28a745; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-right: 10px; }
+      </style>
+
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/course-management.js"></script>
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+   </head>
+
+   <body class="animated-content" ng-app="courseManagementApp" ng-controller="courseManagementController" ng-cloak> 
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg"><i class="ti ti-menu"></i></span>
+           </a>
+           </span>
+           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+     
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div class="userinfo">
+                                <div class="avatar">
+                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
+                                </div>
+                                <div class="info">
+                                    <span class="username">{{profileData.name || 'Admin User'}}</span>
+                                    <span class="useremail">{{profileData.email || 'admin@vegapilot.com'}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li class="nav-separator"><span>Content Management</span></li>
+                              <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              <li><a href="course-management.html" class="active"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                              <li><a href="created-tests.html"><i class="ti ti-tablet"></i><span>Mock Tests</span></a></li>
+                              <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                        <li><a href="index.html">Home</a></li>
+                        <li class="active"><a href="course-management.html">Course Management</a></li>
+                     </ol>
+                     <div class="container-fluid" style="padding-top: 4%;">
+
+                     <div class="alert alert-info">
+                        <h3><i class="ti ti-book"></i> Course Management System</h3>
+                        <p>Create and manage course bundles by organizing video content into chapters and modules. Build structured learning paths for students.</p>
+                        <p><i class="ti ti-info-alt"></i> This system allows you to create chapters by selecting parts from the video content library, organize them into modules, and bundle them into complete courses.</p>
+                     </div>
+
+                     <div class="row" ng-show="!createView">
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-info quickFilterDisabled quickFilter" ng-click="quickFilterCourses('ALL')" title="Show All Courses" ng-class="{'filterAppliedTile':courseFilterApplied == 'ALL'}">
+                              <div class="tile-icon"><i class="ti ti-book"></i></div>
+                              <div class="tile-heading"><span>Total Courses</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalCourses}}</span></div>
+                              <div class="tile-footer"><span class="text-grey tileBottom">{{summaryTileData.totalModules}} Modules</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-orange quickFilterDisabled quickFilter" ng-click="quickFilterCourses('ACTIVE')" title="Filter Active Courses" ng-class="{'filterAppliedTile':courseFilterApplied == 'ACTIVE'}">
+                              <div class="tile-icon"><i class="ti ti-check"></i></div>
+                              <div class="tile-heading"><span>Active Courses</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalActive}}</span></div>
+                              <div class="tile-footer"><span class="text-grey tileBottom">Available</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-success quickFilterDisabled quickFilter" ng-click="quickFilterCourses('CHAPTERS')" title="Filter by Chapters" ng-class="{'filterAppliedTile':courseFilterApplied == 'CHAPTERS'}">
+                              <div class="tile-icon"><i class="ti ti-layout"></i></div>
+                              <div class="tile-heading"><span>Total Chapters</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalChapters}}</span></div>
+                              <div class="tile-footer"><span class="text-default tileBottom">Organized</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-indigo quickFilterDisabled">
+                              <div class="tile-icon"><i class="ti ti-bar-chart-alt"></i></div>
+                              <div class="tile-heading"><span>Total Parts</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalParts}}</span></div>
+                              <div class="tile-footer"><span class="text-default tileBottom">Video Content</span></div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div data-widget-group="course-management-tabs" ng-show="!createView">
+                        <div class="row">
+                           <div class="col-md-12">
+                              <div class="panel panel-default">
+                                 <div class="panel-heading">
+                                    <h2>Course Management
+                                       <span>
+                                          <span class="button-icon titleIconx" ng-click="addNewCourse()" title="Add New Course"><i class="ti ti-plus"></i></span>
+                                          <span class="button-icon titleIconx" ng-click="addNewChapter()" title="Add New Chapter"><i class="ti ti-layout"></i></span>
+                                          <span class="button-icon titleIconx" ng-class="{'filterAppliedBank':courseFilterApplied != ''}" ng-click="removeFilterOnCourses()" title="Remove Filter"><i class="ti ti-filter"></i></span>
+                                       </span>
+                                    </h2>
+                                 </div>
+                                 <div class="panel-body">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                       <li role="presentation" class="active">
+                                          <a href="#course-bundles" aria-controls="course-bundles" role="tab" data-toggle="tab">
+                                             <i class="ti ti-book"></i> Course Bundles
+                                          </a>
+                                       </li>
+                                       <li role="presentation">
+                                          <a href="#chapters" aria-controls="chapters" role="tab" data-toggle="tab">
+                                             <i class="ti ti-layout"></i> Chapters
+                                          </a>
+                                       </li>
+                                       <li role="presentation">
+                                          <a href="#modules" aria-controls="modules" role="tab" data-toggle="tab">
+                                             <i class="ti ti-folder"></i> Modules
+                                          </a>
+                                       </li>
+                                    </ul>
+
+                                    <div class="tab-content">
+                                       <div role="tabpanel" class="tab-pane active" id="course-bundles">
+                                          <div class="row" ng-show="courseBundles.length > 0">
+                                             <div class="col-md-12">
+                                                <div ng-repeat="bundle in courseBundles" class="module-card">
+                                                   <div class="module-header">
+                                                      <div class="row">
+                                                         <div class="col-md-8">
+                                                            <h3 class="module-title">
+                                                               <i class="ti ti-book"></i> {{bundle.title || 'Course Bundle ' + bundle.id}}
+                                                            </h3>
+                                                            <p class="text-muted">Display Key: {{bundle.displayKey}}</p>
+                                                         </div>
+                                                         <div class="col-md-4 text-right">
+                                                            <button class="btn btn-primary btn-sm" ng-click="editCourseBundle(bundle)">
+                                                               <i class="ti ti-pencil"></i> Edit
+                                                            </button>
+                                                            <button class="btn btn-info btn-sm" ng-click="viewCourseBundle(bundle)">
+                                                               <i class="ti ti-eye"></i> View
+                                                            </button>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                   <div class="panel-body">
+                                                      <div class="row">
+                                                         <div class="col-md-12">
+                                                            <h5><i class="ti ti-folder"></i> Modules Included:</h5>
+                                                            <div class="module-structure">
+                                                               <div ng-repeat="module in bundle.modules" class="module-structure-item">
+                                                                  <div class="module-structure-number">{{$index + 1}}</div>
+                                                                  <div>
+                                                                     <strong>{{module.title}}</strong> (Module {{module.moduleKey}})
+                                                                     <div class="text-muted">
+                                                                        Chapters: {{module.chapterIds.length}} | 
+                                                                        Disabled: {{module.disabledCourseIds.length}}
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <div role="tabpanel" class="tab-pane" id="chapters">
+                                          <div class="row" ng-show="chapters.length > 0">
+                                             <div class="col-md-12">
+                                                <div ng-repeat="chapter in chapters" class="chapter-item">
+                                                   <div class="chapter-header">
+                                                      <div>
+                                                         <h4 class="chapter-title">{{chapter.title}}</h4>
+                                                         <p class="text-muted">Module: {{chapter.moduleCode}} | Code: {{chapter.code}}</p>
+                                                      </div>
+                                                      <div>
+                                                         <span class="chapter-code">{{chapter.code}}</span>
+                                                         <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter)">
+                                                            <i class="ti ti-pencil"></i> Edit
+                                                         </button>
+                                                         <button class="btn btn-info btn-sm" ng-click="viewChapter(chapter)">
+                                                            <i class="ti ti-eye"></i> View
+                                                         </button>
+                                                      </div>
+                                                   </div>
+                                                   <div class="parts-list">
+                                                      <h6><i class="ti ti-video-camera"></i> Parts Included:</h6>
+                                                      <div ng-repeat="(partNumber, part) in chapter.partsIncluded" class="part-item">
+                                                         <div class="part-number">{{partNumber}}</div>
+                                                         <div class="part-info">
+                                                            <div class="part-title">{{getVideoTitle(part.libraryId)}}</div>
+                                                            <div class="part-details">
+                                                               Type: {{part.type}} | Skip to Next: {{part.skipToNext ? 'Yes' : 'No'}}
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <div role="tabpanel" class="tab-pane" id="modules">
+                                          <div class="row">
+                                             <div class="col-md-12">
+                                                <div class="alert alert-info">
+                                                   <h4><i class="ti ti-info"></i> Module Structure</h4>
+                                                   <p>Modules are automatically created based on the classification levels of video content:</p>
+                                                   <ul>
+                                                      <li><strong>Module 1:</strong> Biology (classificationLevel1 = 1)</li>
+                                                      <li><strong>Module 2:</strong> Chemistry (classificationLevel1 = 2)</li>
+                                                      <li><strong>Module 3:</strong> Mathematics (classificationLevel1 = 3)</li>
+                                                      <li><strong>Module 4:</strong> Physics (classificationLevel1 = 4)</li>
+                                                   </ul>
+                                                   <p>Chapters within each module correspond to classificationLevel2 values.</p>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div data-widget-group="course-window" ng-show="createView">
+                        <div ng-show="!modifyCourseView && !chapterView">
+                           <div class="panel panel-default">
+                              <div class="panel-heading">
+                                 <h2><i class="ti ti-book"></i> Create New Course Bundle</h2>
+                              </div>
+                              <div class="panel-body">
+                                 <form class="form-horizontal">
+                                    <div class="row">
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Bundle Title</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newCourseBundle.title" placeholder="Enter course bundle title">
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Display Key</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newCourseBundle.displayKey" placeholder="Auto-generated UUID" readonly>
+                                                <small class="help-block">Auto-generated unique identifier</small>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Status</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newCourseBundle.active">
+                                                   <option value="1">Active</option>
+                                                   <option value="0">Inactive</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                       <label class="col-sm-3 control-label">Select Modules</label>
+                                       <div class="col-sm-9">
+                                          <div class="row">
+                                             <div class="col-md-3" ng-repeat="module in availableModules">
+                                                <div class="checkbox">
+                                                   <label>
+                                                      <input type="checkbox" ng-model="module.selected" ng-change="updateModuleSelection()">
+                                                      <strong>{{module.title}}</strong>
+                                                   </label>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                       <div class="col-sm-offset-3 col-sm-9">
+                                          <button type="button" class="btn btn-primary btn-lg" ng-click="createCourseBundle()" ng-disabled="!newCourseBundle.title">
+                                             <i class="ti ti-save"></i> Create Course Bundle
+                                          </button>
+                                          <button type="button" class="btn btn-default btn-lg" ng-click="cancelCourseCreation()">
+                                             <i class="ti ti-close"></i> Cancel
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </form>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div ng-show="chapterView">
+                           <div class="panel panel-default">
+                              <div class="panel-heading">
+                                 <h2><i class="ti ti-layout"></i> Create New Chapter</h2>
+                              </div>
+                              <div class="panel-body">
+                                 <form class="form-horizontal">
+                                    <div class="row">
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Module</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newChapter.moduleCode" ng-change="filterPartsByModule()">
+                                                   <option value="">Select Module</option>
+                                                   <option value="1">Module 1 - Biology</option>
+                                                   <option value="2">Module 2 - Chemistry</option>
+                                                   <option value="3">Module 3 - Mathematics</option>
+                                                   <option value="4">Module 4 - Physics</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Chapter Code</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newChapter.code" placeholder="Enter chapter code" maxlength="10">
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Chapter Title</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newChapter.title" placeholder="Enter chapter title" maxlength="40">
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Label</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newChapter.label" placeholder="Enter chapter label" maxlength="50">
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Status</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newChapter.status">
+                                                   <option value="1">Active</option>
+                                                   <option value="0">Inactive</option>
+                                                </select>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                       <label class="col-sm-3 control-label">Select Parts (Videos)</label>
+                                       <div class="col-sm-9">
+                                          <div class="part-selection">
+                                             <div ng-repeat="part in filteredParts" class="part-selection-item" ng-class="{'selected': part.selected}">
+                                                <input type="checkbox" ng-model="part.selected" ng-change="updatePartSelection()">
+                                                <img ng-src="{{part.thumbnail}}" class="video-thumbnail" alt="Video thumbnail">
+                                                <div class="part-selection-info">
+                                                   <div class="part-selection-title">{{part.titleName}}</div>
+                                                   <div class="part-selection-details">
+                                                      Duration: {{formatDuration(part.durationInSeconds)}} | 
+                                                      <span class="classification-badge classification-level1">L1: {{part.classificationLevel1}}</span>
+                                                      <span class="classification-badge classification-level2">L2: {{part.classificationLevel2}}</span>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                          <small class="help-block">Select videos to include in this chapter. Only videos matching the selected module and chapter classification levels are shown.</small>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                       <div class="col-sm-offset-3 col-sm-9">
+                                          <button type="button" class="btn btn-primary btn-lg" ng-click="createChapter()" ng-disabled="!newChapter.moduleCode || !newChapter.title || selectedParts.length === 0">
+                                             <i class="ti ti-save"></i> Create Chapter
+                                          </button>
+                                          <button type="button" class="btn btn-default btn-lg" ng-click="cancelChapterCreation()">
+                                             <i class="ti ti-close"></i> Cancel
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </form>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div ng-show="modifyCourseView" style="margin-top: -25px;">
+                           <div class="panel panel-default">
+                              <div class="panel-heading">
+                                 <h2><i class="ti ti-pencil"></i> Editing Course Bundle #<b style="font-size: 150%">{{modifyCourseData.id}}</b></h2>
+                                 <span style="float: right;">
+                                    <button type="button" class="btn btn-default" ng-click="goBackToList()">
+                                       <i class="ti ti-arrow-left"></i> Back to List
+                                    </button>
+                                 </span>
+                              </div>
+                              <div class="panel-body">
+                                 <p ng-show="!modifyCourseData.id" style="margin: 80px; text-align: center; font-size: 18px; color: #c6c6c6;">No valid course bundle found.</p>
+                                 
+                                 <div class="row" ng-show="modifyCourseData.id">
+                                    <div class="col-md-8">
+                                       <div class="panel panel-info">
+                                          <div class="panel-heading">
+                                             <h3><i class="ti ti-book"></i> Course Bundle Details</h3>
+                                          </div>
+                                          <div class="panel-body">
+                                             <form class="form-horizontal">
+                                                <div class="form-group">
+                                                   <label class="control-label">Bundle Title</label>
+                                                   <input type="text" class="form-control" ng-model="modifyCourseData.title">
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="control-label">Display Key</label>
+                                                   <input type="text" class="form-control" ng-model="modifyCourseData.displayKey" readonly>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="control-label">Status</label>
+                                                   <select class="form-control" ng-model="modifyCourseData.active">
+                                                      <option value="1">Active</option>
+                                                      <option value="0">Inactive</option>
+                                                   </select>
+                                                </div>
+                                                <div class="form-group">
+                                                   <button type="button" class="btn btn-primary btn-block" ng-click="saveCourseBundleChanges()">
+                                                      <i class="ti ti-save"></i> Save Changes
+                                                   </button>
+                                                </div>
+                                             </form>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                       <div class="panel panel-info">
+                                          <div class="panel-heading">
+                                             <h3><i class="ti ti-folder"></i> Modules Structure</h3>
+                                          </div>
+                                          <div class="panel-body">
+                                             <div ng-repeat="module in modifyCourseData.modules" class="module-structure-item">
+                                                <div class="module-structure-number">{{$index + 1}}</div>
+                                                <div>
+                                                   <strong>{{module.title}}</strong>
+                                                   <div class="text-muted">
+                                                      Module {{module.moduleKey}} | 
+                                                      Chapters: {{module.chapterIds.length}}
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
+
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>
+      <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>   
+      <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
+
+   </body>
+</html>

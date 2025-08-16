@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Acceleron Luna</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/marketing.js"></script>
+      
+      <!-- CROPPER -->
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+      
+      		<script>
+			$(window).ready(function() {
+				$('#loading').hide();
+			});		
+		</script>
+		
+      
+      <!-- For Form -->
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+   </head>
+
+   <body class="animated-content" ng-app="marketingApp" ng-controller="marketingController" ng-cloak>   
+      <div id="loading"></div>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">      
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+		    <div class="static-content">
+		    
+<div class="page-content">
+                    <ol class="breadcrumb">
+                    </ol>
+                     <div class="container-fluid">
+                        <div class="row">
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('combos')" id="combosTabButton">
+                                 <div class="tile-icon"><i class="ti ti-shopping-cart-full" id="combosIcon"></i></div>
+                                 <div class="tile-heading" id="combosTitle"><span>Combos</span></div>
+                                 <div class="tile-body" id="combosCount">
+                                 	<span ng-if="figure_active_combos != undefined">{{figure_active_combos}}</span>
+                                 	<span ng-if="figure_active_combos == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="combosTag"><span class="text-default">Are Running</span></div>
+                              </div>
+                           </div>    
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('promotions')" id="promotionsTabButton">
+                                 <div class="tile-icon"><i class="ti ti-announcement" id="promotionsIcon"></i></div>
+                                 <div class="tile-heading" id="promotionsTitle"><span>Promotions</span></div>
+                                 <div class="tile-body" id="promotionsCount">
+                                 	<span ng-if="figure_active_promotions != undefined">{{figure_active_promotions}}</span>
+                                 	<span ng-if="figure_active_promotions == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="promotionsTag"><span class="text-default">Are Running</span></div>
+                              </div>
+                           </div>    
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green" ng-click="openType('coupons')" id="couponsTabButton">
+                                 <div class="tile-icon"><i class="ti ti-ticket" id="couponsIcon"></i></div>
+                                 <div class="tile-heading" id="couponsTitle"><span>Coupons</span></div>
+                                 <div class="tile-body" id="couponsCount">
+                                 	<span ng-if="figure_active_coupons != undefined">{{figure_active_coupons}}</span>
+                                 	<span ng-if="figure_active_coupons == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer" id="couponsTag"><span class="text-default">Are Active</span></div>
+                              </div>
+                           </div>                                                      
+                           
+                        </div>
+                        <div data-widget-group="group1">
+                           <div class="row">
+				<div class="col-md-6">
+                                 <div class="panel panel-teal" style="margin-bottom: 10px">
+                                    <div class="panel-heading" style="background: #2980b9 !important">
+                                       <h2 style="color: #FFF">Active {{marketingType}}</h2>
+                                       					   <div class="pull-right hidden-xs" ng-if="isContentFound">
+									    	<strong>{{currentDisplayPage}}</strong> of <strong>{{totalDisplayPages}}</strong>
+									    	<div class="btn-group ml-sm" ng-if="totalDisplayPages != 1">
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != 1" ng-click="initializeContent(marketingType, currentDisplayPage-1)"><i class="ti ti-angle-left"></i></a>
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != totalDisplayPages" ng-click="initializeContent(marketingType, currentDisplayPage+1)"><i class="ti ti-angle-right"></i></a>
+							                        </div>
+									    </div>                                        
+                                    </div>
+                                    <div class="panel-body no-padding">
+                                       <p ng-if="!active_content.length" style="padding: 20px; text-align: center" class="ng-scope">There are no active {{marketingType}}.</p>
+                                       <!-- Display Combos -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'combos' && isContentFound">
+                                          <thead>
+                                             <tr>
+                                                <td>ID</td>
+                                                <td>Name</td>
+                                                <td>Brief</td>
+                                                <td>Price</td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{content.code}}</td>
+                                                <td style="color: #3498db; font-weight: bold;">{{content.name}}</td>
+                                                <td>{{content.brief}}</td>
+                                                <td><i class="fa fa-inr"></i>{{content.price}}</td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDelete(content.code, content.name)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       <!-- Display Promos -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'promotions' && isContentFound">
+                                          <thead>
+                                             <tr>
+                                                <td>ID</td>
+                                                <td>Brief</td>
+                                                <td>Expiry</td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{content.id}}</td>
+                                                <td>{{content.brief}}</td>
+                                                <td>{{content.expiry}}</td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDelete(content.id, '#'+content.id)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       
+                                       <!-- Display Coupons -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'coupons' && isContentFound">
+                                         <thead>
+                                             <tr>
+                                                <td>ID</td>
+                                                <td>Code</td>
+                                                <td>Brief</td>
+                                                <td>Expiry</td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>{{content.id}}</td>
+                                                <td style="color: #3498db; font-weight: bold;">{{content.code}}</td>
+                                                <td>{{content.brief}}</td>
+                                                <td>{{content.expiry}}</td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="confirmDelete(content.id, content.code)"><i class="fa fa-trash-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                                                              
+                                    </div>
+                                 </div>
+	                                 <div class="btn btn-success" style="float: right" ng-if="!newComboWindowFlag && !newPromoWindowFlag && !newCouponWindowFlag" ng-click="showNewContentWindow()"><i class="ti ti-plus"></i> Add New</div>	                                 
+                              </div>
+                              
+                              
+                              
+                              
+                              <!-- WIZARDS SECTION -->
+                              <div class="col-md-6">
+                              
+                            	 <!-- COMBOS -->
+                                 <div class="panel panel-bluegray" ng-show="newComboWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Combo</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                             	<div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Combo Name</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.name" placeholder="Biriyani Pot" class="form-control" style="color: #3498db; font-weight: 900;">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Brief</label>
+                                                   <div class="col-sm-8">
+                                                      <textarea class="form-control" placeholder="1 Biriyani + 1 Spicy BBQ (Quarter) + 500 ml Pepsi" ng-model="addNewContent.brief"></textarea>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Price</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="number" class="form-control"  ng-model="addNewContent.price">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Expiry Date</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="date"  ng-model="addNewContent.expiry" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Image</label>
+                                                   <div class="col-sm-8">
+                                                      <img ng-src="{{myPhotoURL}}" width="100%" style="border: 2px solid #27ae60" ng-if="isPhotoAttached">
+                                                      <i class="fa fa-picture-o" style="cursor: pointer; margin-top: 5px; color: #bdc3c7" ng-if="isPhotoAttached" ng-click="attachPhoto()"> Change Image</i>
+                                                      <button class="btn-default btn pull-left btn-outline" ng-if="!isPhotoAttached" ng-click="attachPhoto()">Add Image</button>
+                                                   </div>
+                                                </div>
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                              
+                              	 <!-- PROMOS -->
+                                 <div class="panel panel-bluegray" ng-show="newPromoWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Promo Content</h2>
+                                    </div>
+                                    <div class="panel-body">
+
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Description</label>
+                                                   <div class="col-sm-8">
+                                                      <textarea class="form-control" ng-model="addNewContent.brief"></textarea>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Expiry Date</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="date"  ng-model="addNewContent.expiry" class="form-control">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Image</label>
+                                                   <div class="col-sm-8">
+                                                      <img ng-src="{{myPhotoURL}}" width="100%" style="border: 2px solid #27ae60" ng-if="isPhotoAttached">
+                                                      <i class="fa fa-picture-o" style="cursor: pointer; margin-top: 5px; color: #bdc3c7" ng-if="isPhotoAttached" ng-click="attachPhoto()"> Change Image</i>
+                                                      <button class="btn-default btn pull-left btn-outline" ng-if="!isPhotoAttached" ng-click="attachPhoto()">Add Image</button>
+                                                      
+                                                   </div>
+                                                </div>
+
+                                                
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+					     <div style="float: left"><label class="checkbox-inline icheck"><div class="icheckbox_minimal-blue" style="position: relative;"><input type="checkbox" id="inlinecheckbox1" ng-model="addNewContent.offer" ng-click="changeOfferType()" style="position: absolute; opacity: 0;"></div> Is it about a special offer?</label></div>
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>                                    
+                                 </div>
+                                 
+                                 <!-- COUPONS -->
+                                 <div class="panel panel-bluegray" ng-show="newCouponWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Coupon Content</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                             	<div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Coupon Code</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.code" class="form-control" style="text-transform: uppercase; color: #3498db; font-weight: 900;">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Description</label>
+                                                   <div class="col-sm-8">
+                                                      <textarea class="form-control" ng-model="addNewContent.brief"></textarea>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Expiry Date</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="date"  ng-model="addNewContent.expiry" class="form-control">
+                                                   </div>
+                                                </div>
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 
+                                 
+                                 
+                              </div>
+                              
+                              		<!-- View Modal -->
+					<div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">								
+								<div class="modal-body">
+									<h2 style="color: #FFF; font-weight: 700; text-transform: uppercase; background: #1abc9c; padding: 10px 15px; display: inline-block; border: 2px #16a085 dashed" ng-if="marketingType == 'coupons'">{{viewContent.code}}</h2>
+									<p style="font-size: 21px; color: #34495e" ng-if="marketingType != 'coupons'">{{viewContent.name}}</p>
+									<img ng-src="{{viewContent.url}}" style="margin-bottom: 15px" width="100%" ng-if="viewContent.isImg">
+									<p style="margin: 0; color: #7f8c8d; font-size: 18px">{{viewContent.brief}}</p>
+ 									<p style="margin: 0; color: #bdc3c7" ng-if="marketingType != 'combos'">Created: <tag style="font-weight: bold; color: #2ecc71">{{viewContent.since}}</tag> | Expiry: <tag style="font-weight: bold; color: #2ecc71">{{viewContent.expiry}}</tag></p>
+ 									<p style="margin: 0; color: #bdc3c7" ng-if="marketingType == 'combos'"><tag style="font-weight: bold; font-size: 18px; color: #2ecc71"><i class="fa fa-inr" style="font-size:14px"></i> {{viewContent.price}}</tag></p>
+
+									
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+					
+					<!-- Image Modal -->
+					<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content" style="width: 810px">								
+								<div class="modal-body">
+								<div class="row" style="padding: 15px">
+                                                                        <button class="btn-success btn pull-right" ng-click="saveAttachment()" style="margin-left: 5px" ng-show="photoLoadedToFrame">Save</button>
+									<button type="button" class="btn btn-default pull-right" data-dismiss="modal">Close</button>
+<div style="padding:5px 10px; background:#00ad2d; border:1px solid #00ad2d; position:relative; color:#fff; border-radius:2px; text-align:center; float:left; cursor:pointer">Select an Image<input type="file" id="fileInput" style="position: absolute; z-index: 1000; opacity: 0; cursor: pointer; right: 0; top: 0; height: 100%; font-size: 24px; width: 100%;"/></div>
+								</div>
+<div style="margin-top: 10px">
+  <img id="image" ng-src="{{myImage}}" style="max-width: 100%;">
+</div>															
+<p style="margin: 0; padding-top: 15px; color: #bdc3c7">Upload High Quality image only. Use minimum 853x480 resolution(Width: 853px Height: 480px). Only JPG, PNG files supported.</p>
+
+								</div> 
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+					
+					
+					
+					<!-- DELETE Confirmation Modal -->
+					<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">																						
+								<div class="modal-footer">
+									<h2 class="modal-title" style="font-size: 16px; color: #95a5a6; float: left">Do you really want to delete {{marketingType}} <strong style="color: #e74c3c">{{deleteDisplayName}}</strong>?</h2>									
+									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-danger" ng-click="deleteContent(deleteItemCode)">Delete</button>
+									<p style="color: #e74c3c; margin: 10px 0px 0px 0px; text-align: center;">{{deleteError}}</p>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+					
+                           </div>
+                        </div>
+			
+
+			</div> <!-- Container fluid -->
+		      </div> <!-- Page content -->
+		    </div>
+		
+		</div>
+
+
+
+         </div>
+      </div>
+            
+      
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+<script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>                 	<!-- Typeahead for Autocomplete -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+
+
+<script type="text/javascript" src="assets/plugins/form-validation/jquery.validate.min.js"></script>  					<!-- Validate Plugin -->
+<script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>  								<!-- Stepy Plugin -->
+<script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>     		<!-- Tokenfield -->
+<script type="text/javascript" src="assets/demo/demo-formwizard.js"></script>
+<script type="text/javascript" src="assets/demo/demo-formcomponents.js"></script>
+    
+   </body>
+</html>

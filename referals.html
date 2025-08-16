@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Referals</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/referals.js"></script>
+      
+      <!-- CROPPER -->
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+      
+      <script>
+			$(window).ready(function() {
+				$('#loading').hide();
+			});		
+		</script>
+		
+      
+      <!-- For Form -->
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+   </head>
+
+   <body class="animated-content" ng-app="referalApp" ng-controller="referalController" ng-cloak>   
+      <div id="loading"></div>
+      <header id="topnav" class="navbar navbar-fixed-top navbar-midnightblue" role="banner">      
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; color: #ffd042; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-bluegray">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li><a href="index.html"><i class="ti ti-layout-grid2"></i><span>Table Manager</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="redeem.html"><i class="ti ti-gift"></i><span>Redeem Coupon</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <li><a href="guest-profile.html"><i class="ti ti-user"></i><span>Guest Details</span></a></li>
+                              <li><a href="referals.html"><i class="ti ti-star"></i><span>Referral Program</span></a></li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-id-badge"></i><span>Human Resources</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="people.html">People</a></li>
+                                    <li><a href="attendance.html">Attendance</a></li>
+                                    <li><a href="salary-slips.html">Salary Slips</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-package"></i><span>Inventory</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="inventory-stock.html">Stock</a></li>
+                                    <li><a href="inventory-stock-register.html">Stock Register</a></li>
+                                    <li><a href="inventory-vendors.html">Vendors</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-settings"></i><span>Tools</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="resources-steward.html">Stewards</a></li>
+                                    <li><a href="resources-reservationchannel.html">Reservation Channels</a></li>
+                                    <li><a href="tables.html">Tables List</a></li>
+                                    <!--<li><a href="settings.html">Account Settings</a></li>-->
+                                 </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+		    <div class="static-content">
+		    
+<div class="page-content">
+                    <ol class="breadcrumb">
+                    </ol>
+                     <div class="container-fluid">
+                        <div class="row">
+                           <div class="col-md-4">
+                              <div class="info-tile tile-green">
+                                 <div class="tile-icon"><i class="fa fa-user"></i></div>
+                                 <div class="tile-heading"><span>Referers</span></div>
+                                 <div class="tile-body">
+                                 	<span ng-if="figure_total_referers != undefined">{{figure_total_referers}}</span>
+                                 	<span ng-if="figure_total_referers == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer"><span class="text-default">Guests Referred</span></div>
+                              </div>
+
+                              <div class="info-tile tile-green">
+                                 <div class="tile-icon"><i class="fa fa-users"></i></div>
+                                 <div class="tile-heading"><span>References</span></div>
+                                 <div class="tile-body">
+                                    <span ng-if="figure_total_referees != undefined">{{figure_total_referees}}</span>
+                                    <span ng-if="figure_total_referees == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer"><span class="text-default">References Made</span></div>
+                              </div>
+                              <div class="info-tile tile-green">
+                                 <div class="tile-icon"><i class="fa fa-thumbs-up"></i></div>
+                                 <div class="tile-heading"><span>Accepted</span></div>
+                                 <div class="tile-body">
+                                    <span ng-if="figure_converted_referees != undefined">{{figure_converted_referees}}</span>
+                                    <span ng-if="figure_converted_referees == undefined">...</span>
+                                 </div>
+                                 <div class="tile-footer"><span class="text-default">References Accepted</span></div>
+                              </div>
+
+
+                           </div>    
+
+
+
+
+                              <!-- WIZARDS SECTION -->
+                              
+                              <div class="col-md-6">
+                              
+                               <!-- COMBOS -->
+                                 <div class="panel panel-bluegray">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>Add References</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Referer's Name</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.name" placeholder="Name" class="form-control" style="color: #3498db;">
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Referer's Mobile</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.mobile" placeholder="Mobile Number" class="form-control" style="color: #3498db;">
+                                                   </div>
+                                                </div>
+
+
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Date</label>
+                                                   <div class="col-sm-8">
+                                                      <div class="input-group date">
+                                                         <input type="text" id="new_referal_date" class="form-control ng-pristine">
+                                                         <span class="input-group-addon"><i class="ti ti-calendar"></i></span>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">References</label>
+                                                   <div class="col-sm-4" style="padding-right: 2px">
+                                                      <input type="text" id="new_reference_name" placeholder="Name" class="form-control" style="color: #3498db;">
+                                                   </div>
+                                                   <div class="col-sm-4" style="padding-left: 2px;">
+                                                      <input type="text" id="new_reference_mobile" placeholder="Mobile" class="form-control" style="color: #3498db;">
+                                                   </div>
+                                                   <div class="col-sm-1" style="padding-left: 2px; padding-right: 2px; ">
+                                                      <button class="btn-success btn" style="border-radius: 50%; height: 32px; width: 32px; padding: 0;" ng-click="addNewReference()"><i class="fa fa-plus"></i></button>
+                                                   </div>
+
+                                                </div>
+
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label"></label>
+                                                   <div class="col-sm-8">
+                                                      <button ng-repeat="person in referencesHoldList" style="margin-right: 5px" class="btn btn-default savedCommentButton" ng-click="removeNewReference(person.mobile)"><tag class="savedCommentButtonIcon"><i class="fa fa-minus-circle"></i></tag>{{person.name}} ({{person.mobile}})</button>
+                                                   </div>
+                                                </div>
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent()">Save</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="resetNewContent()" >Reset</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 
+                                 
+                              </div>
+
+
+
+                           
+                        </div>
+                        
+			
+
+			</div> <!-- Container fluid -->
+		      </div> <!-- Page content -->
+		    </div>
+		
+		</div>
+
+
+
+         </div>
+      </div>
+            
+      
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+<script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>                 	<!-- Typeahead for Autocomplete -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+
+
+<script type="text/javascript" src="assets/plugins/form-validation/jquery.validate.min.js"></script>  					<!-- Validate Plugin -->
+<script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>  								<!-- Stepy Plugin -->
+<script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>     		<!-- Tokenfield -->
+<script type="text/javascript" src="assets/demo/demo-formwizard.js"></script>
+<script type="text/javascript" src="assets/demo/demo-formcomponents.js"></script>
+
+
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
+
+    
+   </body>
+</html>

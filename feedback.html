@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Acceleron Luna</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/feedback.js"></script>
+      
+      
+   <!-- Google Sign In -->
+	<script>
+	  var GoogleAuth;
+	  var SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+	  function handleClientLoad() {
+	    // Load the APIs client and auth2 modules.
+	    // Call the initClient function after the modules load.
+	    gapi.load('client:auth2', initClient);
+	  }
+	
+	  function initClient() {
+	    // Retrieve the discovery document for version 3 of Google Drive API.
+	    // In practice, your app can retrieve one or more discovery documents.
+	    var discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';
+	
+	    // Initialize the gapi.client object, which app uses to make API requests.
+	    // Get API key and client ID from API Console.
+	    // 'scope' field specifies space-delimited list of access scopes.
+	    gapi.client.init({
+	        'apiKey': 'AIzaSyDo2E2eVcSDGTIDIPvTbRxMng_SaEOh2fI',
+	        'discoveryDocs': [discoveryUrl],
+	        'clientId': '445923166554-148c9hgaj5dh1k5kbak0id3lobv1qkam.apps.googleusercontent.com',
+	        'scope': SCOPE
+	    }).then(function () {
+	      GoogleAuth = gapi.auth2.getAuthInstance();
+	
+	      // Listen for sign-in state changes.
+	      GoogleAuth.isSignedIn.listen(updateSigninStatus);
+	
+	      // Handle initial sign-in state. (Determine if user is already signed in.)
+	      var user = GoogleAuth.currentUser.get();
+	      setSigninStatus();
+	
+	      // Call handleAuthClick function when user clicks on
+	      //      "Sign In/Authorize" button.
+	      $('#sign-in-or-out-button').click(function() {
+	        handleAuthClick();
+	      }); 
+	      $('#revoke-access-button').click(function() {
+	        revokeAccess();
+	      }); 
+	    });
+	  }
+	
+	  function handleAuthClick() {
+	    if (GoogleAuth.isSignedIn.get()) {
+	      // User is authorized and has clicked 'Sign out' button.
+	      GoogleAuth.signOut();
+	    } else {
+	      // User is not signed in. Start Google auth flow.
+	      GoogleAuth.signIn();
+	    }
+	  }
+	
+	  function revokeAccess() {
+	    GoogleAuth.disconnect();
+	  }
+	
+	  function setSigninStatus(isSignedIn) {
+	    var user = GoogleAuth.currentUser.get();
+	    var isAuthorized = user.hasGrantedScopes(SCOPE);
+	    if (isAuthorized) {
+	      $('#sign-in-or-out-button').html('Sign Out');
+	      $('#loginButton').css('visibility', 'hidden');
+              $('#displayPanel').css('visibility', 'visible');
+	    } else {
+	      $('#sign-in-or-out-button').html('Login to Gmail');
+              $('#loginButton').css('visibility', 'visible');
+              $('#displayPanel').css('visibility', 'hidden');
+	    }
+	  }
+	
+	  function updateSigninStatus(isSignedIn) {
+	    setSigninStatus();
+	  }
+	  	  	 	  
+	  
+	</script>
+	      
+      
+       <script src="assets/js/ng-infinite-scroll.min.js"></script>
+   </head>
+   <body class="animated-content" ng-app="feedsApp" ng-controller="feedbackController" ng-cloak>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+                           <div class="row">
+                              <div class="col-md-1"></div>
+                              <div class="col-md-10">
+                                 <div class="panel panel-default">
+                                    <div class="panel-heading" style="background: #ecf0f1;"><h3 style="margin-top: 20px; font-size: 26px; font-weight: 300; text-transform: none; text-align: center">Feedback Summary</h3></div>
+                                    <div class="panel-body">
+                                       <div class="" id="feedbackLoader"></div>
+                                       <div class="row">
+                                          <div class="col-md-4 col-sm-6 col-xs-6">
+                                             <div class="easypiechart" id="overall" data-percent="{{rating.overall*20}}">
+                                                <span class="percent-non" id="rate_overall">{{rating.overall.toFixed(1)}}</span>
+                                             </div>
+                                             <label for="overall"><span class="label" ng-style="getMyStyle(rating.overall)">Overall Rating</span></label>
+                                             <hr class="visible-sm visible-xs">
+                                          </div>
+                                          <div class="col-md-4 col-sm-6 col-xs-6">
+                                             <span class="easypiechart" id="food" data-percent="{{rating.food*20}}">
+                                             <span class="percent-non" id="rate_food">{{rating.food.toFixed(1)}}</span>
+                                             </span>
+                                             <label for="food"><span class="label" ng-style="getMyStyle(rating.food)">Food</span></label>
+                                             <hr class="visible-sm visible-xs">
+                                          </div>
+                                          <div class="col-md-4 col-sm-6 col-xs-6">
+                                             <span class="easypiechart" id="quality" data-percent="{{rating.quality*20}}">
+                                             <span class="percent-non" id="rate_quality">{{rating.quality.toFixed(1)}}</span>
+                                             </span>
+                                             <label for="quality"><span class="label" ng-style="getMyStyle(rating.quality)">Quality</span></label>
+                                             <hr class="visible-sm visible-xs">
+                                          </div>
+                                       </div>
+                                       <br>
+                                       <div class="row">
+                                         <div class="col-md-4 col-sm-6 col-xs-6">
+                                            <span class="easypiechart" id="service" data-percent="{{rating.service*20}}">
+                                            <span class="percent-non" id="rate_service">{{rating.service.toFixed(1)}}</span>
+                                            </span>
+                                            <label for="service"><span class="label" ng-style="getMyStyle(rating.service)">Service</span></label>
+                                            <hr class="visible-sm visible-xs">
+                                         </div>
+                                          <div class="col-md-4 col-sm-6 col-xs-6">
+                                             <span class="easypiechart" id="delivery" data-percent="{{rating.delivery*20}}">
+                                             <span class="percent-non" id="rate_delivery">{{rating.delivery.toFixed(1)}}</span>
+                                             </span>
+                                             <label for="delivery"><span class="label" ng-style="getMyStyle(rating.delivery)">Delivery</span></label>
+                                             <hr class="visible-sm visible-xs">
+                                          </div>
+                                          <div class="col-md-4 col-sm-6 col-xs-6">
+                                             <span class="easypiechart" id="app" data-percent="{{rating.app*20}}">
+                                             <span class="percent-non" id="rate_app">{{rating.app.toFixed(1)}}</span>
+                                             </span>
+                                             <label for="app"><span class="label" ng-style="getMyStyle(rating.app)">App and Web</span></label>
+                                             <hr class="visible-sm visible-xs">
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="row">
+                              <div class="col-md-1"></div>
+                              <div class="col-md-10">
+                              	
+                              	 <!-- FILTERS -->
+                              	 <div ng-if="!isFilterApplied">
+                              	 	<button class="btn btn-sm btn-default-alt" style="z-index: 100; margin: 0 0 10px 0" ng-click="showFilters()">Apply Filter</button>
+                              	 </div>
+                              	 <div ng-if="isFilterApplied">
+                              	 	<button class="btn btn-sm btn-success" style="z-index: 100; margin: 0 0 10px 0">{{filterText}}</button>
+                              	 	<button class="btn btn-sm btn-default-alt" style="z-index: 100; margin: 0 0 10px 5px;" ng-click="cancelFilters()">Clear Filter</button>
+                              	 </div>
+                              	 
+                              	 
+                                 <div class="panel panel-gray">                                    
+                                    <div class="panel-body">                                       
+                                       <div class=""> <!-- infinite-scroll='loadMore()' infinite-scroll-distance='1' -->
+                                          <ul class="mini-timeline" style="margin-left: 30px">					     
+                                             <li ng-repeat="feed in feedbacks" ng-class="{'mini-timeline-positive':feed.feedback.rating == 5, 'mini-timeline-neutral':feed.feedback.rating < 5 && feed.feedback.rating > 1, 'mini-timeline-negative':feed.feedback.rating == 1}">
+                                             
+                                                <i class="fa fa-check-square-o" title="Responded" ng-if="feed.isAttended" style="color: #a3ded2; position: absolute; margin-left: -20px; padding-top: 2px;" aria-hidden="true"></i>
+                                                
+                                                <div class="timeline-icon"></div>
+                                                <div class="timeline-body">
+                                                   <div class="timeline-content">
+                                                   
+                                                   <feed style="">
+                                                      <tag ng-if="feed.feedback.rating == 5" style="color: #2ecc71">
+                                                        <tag style="font-size: 120%" ng-if="feed.feedback.comment != ''">{{feed.feedback.comment}}<br></tag>
+                                                        <i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i>
+                                                      </tag>
+                                                      <tag ng-if="feed.feedback.rating == 4" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feed.feedback.comment != ''">{{feed.feedback.comment}}<br></tag>
+                                                        <i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i>
+                                                      </tag>
+                                                      <tag ng-if="feed.feedback.rating == 3" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feed.feedback.comment != ''">{{feed.feedback.comment}}<br></tag>
+                                                        <i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i>
+                                                      </tag>
+                                                      <tag ng-if="feed.feedback.rating == 2" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feed.feedback.comment != ''">{{feed.feedback.comment}}<br></tag>
+                                                        <i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i>
+                                                      </tag>
+                                                      <tag ng-if="feed.feedback.rating == 1" style="color: #e74c3c">
+                                                        <tag style="font-size: 120%" ng-if="feed.feedback.comment != ''">{{feed.feedback.comment}}<br></tag>
+                                                        <i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i>
+                                                      </tag>
+                                                      
+                                                      <button ng-if="!feed.isAttended && feed.feedback.comment != ''" class="btn btn-primary" style="float: right" ng-click="responseModal(feed)">Respond</button>
+                                                     </feed>
+                                                     
+                                                      <br>
+                                                      <feed style="">
+							 <positive ng-if="feed.feedback.rating == 5">
+                                                              <span ng-if="feed.feedback.food" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 5px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feed.feedback.quality" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feed.feedback.service" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feed.feedback.delivery" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feed.feedback.app" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> App</span>
+                                                          </positive>
+                                                          <neutral ng-if="feed.feedback.rating != 1 && feed.feedback.rating != 5">
+                                                              <span ng-if="feed.feedback.food" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 5px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feed.feedback.quality" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feed.feedback.service" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feed.feedback.delivery" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feed.feedback.app" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> App</span>
+                                                          </neutral>
+                                                          <negative ng-if="feed.feedback.rating == 1">
+                                                              <span ng-if="feed.feedback.food" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 5px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feed.feedback.quality" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feed.feedback.service" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feed.feedback.delivery" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feed.feedback.app" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> App</span>
+                                                          </negative>
+                                                       </feed>
+                                                                                                                
+                                                      
+                                                      <br>
+                                                      <tag class="name" style="color: #7f8c8d; font-weight: bold;">{{feed.userName}}, {{feed.userID}}</tag><br>
+                                                      <span class="time">{{feed.time}} | Order #{{feed.orderID}}</span>
+                                                   </div>
+                                                </div>
+                                             </li>
+
+                                          </ul>
+                                       </div>
+                                    </div>
+                                 </div>
+                                  <center><button ng-if="isMoreLeft" class="btn btn-default btn-sm" ng-click="loadMore()">Show More</button></center>
+                              </div>
+                           </div>
+                        </div>
+                        
+					<!-- FEEDBACK Response Modal -->
+					<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<h2>Response to <b>{{feedContent.userName}}</b></h2>
+									
+									
+                                                   <feed style="">
+                                                      <tag ng-if="feedContent.feedback.rating == 5" style="color: #2ecc71">
+                                                        <tag style="font-size: 120%" ng-if="feedContent.feedback.comment != ''">{{feedContent.feedback.comment}}<br></tag>
+                                                        <star style="font-size: 24px"><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i></star>
+                                                      </tag>
+                                                      <tag ng-if="feedContent.feedback.rating == 4" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feedContent.feedback.comment != ''">{{feedContent.feedback.comment}}<br></tag>
+                                                        <star style="font-size: 24px"><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i></star>
+                                                      </tag>
+                                                      <tag ng-if="feedContent.feedback.rating == 3" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feedContent.feedback.comment != ''">{{feedContent.feedback.comment}}<br></tag>
+                                                        <star style="font-size: 24px"><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i></star>
+                                                      </tag>
+                                                      <tag ng-if="feedContent.feedback.rating == 2" style="color: #cddc39">
+                                                        <tag style="font-size: 120%" ng-if="feedContent.feedback.comment != ''">{{feedContent.feedback.comment}}<br></tag>
+                                                        <star style="font-size: 24px"><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i></star>
+                                                      </tag>
+                                                      <tag ng-if="feedContent.feedback.rating == 1" style="color: #e74c3c">
+                                                        <tag style="font-size: 120%" ng-if="feedContent.feedback.comment != ''">{{feedContent.feedback.comment}}<br></tag>
+                                                        <star style="font-size: 24px"><i class="fa fa-star" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i><i class="fa fa-star-o" aria-hidden="true"></i></star>
+                                                      </tag>
+
+                                                     </feed>
+                                                     
+                                                      <br>
+                                                      <feed style="">
+							 <positive ng-if="feedContent.feedback.rating == 5">
+                                                              <span ng-if="feedContent.feedback.food" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 5px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feedContent.feedback.quality" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feedContent.feedback.service" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feedContent.feedback.delivery" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feedContent.feedback.app" style="border: 1px solid #2ecc71; color: #2ecc71; padding: 2px 4px; margin-right: 3px"><i class="fa fa-smile-o" aria-hidden="true"></i> App</span>
+                                                          </positive>
+                                                          <neutral ng-if="feedContent.feedback.rating != 1 && feedContent.feedback.rating != 5">
+                                                              <span ng-if="feedContent.feedback.food" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 5px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feedContent.feedback.quality" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feedContent.feedback.service" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feedContent.feedback.delivery" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feedContent.feedback.app" style="border: 1px solid #cddc39; color: #cddc39; padding: 2px 4px; margin-right: 3px"><i class="fa fa-meh-o" aria-hidden="true"></i> App</span>
+                                                          </neutral>
+                                                          <negative ng-if="feedContent.feedback.rating == 1">
+                                                              <span ng-if="feedContent.feedback.food" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 5px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Food</span>
+                                                              <span ng-if="feedContent.feedback.quality" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Quality</span>
+                                                              <span ng-if="feedContent.feedback.service" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Service</span>
+                                                              <span ng-if="feedContent.feedback.delivery" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> Delivery</span>
+                                                              <span ng-if="feedContent.feedback.app" style="border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 4px; margin-right: 3px"><i class="fa fa-frown-o" aria-hidden="true"></i> App</span>
+                                                          </negative>
+                                                       </feed>
+                                                       <hr style="margin-bottom: 2px">
+                                                       <span class="time" style="color: #bdc3c7">At {{feedContent.time}} | Order #{{feedContent.orderID}}</span>
+                                                                      
+                                                                      
+                                                                      									
+									<div class="row" style="margin-top: 15px">
+										<div class="col-sm-12">
+											<label class="myReservationLabel">Subject</label>
+											<input type="text" ng-model="replySubject" class="form-control input-lg" placeholder="Customer Name">
+										</div>										
+									</div> 
+									<div class="row" style="margin-top: 15px;">
+									    <div class="col-sm-12">
+											
+										<label class="myReservationLabel">Response</label>									
+										<div class="pull-right">	
+											<div class="btn-group" style="margin-bottom: 3px;">
+											  <a href="#" id="myReplyButtonOne" class="btn btn-sm btn-midnightblue"><i class="ti ti-share visible-xs"></i><span class="hidden-xs">Choose Template</span></a>
+											  <a href="#" class="btn btn-sm btn-midnightblue dropdown-toggle" data-toggle="dropdown">
+											    <span class="caret"></span>
+											    <span class="sr-only">Toggle Dropdown</span>
+											  </a>
+											  <ul class="dropdown-menu" role="menu" id="myReplyButtonTwo">
+											  	<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_CUSTOM')">Custom Reply</a></li>
+											  	<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_FOOD_QUALITY')">Food Quality</a></li>
+											  	<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_DELAYED_ORDER')">Delay in Delivery</a></li>
+											  	<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_FEEDBACK_POSITIVE')">Positive Feedback</a></li>
+											  	<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_FEEDBACK_NEGATIVE')">Negative Feedback</a></li>
+												<li><a href="#" ng-click="setReplyContent(feedContent, 'REPLY_FEEDBACK_NEGATIVE_WITH_DISCOUNT')">Issue Voucher</a></li>
+											  </ul>
+											</div>
+										</div>
+																					
+										<textarea ng-model="replyMessage" rows="6" class="form-control input-lg" placeholder="Comments"></textarea>
+									    </div>			
+									</div> 									
+									
+								</div>																													
+								<div class="modal-footer" id="displayPanel">																
+									<button type="button" style="float: left" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" id="newReservationSaveButton" class="btn btn-success" ng-click="sendResponse()">Send Response</button>
+								</div>
+								<div class="modal-footer" id="loginButton">									
+									<button class="btn btn-lg btn-green btn-block mb-xl" id="sign-in-or-out-button" target="new">Loading ...</button>																							
+								</div>								
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal --> 
+					
+					                        
+                        		<!-- FILTER MODAL -->
+                        		<div class="modal fade" id="filterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+							          <div class="modal-header" style="color: #27ae60; border: none; padding-bottom: 0">
+							            <button type="button" class="close" data-dismiss="modal">&times;</button>
+							            <h4 class="modal-title" style="font-size: 16px">Available Filters</h4>
+							          </div>															
+								<div class="modal-body">		
+									<button type="button" class="btn btn-default btn-block" ng-click="applyFilter('MOST')" style="text-transform: none; text-align: left; font-size: 18px; font-weight: 400"><i class="fa fa-smile-o"></i>  Show Positive Feedbacks first</button>
+									<button type="button" class="btn btn-default btn-block" ng-click="applyFilter('LEAST')" style="text-transform: none; text-align: left; font-size: 18px; font-weight: 400"><i class="fa fa-frown-o"></i>  Show Negative Feedbacks first</button>	
+									<button type="button" class="btn btn-default btn-block" ng-click="applyFilter('COMMENTS')" style="text-transform: none; text-align: left; font-size: 18px; font-weight: 400"><i class="fa fa-comment-o"></i>  Show Feedbacks with Comments</button>							
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+                        
+                        
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+      <!-- Load site level scripts -->
+      <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      <script type="text/javascript" src="assets/plugins/easypiechart/jquery.easypiechart.js"></script>
+      
+      
+      
+      <!-- Google Sign In -->
+      <script async defer src="https://apis.google.com/js/api.js" 
+        onload="this.onload=function(){};handleClientLoad()" 
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+      </script>
+                     
+
+   </body>
+</html>

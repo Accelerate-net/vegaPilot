@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Acceleron Luna</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/reservations.js"></script>
+   <script src="controllers/login.js"></script>
+
+</head>
+
+   <body class="" ng-app="reservationsApp" ng-controller="reservationsController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+           <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+                        
+                          <div class="row">
+                             <div class="col-sm-2"></div>
+                             <div class="col-sm-8">
+                                <div class="input-group" style="padding: 10px; border: none;">
+                                   <input type="text" ng-model="searchID" id="mySearchBox" class="form-control input-lg" style="text-align: center" placeholder="">
+                                   <span class="input-group-btn">
+                                   <button class="btn btn-default btn-lg" type="button" ng-click="search(searchID)"><i class="ti ti-search"></i></button>
+                                   <button class="btn btn-default btn-lg" type="button" title="Search By Date" style="margin-left: 10px" ng-click="searchByDate()"><i class="ti ti-calendar"></i></button>
+                                   </span>
+                                </div>
+                                <p ng-if="!isSearched" style="font-size:16px; text-align: center; color: #bdc3c7">Search with Name or Mobile Number or filter by Date by clicking <i class="fa fa-calendar" style="font-size: 90%; padding: 0px 2px"></i> icon.</p>
+
+                             </div>
+                          </div>
+                                                  
+
+                          <!-- Default Results -->
+                          <div class="tab-content">
+                             <div class="tab-pane active" id="tab-projects">
+                                <div class="panel panel-default">
+                                
+                                   <div class="panel-heading">
+                                      <h2>{{filterTitle}}</h2><button class="btn btn-success-alt btn-sm" style="margin-top: 10px; float: right" ng-click="openNewReservation()">Add New</button>
+                                   </div>
+                                   <div class="panel-body">
+                                   <div id="vegaPanelBodyLoader"></div> 
+                                     <div class="row" ng-if="!isReservationsFound" style="padding-top: 30px">
+                                       <p style="font-size:21px; text-align: center; color: #7f8c8d">{{resultMessage}}</p>
+                                     </div>
+                                      <div class="table-responsive" ng-if="isReservationsFound">
+                                         <table class="table m-n">
+                                           
+                                            <thead>
+                                              <tr>                                              	 
+                                                 <th></th>
+                                                 <th>Date</th>
+                                                 <th>Time</th>
+                                                 <th>Count</th>
+                                                 <th>Customer</th>
+                                                 <th>Mobile</th>
+                                                 <th>Email</th>
+                                                 <th>Comments</th>
+                                                 <th>Status</th>
+                                                 <th></th>
+                                                 <th></th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              <tr ng-repeat="reservation in reservationsList track by $index" ng-class="{todayRow: todayDate == reservation.date}">
+                                              	<td>#{{$index + 1}}</td>
+                                                <td>{{reservation.date}}</td>
+                                                <td>{{reservation.time}}</td>
+                                                <td>{{reservation.count}}</td>
+                                                <td>{{reservation.user}}</td>
+                                                <td>{{reservation.mobile}}</td>
+                                                <td>{{reservation.email}}</td>
+                                                <td>{{reservation.comments}}
+                                                	<tag style="margin-left: 5px; border: 1px solid #7f8c8d; color: #7f8c8d; padding: 0px 3px; font-size: 10px" ng-if="reservation.isBirthday">BIRTHDAY</tag>
+                                                	<tag style="margin-left: 5px; border: 1px solid #7f8c8d; color: #7f8c8d; padding: 0px 3px; font-size: 10px" ng-if="reservation.isAnniversary">ANNIVERSARY</tag>
+                                                </td>
+                                                <td ng-class="getStatusColor(reservation.status)" ng-attr-id="{{ 'status_' + reservation.id }}">{{reservation.status}}</td>
+                                                <td><a ng-if="reservation.statusCode == 0" ng-click="showCancel(reservation.id, reservation.user)"><i class="fa fa-ban" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-if="reservation.statusCode == 0" ng-click="showEdit(reservation)"><i class="fa fa-pencil-square-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                              </tr>
+                                            </tbody>
+                                         </table>
+                                      </div>
+                                      <center><div class="btn btn-midnightblue-alt btn-sm" style="margin-top: 20px" ng-if="isMoreLeft" ng-click="loadMore()">Load More</div></center>
+                                      <!-- /.table-responsive -->
+
+                                   </div>
+                                   <!-- /.panel-body -->
+                                </div>
+                             </div>
+                             
+					
+					<!-- CANCEL Confirmation Modal -->
+					<div class="modal fade" id="cancelModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">	
+								<div class="modal-body" style="padding-bottom: 40px">							
+									<p style="font-size: 16px; color: #95a5a6; float: left">Do you really want to cancel this reservation by <strong style="color: #e74c3c">{{cancelShowName}}</strong>?</p>
+								</div>																					
+								<div class="modal-footer">																		
+									<button type="button" class="btn btn-default" style="float: left" data-dismiss="modal">No</button>
+									<button type="button" class="btn btn-danger" ng-click="confirmCancel(cancelItemCode)">Yes, Cancel</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->    
+					
+					
+					<!-- NEW Reservation Modal -->
+					<div class="modal fade" id="reservationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<h2>New Reservation</h2>
+									<div class="row">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Customer Name</label>
+											<input type="text" ng-model="newReservationContent.name" class="form-control input-lg" placeholder="Customer Name">
+										</div>
+										<div class="col-sm-3">
+											<label class="myReservationLabel">Head Count</label>
+											<input type="text" ng-model="newReservationContent.count" class="form-control input-lg" placeholder="Count">
+										</div>
+										<div class="col-sm-3">
+											<label class="myReservationLabel">Channel</label>
+
+											<select class="form-control" id="my_mode">							
+												<option value="WALKIN">Walkin</option>
+												<option value="ZSMS">Zomato SMS</option>
+												<option value="ZCALL">Zomato Call</option>												
+												<option value="CORP">Corporate</option>
+												<option value="DIRECT">Direct Call</option>												
+												<option value="DOUT">Dineout</option>
+												<option value="CLKTBL">Click Table</option>
+												<option value="EVFLR">Evening Flavor</option>
+												<option value="OTHER">Others</option>
+											</select>
+										</div>
+									</div>
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Date</label>
+											<div class="input-group date">
+												<input type="text" ng-model="newReservationContent.date" id="new_date" class="form-control">
+												<span class="input-group-addon"><i class="ti ti-calendar"></i></span>
+											</div>
+										</div>
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Time</label>
+											<div class="input-group date">
+												<input type="text" ng-model="newReservationContent.time" class="form-control" id="new_time">
+												<span class="input-group-addon"><i class="ti ti-time"></i></span>
+											</div>
+										</div>
+									</div>
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Mobile</label>
+											 <input type="text" ng-model="newReservationContent.mobile" class="form-control input-lg" placeholder="Mobile Number">
+										</div>
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Email</label>
+											<input type="text" ng-model="newReservationContent.email" class="form-control input-lg" placeholder="Email">
+										</div>
+									</div> 
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-8">
+											<label class="myReservationLabel">Comments</label>
+											<textarea ng-model="newReservationContent.comments" class="form-control input-lg" placeholder="Comments"></textarea>
+										</div>
+										<div class="col-sm-4">					
+											 <label class="checkbox icheck"> <div class="icheckbox_minimal-blue" style="position: relative;"><input type="checkbox" value="1" id="check_birthday" style="position: absolute; opacity: 0;"><ins class="iCheck-helper"  style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div> Birthday </label>					
+											<label class="checkbox icheck"> <div class="icheckbox_minimal-blue" style="position: relative;"><input type="checkbox" value="1" id="check_anniversary" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div> Anniversary </label>
+					
+										</div>	
+										<p ng-show="newReservationError != ''" style="margin: 20px 0px 0px 15px; color: #e74c3c">{{newReservationError}}</p>									
+									</div> 									
+									
+								</div>																													
+								<div class="modal-footer">								
+									<button type="button" style="float: left" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-success" ng-click="saveNewReservation()">Save</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->    
+					
+					
+					
+					
+					<!-- Edit Reservation Modal -->
+					<div class="modal fade" id="reservationEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<h2>Edit Reservation</h2>
+									<div class="row">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Change Head Count</label>
+											<input type="text" ng-model="editReservationContent.count" class="form-control input-lg" placeholder="Count">
+										</div>
+									</div>
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Change Date</label>
+											<div class="input-group date">
+												<input type="text" ng-model="editReservationContent.date" id="edit_date" class="form-control">
+												<span class="input-group-addon"><i class="ti ti-calendar"></i></span>
+											</div>
+										</div>
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Change Time</label>
+											<div class="input-group date">
+												<input type="text" ng-model="editReservationContent.time" class="form-control" id="edit_time">
+												<span class="input-group-addon"><i class="ti ti-time"></i></span>
+											</div>
+										</div>
+									</div>
+									 									
+									
+								</div>																													
+								<div class="modal-footer">								
+									<button type="button" style="float: left" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-success" ng-click="saveEditReservation()">Save</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->    
+					
+					
+					
+					                         
+
+                          </div>
+
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> 
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
+
+
+   
+
+   </body>
+</html>

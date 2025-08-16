@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Acceleron Luna</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/messenger.js"></script>
+      
+      <!-- CROPPER -->
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+      
+      		<script>
+			$(window).ready(function() {
+				$('#loading').hide();
+			});		
+		</script>
+		
+      
+      <!-- For Form -->
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+   </head>
+
+   <body class="animated-content" ng-app="messengerApp" ng-controller="messengerController" ng-cloak>   
+      <div id="loading"></div>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">      
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+		    <div class="static-content">
+		    
+<div class="page-content">
+                    <ol class="breadcrumb">
+                    </ol>
+                     <div class="container-fluid">
+                        <div class="row">
+                           <div class="col-md-6">
+                              <div class="info-tile tile-green" ng-click="openType('sms')" id="smsTabButton">
+                                 <div class="tile-icon"><i class="ti ti-mobile" id="smsIcon"></i></div>
+                                 <div class="tile-body" id="smsCount"><span>SMS Campaign</span></div>
+                                 <div class="tile-footer" id="smsTag"><span class="text-default" ng-if="sms_last_used != ''">Last Used on {{sms_last_used}}</span></div>
+                              </div>
+                           </div>    
+                           <div class="col-md-6">
+                              <div class="info-tile tile-green" ng-click="openType('push')" id="pushTabButton">
+                                 <div class="tile-icon"><i class="ti ti-announcement" id="pushIcon"></i></div>
+                                 <div class="tile-body" id="pushCount"><span>Push Notifications</span></div>
+                                 <div class="tile-footer" id="pushTag"><span class="text-default" ng-if="push_last_used != ''">Last Used on {{push_last_used }}</span></div>
+                              </div>
+                           </div>                                                        
+                           
+                        </div>
+                        <div data-widget-group="group1">
+                           <div class="row">
+				<div class="col-md-6">
+                                 <div class="panel panel-teal" style="margin-bottom: 10px">
+                                    <div class="panel-heading" style="background: #2980b9 !important">
+                                       <h2 style="color: #FFF">{{marketingType}} History</h2>
+                                       					   <div class="pull-right hidden-xs" ng-if="isContentFound">
+									    	<strong>{{currentDisplayPage}}</strong> of <strong>{{totalDisplayPages}}</strong>
+									    	<div class="btn-group ml-sm" ng-if="totalDisplayPages != 1">
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != 1" ng-click="initializeContent(marketingType, currentDisplayPage-1)"><i class="ti ti-angle-left"></i></a>
+							                            <a href="#" class="btn btn-default" ng-if="currentDisplayPage != totalDisplayPages" ng-click="initializeContent(marketingType, currentDisplayPage+1)"><i class="ti ti-angle-right"></i></a>
+							                        </div>
+									    </div>                                        
+                                    </div>
+                                    <div class="panel-body no-padding">
+                                       <p ng-if="!active_content.length" style="padding: 20px; text-align: center" class="ng-scope">You have never used {{marketingType}}.</p>
+                                       <!-- Display SMS -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'sms' && isContentFound">
+                                          <thead>
+                                             <tr style="font-weight: 400; color: #2980b9 !important; background: #ecf0f1">
+                                                <td></td>
+                                                <td>Date</td>
+                                                <td>Name</td>
+                                                <td>Content</td>
+                                                <td>Reach</td>
+                                                <td></td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>#{{((currentDisplayPage-1)*10) + $index + 1}}</td>
+                                                <td>{{content.date}}</td>
+                                                <td style="font-weight: bold;">{{content.name}}</td>
+                                                <td>{{content.brief}}</td>
+                                                <td>{{content.count}}</td>
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="generateReport(content.code, 'sms')"><i class="fa fa-file-text-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       <!-- Display Push -->
+                                       <table class="table m-n" ng-if="active_content.length && marketingType == 'push' && isContentFound">
+                                          <thead>
+                                             <tr style="font-weight: 400; color: #2980b9 !important; background: #ecf0f1">
+                                                <td></td>
+                                                <td>Date</td>
+                                                <td>Content</td>                                                
+                                                <td></td>
+                                                <td></td>
+                                             </tr>
+                                          </thead>
+                                          <tbody>
+                                             <tr ng-repeat="content in active_content track by $index">
+                                                <td>#{{$index+1}}</td>
+                                                <td>{{content.date}}</td>
+                                                <td>
+                                                	<strong>{{content.name}}</strong><br>
+                                                	{{content.brief}}
+                                                </td>                                                
+                                                <td><a ng-click="viewMyContent(content)"><i class="fa fa-eye" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                                <td><a ng-click="generateReport(content.code, 'push')"><i class="fa fa-file-text-o" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                             </tr>
+                                          </tbody>
+                                       </table>
+                                       
+                                       
+                                       
+                                                                              
+                                    </div>
+                                 </div>
+	                                 <div class="animated-content btn btn-success" style="float: right" ng-if="!newSMSWindowFlag && !newPushWindowFlag" ng-click="showNewContentWindow()"><i class="ti ti-plus"></i> Start New</div>	                                 
+                              </div>
+                              
+                              
+                              
+                              
+                              <!-- WIZARDS SECTION -->
+                              <div class="col-md-6">
+                              
+                            	 <!-- SMS -->
+                                 <div class="panel panel-bluegray" ng-show="newSMSWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New SMS Campaign</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">                                       
+
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">SMS Content</label>
+                                                   <div class="col-sm-8">
+                                                      <textarea class="form-control" ng-keyup="smsCharCount()" maxlength="140" ng-model="addNewContent.brief"></textarea>
+                                                      <p style="color: #bdc3c7; margin-top: 3px;">{{alertCount}}</p>
+                                                   </div>
+                                                </div>
+                                             	<div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Name (Optional)</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.name" placeholder="Biriyani Combo Message" class="form-control">
+                                                   </div>
+                                                </div>                                                
+                                                <div class="form-group">
+							<label class="col-sm-3 control-label">Target Audience Restriction (Optional)</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="tokenfield-typeahead"/>
+								<p style="margin: 5px 0px 0px 0px; color: #bdc3c7; font-size: 12px">Leave it blank if the SMS needs be to send to all users.</p>
+								<p style="font-size: 11px; color: #bdc3c7; margin-top: 5px;">Available Targets:<tag ng-repeat="class in myClassList" class="btn btn-info-alt btn-xs" ng-attr-id="{{ 'button_' + class.value }}" style="margin-left: 4px" ng-click="addTarget(class.value)">{{class.value}} ({{class.count}})</tag> </p>
+							</div>                                                   
+                                                </div>
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Send</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                              
+                              	 <!-- PROMOS -->
+                                 <div class="panel panel-bluegray" ng-show="newPushWindowFlag">
+                                    <div class="panel-heading" style="background: #27ae60 !important;">
+                                       <h2>New Push Notification</h2>
+                                    </div>
+                                    <div class="panel-body">
+
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <form class="form-horizontal tabular-form">
+                                             	<div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Title</label>
+                                                   <div class="col-sm-8">
+                                                      <input type="text" ng-model="addNewContent.title" placeholder="" class="form-control" style="color: #3498db; font-weight: 900;">
+                                                   </div>
+                                                </div>   
+                                                                                             
+                                                <div class="form-group">
+                                                   <label class="col-sm-3 control-label">Content</label>
+                                                   <div class="col-sm-8">
+                                                      <textarea class="form-control" ng-model="addNewContent.brief"></textarea>
+                                                   </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                   <label for="form-name" class="col-sm-3 control-label">Image</label>
+                                                   <div class="col-sm-8">
+                                                      <img ng-src="{{myPhotoURL}}" width="100%" style="border: 2px solid #27ae60" ng-if="isPhotoAttached">
+                                                      <i class="fa fa-picture-o" style="cursor: pointer; margin-top: 5px; color: #bdc3c7" ng-if="isPhotoAttached" ng-click="attachPhoto()"> Change Image</i>
+                                                      <button class="btn-default btn pull-left btn-outline" ng-if="!isPhotoAttached" ng-click="attachPhoto()"> Add Image</button>                                                                  
+                                                   </div>
+                                                </div>
+
+                                            
+                                                
+                                             </form>
+                                          </div>
+                                       </div>
+                                       
+                                       <p style="color: #e74c3c; font-weight: bold; margin: 10px 0px 0px 0px; text-align: center;">{{newContentSaveError}}</p>
+                                       
+                                    </div>                                    
+                                    
+                                    <div class="panel-footer">
+                                       <div class="row">
+                                          <div class="col-sm-12">
+                                             <button class="btn-success btn pull-right" ng-click="saveNewContent(marketingType)">Send</button>
+                                             <button class="btn-default btn pull-right" style="margin-right: 10px" ng-click="hideNewContent()" >Cancel</button>
+                                          </div>
+                                       </div>
+                                    </div>                                    
+                                 </div>
+                                 
+                                 
+                                 
+                                 
+                              </div>
+                              
+                              		<!-- View Modal -->
+					<div class="modal fade" id="viewModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">								
+								<div class="modal-body">
+									<p style="font-size: 21px; color: #2980b9" ng-if="marketingType != 'coupons'">{{viewContent.name}}</p>
+									<img ng-src="{{viewContent.url}}" style="margin-bottom: 15px" width="100%" ng-if="viewContent.isImg">
+									<p style="margin: 0; color: #7f8c8d; font-size: 18px">{{viewContent.brief}}</p>									
+ 									<p style="margin: 0; margin-top: 15px; color: #bdc3c7" ng-if="marketingType == 'sms'">Created: <tag style="font-weight: bold; color: #2ecc71">{{viewContent.date}}</tag> | Target Audience: <tag style="font-weight: bold; color: #2ecc71">{{viewContent.target}}</tag> | Total Reach: <tag style="font-weight: bold; color: #2ecc71">{{viewContent.count}}</tag></p>
+ 									<p style="margin: 0; margin-top: 15px; color: #bdc3c7" ng-if="marketingType == 'push'">Sent at <tag style="font-weight: bold; color: #2ecc71">{{viewContent.date}}</tag> | Create by <tag style="font-weight: bold; color: #2ecc71">{{viewContent.user}}</tag></p> 																		
+								</div>
+								<div class="modal-footer">
+									<p style="margin: 0; float: left; color: #bdc3c7" ng-if="marketingType == 'sms'">Created by {{viewContent.user}}</tag></p>
+									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+					
+					<!-- Image Modal -->
+					<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content" style="width: 810px">								
+								<div class="modal-body">
+								<div class="row" style="padding: 15px">
+                                                                        <button class="btn-success btn pull-right" ng-click="saveAttachment()" style="margin-left: 5px" ng-show="photoLoadedToFrame">Save</button>
+									<button type="button" class="btn btn-default pull-right" data-dismiss="modal">Close</button>
+<div style="padding:5px 10px; background:#00ad2d; border:1px solid #00ad2d; position:relative; color:#fff; border-radius:2px; text-align:center; float:left; cursor:pointer">Select an Image<input type="file" id="fileInput" style="position: absolute; z-index: 1000; opacity: 0; cursor: pointer; right: 0; top: 0; height: 100%; font-size: 24px; width: 100%;"/></div>
+								</div>
+<div style="margin-top: 10px">
+  <img id="image" ng-src="{{myImage}}" style="max-width: 100%;">
+</div>															
+<p style="margin: 0; padding-top: 15px; color: #bdc3c7">Upload High Quality image only. Use minimum 853x480 resolution(Width: 853px Height: 480px). Only JPG, PNG files supported.</p>
+
+								</div> 
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+																
+					
+					<!-- SEND SMS Confirmation Modal -->
+					<div class="modal fade" id="sendConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<h2 class="modal-title" style="font-size: 16px; color: #95a5a6; float: left">{{smsConfirmModalText}}</h2>
+									<br><p style="font-size: 12px; color: #bdc3c7; margin-top: 10px;">This SMS will be send to:<tag ng-repeat="myclass in smsConfirmModalClasswise" style="border: 1px solid #bdc3c7; color: #bdc3c7; padding: 0px 2px; margin-left: 4px">{{myclass.class}} ({{myclass.count}})</tag></p>
+									<p style="font-size: 18px; color: #8bc34a; margin: 10px 0 0 0;">It will consume {{sendCost}} SMS credits from your balance. Do you really want to continue?</p>
+								</div>																													
+								<div class="modal-footer">																		
+									<button type="button" style="float: left" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-success" ng-click="submitSMS()">Continue</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+										
+					
+					
+                           </div>
+                        </div>
+			
+
+			</div> <!-- Container fluid -->
+		      </div> <!-- Page content -->
+		    </div>
+		
+		</div>
+
+
+
+         </div>
+      </div>
+            
+      
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+<script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>                 	<!-- Typeahead for Autocomplete -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+
+
+<script type="text/javascript" src="assets/plugins/form-validation/jquery.validate.min.js"></script>  					<!-- Validate Plugin -->
+<script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>  								<!-- Stepy Plugin -->
+<script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>     		<!-- Tokenfield -->
+<script type="text/javascript" src="assets/demo/demo-formwizard.js"></script>
+<script type="text/javascript" src="assets/demo/demo-formmessenger.js"></script>
+    
+   </body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Acceleron Luna</title>
+      <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link rel="shortcut icon" href="assets/icons/favicon.png">        
+      
+      
+      <!-- Controller -->
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/settings.js"></script>
+   </head>
+   <body ng-app="SettingsApp" ng-controller="settingsController" ng-cloak>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+                           <div class="row">
+                              
+                              <div class="col-sm-6">
+
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                       <h2><i class="ti ti-server"></i> Local Server Settings</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <form action="" class="form-horizontal">
+                                          <div class="form-group mb-md">
+                                             <label for="FullName" class="col-xs-3 control-label">Server IP</label>
+                                             <div class="col-xs-9">
+                                                <input type="text" class="form-control" ng-model="localServerIP" ng-change="updateLocalServerIP()" placeholder="Local Server IP"  required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group mb-md">
+                                             <label for="Port" class="col-xs-3 control-label">Port</label>
+                                             <div class="col-xs-9">
+                                                <input type="text" class="form-control" value="5984" disabled>
+                                             </div>
+                                          </div>
+                                       </form>
+                                    </div>
+                                </div>
+                              
+                                 <p ng-if="isNotFound" style="font-size: 12px; text-align: center; color: #bdc3c7">You may not have admin rights to change these settings</tag>
+                                 <div class="panel panel-default" ng-if="!isNotFound">
+                                    <div class="panel-heading">
+                                       <h2><i class="ti ti-settings"></i> Admin Account Settings</h2>
+                                    </div>
+                                    <div class="panel-body">
+                                       <form action="" class="form-horizontal">
+                                          <div class="form-group mb-md">
+                                             <label for="FullName" class="col-xs-4 control-label">Manager Name</label>
+                                             <div class="col-xs-8">
+                                                <input type="text" class="form-control" ng-model="admin.name" placeholder="Full Name"  required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group mb-md">
+                                             <label for="Username" class="col-xs-4 control-label">Outlet Name</label>
+                                             <div class="col-xs-8">
+                                                <input type="text" class="form-control" ng-model="admin.outlet" placeholder="Outlet Name" disabled required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group mb-md">
+                                             <label for="Username" class="col-xs-4 control-label">Registered Mobile</label>
+                                             <div class="col-xs-8">
+                                                <input type="text" class="form-control" ng-model="admin.username" placeholder="Registered Mobile" disabled required>
+                                             </div>
+                                          </div>
+                                          <div class="btn pull-right" style="font-weight: 300; text-decoration: underline; text-transform: none" ng-click="changePassword()" ng-if="!changePassFlag">Show Password Options</div>
+                                          <div class="form-group mb-md" ng-if="changePassFlag">
+                                             <label for="Password" class="col-xs-4 control-label">Current Password</label>
+                                             <div class="col-xs-8">
+                                                <input type="password" class="form-control" ng-model="pass.current" placeholder="Current Password" required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group mb-md" ng-if="changePassFlag">
+                                             <label for="Password" class="col-xs-4 control-label">New Password</label>
+                                             <div class="col-xs-8">
+                                                <input type="password" class="form-control" ng-model="pass.new" placeholder="New Password" required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group mb-md" ng-if="changePassFlag">
+                                             <label for="ConfirmPassword" class="col-xs-4 control-label">Confirm</label>
+                                             <div class="col-xs-8">
+                                                <input type="password" class="form-control" ng-model="pass.confirm" placeholder="Confirm Password"  required>
+                                             </div>
+                                          </div>
+                                          <div class="btn pull-right" style="font-weight: 300; text-decoration: underline; text-transform: none" ng-click="changePassword()"  ng-if="changePassFlag">Hide Password Options</div>
+                                       </form>
+                                    </div>
+                                    <div class="panel-footer">
+                                       <div class="clearfix">
+                                          <div class="pull-left">
+                                             <p ng-class="{greenError: isSaved, redError: !isSaved}">{{saveMsg}}</p>
+                                          </div>
+                                          <div class="btn btn-primary pull-right" ng-click="saveChanges()">Save Changes</div>
+                                       </div>
+                                    </div>
+                                    
+                                    
+                                 </div>
+                              </div>
+                                 
+                                 <div class="col-sm-6">
+
+
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h2>{{outletCode}} Outlet Settings</h2>
+						</div>
+						<div class="panel-body">
+							<form action="" class="form-horizontal row-border">
+							<div class="form-group">
+								<label class="col-sm-6 control-label" style="font-weight: bold;">Accepting Online Payments?</label>
+								<div class="col-sm-3">
+									<ul class="demo-btns mb-n">
+										<li class="mb-n">
+											<a href="#" ng-click="setPayment(1)" class="btn btn-block btn-danger" ng-if="!outletSettings.payment">No</a>
+											<a href="#" ng-click="setPayment(0)"class="btn btn-block btn-success" ng-if="outletSettings.payment">Yes</a>
+										</li>	
+									</ul>									
+								</div>
+							</div>							
+							<div class="form-group">
+								<label class="col-sm-6 control-label" style="font-weight: bold;">Table Reservations Allowed?</label>
+								<div class="col-sm-3">
+									<ul class="demo-btns mb-n">
+										<li class="mb-n">
+											<a href="#" ng-click="setReservation(1)" class="btn btn-block btn-danger" ng-if="!outletSettings.reservation">No</a>
+											<a href="#" ng-click="setReservation(0)"class="btn btn-block btn-success" ng-if="outletSettings.reservation">Yes</a>
+										</li>	
+									</ul>									
+								</div>
+								
+							</div>
+							<div class="form-group">
+								<label class="col-sm-6 control-label" style="font-weight: bold;">Rewards Program Enabled?</label>
+								<div class="col-sm-3">
+									<ul class="demo-btns mb-n">
+										<li class="mb-n">
+											<a href="#" ng-click="setReward(1)" class="btn btn-block btn-danger" ng-if="!outletSettings.reward">No</a>
+											<a href="#" ng-click="setReward(0)"class="btn btn-block btn-success" ng-if="outletSettings.reward">Yes</a>
+										</li>	
+									</ul>									
+								</div>
+								
+							</div>
+							
+							<div class="form-group">
+								<label class="col-sm-6 control-label" style="font-weight: bold;">Collecting Parcel Charges?</label>
+								<div class="col-sm-2">
+									<ul class="demo-btns mb-n">
+										<li class="mb-n">
+											<a href="#" class="btn btn-warning btn-block disabled" ng-if="!outletSettings.isParcelCollected">No</a>
+											<a href="#" class="btn btn-success btn-block disabled" ng-if="outletSettings.isParcelCollected">Yes</a>
+										</li>	
+									</ul>									
+								</div>
+								<div class="col-sm-4">
+									<p style="margin: 0; font-size: 12px; color: #95a5a6" ng-if="outletSettings.isParcelCollected">{{getPercentage(outletSettings.takeawayCharge)}}% for Takeaway</br>{{getPercentage(outletSettings.deliveryCharge)}}% for Delivery</p>
+								</div>
+								
+							</div>
+							
+							<div class="form-group">
+								<label class="col-sm-6 control-label" style="font-weight: bold;">Collecting Taxes?</label>
+								<div class="col-sm-2">
+									<ul class="demo-btns mb-n">
+										<li class="mb-n">
+											<a href="#" class="btn btn-warning btn-block disabled" ng-if="!outletSettings.isStateTaxCollected && !outletSettings.isCentralTaxCollected">No</a>
+											<a href="#" class="btn btn-success btn-block disabled" ng-if="outletSettings.isStateTaxCollected || outletSettings.isCentralTaxCollected">Yes</a>
+										</li>	
+									</ul>									
+								</div>
+								<div class="col-sm-4">
+									<p style="margin: 0; font-size: 12px; color: #95a5a6" ng-if="outletSettings.isStateTaxCollected || outletSettings.isCentralTaxCollected">{{getPercentage(outletSettings.stateTax)}}% as SGST</br>{{getPercentage(outletSettings.centralTax)}}% as CGST</p>
+								</div>
+								
+							</div>				
+							</form>		
+						</div>
+					</div>
+
+
+                            
+              <p style="font-size: 12px; font-weight: 400; color: #bdc3c7; margin: 0; text-align: center;">Contact support@accelerate.net.in for making changes to above settings</p>    
+					
+	
+				
+				</div>	
+                                 
+                                 
+                                 </div>
+                                 
+                                 
+                                 
+                                 
+                              </div>
+                           </div>
+                        </div>
+                        <!-- col-sm-8 -->
+                     </div>
+                  </div>
+               </div>
+               <!-- .container-fluid -->
+            </div>
+            <!-- #page-content -->
+         </div>
+      </div>
+      </div>
+      </div>
+      <!-- Load site level scripts -->
+      <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>     
+  
+   </body>
+</html>

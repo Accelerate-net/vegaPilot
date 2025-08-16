@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Redeem Coupons & Vouchers</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/redeem.js"></script>
+
+</head>
+
+
+   <body ng-app="RedeemApp" ng-controller="redeemController" ng-cloak>
+     <header id="topnav" class="navbar navbar-fixed-top navbar-midnightblue" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+           <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 18px; font-weight: bold; color: #ffd042; text-transform: uppercase">{{outletCode}}</h1>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="#/"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-bluegray">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li><a href="index.html"><i class="ti ti-layout-grid2"></i><span>Table Manager</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="redeem.html"><i class="ti ti-gift"></i><span>Redeem Coupon</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <li><a href="guest-profile.html"><i class="ti ti-user"></i><span>Guest Details</span></a></li>
+                              <li><a href="referals.html"><i class="ti ti-star"></i><span>Referral Program</span></a></li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-id-badge"></i><span>Human Resources</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="people.html">People</a></li>
+                                    <li><a href="attendance.html">Attendance</a></li>
+                                    <li><a href="salary-slips.html">Salary Slips</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-package"></i><span>Inventory</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="inventory-stock.html">Stock</a></li>
+                                    <li><a href="inventory-stock-register.html">Stock Register</a></li>
+                                    <li><a href="inventory-vendors.html">Vendors</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-settings"></i><span>Tools</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="resources-steward.html">Stewards</a></li>
+                                    <li><a href="resources-reservationchannel.html">Reservation Channels</a></li>
+                                    <li><a href="tables.html">Tables List</a></li>
+                                    <!--<li><a href="settings.html">Account Settings</a></li>-->
+                                 </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+                           <div class="row">
+                              <div class="col-sm-3"></div>
+                              <div class="col-sm-6">
+                                 <div class="input-group" style="padding: 10px; border: none;">
+                                    <input type="text" ng-model="searchID" class="form-control input-lg" style="text-align: center" placeholder="Coupon Code">
+                                    <span class="input-group-btn">
+                                    <button class="btn btn-default btn-lg" type="button" ng-click="search(searchID)"><i class="ti ti-search"></i></button>
+                                    </span>
+                                 </div>
+                                 <p ng-if="!isSearched" style="font-size:21px; text-align: center; color: #7f8c8d">Enter the Coupon Code.</p>
+                              </div>
+                           </div>
+                           <div class="row" ng-if="isNotFound" style="padding-top: 30px">
+                             <p ng-if="isSearched" style="font-size:21px; text-align: center; color: #7f8c8d">{{warningMsg}}</p>
+                           </div>
+                           <div class="row" ng-if="isSearched && !isNotFound" style="padding-top: 30px">
+                           <div class="col-sm-3"></div>
+                           <div class="col-sm-6" ng-if="!redeemFlag">
+                             <p style="font-size:24px; text-align: center; color: #444">{{displayCoupon}}</p>
+                             <p style="font-size:21px; text-align: center; color: #2ecc71">{{info.brief}}</p>
+                             <p style="font-size:18px; text-align: center; color: #34495e">Customer Name: <strong>{{info.name}}</strong> | Mobile Number: <strong>{{info.mobile}}</strong></p>
+                             <center><div class="btn btn-lg btn-green" ng-if="!redeemClicked" ng-click="redeemNow(searchID)">Redeem Now</div></center>
+                             <center>
+                             	<input type="text" ng-if="redeemClicked && !redeemFlag" ng-model="coupon.k_Amount" class="form-control input-lg" style="text-align: center" placeholder="Total Bill Amount"><br>
+                             	<input type="text" ng-if="redeemClicked && !redeemFlag" ng-model="coupon.k_Discount" class="form-control input-lg" style="text-align: center" placeholder="Total Discount Offered"><br><br>
+                             	<div class="btn btn-lg btn-green" ng-if="redeemClicked && !redeemFlag" ng-click="confirmCoupon()">Confirm</div>
+                             	                             
+                             </center>
+                            </div>
+                            
+                            
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+      <!-- Load site level scripts -->
+      <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+
+      <!-- End loading site level scripts -->
+      <!-- Load page level scripts-->
+      <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>            			<!-- Fullscreen Editor -->
+      <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script> 	<!-- Bootbox -->
+      <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+
+   </body>
+</html>

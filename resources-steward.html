@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Stewards</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/resources.js"></script>
+
+</head>
+
+    <body class="animated-content" ng-app="ResourcesApp" ng-controller="stewardsController" ng-cloak>
+
+      <header id="topnav" class="navbar navbar-fixed-top navbar-midnightblue" role="banner">
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+            <h1 style="font-size: 18px; font-weight: bold; color: #ffd042; text-transform: uppercase">{{outletCode}}</h1>
+         </div>
+         <!-- logo-area -->
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+
+        <div id="wrapper">
+            <div id="layout-static">
+              <div class="static-sidebar-wrapper sidebar-bluegray">
+                 <div class="static-sidebar">
+                    <div class="sidebar">
+                       <div class="widget stay-on-collapse" id="widget-sidebar">
+                          <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li><a href="index.html"><i class="ti ti-layout-grid2"></i><span>Table Manager</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="redeem.html"><i class="ti ti-gift"></i><span>Redeem Coupon</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <li><a href="guest-profile.html"><i class="ti ti-user"></i><span>Guest Details</span></a></li>
+                              <li><a href="referals.html"><i class="ti ti-star"></i><span>Referral Program</span></a></li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-id-badge"></i><span>Human Resources</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="people.html">People</a></li>
+                                    <li><a href="attendance.html">Attendance</a></li>
+                                    <li><a href="salary-slips.html">Salary Slips</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-package"></i><span>Inventory</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="inventory-stock.html">Stock</a></li>
+                                    <li><a href="inventory-stock-register.html">Stock Register</a></li>
+                                    <li><a href="inventory-vendors.html">Vendors</a></li>
+                                 </ul>
+                              </li>
+                              <li>
+                                 <a href="javascript:;"><i class="ti ti-settings"></i><span>Tools</span></a>
+                                 <ul class="acc-menu">
+                                    <li><a href="resources-steward.html">Stewards</a></li>
+                                    <li><a href="resources-reservationchannel.html">Reservation Channels</a></li>
+                                    <li><a href="tables.html">Tables List</a></li>
+                                    <!--<li><a href="settings.html">Account Settings</a></li>-->
+                                 </ul>
+                              </li>
+                           </ul>
+                        </nav>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+                <div class="static-content-wrapper">
+                    <div class="static-content">
+                        <div class="page-content">
+                            <ol class="breadcrumb">
+                            </ol>
+                            <div class="container-fluid">
+
+<div data-widget-group="group1">
+	<div class="row">
+		<div class="col-md-7">
+			<div class="panel panel-teal">
+				<div class="panel-heading">
+					<h2>Stewards</h2>
+				</div>
+				<div class="panel-body no-padding">
+					<table class="table m-n">
+
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Mobile No.</th>
+								<th>Name</th>
+								<th>Branch</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="agent in delivery_agent track by $index">
+								<td>{{$index + 1}}</td>
+								<td>{{agent.code}}</td>
+								<td>{{agent.name}}</td>
+								<td>{{outletCode}}</td>
+								<td><a ng-click="askForDelete(agent)"><i class="fa fa-minus-circle" aria-hidden="true"></i></a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="col-md-5">
+			<div class="panel panel-bluegray">
+				<div class="panel-heading">
+					<h2>Add Steward</h2>
+				</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-12">
+							<form class="form-horizontal tabular-form">
+										<div class="form-group">
+											<div class="col-sm-12">
+												<input type="text" ng-model="agentcode" placeholder="Mobile No." class="form-control">
+											</div>
+										</div>
+										<div class="form-group">
+											<div class="col-sm-12">
+												<input type="text" ng-model="agentname" placeholder="Name"  class="form-control">
+											</div>
+										</div>
+							</form>
+						</div>
+					</div>
+
+				</div>
+				<div class="panel-footer">
+							<div class="row">
+								<div class="col-sm-8">
+									<button class="btn-primary btn" ng-click="addAgent()">Add</button>
+									<div ng-if="errorflag">The fields cannot be left empty</div>
+								</div>
+							</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+
+                        
+                              <!-- Confirmation Modal -->
+					<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">								
+								<div class="modal-body">
+									<p style="color: #e74c3c; font-weight: 400; font-size: 18px">Are you sure want to remove {{askContent.name}} from the list?</p>		
+									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+									<button type="button" class="btn btn-danger" ng-click="removeAgent(askContent.code)" style="float: right">Remove</button>							
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+
+
+
+
+
+</div>
+
+                            </div> <!-- .container-fluid -->
+                        </div> <!-- #page-content -->
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
+
+    <!-- Load site level scripts -->
+
+<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
+
+<script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+
+    </body>
+</html>

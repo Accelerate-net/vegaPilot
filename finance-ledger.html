@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Acceleron Luna</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+  
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/sales-summary.js"></script>
+
+</head>
+
+    <body class="animated-content" ng-app="SalesSummaryApp" ng-controller="SalesSummaryController" ng-cloak>
+
+        <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+           <div class="logo-area">
+              <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+              <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+              <span class="icon-bg">
+              <i class="ti ti-menu"></i>
+              </span>
+              </a>
+              </span>
+              <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+              <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+           </div>
+           <!-- logo-area -->
+           <ul class="nav navbar-nav toolbar pull-right">
+              <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+                 <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+              </li>
+              <li class="dropdown toolbar-icon-bg">
+                 <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+                 <img class="img-circle" src="assets/img/default_user.png" alt="" />
+                 </a>
+                 <ul class="dropdown-menu userinfo arrow">
+                    <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                    <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+                 </ul>
+              </li>
+           </ul>
+        </header>
+
+        <div id="wrapper">
+            <div id="layout-static">
+              <div class="static-sidebar-wrapper sidebar-default">
+                 <div class="static-sidebar">
+                    <div class="sidebar">
+                       <div class="widget stay-on-collapse" id="widget-sidebar">
+                          <nav role="navigation" class="widget-body">
+	                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                          </nav>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+                <div class="static-content-wrapper">
+                    <div class="static-content">
+                        <div class="page-content">
+                            <ol class="breadcrumb">
+                            </ol>
+                            <div class="container-fluid">
+
+<div data-widget-group="group1">
+    <div class="row">
+		<div class="col-md-8">
+			<div class="panel panel-teal">
+				<div class="panel-heading">
+					<h2 style="text-transform: none">Sales Summary 
+					<tag>from <input type="text" id="quickFromDate" style="cursor: pointer; color: #ffe51b; font-weight: bold; font-size: 16px; width: 80px; background: none; text-decoration: underline; border: none;"></tag>
+					<tag>to <input type="text" id="quickToDate" style="cursor: pointer; color: #ffe51b; font-weight: bold; font-size: 16px; width: 80px; background: none; text-decoration: underline; border: none;"></tag>
+					<tag style="cursor: pointer;" ng-click="callSales()" ng-if="!isWaitingResponse"><i class="fa fa-refresh"></i></tag>
+					<load ng-if="isWaitingResponse" ng-click="callSales()"><img width="17px" src="assets/img/arrowloader.gif"></load>
+					</h2>					
+				</div>
+				<div class="panel-body">
+					<p style="font-size: 18px; color: #bdc3c7; font-weight: 200; text-align: center; padding-top: 30px;" ng-if="!fetchFlag"><i style="font-size: 36px" class="ti ti-face-sad"></i><br>Failed to generate summary in the given date range.</p>
+					<table class="table m-n" ng-if="fetchFlag">
+
+						<thead>
+							<tr>
+								<th>Type</th>
+								<th style="color: #1abc9c; font-weight:300">PREPAID</th>
+								<th style="color: #3498db; font-weight:300">COD</th>
+								<th style="color: #e74c3c; font-weight:300">ALL ORDERS</th>															
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td style="font-size: 120%; font-weight: bold;">Delivery</td>
+								<td style="color: #1abc9c">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{pre_sum_delivery}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_delivery}} Orders</tag>
+								</td>
+								<td style="color: #3498db">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{cod_sum_delivery}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{cod_count_delivery}} Orders</tag>
+								</td>
+								<td style="color: #e74c3c;">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{pre_sum_delivery + cod_sum_delivery}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_delivery + cod_count_delivery}} Orders</tag>
+								</td>	
+							</tr>
+							<tr>
+								<td style="font-size: 120%; font-weight: bold;">Take Away</td>
+								<td style="color: #1abc9c">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{pre_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_takeaway}} Orders</tag>
+								</td>
+								<td style="color: #3498db">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{cod_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{cod_count_takeaway}} Orders</tag>
+								</td>
+								<td style="color: #e74c3c;">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{pre_sum_takeaway + cod_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_takeaway + cod_count_takeaway}} Orders</tag>
+								</td>	
+							</tr>
+							<tr style="background: #fdfde4">
+								<td style="font-size: 120%; font-weight: bold;">Overall</td>
+								<td style="color: #1abc9c">
+									<i class="fa fa-inr" aria-hidden="true"></i> {{pre_sum_delivery + pre_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_delivery + pre_count_takeaway}} Orders</tag>
+								</td>
+								<td style="color: #3498db">
+									<i class="fa fa-inr" aria-hidden="true"></i>  {{cod_sum_delivery  + cod_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{cod_count_delivery + cod_count_takeaway}} Orders</tag>
+								</td>
+								<td style="color: #e74c3c;">
+									<i class="fa fa-inr" aria-hidden="true"></i>  {{pre_sum_delivery + cod_sum_delivery + pre_sum_takeaway + cod_sum_takeaway}}<br>
+									<tag style="font-size: 11px; color: #95a5a6">{{pre_count_delivery + cod_count_delivery + pre_count_takeaway + cod_count_takeaway}} Orders</tag>
+								</td>	
+							</tr>							
+						</tbody>
+					</table>
+					<p style="margin: 0; margin-top: 5px; font-size: 11px; color: #bdc3c7;" ng-if="fetchFlag">Summary include only Completed Orders. Live Orders (Pending or Confirmed) are not counted.</p>					
+				</div>				
+
+			</div>
+			
+
+		</div>
+		<div class="col-sm-4">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 style="text-transform: none">Reports</h2>
+					
+				</div>
+				<div class="panel-body">
+						
+
+				   <div class="row">
+				      <div class="col-sm-5">
+				         <label style="font-size: 10px">FROM DATE</label><br>
+				         <input type="text" id="reportFromDate" style="border: none; border-bottom: 1px solid">
+				      </div>
+				      <div class="col-sm-5"  style="margin-left: 20px">
+				         <label style="font-size: 10px">TO DATE</label><br>
+				         <input type="text" id="reportToDate" style="border: none; border-bottom: 1px solid">
+				      </div>
+				   </div>
+				   <div class="row" style="margin-top: 20px">
+				      <div class="col-sm-12">
+					<button class="btn-warning btn btn-block" style="text-transform: none; text-align: left" ng-click="generateReport('SALES')"><i class="fa fa-download" style="padding-right: 10px"></i> Sales Report</button>
+				      </div>
+				   </div>
+				   <div class="row" style="margin-top: 10px">
+				      <div class="col-sm-12">
+					<button class="btn-warning btn btn-block" style="text-transform: none; text-align: left" ng-click="generateReport('DISCOUNTS')"><i class="fa fa-download" style="padding-right: 10px"></i>  Discounts Report</button>
+				      </div>
+				   </div>
+				   						   				  
+				      
+				</div>
+			</div>		
+
+		</div>
+	</div>
+
+</div>
+
+                            </div> <!-- .container-fluid -->
+                        </div> <!-- #page-content -->
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+<script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+<script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+<script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+
+<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+
+<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+
+<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+
+<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+
+<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+
+<script type="text/javascript" src="assets/js/application.js"></script>
+<script type="text/javascript" src="assets/demo/demo.js"></script>
+
+
+     <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
+     
+
+    </body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Acceleron Luna</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/vouchers.js"></script>
+   <script src="controllers/login.js"></script>
+
+</head>
+
+   <body class="" ng-app="vouchersApp" ng-controller="vouchersController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+           <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+                        
+                          <div class="row">
+                             <div class="col-sm-2"></div>
+                             <div class="col-sm-8">
+                                <div class="input-group" style="padding: 10px; border: none;">
+                                   <input type="text" ng-model="searchID" id="mySearchBox" class="form-control input-lg" style="text-align: center" placeholder="">
+                                   <span class="input-group-btn">
+                                   <button class="btn btn-default btn-lg" type="button" ng-click="search(searchID)"><i class="ti ti-search"></i></button>
+                                   <button class="btn btn-default btn-lg" type="button" title="Search By Date" style="margin-left: 10px" ng-click="searchByDate()"><i class="ti ti-calendar"></i></button>
+                                   </span>
+                                </div>
+                                <p ng-if="!isSearched" style="font-size:16px; text-align: center; color: #bdc3c7">Search with Voucher Code or Mobile Number or by Issued Date by clicking <i class="fa fa-calendar" style="font-size: 90%; padding: 0px 2px"></i> icon.</p>
+
+                             </div>
+                          </div>
+                                                  
+
+                          <!-- Default Results -->
+                          <div class="tab-content">
+                             <div class="tab-pane active" id="tab-projects">
+                                <div class="panel panel-default">
+                                   <div class="panel-heading">
+                                      <h2>{{filterTitle}}</h2>
+                                      <button class="btn btn-success-alt btn-sm" style="margin-top: 10px; float: right" ng-click="openNewVoucher()"><i class="fa fa-plus"></i> Generate New Voucher</button>	
+                                      <button class="btn btn-default-alt btn-sm" style="margin-top: 10px; margin-right: 10px; float: right" ng-click="openVoucherReport()"><i class="fa fa-files-o"></i> Summary</button>
+                                      
+                                   </div>
+                                   <div class="panel-body">
+                                     <div class="row" ng-if="!isVouchersFound" style="padding-top: 30px">
+                                       <p style="font-size:21px; text-align: center; color: #7f8c8d">{{resultMessage}}</p>
+                                     </div>
+                                      <div class="table-responsive" ng-if="isVouchersFound">
+                                         <table class="table m-n">
+                                           
+                                            <thead>
+                                              <tr>                                              	 
+                                                 <th></th>
+                                                 <th>Created Date</th>
+                                                 <th>Voucher Code</th>
+                                                 <th>Value</th>
+                                                 <th>Minimum Amount</th>
+                                                 <th>Expiry</th>
+                                                 <th>Issued To</th>
+                                                 <th>Created By</th>
+                                                 <th>Status</th>
+                                                 <th></th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              <tr ng-repeat="voucher in vouchersList track by $index">
+                                              	<td>#{{$index + 1}}</td>
+                                                <td>{{voucher.date}}</td>
+                                                <td style="color: #2980b9; font-weight: bold; cursor: pointer">{{voucher.code}}</td>
+                                                <td><i class="fa fa-inr"></i> {{voucher.value}}</td>
+                                                <td>
+                                                	<tag ng-if="voucher.minAmount != 0"><i class="fa fa-inr"></i> {{voucher.minAmount}}</tag>
+                                                	<tag ng-if="voucher.minAmount == 0">No Minimum</tag>                                                
+                                                </td>
+                                                <td>{{voucher.expiry}}</td>
+                                                <td>
+                                                	{{voucher.user}}
+                                                	<br><name style="font-size: 12px">{{voucher.userName}}</name>
+                                                </td>
+                                                <td>
+                                                	<tag ng-if="voucher.isSelfCreated">User</tag>
+                                                	<tag ng-if="!voucher.isSelfCreated">Admin <br><name style="font-size: 12px">{{voucher.admin}}</name></tag>                                                  
+                                                </td> 
+                                                <td>                                               
+                                                	<tag ng-if="voucher.isUsed" class="greenColorText">Used on #{{voucher.usedOrder}}</tag>    
+                                                	<tag ng-if="!voucher.isUsed">
+                                                		<inner ng-if="!voucher.isActive" class="redColorText">Inactive</inner>
+                                                		<inner ng-if="voucher.isActive">Not used yet</inner>
+                                                	</tag>                                                  
+                                                </td>                                                
+                                                <td><a ng-if="voucher.isActive == 1" ng-click="showCancel(voucher.id, voucher.user, voucher.userName)"><i class="fa fa-ban" aria-hidden="true" style="color: #bdc3c7"></i></a></td>
+                                               
+                                              </tr>
+                                            </tbody>
+                                         </table>
+                                      </div>
+                                      <center><div class="btn btn-midnightblue-alt btn-sm" style="margin-top: 20px" ng-if="isMoreLeft" ng-click="loadMore()">Load More</div></center>
+                                      <!-- /.table-responsive -->
+
+                                   </div>
+                                   <!-- /.panel-body -->
+                                </div>
+                             </div>
+                             
+					
+					<!-- CANCEL Confirmation Modal -->
+					<div class="modal fade" id="cancelModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">	
+								<div class="modal-body" style="padding-bottom: 40px">							
+									<p style="font-size: 16px; color: #95a5a6; float: left">Do you really want to delete this voucher issued to <strong style="color: #e74c3c">{{cancelShowName}}</strong>?</p>
+								</div>																					
+								<div class="modal-footer">																		
+									<button type="button" class="btn btn-default" style="float: left" data-dismiss="modal">No</button>
+									<button type="button" class="btn btn-danger" ng-click="confirmCancel(cancelVocuherCode)">Yes, Delete</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->    
+					
+					<!-- VOUCHER Confirmation Modal -->
+					<div class="modal fade" id="confirmVoucherModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">	
+								<div class="modal-body" style="padding-bottom: 40px">							
+									<p style="font-size: 16px; color: #34495e; float: left">Are you sure want to generate this voucher to be issued to <strong style="color: #3498db">{{userName}}</strong>?</p>
+								</div>																					
+								<div class="modal-footer">																		
+									<button type="button" class="btn btn-default" style="float: left" data-dismiss="modal">No</button>
+									<button type="button" class="btn btn-success" ng-click="confirmVoucher()">Yes</button>
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->   
+					
+					 <!-- Date Modal -->
+					<div class="modal fade" id="dateModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">								
+								<div class="modal-body">
+									<p style="font-size: 21px; color: #34495e">From when to when do you want to generate the summary?</p>
+									<div class="row">
+								                <div class="col-sm-4">
+								                  <label style="font-size: 10px">FROM DATE</label><br>
+									          <input type="text" id="reportFromDate" style="border: none; border-bottom: 1px solid">
+								                </div>
+								                <div class="col-sm-4">
+								                  <label style="font-size: 10px">TO DATE</label><br>
+					 				          <input type="text" id="reportToDate" style="border: none; border-bottom: 1px solid">
+								                </div>
+								                <div class="col-sm-4">
+								                  <button type="button" class="btn btn-success btn-block" style="float:right; margin-top: 20px" ng-click="generateReport('RANGE')">Generate</button>
+								                </div>									
+									</div>
+								</div>
+								<div class="modal-footer">
+									
+									<button type="button" class="btn btn-default" style="float:right" data-dismiss="modal">Cancel</button>
+									
+									<button type="button" class="btn btn-default" style="float:left; font-weight: 300" ng-click="generateReport('ALL')">Generate Summary Since Beginning</button>
+									
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+					
+										
+					
+					
+					<!-- NEW Voucher Modal -->
+					<div class="modal fade" id="voucherModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<h2>Generate New Voucher</h2>
+									<div class="row">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Registered Mobile</label>
+											<input type="text" ng-model="newVoucherContent.mobile" class="form-control input-lg" placeholder="Registered Mobile Number">
+										</div>
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Voucher Value</label>
+											<input type="text" ng-model="newVoucherContent.value" class="form-control input-lg" placeholder="Voucher Value">
+										</div>
+									</div>
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Minimum Order Value</label>
+											<input type="text" ng-model="newVoucherContent.minAmount" class="form-control input-lg" placeholder="Minimum Order Value">
+										</div>
+										<div class="col-sm-6">
+											<label class="myReservationLabel">Valid Till</label>
+											<div class="input-group date">
+												<input type="text" ng-model="newVoucherContent.date" id="new_date" class="form-control">
+												<span class="input-group-addon"><i class="ti ti-calendar"></i></span>
+											</div>
+										</div>
+									</div>
+									<div class="row" style="margin-top: 15px;">
+										<div class="col-sm-12">
+											<label class="myReservationLabel">Custom Voucher Code (Optional)</label>
+											<div class="input-group date">
+												<input type="text" ng-keyup="defaultValidityFlags()" ng-model="newVoucherContent.code" class="form-control input-lg" placeholder="Voucher Code" maxlength="12">
+												<span class="input-group-addon" ng-click="checkAvailability()" ng-style="getValidityStyle()">
+													<i ng-class="getValidityIcon()" ng-if="!isLoading"></i>
+													<i ng-if="isLoading"><img width="17px"  src="assets/img/linesloader.gif"></i>
+												</span>
+											</div>	
+											<p style="margin: 0; margin-top:5px; color: #e74c3c" ng-if="customCheckError != ''">{{customCheckError}}</p>																																										 											
+											<p style="margin: 0; margin-top:5px; color: #bdc3c7; font-size: 11px" ng-if="customCheckError == ''">Note: Leave it blank, if you want the system to generate a voucher code automatically.</p>
+											<p style="margin: 0; margin-top:5px; color: #e74c3c" ng-if="newVoucherError != ''">{{newVoucherError}}</p>																																 											
+										</div>
+									</div> 					
+																					
+									
+								</div>																													
+								<div class="modal-footer">								
+									<button type="button" style="float: left" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-success" ng-if="newVoucherContent.code == '' || (newVoucherContent.code != '' && isCustomApproved)" ng-click="saveNewVoucher()">Generate Voucher</button>
+									<p ng-if="newVoucherContent.code != '' && !isCustomApproved" style="margin: 0; color: #bdc3c7">Please check voucher availability before continue.</p>									
+								</div>
+							</div><!-- /.modal-content -->
+						</div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->    
+					
+					                         
+
+                          </div>
+
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> 
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
+
+
+   
+
+   </body>
+</html>

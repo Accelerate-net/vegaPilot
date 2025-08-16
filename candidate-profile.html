@@ -2,71 +2,125 @@
 <html lang="en">
    <head>
       <meta charset="utf-8">
-      <title>Candidate Profile</title>
+      <title>Student Profile - VegaPilot</title>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-touch-fullscreen" content="yes">
-      <meta name="description" content="Avenxo Admin Theme">
-      <meta name="author" content="KaijuThemes">
+      <meta name="description" content="VegaPilot Student Profile">
+      <meta name="author" content="VegaPilot">
       <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
       <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-      <!-- Font Awesome -->
       <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
-      <!-- Themify Icons -->
       <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <!-- Core CSS with all styles -->
       <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
-      <!-- Code Prettifier -->
       <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
-      <!-- iCheck -->
       <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
-      <!-- Gridforms -->
       <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
-      <!--[if lt IE 10]>
-      <script type="text/javascript" src="assets/js/media.match.min.js"></script>
-      <script type="text/javascript" src="assets/js/respond.min.js"></script>
-      <script type="text/javascript" src="assets/js/placeholder.min.js"></script>
-      <![endif]-->
-      <!-- The following CSS are included as plugins and can be removed if unused-->
       <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
-<link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">
 
-      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">   <!-- Calendar Plugin -->
-      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">                        <!-- Select2 -->
-
-      <!-- FullScreen Editor -->
       <style type="text/css">
-         .studentRow:hover{
-         cursor: pointer;
-         }
+         .profile-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 0; margin-bottom: 30px; }
+         .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); object-fit: cover; }
+         .profile-name { font-size: 28px; font-weight: 300; margin: 15px 0 5px 0; }
+         .profile-title { font-size: 16px; opacity: 0.9; margin-bottom: 20px; }
+         .profile-stats { display: flex; justify-content: center; gap: 40px; margin-top: 20px; }
+         .profile-stat { text-align: center; }
+         .profile-stat-value { font-size: 24px; font-weight: bold; }
+         .profile-stat-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; }
+         
+         .info-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; overflow: hidden; }
+         .info-card-header { background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #e9ecef; }
+         .info-card-title { margin: 0; font-size: 18px; color: #333; font-weight: 600; }
+         .info-card-body { padding: 20px; }
+         
+         .info-row { display: flex; margin-bottom: 15px; align-items: center; }
+         .info-label { width: 150px; font-weight: 600; color: #555; font-size: 14px; }
+         .info-value { flex: 1; color: #333; font-size: 14px; }
+         .info-value.badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+         .info-value.badge-success { background: #d4edda; color: #155724; }
+         .info-value.badge-warning { background: #fff3cd; color: #856404; }
+         .info-value.badge-danger { background: #f8d7da; color: #721c24; }
+         
+         .course-card { border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 15px; transition: all 0.3s ease; }
+         .course-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+         .course-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #e9ecef; }
+         .course-title { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0; }
+         .course-subtitle { font-size: 12px; color: #666; margin: 0; }
+         .course-body { padding: 15px; }
+         .course-progress { margin-bottom: 15px; }
+         .progress { height: 8px; border-radius: 4px; background: #e9ecef; }
+         .progress-bar { border-radius: 4px; }
+         .course-meta { display: flex; justify-content: space-between; align-items: center; }
+         .course-status { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+         .course-status.active { background: #d4edda; color: #155724; }
+         .course-status.expired { background: #f8d7da; color: #721c24; }
+         .course-status.expiring { background: #fff3cd; color: #856404; }
+         
+         .exam-card { border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 15px; transition: all 0.3s ease; }
+         .exam-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+         .exam-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #e9ecef; }
+         .exam-title { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0; }
+         .exam-subtitle { font-size: 12px; color: #666; margin: 0; }
+         .exam-body { padding: 15px; }
+         .exam-score { font-size: 24px; font-weight: bold; color: #007bff; text-align: center; margin: 10px 0; }
+         .exam-meta { display: flex; justify-content: space-between; align-items: center; }
+         .exam-status { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+         .exam-status.completed { background: #d4edda; color: #155724; }
+         .exam-status.pending { background: #fff3cd; color: #856404; }
+         .exam-status.failed { background: #f8d7da; color: #721c24; }
+         
+         .timeline { position: relative; padding-left: 30px; }
+         .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #e9ecef; }
+         .timeline-item { position: relative; margin-bottom: 20px; }
+         .timeline-item::before { content: ''; position: absolute; left: -22px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: #007bff; border: 2px solid white; }
+         .timeline-date { font-size: 12px; color: #666; margin-bottom: 5px; }
+         .timeline-title { font-weight: 600; color: #333; margin-bottom: 5px; }
+         .timeline-desc { font-size: 14px; color: #666; }
+         
+         .nav-tabs { border-bottom: 2px solid #e9ecef; }
+         .nav-tabs .nav-link { border: none; color: #666; font-weight: 500; padding: 12px 20px; }
+         .nav-tabs .nav-link.active { color: #007bff; border-bottom: 2px solid #007bff; background: none; }
+         .nav-tabs .nav-link:hover { border: none; color: #007bff; }
+         
+         .tab-content { padding: 30px 0; }
+         
+         .achievement-badge { display: inline-block; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; line-height: 60px; font-size: 24px; margin: 10px; }
+         
+         .contact-info { background: #f8f9fa; padding: 20px; border-radius: 8px; }
+         .contact-item { display: flex; align-items: center; margin-bottom: 15px; }
+         .contact-icon { width: 40px; height: 40px; border-radius: 50%; background: #007bff; color: white; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+         
+         .edit-btn { position: absolute; top: 20px; right: 20px; }
+         
+         .empty-state { text-align: center; padding: 40px 20px; color: #666; }
+         .empty-state i { font-size: 48px; color: #ddd; margin-bottom: 20px; }
+         .empty-state h4 { color: #999; margin-bottom: 10px; }
+         .empty-state p { color: #bbb; }
       </style>
 
-      <!-- Controller -->
       <script src="assets/js/jquery.js"></script>
       <script src="assets/js/angular.min.js"></script>
       <script src="assets/js/angular-cookies.min.js"></script>
       <script src="controllers/candidate-profile.js"></script>
-
-      <!-- CROPPER -->
       <script src="assets/plugins/cropper/cropper.js"></script>
       <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
    </head>
-
 
    <body class="animated-content" ng-app="candidateProfileApp" ng-controller="candidateProfileController" ng-cloak> 
      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
         <div class="logo-area">
            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-           <span class="icon-bg">
-            <i class="ti ti-menu"></i>
-           </span>
+           <span class="icon-bg"><i class="ti ti-menu"></i></span>
            </a>
            </span>
-           <span class="navbar-brand" style="width: 125px"></span>
+           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
         </div>
-        <!-- logo-area -->
         <ul class="nav navbar-nav toolbar pull-right">
            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
@@ -76,7 +130,6 @@
               <img class="img-circle" src="assets/img/default_user.png" alt="" />
               </a>
               <ul class="dropdown-menu userinfo arrow">
-                 <!-- <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li> -->
                  <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
               </ul>
            </li>
@@ -84,55 +137,34 @@
      </header>
      
       <div id="wrapper">
-
          <div id="layout-static">
            <div class="static-sidebar-wrapper sidebar-default">
               <div class="static-sidebar">
                  <div class="sidebar">
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div class="userinfo">
+                                <div class="avatar">
+                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
+                                </div>
+                                <div class="info">
+                                    <span class="username">{{profileData.name || 'Admin User'}}</span>
+                                    <span class="useremail">{{profileData.email || 'admin@vegapilot.com'}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="widget stay-on-collapse" id="widget-sidebar">
                        <nav role="navigation" class="widget-body">
                            <ul class="acc-menu">
-                              <!--
-                              <li>
-                                  <a href="created-tests.html"><i class="ti ti-tablet"></i><span>Mock Tests</a>
-                              </li>
-                              -->
-                              <li>
-                                <a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Candidate Profile</span><span class="badge badge-danger" ng-if="summaryTileData.totalChallenged > 0">{{summaryTileData.totalChallenged}}</span></a>
-                              </li>
-                              <!--
-                              <li>
-                                  <a href="submissions.html"><i class="ti ti-check-box"></i><span>Test Submissions</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
-                              </li>
-                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
-                              <li><a href="edit-menu.html"><i class="ti ti-money"></i><span>Payments</span></a></li>
-                              <li><a href="reservations.html"><i class="ti ti-user"></i><span>Students Profile</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
-                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Faculty Feedbacks</span></a></li>
-                              <li>
-                                    <a href="javascript:;"><i class="ti ti-book"></i><span>Courses</span></a>
-                                    <ul class="acc-menu">
-                                        <li><a href="smart-orders-rejected.html">Courses - Active</a></li>
-                                        <li><a href="failed-orders.html">Courses - Completed</a></li>
-                                     </ul>
-                              </li>
-                              <li>
-                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
-                                     <ul class="acc-menu">
-                                        <li><a href="staff-registry.html">Faculty Registry</a></li>
-                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
-                                     </ul>
-                              </li>
-                              <li>
-                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
-                                     <ul class="acc-menu">
-                                        <li><a href="promotions.html">Coupons Manager</a></li>
-                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
-                                        <li><a href="messenger.html">Messenger</a></li>
-                                        <li><a href="analytics.html">Sales Analytics</a></li>
-                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
-                                     </ul>
-                              </li>
-                              -->
+                              <li class="nav-separator"><span>Content Management</span></li>
+                              <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                              <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                              <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                              <li><a href="created-tests.html"><i class="ti ti-tablet"></i><span>Mock Tests</span></a></li>
+                              <li><a href="candidate-profile.html" class="active"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
                            </ul>
                        </nav>
                     </div>
@@ -140,70 +172,425 @@
               </div>
            </div>
 
-
             <div class="static-content-wrapper">
                <div class="static-content">
                   <div class="page-content">
+                     <ol class="breadcrumb">
+                        <li><a href="index.html">Home</a></li>
+                        <li class="active"><a href="candidate-profile.html">Student Profile</a></li>
+                     </ol>
+                     <div class="container-fluid" style="padding-top: 4%;">
 
-                     PROFILE:
-                     <h1>Hello {{profileData.name}}! Good morning!</h1>
+                     <!-- Profile Header -->
+                     <div class="profile-header">
+                        <div class="container-fluid">
+                           <div class="row align-items-center">
+                              <div class="col-md-3 text-center">
+                                 <img ng-src="{{candidateData.photo || 'assets/img/default_user.png'}}" alt="Profile Photo" class="profile-avatar">
+                              </div>
+                              <div class="col-md-6 text-center">
+                                 <h1 class="profile-name">{{candidateData.name}}</h1>
+                                 <p class="profile-title">{{candidateData.about}}</p>
+                                 <div class="profile-stats">
+                                    <div class="profile-stat">
+                                       <div class="profile-stat-value">{{enrolledCourses.length}}</div>
+                                       <div class="profile-stat-label">Courses</div>
+                                    </div>
+                                    <div class="profile-stat">
+                                       <div class="profile-stat-value">{{completedExams.length}}</div>
+                                       <div class="profile-stat-label">Exams</div>
+                                    </div>
+                                    <div class="profile-stat">
+                                       <div class="profile-stat-value">{{getAverageScore()}}%</div>
+                                       <div class="profile-stat-label">Avg Score</div>
+                                    </div>
+                                    <div class="profile-stat">
+                                       <div class="profile-stat-value">{{getDaysEnrolled()}}</div>
+                                       <div class="profile-stat-label">Days</div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-3 text-right">
+                                 <button class="btn btn-light" ng-click="editProfile()">
+                                    <i class="ti ti-pencil"></i> Edit Profile
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
 
+                     <!-- Main Content -->
+                     <div class="row">
+                        <!-- Left Column - Personal Information -->
+                        <div class="col-md-4">
+                           <!-- Personal Information Card -->
+                           <div class="info-card">
+                              <div class="info-card-header">
+                                 <h3 class="info-card-title"><i class="ti ti-user"></i> Personal Information</h3>
+                              </div>
+                              <div class="info-card-body">
+                                 <div class="info-row">
+                                    <div class="info-label">Full Name:</div>
+                                    <div class="info-value">{{candidateData.name}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Date of Birth:</div>
+                                    <div class="info-value">{{candidateData.dob}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Gender:</div>
+                                    <div class="info-value">{{getGenderLabel(candidateData.gender)}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Place:</div>
+                                    <div class="info-value">{{candidateData.place}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Father's Name:</div>
+                                    <div class="info-value">{{candidateData.fatherName || 'Not specified'}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Mother's Name:</div>
+                                    <div class="info-value">{{candidateData.motherName || 'Not specified'}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">About:</div>
+                                    <div class="info-value">{{candidateData.about}}</div>
+                                 </div>
+                              </div>
+                           </div>
 
+                           <!-- Academic Information Card -->
+                           <div class="info-card">
+                              <div class="info-card-header">
+                                 <h3 class="info-card-title"><i class="ti ti-graduation-cap"></i> Academic Information</h3>
+                              </div>
+                              <div class="info-card-body">
+                                 <div class="info-row">
+                                    <div class="info-label">Aspiration:</div>
+                                    <div class="info-value">{{getAspirationLabel(candidateData.aspiration)}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Class of Study:</div>
+                                    <div class="info-value">{{getClassLabel(candidateData.classOfStudy)}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Board:</div>
+                                    <div class="info-value">{{getBoardLabel(candidateData.board)}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Year of Passing:</div>
+                                    <div class="info-value">{{candidateData.yearOfPassing}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Last Institution:</div>
+                                    <div class="info-value">{{candidateData.lastInstitution}}</div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Contact Information Card -->
+                           <div class="info-card">
+                              <div class="info-card-header">
+                                 <h3 class="info-card-title"><i class="ti ti-phone"></i> Contact Information</h3>
+                              </div>
+                              <div class="info-card-body">
+                                 <div class="contact-item">
+                                    <div class="contact-icon">
+                                       <i class="ti ti-mobile"></i>
+                                    </div>
+                                    <div>
+                                       <div style="font-weight: 600;">Registered Mobile</div>
+                                       <div>{{candidateData.registeredMobile}}</div>
+                                    </div>
+                                 </div>
+                                 <div class="contact-item">
+                                    <div class="contact-icon">
+                                       <i class="ti ti-mobile"></i>
+                                    </div>
+                                    <div>
+                                       <div style="font-weight: 600;">Communication Mobile</div>
+                                       <div>{{candidateData.communicationMobile}}</div>
+                                    </div>
+                                 </div>
+                                 <div class="contact-item">
+                                    <div class="contact-icon">
+                                       <i class="ti ti-email"></i>
+                                    </div>
+                                    <div>
+                                       <div style="font-weight: 600;">Email Address</div>
+                                       <div>{{candidateData.email}}</div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Account Status Card -->
+                           <div class="info-card">
+                              <div class="info-card-header">
+                                 <h3 class="info-card-title"><i class="ti ti-settings"></i> Account Status</h3>
+                              </div>
+                              <div class="info-card-body">
+                                 <div class="info-row">
+                                    <div class="info-label">Status:</div>
+                                    <div class="info-value">
+                                       <span class="badge" ng-class="getStatusClass(candidateData.status)">
+                                          {{getStatusLabel(candidateData.status)}}
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Blocked:</div>
+                                    <div class="info-value">
+                                       <span class="badge" ng-class="candidateData.blocked ? 'badge-danger' : 'badge-success'">
+                                          {{candidateData.blocked ? 'Yes' : 'No'}}
+                                       </span>
+                                    </div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Created On:</div>
+                                    <div class="info-value">{{formatDate(candidateData.createdOn)}}</div>
+                                 </div>
+                                 <div class="info-row">
+                                    <div class="info-label">Last Updated:</div>
+                                    <div class="info-value">{{formatDate(candidateData.lastUpdatedOn)}}</div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Right Column - Tabs Content -->
+                        <div class="col-md-8">
+                           <!-- Navigation Tabs -->
+                           <ul class="nav nav-tabs" role="tablist">
+                              <li class="nav-item">
+                                 <a class="nav-link active" data-toggle="tab" href="#enrolled-courses" role="tab">
+                                    <i class="ti ti-book"></i> Enrolled Courses
+                                 </a>
+                              </li>
+                              <li class="nav-item">
+                                 <a class="nav-link" data-toggle="tab" href="#exam-results" role="tab">
+                                    <i class="ti ti-clipboard"></i> Exam Results
+                                 </a>
+                              </li>
+                              <li class="nav-item">
+                                 <a class="nav-link" data-toggle="tab" href="#academic-progress" role="tab">
+                                    <i class="ti ti-bar-chart"></i> Academic Progress
+                                 </a>
+                              </li>
+                              <li class="nav-item">
+                                 <a class="nav-link" data-toggle="tab" href="#timeline" role="tab">
+                                    <i class="ti ti-calendar"></i> Timeline
+                                 </a>
+                              </li>
+                           </ul>
+
+                           <!-- Tab Content -->
+                           <div class="tab-content">
+                              <!-- Enrolled Courses Tab -->
+                              <div class="tab-pane fade show active" id="enrolled-courses" role="tabpanel">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <h4><i class="ti ti-book"></i> Enrolled Courses</h4>
+                                       <p class="text-muted">Courses you are currently enrolled in and their validity status.</p>
+                                       
+                                       <div ng-if="enrolledCourses.length === 0" class="empty-state">
+                                          <i class="ti ti-book"></i>
+                                          <h4>No Courses Enrolled</h4>
+                                          <p>You haven't enrolled in any courses yet.</p>
+                                       </div>
+                                       
+                                       <div ng-repeat="course in enrolledCourses" class="course-card">
+                                          <div class="course-header">
+                                             <h5 class="course-title">{{course.title}}</h5>
+                                             <p class="course-subtitle">{{course.description}}</p>
+                                          </div>
+                                          <div class="course-body">
+                                             <div class="course-progress">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                   <span>Progress</span>
+                                                   <span>{{course.progress}}%</span>
+                                                </div>
+                                                <div class="progress">
+                                                   <div class="progress-bar bg-success" role="progressbar" style="width: {{course.progress}}%"></div>
+                                                </div>
+                                             </div>
+                                             <div class="course-meta">
+                                                <div>
+                                                   <strong>Enrolled:</strong> {{formatDate(course.enrolledDate)}}<br>
+                                                   <strong>Valid Until:</strong> {{formatDate(course.validUntil)}}
+                                                </div>
+                                                <span class="course-status" ng-class="getCourseStatusClass(course.validUntil)">
+                                                   {{getCourseStatusLabel(course.validUntil)}}
+                                                </span>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <!-- Exam Results Tab -->
+                              <div class="tab-pane fade" id="exam-results" role="tabpanel">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <h4><i class="ti ti-clipboard"></i> Exam Results</h4>
+                                       <p class="text-muted">Your performance in various exams and assessments.</p>
+                                       
+                                       <div ng-if="examResults.length === 0" class="empty-state">
+                                          <i class="ti ti-clipboard"></i>
+                                          <h4>No Exam Results</h4>
+                                          <p>You haven't taken any exams yet.</p>
+                                       </div>
+                                       
+                                       <div ng-repeat="exam in examResults" class="exam-card">
+                                          <div class="exam-header">
+                                             <h5 class="exam-title">{{exam.title}}</h5>
+                                             <p class="exam-subtitle">{{exam.subject}} • {{exam.duration}} minutes</p>
+                                          </div>
+                                          <div class="exam-body">
+                                             <div class="exam-score">{{exam.score}}%</div>
+                                             <div class="exam-meta">
+                                                <div>
+                                                   <strong>Date:</strong> {{formatDate(exam.examDate)}}<br>
+                                                   <strong>Duration:</strong> {{exam.timeTaken}} minutes<br>
+                                                   <strong>Questions:</strong> {{exam.totalQuestions}}
+                                                </div>
+                                                <span class="exam-status" ng-class="getExamStatusClass(exam.score)">
+                                                   {{getExamStatusLabel(exam.score)}}
+                                                </span>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <!-- Academic Progress Tab -->
+                              <div class="tab-pane fade" id="academic-progress" role="tabpanel">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <h4><i class="ti ti-bar-chart"></i> Academic Progress</h4>
+                                       <p class="text-muted">Track your learning journey and achievements.</p>
+                                       
+                                       <!-- Progress Overview -->
+                                       <div class="row mb-4">
+                                          <div class="col-md-3">
+                                             <div class="info-card text-center">
+                                                <div class="info-card-body">
+                                                   <div style="font-size: 36px; color: #007bff;">{{getCompletionRate()}}%</div>
+                                                   <div style="color: #666;">Course Completion</div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-3">
+                                             <div class="info-card text-center">
+                                                <div class="info-card-body">
+                                                   <div style="font-size: 36px; color: #28a745;">{{getAverageScore()}}%</div>
+                                                   <div style="color: #666;">Average Score</div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-3">
+                                             <div class="info-card text-center">
+                                                <div class="info-card-body">
+                                                   <div style="font-size: 36px; color: #ffc107;">{{getStudyHours()}}h</div>
+                                                   <div style="color: #666;">Study Hours</div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                          <div class="col-md-3">
+                                             <div class="info-card text-center">
+                                                <div class="info-card-body">
+                                                   <div style="font-size: 36px; color: #dc3545;">{{getDaysEnrolled()}}</div>
+                                                   <div style="color: #666;">Days Enrolled</div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <!-- Achievements -->
+                                       <div class="info-card">
+                                          <div class="info-card-header">
+                                             <h3 class="info-card-title"><i class="ti ti-trophy"></i> Achievements</h3>
+                                          </div>
+                                          <div class="info-card-body text-center">
+                                             <div ng-repeat="achievement in achievements" class="achievement-badge" title="{{achievement.title}}">
+                                                <i class="{{achievement.icon}}"></i>
+                                             </div>
+                                             <div ng-if="achievements.length === 0" class="empty-state">
+                                                <i class="ti ti-trophy"></i>
+                                                <h4>No Achievements Yet</h4>
+                                                <p>Complete courses and exams to earn achievements!</p>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <!-- Timeline Tab -->
+                              <div class="tab-pane fade" id="timeline" role="tabpanel">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <h4><i class="ti ti-calendar"></i> Learning Timeline</h4>
+                                       <p class="text-muted">Your learning journey and important milestones.</p>
+                                       
+                                       <div class="timeline">
+                                          <div ng-repeat="event in timelineEvents" class="timeline-item">
+                                             <div class="timeline-date">{{formatDate(event.date)}}</div>
+                                             <div class="timeline-title">{{event.title}}</div>
+                                             <div class="timeline-desc">{{event.description}}</div>
+                                          </div>
+                                       </div>
+                                       
+                                       <div ng-if="timelineEvents.length === 0" class="empty-state">
+                                          <i class="ti ti-calendar"></i>
+                                          <h4>No Timeline Events</h4>
+                                          <p>Your learning activities will appear here.</p>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     </div>
                   </div>
-                  <!-- #page-content -->
                </div>
             </div>
-
-
          </div>
       </div>
 
+      <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
 
-            
-
-<div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
-
-<!-- Load site level scripts -->
-<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> -->
-<script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>                      <!-- Load jQuery -->
-<script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>                    <!-- Load jQueryUI -->
-<script type="text/javascript" src="assets/js/bootstrap.min.js"></script>                       <!-- Load Bootstrap -->
-<script type="text/javascript" src="assets/js/enquire.min.js"></script>                            <!-- Load Enquire -->
-<script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>              <!-- Load Velocity for Animated Content -->
-<script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
-<script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>                     <!-- Wijet -->
-<script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>           <!-- Code Prettifier  -->
-<script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>       <!-- Swith/Toggle Button -->
-<script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
-<script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>                    <!-- iCheck -->
-
-<script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
-
-<script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>  <!-- Advanced Select Boxes -->
-<script type="text/javascript" src="assets/js/application.js"></script>
-<script type="text/javascript" src="assets/demo/demo.js"></script>
-
-<script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->
-<!-- End loading site level scripts -->
-<!-- Load page level scripts-->
-<script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>                   <!-- Fullscreen Editor -->
-<script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>    <!-- Bootbox -->
-<script type="text/javascript" src="assets/demo/demo-profile.js"></script>
-<!-- End loading page level scripts-->
-
-
-<!-- Quicksearch to go with Multisearch Plugin -->
-<script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>   
-
-<script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
-<script type="text/javascript" src="assets/plugins/datatables/dataTables.bootstrap.js"></script>
-<script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>                          <!-- Stepy Plugin -->
-
-<script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>          <!-- Tokenfield -->
-<script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>   <!-- Moment.js Dependency -->
-<script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>   <!-- Calendar Plugin -->
-
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>
+      <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>   
+      <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
 
    </body>
 </html>

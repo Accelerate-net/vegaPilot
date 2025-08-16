@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Exam Listing - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Exam Listing">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">
+
+      <style type="text/css">
+         .examRow:hover { cursor: pointer; }
+         .exam-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
+         .exam-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #007bff; }
+         .exam-header { background: #f8f9fa; padding: 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #ddd; }
+         .exam-title { font-size: 18px; font-weight: bold; color: #333; margin: 0; }
+         .exam-meta { color: #666; margin: 5px 0 0 0; }
+         .exam-stats { display: flex; gap: 20px; margin-top: 10px; }
+         .exam-stat { text-align: center; }
+         .exam-stat-value { font-size: 20px; font-weight: bold; color: #007bff; }
+         .exam-stat-label { font-size: 12px; color: #666; }
+         
+         .section-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin: 2px; background: #e9ecef; color: #495057; }
+         .section-badge.active { background: #28a745; color: white; }
+         
+         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+         .status-active { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+         .status-draft { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+         .status-inactive { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+         
+         .info-tile { transition: all 0.3s ease; }
+         .info-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+         .filterAppliedTile { border: 2px solid #007bff !important; box-shadow: 0 0 10px rgba(0,123,255,0.3); }
+         
+         .button-icon { cursor: pointer; padding: 8px; border-radius: 4px; margin-left: 5px; transition: all 0.2s ease; }
+         .button-icon:hover { background: #f0f0f0; color: #007bff; }
+         .filterAppliedBank { background: #007bff !important; color: white !important; }
+         
+         .copyQuestion { cursor: pointer; margin-left: 8px; color: #666; transition: color 0.2s ease; }
+         .copyQuestion:hover { color: #007bff; }
+         .copiedMessage { background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; position: absolute; z-index: 1000; }
+         
+         .alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+         .alert-info h3 { margin-top: 0; color: #0c5460; }
+         
+         .panel-ctrls { position: absolute; right: 12px; top: 14px; }
+         .btn-group .btn { border-radius: 0; }
+         .btn-group .btn:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+         .btn-group .btn:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+         
+         .exam-details { background: white; padding: 15px; border-radius: 0 0 8px 8px; }
+         .exam-details h5 { color: #333; margin-bottom: 10px; }
+         
+         .section-list { margin-top: 10px; }
+         .section-item { display: flex; align-items: center; padding: 8px; margin: 5px 0; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #007bff; }
+         .section-number { background: #007bff; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 10px; }
+         .section-info { flex: 1; }
+         .section-name { font-weight: bold; color: #333; margin: 0; }
+         .section-details { font-size: 11px; color: #666; margin: 0; }
+         
+         .search-box { margin-bottom: 20px; }
+         .search-box .form-control { border-radius: 20px; padding-left: 15px; }
+         
+         .filter-tags { margin: 15px 0; }
+         .filter-tag { display: inline-block; background: #007bff; color: white; padding: 5px 12px; border-radius: 15px; margin: 2px; font-size: 12px; }
+         .filter-tag .close { color: white; margin-left: 8px; cursor: pointer; }
+         
+         .exam-actions { display: flex; gap: 5px; }
+         .exam-actions .btn { padding: 4px 8px; font-size: 11px; }
+         
+         .pagination-info { text-align: center; margin: 20px 0; color: #666; }
+         
+         .empty-state { text-align: center; padding: 60px 20px; color: #666; }
+         .empty-state i { font-size: 48px; color: #ddd; margin-bottom: 20px; }
+         .empty-state h4 { color: #999; margin-bottom: 10px; }
+         .empty-state p { color: #bbb; }
+      </style>
+
+      <script src="assets/js/jquery.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/angular-cookies.min.js"></script>
+      <script src="controllers/exam-listing.js"></script>
+      <script src="assets/plugins/cropper/cropper.js"></script>
+      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+   </head>
+
+   <body class="animated-content" ng-app="examListingApp" ng-controller="examListingController" ng-cloak> 
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg"><i class="ti ti-menu"></i></span>
+           </a>
+           </span>
+           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+     
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div class="userinfo">
+                                <div class="avatar">
+                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
+                                </div>
+                                <div class="info">
+                                    <span class="username">{{profileData.name || 'Admin User'}}</span>
+                                    <span class="useremail">{{profileData.email || 'admin@vegapilot.com'}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li class="nav-separator"><span>Content Management</span></li>
+                              <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                              <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                              <li><a href="exam-listing.html" class="active"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                              <li><a href="created-tests.html"><i class="ti ti-tablet"></i><span>Mock Tests</span></a></li>
+                              <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                        <li><a href="index.html">Home</a></li>
+                        <li class="active"><a href="exam-listing.html">Exam Listing</a></li>
+                     </ol>
+                     <div class="container-fluid" style="padding-top: 4%;">
+
+                     <div class="alert alert-info">
+                        <h3><i class="ti ti-list"></i> Exam Listing</h3>
+                        <p>View and manage all created exams. See exam details, sections, question counts, and status information.</p>
+                        <p><i class="ti ti-info-alt"></i> Use filters to find specific exams and manage their settings.</p>
+                     </div>
+
+                     <!-- Summary Tiles -->
+                     <div class="row">
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-info quickFilterDisabled quickFilter" ng-click="quickFilterExams('ALL')" title="Show All Exams" ng-class="{'filterAppliedTile':examFilterApplied == 'ALL'}">
+                              <div class="tile-icon"><i class="ti ti-list"></i></div>
+                              <div class="tile-heading"><span>Total Exams</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalExams}}</span></div>
+                              <div class="tile-footer"><span class="text-grey tileBottom">{{summaryTileData.totalQuestions}} Questions</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-success quickFilterDisabled quickFilter" ng-click="quickFilterExams('ACTIVE')" title="Filter Active Exams" ng-class="{'filterAppliedTile':examFilterApplied == 'ACTIVE'}">
+                              <div class="tile-icon"><i class="ti ti-check"></i></div>
+                              <div class="tile-heading"><span>Active Exams</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalActive}}</span></div>
+                              <div class="tile-footer"><span class="text-grey tileBottom">Available</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-warning quickFilterDisabled quickFilter" ng-click="quickFilterExams('DRAFT')" title="Filter Draft Exams" ng-class="{'filterAppliedTile':examFilterApplied == 'DRAFT'}">
+                              <div class="tile-icon"><i class="ti ti-pencil"></i></div>
+                              <div class="tile-heading"><span>Draft Exams</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalDraft}}</span></div>
+                              <div class="tile-footer"><span class="text-grey tileBottom">In Progress</span></div>
+                           </div>
+                        </div>
+                        <div class="col-md-3">
+                           <div class="info-tile info-tile-alt tile-indigo quickFilterDisabled">
+                              <div class="tile-icon"><i class="ti ti-clock"></i></div>
+                              <div class="tile-heading"><span>Total Duration</span></div>
+                              <div class="tile-body"><span>{{summaryTileData.totalDuration}}</span></div>
+                              <div class="tile-footer"><span class="text-default tileBottom">Hours</span></div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Search and Filters -->
+                     <div class="row">
+                        <div class="col-md-8">
+                           <div class="search-box">
+                              <div class="input-group">
+                                 <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button"><i class="ti ti-search"></i></button>
+                                 </span>
+                                 <input type="text" class="form-control" placeholder="Search exams by title, description, or sections..." ng-model="searchQuery" ng-change="applySearch()">
+                                 <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" ng-click="clearSearch()"><i class="ti ti-close"></i></button>
+                                 </span>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-4 text-right">
+                           <a href="exam-creation-wizard.html" class="btn btn-primary">
+                              <i class="ti ti-plus"></i> Create New Exam
+                           </a>
+                        </div>
+                     </div>
+
+                     <!-- Active Filters -->
+                     <div class="filter-tags" ng-show="activeFilters.length > 0">
+                        <strong>Active Filters:</strong>
+                        <span ng-repeat="filter in activeFilters" class="filter-tag">
+                           {{filter.label}}
+                           <span class="close" ng-click="removeFilter(filter)">&times;</span>
+                        </span>
+                     </div>
+
+                     <!-- Exam Listing -->
+                     <div data-widget-group="exam-listing">
+                        <div class="row" ng-show="filteredExams.length > 0">
+                           <div class="col-md-12">
+                              <div ng-repeat="exam in filteredExams" class="exam-card">
+                                 <div class="exam-header">
+                                    <div class="row">
+                                       <div class="col-md-8">
+                                          <h3 class="exam-title">
+                                             <i class="ti ti-list"></i> {{exam.title}}
+                                             <span class="copyQuestion" title="Copy Exam ID" ng-click="copyToClipboard(exam.displayKey, $event)">
+                                                <i class="fa fa-clone" aria-hidden="true"></i>
+                                                <i class="copiedMessage" style="display: none; position: absolute; font-size: 11px">Copied</i>
+                                             </span>
+                                          </h3>
+                                          <p class="exam-meta">
+                                             <strong>ID:</strong> {{exam.displayKey}} | 
+                                             <strong>Created:</strong> {{formatDate(exam.createdOn)}} | 
+                                             <strong>Last Updated:</strong> {{formatDate(exam.lastUpdatedOn)}}
+                                          </p>
+                                          <p class="exam-meta" ng-if="exam.brief">{{exam.brief}}</p>
+                                          
+                                          <div class="exam-stats">
+                                             <div class="exam-stat">
+                                                <div class="exam-stat-value">{{exam.duration}}</div>
+                                                <div class="exam-stat-label">Minutes</div>
+                                             </div>
+                                             <div class="exam-stat">
+                                                <div class="exam-stat-value">{{exam.totalQuestions}}</div>
+                                                <div class="exam-stat-label">Questions</div>
+                                             </div>
+                                             <div class="exam-stat">
+                                                <div class="exam-stat-value">{{exam.numberOfSections}}</div>
+                                                <div class="exam-stat-label">Sections</div>
+                                             </div>
+                                             <div class="exam-stat">
+                                                <div class="exam-stat-value">{{exam.challengeQuestionAllowed ? 'Yes' : 'No'}}</div>
+                                                <div class="exam-stat-label">Challenges</div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       
+                                       <div class="col-md-4 text-right">
+                                          <div style="margin-bottom: 10px;">
+                                             <span class="status-badge" ng-class="getStatusClass(exam.status)">
+                                                {{getStatusLabel(exam.status)}}
+                                             </span>
+                                          </div>
+                                          
+                                          <div class="exam-actions">
+                                             <button class="btn btn-info btn-sm" ng-click="viewExam(exam)">
+                                                <i class="ti ti-eye"></i> View
+                                             </button>
+                                             <button class="btn btn-primary btn-sm" ng-click="editExam(exam)">
+                                                <i class="ti ti-pencil"></i> Edit
+                                             </button>
+                                             <button class="btn btn-success btn-sm" ng-click="duplicateExam(exam)">
+                                                <i class="ti ti-files"></i> Duplicate
+                                             </button>
+                                             <button class="btn btn-danger btn-sm" ng-click="deleteExam(exam)">
+                                                <i class="ti ti-trash"></i> Delete
+                                             </button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 
+                                 <div class="exam-details">
+                                    <h5><i class="ti ti-layout"></i> Exam Sections</h5>
+                                    <div class="section-list">
+                                       <div ng-repeat="section in exam.sectionsData" class="section-item">
+                                          <div class="section-number">{{section.order}}</div>
+                                          <div class="section-info">
+                                             <div class="section-name">{{section.name}}</div>
+                                             <div class="section-details">
+                                                Duration: {{section.duration}} min | 
+                                                Questions: {{section.totalQuestions}} | 
+                                                Timer: {{section.enableSectionWiseTimer ? 'Enabled' : 'Disabled'}}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div style="margin-top: 15px;">
+                                       <h6><i class="ti ti-info"></i> Special Terms</h6>
+                                       <div ng-bind-html="exam.specialTerms | limitTo: 200"></div>
+                                       <div ng-if="exam.specialTerms.length > 200">
+                                          <a href="#" ng-click="showFullTerms(exam)">Read more...</a>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="row" ng-show="filteredExams.length === 0">
+                           <div class="col-md-12">
+                              <div class="empty-state">
+                                 <i class="ti ti-list"></i>
+                                 <h4>No Exams Found</h4>
+                                 <p ng-if="searchQuery || activeFilters.length > 0">
+                                    No exams match your current search criteria or filters.
+                                    <a href="#" ng-click="clearAllFilters()">Clear all filters</a> to see all exams.
+                                 </p>
+                                 <p ng-if="!searchQuery && activeFilters.length === 0">
+                                    No exams have been created yet. 
+                                    <a href="exam-creation-wizard.html">Create your first exam</a> to get started.
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Pagination -->
+                     <div class="pagination-info" ng-show="filteredExams.length > 0">
+                        <div class="btn-group">
+                           <button ng-click="goLeft()" type="button" class="btn btn-default" ng-disabled="currentPage === 1">
+                              <i class="ti ti-angle-left"></i>
+                           </button>
+                           <button type="button" class="btn btn-default">
+                              Page {{currentPage}} of {{totalPages}}
+                           </button>
+                           <button ng-click="goRight()" type="button" class="btn btn-default" ng-disabled="currentPage === totalPages">
+                              <i class="ti ti-angle-right"></i>
+                           </button>
+                        </div>
+                        <div style="margin-top: 10px;">
+                           Showing {{(currentPage - 1) * pageSize + 1}} to {{Math.min(currentPage * pageSize, filteredExams.length)}} of {{filteredExams.length}} exams
+                        </div>
+                     </div>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
+
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>
+      <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>   
+      <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
+      <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>
+      <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
+
+   </body>
+</html>

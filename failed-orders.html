@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <title>Acceleron Luna</title>
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+
+   <link rel="shortcut icon" href="assets/icons/favicon.png">
+
+   <!-- Controller -->
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/orders.js"></script>
+   <script src="controllers/login.js"></script>
+
+</head>
+
+   <body class="" ng-app="OrdersApp" ng-controller="failedOrdersController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+           <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <a class="navbar-brand" href="index.html" style="width: 125px"></a>
+           <h1 style="font-size: 18px; font-weight: bold; text-transform: uppercase">{{outletCode}}</h1>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="settings.html"><i class="ti ti-settings"></i><span>Settings</span></a></li>
+                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <!-- Smart Orders -->
+                              <li>
+                                  <a href="index.html" class="smartOrderTab"><i class="ti ti-tablet"></i><span>Smart Orders</span><span class="badge badge-teal" ng-if="smart_orders_length > 0">{{smart_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                  <a href="smart-orders-history.html" class="smartOrderTab"><i class="ti ti-check-box"></i><span>Smart Orders <b class="greyBadge"> Completed</b></a>
+                              </li>
+                              <!-- Online Orders -->
+                              <li>
+                                <a href="online-orders.html" class="onlineOrderTab"><i class="ti ti-truck"></i><span>Online Orders</span><span class="badge badge-teal" ng-if="pending_orders_length > 0">{{pending_orders_length}}</span></a>
+                              </li>
+                              <li>
+                                <a href="online-orders-history.html" class="onlineOrderTab"><i class="ti ti-check-box"></i><span>Online Orders <b class="greyBadge"> Completed</b></span></a>
+                              </li>
+                              <li><a href="helpline-inbox.html"><i class="ti ti-headphone-alt"></i><span>Helpdesk</span><span class="badge badge-inverse" ng-if="helprequests_length > 0">{{helprequests_length}}</span></a></li>
+                              <li><a href="edit-menu.html"><i class="ti ti-receipt"></i><span>Master Menu</span></a></li>
+                              <li><a href="reservations.html"><i class="ti ti-bookmark-alt"></i><span>Reservations</span><span class="badge badge-inverse" ng-if="reservations_length > 0">{{reservations_length}}</span></a></li>
+                              <li><a href="feedback.html"><i class="ti ti-thumb-up"></i><span>Feedbacks</span></a></li>
+                              <!-- Order Settings -->
+                              <li>
+                                    <a href="javascript:;"><i class="ti ti-settings"></i><span>Order Settings</span></a>
+                                    <ul class="acc-menu">
+                                        <li><a href="smart-orders-rejected.html">Smart Orders - Rejected</a></li>
+                                        <li><a href="failed-orders.html">Online Orders - Failed</a></li>
+                                        <li><a href="smart-orders-settings.html">Smart Order Settings</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-view-grid"></i><span>Tools</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="staff-registry.html">Staff Registry</a></li>
+                                        <li><a href="finance-ledger.html">Sales Ledger</a></li>
+                                        <li><a href="user-profile.html">Search User</a></li>
+                                     </ul>
+                              </li>
+                              <li>
+                                     <a href="javascript:;"><i class="ti ti-stats-up"></i><span>Marketing</span></a>
+                                     <ul class="acc-menu">
+                                        <li><a href="promotions.html">Coupons Manager</a></li>
+                                        <li><a href="marketing-wizard.html">Marketing Content</a></li>
+                                        <li><a href="messenger.html">Messenger</a></li>
+                                        <li><a href="analytics.html">Sales Analytics</a></li>
+                                        <li><a href="vouchers.html">Vouchers Manager</a></li>
+                                     </ul>
+                              </li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                     </ol>
+                     <div class="container-fluid">
+                        <div data-widget-group="group1">
+
+                          <div class="row">
+                             <div class="col-sm-2"></div>
+                             <div class="col-sm-8">
+                                <div class="input-group" style="padding: 10px; border: none;">
+                                   <input type="text" ng-model="searchID" id="mySearchBox" class="form-control input-lg" style="text-align: center" placeholder="">
+                                   <span class="input-group-btn">
+                                   <button class="btn btn-default btn-lg" type="button" ng-click="search(searchID)"><i class="ti ti-search"></i></button>
+                                   <button class="btn btn-default btn-lg" type="button" title="Search By Date" style="margin-left: 10px" ng-click="searchByDate()"><i class="ti ti-calendar"></i></button>
+                                   </span>
+                                </div>
+                                <p ng-if="!isSearched" style="font-size:16px; text-align: center; color: #bdc3c7">Search with Mobile Number or filter by Date by clicking <i class="fa fa-calendar" style="font-size: 90%; padding: 0px 2px"></i> icon.</p>
+                             </div>
+                          </div>
+
+
+                          <!-- Default Results -->
+                          <div class="tab-content" ng-if="!isSearched && !isViewingOrder">
+                             <div class="tab-pane active" id="tab-projects">
+                                <div class="panel panel-default">
+                                    
+                                   <div class="panel-heading" style="background: #e74c3c; color: #FFF">
+                                      <h2 style="color: #FFF">{{filterTitle}}</h2>
+                                   </div>
+                                   <div class="panel-body">
+                                     <div id="vegaPanelBodyLoader"></div>
+                                     <div class="row" ng-if="!isOrdersFound" style="padding-top: 30px">
+                                       <p style="font-size:21px; text-align: center; color: #7f8c8d">{{resultMessage}}</p>
+                                     </div>
+                                      <div class="table-responsive" ng-if="isOrdersFound">
+                                         <table class="table m-n">
+                                           <col width="2%">
+                                           <col width="2%">
+                                           <col width="10%">
+                                           <col width="12%">
+                                           <col width="10%">
+                                           <col width="8%">
+                                           <col width="14%">
+                                           <col width="25%">                                           
+                                           <col width="7%">
+                                           <col width="10%">
+                                            <thead>
+                                              <tr>
+                                                 <th>#</th>
+                                                 <th></th>
+                                                 <th>Order No.</th>
+                                                 <th>Customer</th>
+                                                 <th>Type</th>
+                                                 <th>Time</th>
+                                                 <th>Date</th>
+                                                 <th>Items</th>
+                                                 <th>Value</th>
+                                                 <th>Status</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              <tr ng-repeat="order in completed_orders track by $index">
+                                                 <td scope="row">{{$index + 1}}</td>
+                                                  <td>
+                                                  	<platform ng-if="order.platform == 'WEB'"><i class="fa fa-desktop" aria-hidden="true"></i></platform>
+ 							<platform ng-if="order.platform == 'MOB'"><i class="fa fa-android" aria-hidden="true"></i></platform>										
+ 							<platform ng-if="order.platform == 'IOS'"><i class="fa fa-apple" aria-hidden="true"></i></platform>
+ 						  </td>                                                    
+                                                 <td ng-click="displayOrder(order)"><a href="#" style="font-weight: bold;">{{order.orderID}}</a></td>
+                                                 <td>{{order.userID}}<br><name style="font-size: 12px">{{order.userName}}</name></td>    
+                                                 <td>
+                                                   <tag ng-if="!order.isTakeaway" style="padding: 2px 4px; color: #7f8c8d; border: 1px solid #7f8c8d">Delivery</tag>
+                                                   <tag ng-if="order.isTakeaway" style="padding: 2px 4px; color: #9b59b6; border: 1px solid #9b59b6">Take Away</tag>
+                                                 </td>
+                                                 <td>{{order.timePlace}}</td>
+                                                 <td>{{order.date}}</td>                                                 
+                                                 <td><span ng-repeat="item in order.cart.items" style="font-size: 12px">{{item.itemName}} ({{item.qty}}). </span></td>
+                                                 <td><i class="fa fa-inr"></i> {{order.cart.cartTotal+order.cart.cartExtra}}</td>
+                                                 
+                                                 <td>
+                                                   <tag style="color: #e67e22" ng-if="order.status == 0">Pending</tag>
+                                                   <tag style="color: #3498db" ng-if="order.status == 1">Confirmed</tag>
+                                                   <tag style="color: #16a085" ng-if="order.status == 2">Dispatched</tag>
+                                                   <tag style="color: #e74c3c" ng-if="order.status == 5">Cancelled</tag>
+                                                 </td>
+                                              </tr>
+                                            </tbody>
+                                         </table>
+                                         <center>
+                                           <br>
+                                           <button class="btn btn-lg" ng-if="isMoreLeft" style="background: transparent; border: 1px solid" ng-click="loadMore()">Load More</button>
+                                         </center>
+                                      </div>
+                                      <!-- /.table-responsive -->
+
+                                   </div>
+                                   <!-- /.panel-body -->
+                                </div>
+                             </div>
+
+                          </div>
+
+
+
+                          <!-- Search Results -->
+                          <div class="tab-content" ng-if="isSearched" ng-if="!isViewingOrder">
+                             <div class="tab-pane active" id="tab-projects">
+                                <div class="panel panel-default">
+                                   <div class="panel-heading" style="background: #e74c3c; color: #FFF">
+                                      <h2 style="color: #FFF">{{filterTitle}}</h2>
+                                   </div>
+                                   <div class="panel-body">
+                                     <div id="vegaPanelBodyLoader"></div> 
+                                     <div class="row" ng-if="!isOrdersFound" style="padding-top: 30px">
+                                       <p ng-if="isSearched" style="font-size:21px; text-align: center; color: #7f8c8d">No orders found.</p>
+                                     </div>
+                                      <div class="table-responsive" ng-if="isOrdersFound">
+                                         <table class="table m-n">
+                                           <col width="2%">
+                                           <col width="2%">
+                                           <col width="12%">
+                                           <col width="17%">
+                                           <col width="12%">
+                                           <col width="43%">
+                                           <col width="12%">
+                                            <thead>
+                                               <tr>
+                                                  <th>#</th>
+                                                  <th></th>
+                                                  <th>Order No.</th>
+                                                  <th>Type</th>
+                                                  <th>Customer</th>
+                                                  <th>Date</th>
+                                                  <th>Items</th>
+                                                  <th>Value</th>
+                                                  <th>Status</th>
+                                               </tr>
+                                            </thead>
+                                            <tbody>
+                                               <tr ng-repeat="order in completed_orders track by $index">
+                                                  <td scope="row">{{$index + 1}}</td>
+                                                  <td>
+                                                  	<platform ng-if="order.platform == 'WEB'"><i class="fa fa-desktop" aria-hidden="true"></i></platform>
+ 							<platform ng-if="order.platform == 'MOB'"><i class="fa fa-android" aria-hidden="true"></i></platform>										
+ 							<platform ng-if="order.platform == 'IOS'"><i class="fa fa-apple" aria-hidden="true"></i></platform>
+ 						  </td>                                                  
+                                                  <td>{{order.orderID}}</td>
+                                                  <td>{{order.userID}}<br>{{order.userName}}</td>
+                                                  <td>{{order.isTakeaway}}</td>
+                                                  <td>{{order.date}}</td>
+                                                  <td><span ng-repeat="item in order.cart.items">{{item.itemName}} ({{item.qty}}). </span></td>
+                                                  <td><i class="fa fa-inr"></i> {{order.cart.cartTotal}}</td>
+                                                  <td>{{order.status}}</td>
+                                               </tr>
+                                                   
+                                                   
+                                            </tbody>
+                                         </table>
+                                         <center>
+                                           <br>
+                                           <button class="btn btn-lg" ng-if="isMoreLeft" style="background: transparent; border: 1px solid" ng-click="loadMore()">Load More</button>
+                                         </center>
+                                      </div>
+                                      <!-- /.table-responsive -->
+
+                                   </div>
+                                   <!-- /.panel-body -->
+                                </div>
+                             </div>
+
+                          </div>
+
+
+                           <div class="row" ng-if="isViewingOrder">
+                              <div class="col-md-1"></div>
+                              <div class="col-md-10">
+                                <div class="panel panel-bluegray">
+                                   <div class="panel-heading" style="background: #D7DBDD">
+                                      <h2 ng-if="displayOrderID" style="color: #5D6D7E; font-size: 21px;">
+                                         #{{displayOrderID}}
+                                         <tag ng-if="1" style="font-size: 12px; float: right; margin-left: 10px; padding: 1px 3px; font-weight: bold; border: 1px solid #e74c3c; color: #e74c3c">FAILED ORDER</tag>
+                                         <tag ng-if="0" style="font-size: 12px; float: right; margin-left: 10px; padding: 1px 3px; font-weight: bold; border: 1px solid #2980b9; color: #2980b9">PREPAID ORDER</tag>
+                                         <tag ng-if="0" style="font-size: 12px; float: right; margin-left: 10px; padding: 1px 3px; font-weight: bold; background: #2ecc71; color: #FFF">CASH ON DELIVERY</tag>
+                                      </h2>
+
+                                      <tag style="float: right">
+                                        <h2 ng-if="displayOrderType" style="margin: 12px 10px 0px 10px; float: left; padding: 2px 4px; font-weight: bold; background: #2980b9; color: #FFF">
+                                          TAKE AWAY ORDER
+                                        </h2>
+                                        <h2 style="margin-top: 12px; float: right; padding: 1px 6px; background: #c0392b; color: #FFF" ng-click="cancelDisplay()">
+                                          X
+                                        </h2>
+                                      </tag>
+                                   </div>
+                                   <div class="panel-heading" style="background: #F1F2F2">
+                                     <div class="row">
+                                       <div class="col-sm-12">
+                                         <p ng-if="displayOrderContent.status == 5" style="color: #c0392b; margin: 0px">
+                                           This order was cancelled.
+                                         </p>
+                                         <p style="color: #5D6D7E; margin: 0px" ng-if="displayOrderContent.status != 5">
+                                           <i class="fa fa-clock-o"></i> Placed at <b>{{displayOrderContent.timePlace}}</b>
+                                           <tag ng-if="displayOrderContent.status > 0"> <i class="fa fa-check-square-o" style="padding-left: 10px"></i>  Confirmed at <b>{{displayOrderContent.timeConfirm}}</b></tag>
+                                           <tag ng-if="!displayOrderType && displayOrderContent.status > 1"> <i class="fa fa-truck" style="padding-left: 10px"></i>  Dispated at <b>{{displayOrderContent.timeDispatch}}</b></tag>
+                                           <tag ng-if="displayOrderType && displayOrderContent.status > 1"> <i class="fa fa-gift" style="padding-left: 10px"></i>  Ready for Pickup at <b>{{displayOrderContent.timeDispatch}}</b></tag>
+                                           <date style="float: right">{{displayOrderContent.date}}<platform style="float: right; padding-left: 5px" ng-if="displayOrderContent.platform == 'WEB'">
+ <i class="fa fa-desktop" aria-hidden="true"></i></platform><platform style="float: right; padding-left: 5px" ng-if="displayOrderContent.platform == 'MOB'"><i class="fa fa-android" aria-hidden="true"></i></platform><platform style="float: right; padding-left: 5px" ng-if="displayOrderContent.platform == 'IOS'"><i class="fa fa-apple" aria-hidden="true"></i></platform></date>                                          
+                                         </p>
+                                       </div>
+                                     </div>
+                                   </div>
+                                   <div class="panel-body" ng-if="displayOrderID">
+                                      <div id="earnings" class="mt-sm mb-sm">
+                                         <!-- Order Data -->
+                                         <div class="table-responsive">
+                                            <table class="table">
+                                               <thead>
+                                                  <tr>
+                                                     <th>#</th>
+                                                     <th>Item Name</th>
+                                                     <th>Quantity</th>
+                                                     <th>Unit Price</th>
+                                                     <th>Sub Total</th>
+                                                  </tr>
+                                               </thead>
+                                               <tbody>
+                                                  <tr ng-repeat="item in displayOrderContent.cart.items track by $index">
+                                                     <td align="left">{{$index+1}}</td>
+                                                     <td>{{item.itemName}} <span ng-if="item.isCustom" class="text-warning" style="font-size: 11px;">{{item.variant}}</span></td>
+                                                     <td>{{item.qty}}</td>
+                                                     <td>{{item.itemPrice}}</td>
+                                                     <td>{{item.itemPrice*item.qty}}</td>
+                                                  </tr>
+                                                  
+                                                  <tr>
+                                                     <td colspan="2" style="padding: 1px"></td>
+                                                     <td colspan="2" style="padding: 1px">Sub Total</td>
+                                                     <td style="padding: 1px"><i class="fa fa-inr"></i> {{displayOrderContent.cart.cartTotal + displayOrderContent.cart.cartDiscount}}</td>
+                                                   </tr>
+                                                   <tr>
+                                                     <td colspan="2" style="padding: 1px"></td>
+                                                     <td colspan="2" style="padding: 1px">Parcel Charges</td>
+                                                     <td style="padding: 1px"><i class="fa fa-inr"></i> {{displayOrderContent.cart.cartExtra}}</td>
+                                                   </tr>
+                                                   <tr>
+                                                     <td colspan="2" style="padding: 1px"></td>
+                                                     <td colspan="2" style="padding: 1px">Discounts</td>
+                                                     <td style="padding: 1px"><i class="fa fa-inr"></i> {{displayOrderContent.cart.cartDiscount}}</td>
+                                                   </tr>
+                                                   <tr style="font-size: 110%; font-weight: bold;">
+                                                     <td colspan="2" style="padding: 1px"></td>
+                                                     <td colspan="2" style="padding: 1px">Grand Total</td>
+                                                     <td style="padding: 1px"><i class="fa fa-inr"></i> {{displayOrderContent.cart.cartTotal + displayOrderContent.cart.cartExtra}}</td>
+                                                   </tr>
+                                                   
+                                                   
+                                               </tbody>
+                                            </table>
+                                         </div>
+                                      </div>
+                                      <div class="row">
+                                         <div class="col-md-6">
+                                            <div class="alert" style="background: none; border: 1px solid #bdc3c7; color: #34495e" ng-if="!displayOrderType">
+                                               <h3 style="font-weight: 200; font-size: 18px">DELIVERY ADDRESS</h3>
+                                               <hr>
+                                               <p>{{displayOrderContent.deliveryAddress.name}}<br>
+                                                  {{displayOrderContent.deliveryAddress.flatNo}}, {{displayOrderContent.deliveryAddress.flatName}}<br>
+                                                  {{displayOrderContent.deliveryAddress.area}}<br>
+                                                  {{displayOrderContent.deliveryAddress.landmark}}<br>
+                                                  Mob. <strong>{{displayOrderContent.deliveryAddress.contact}}</strong>
+                                               </p>
+                                            </div>
+                                            <div class="alert" style="background: none; border: 1px solid #bdc3c7; color: #34495e" ng-if="displayOrderType">
+                                               <h3 style="font-weight: 200; font-size: 18px">CUSTOMER DETAILS</h3>
+                                               <hr>
+                                               <p style="font-size: 21px">{{displayOrderContent.userName}}<br>
+                                                  Mob. <strong>{{displayOrderContent.userID}}</strong>
+                                               </p>
+                                            </div>
+                                         </div>
+                                         <!-- PENDING ORDER CASE -->
+                                         <div class="col-md-6" ng-if="displayOrderContent.comments != ''">
+                                            <div class="alert" style="background: none; border: 2px solid #3498db; color: #3498db">
+                                               <h3 style="color: #3498db; font-weight: 200; font-size: 18px">COMMENTS TO CHEF</h3>
+                                               <hr>
+                                               <p style="font-size: 16px;">{{displayOrderContent.comments}}</p>
+                                            </div>
+                                         </div>
+                                      </div>
+                                      <div class="row">
+                                         <div class="col-md-12">
+                                            <tag ng-if="displayOrderContent.status == 2 && !displayOrderType" style="font-size: 16px; margin-left: 10px; color: #2ecc71;">Order was dispatched through <b>{{displayOrderContent.agentName}}</b> ({{displayOrderContent.agentCode}}) at {{displayOrderContent.timeDispatch}}</tag>
+                                         </div>
+                                      </div>
+                                   </div>
+                                </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <!-- .container-fluid -->
+                  </div>
+                  <!-- #page-content -->
+               </div>
+            </div>
+         </div>
+      </div>
+
+         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script> 
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> 							<!-- Load jQuery -->
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> 							<!-- Load jQueryUI -->
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> 								<!-- Load Bootstrap -->
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script> 									<!-- Load Enquire -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>					<!-- Load Velocity for Animated Content -->
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>     						<!-- Wijet -->
+      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script> 				<!-- Code Prettifier  -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script> 		<!-- Swith/Toggle Button -->
+      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>  <!-- Bootstrap Tabdrop -->
+      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>     					<!-- iCheck -->
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script> <!-- nano scroller -->
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
+
+      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script> <!-- DateTime Picker -->      
+
+   </body>
+</html>
