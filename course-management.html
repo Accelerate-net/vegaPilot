@@ -25,13 +25,15 @@
 
       <style type="text/css">
          .courseRow:hover{ cursor: pointer; }
-         .module-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
-         .module-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #007bff; }
-         .module-header { background: #f8f9fa; padding: 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #ddd; }
+         .module-card { margin-bottom: 20px; transition: all 0.3s ease; border-radius: 8px; overflow: hidden; }
+         .module-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+         .module-header { background: #f8f9fa; padding: 15px; border-radius: 8px 8px 0 0; }
          .module-title { font-size: 18px; font-weight: bold; color: #333; margin: 0; }
          .chapter-item { border: 1px solid #e9ecef; border-radius: 6px; margin: 10px; padding: 15px; background: white; transition: all 0.2s ease; }
          .chapter-item:hover { border-color: #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-         .chapter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+         .chapter-header { 
+/*            display: flex; */
+            justify-content: space-between; align-items: center; margin-bottom: 10px; }
          .chapter-title { font-weight: bold; color: #333; margin: 0; }
          .chapter-code { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
          .parts-list { margin-top: 10px; }
@@ -74,6 +76,1367 @@
          .module-structure-title { font-weight: bold; color: #333; margin-bottom: 10px; }
          .module-structure-item { display: flex; align-items: center; padding: 8px; margin: 5px 0; background: white; border-radius: 4px; border-left: 3px solid #28a745; }
          .module-structure-number { background: #28a745; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-right: 10px; }
+         
+         /* Expandable Chapters Styling */
+         .chapter-item {
+            background: #fff;
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            padding: 0;
+            margin: 0 0 15px 0;
+         }
+         
+         .chapter-item:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            border-color: #007bff;
+         }
+         
+         .chapter-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px 8px 0 0;
+            transition: background 0.3s ease;
+            margin-bottom: 0;
+         }
+         
+         .chapter-header:hover {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+         }
+         
+         .chapter-header.expanded {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+         }
+         
+
+         
+         .chapter-toggle {
+            font-size: 18px;
+            color: #007bff;
+            margin-right: 12px;
+            transition: transform 0.3s ease;
+         }
+         
+         .chapter-toggle.ti-chevron-down {
+            transform: rotate(90deg);
+         }
+         
+         .chapter-title {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 600;
+         }
+         
+         .chapter-code {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+         }
+         
+         .parts-list {
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #e0e0e0;
+            border-radius: 0 0 8px 8px;
+            animation: slideDown 0.3s ease;
+                margin: 0;
+            border-top: 2px solid #aec5dc;
+            background: #eff8ff;
+         }
+         
+
+         
+         @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+         }
+         
+         .parts-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+         }
+         
+         .parts-header h6 {
+            margin: 0;
+            color: #495057;
+            font-weight: 600;
+         }
+         
+         .part-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+         }
+         
+         .part-item:hover {
+            border-color: #007bff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+         }
+         
+         .part-number {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 15px;
+            flex-shrink: 0;
+         }
+         
+         .part-info {
+            flex: 1;
+         }
+         
+         .part-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+         }
+         
+         .part-details {
+            font-size: 12px;
+            color: #6c757d;
+         }
+         
+         .d-flex {
+            display: flex;
+         }
+         
+         .align-items-center {
+            align-items: center;
+         }
+         
+         /* Enhanced Chapters UI Styling */
+         .chapter-info {
+            display: flex;
+            align-items: center;
+         }
+
+         .no-margin {
+            margin: 0 !important;
+         }
+         
+         .expand-indicator {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 123, 255, 0.1);
+            transition: all 0.3s ease;
+         }
+         
+         .expand-indicator i {
+            font-size: 18px;
+            color: #007bff;
+            transition: all 0.3s ease;
+         }
+         
+         .expand-indicator:hover {
+            background: rgba(0, 123, 255, 0.2);
+            transform: scale(1.1);
+         }
+         
+         .chapter-details {
+            flex: 1;
+         }
+         
+         .chapter-meta {
+            margin: 5px 0 0 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+         }
+         
+         .module-badge, .code-badge, .parts-count {
+            background: #6c757d;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+         }
+         
+         .module-badge {
+            background: #007bff;
+         }
+         
+         .code-badge {
+            background: #28a745;
+         }
+         
+         .parts-count {
+            background: #ffc107;
+            color: #212529;
+         }
+         
+         .chapter-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+         }
+         
+         /* Enhanced Parts Grid */
+         .parts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+         }
+         
+         .part-card {
+            background: white;
+/*            border: 1px solid #e9ecef;*/
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+         }
+         
+         .part-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+            transform: translateY(-2px);
+         }
+         
+         .part-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #007bff, #28a745);
+         }
+         
+         .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+         }
+         
+         .part-number-badge {
+            background: #007bff;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+         }
+         
+         .part-type-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+         }
+         
+         .type-video {
+            background: #28a745;
+            color: white;
+         }
+         
+         .type-audio {
+            background: #ffc107;
+            color: #212529;
+         }
+         
+         .type-document {
+            background: #6f42c1;
+            color: white;
+         }
+         
+         .part-content {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+         }
+         
+         .part-thumbnail {
+            width: 60px;
+            height: 40px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #6c757d;
+            font-size: 20px;
+         }
+         
+         .part-info {
+            flex: 1;
+         }
+         
+         .part-title {
+            margin: 0 0 5px 0;
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.3;
+         }
+         
+         .part-meta {
+            display: flex;
+            align-items: center;
+         }
+         
+         .skip-indicator {
+            font-size: 11px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+         }
+         
+         .skip-indicator.skip-enabled {
+            color: #28a745;
+            font-weight: 500;
+         }
+         
+         .part-actions {
+            text-align: right;
+         }
+         
+         .btn-outline-primary {
+            border-color: #007bff;
+            color: #007bff;
+            background: transparent;
+         }
+         
+         .btn-outline-primary:hover {
+            background: #007bff;
+            color: white;
+         }
+         
+         /* Empty States */
+         .empty-parts, .empty-chapters {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+         }
+         
+         .empty-parts i, .empty-chapters i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #dee2e6;
+         }
+         
+         .empty-parts h6, .empty-chapters h4 {
+            margin-bottom: 10px;
+            color: #495057;
+         }
+         
+         .empty-parts p, .empty-chapters p {
+            margin-bottom: 20px;
+         }
+         
+         /* Video Modal Styling */
+         .video-player-container {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+         }
+         
+         .video-placeholder {
+            text-align: center;
+            color: #fff;
+            padding: 40px;
+         }
+         
+         .video-placeholder i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #6c757d;
+         }
+         
+         .separator-dot {
+          font-size: 60%;
+          margin: 0 10px;
+          position: relative;
+          bottom: 10%;
+          opacity: .3;
+         }
+
+         .video-player {
+            width: 100%;
+            height: auto;
+         }
+         
+         .video-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+         }
+         
+         .video-details h5 {
+            margin-bottom: 15px;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+         }
+         
+         .video-details ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+         }
+         
+         .video-details ul li:last-child {
+            border-bottom: none;
+         }
+         
+         .video-actions {
+            margin-top: 20px;
+         }
+         
+         .video-actions .btn {
+            margin-bottom: 10px;
+         }
+         
+         .video-actions .btn:last-child {
+            margin-bottom: 0;
+         }
+         
+         /* Teacher Information Styling */
+         .teacher-info {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            transition: all 0.3s ease;
+         }
+         
+         .teacher-info:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 123, 255, 0.4);
+            transform: translateY(-1px);
+         }
+         
+         .teacher-avatar {
+            position: relative;
+            margin-right: 12px;
+         }
+         
+         .teacher-photo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+         }
+         
+         .teacher-rating {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #ffc107;
+            color: #212529;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            border: 2px solid white;
+         }
+         
+         .teacher-details {
+            flex: 1;
+         }
+         
+         .teacher-name {
+            margin: 0 0 2px 0;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+            line-height: 1.2;
+         }
+         
+         .teacher-specialization {
+            margin: 0;
+            font-size: 11px;
+            color: #6c757d;
+            line-height: 1.2;
+         }
+         
+         /* Simplified Teacher Info */
+         .teacher-info-simple {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+/*            background: rgba(255, 255, 255, 0.9);*/
+            border-radius: 6px;
+/*            border: 1px solid rgba(0, 123, 255, 0.15);*/
+            transition: all 0.2s ease;
+         }
+         
+         .teacher-info-simple:hover {
+            background: rgba(255, 255, 255, 1);
+            cursor: pointer;
+         }
+         
+         .teacher-photo-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+/*            border: 2px solid #007bff;*/
+            margin-right: 10px;
+         }
+         
+         .teacher-details-simple {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+         }
+         
+         .teacher-name-simple {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.2;
+         }
+         
+         .teacher-rating-simple {
+            font-size: 10px;
+            color: #ffc107;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+         }
+         
+         .teacher-rating-simple i {
+            font-size: 8px;
+         }
+         
+         /* Star Rating System */
+         .star-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 1px;
+         }
+         
+         .star-rating .fa-star {
+            font-size: 10px;
+            color: #ffc107; /* Filled star color (gold) */
+         }
+         
+         .star-rating .fa-star-half-o {
+            font-size: 10px;
+            color: #ffc107; /* Half-filled star color (gold) */
+         }
+         
+         .star-rating .fa-star-o {
+            font-size: 10px;
+            color: #ddd; /* Empty star color */
+         }
+         
+         .rating-value {
+            font-size: 10px;
+            color: #666;
+            margin-left: 5px;
+         }
+         
+         /* Module Expandable Structure */
+         .module-header {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0;
+         }
+         
+         .module-header:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+         }
+         
+         .module-header.expanded {
+            border: 2px solid #007bff;
+            border-bottom: none;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+         }
+         
+         .module-content.expanded {
+            border: 2px solid #007bff;
+            border-top: none;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+            margin-top: -1px;
+         }
+         
+         .module-info {
+            display: flex;
+            align-items: center;
+         }
+         
+         .expand-indicator {
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 123, 255, 0.1);
+            transition: all 0.3s ease;
+         }
+         
+         .expand-indicator i {
+            font-size: 18px;
+            color: #007bff;
+            transition: all 0.3s ease;
+         }
+         
+         .expand-indicator:hover {
+            background: rgba(0, 123, 255, 0.2);
+            transform: scale(1.1);
+         }
+         
+         .module-content {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+         }
+         
+         /* Chapters Table Styling */
+         .chapters-table-container {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+         }
+         
+         .chapters-table-container .table {
+            margin-bottom: 0;
+         }
+         
+         .chapters-table-container .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 12px 8px;
+         }
+         
+         .chapters-table-container .table td {
+            padding: 12px 8px;
+            vertical-align: middle;
+         }
+         
+         .teacher-info-compact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+         }
+         
+         .teacher-photo-tiny {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #dee2e6;
+         }
+         
+         .btn-xs {
+            padding: 2px 6px;
+            font-size: 10px;
+            line-height: 1.2;
+         }
+         
+         /* Course Bundle Header */
+         .course-bundle-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+         }
+         
+         .course-bundle-header .control-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            display: block;
+         }
+         
+         .course-bundle-header .control-label i {
+            margin-right: 8px;
+            color: #007bff;
+         }
+         
+         .course-bundle-header .form-control {
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+         }
+         
+         /* Select2 Enhanced Styling */
+         .course-bundle-header .select2-container--default .select2-selection--single {
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            height: 48px;
+            background: white;
+            transition: all 0.3s ease;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 44px;
+            padding-left: 15px;
+            padding-right: 40px;
+            font-size: 14px;
+            color: #495057;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 46px;
+            width: 40px;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-selection--single .select2-selection__arrow b {
+            border-color: #6c757d transparent transparent transparent;
+            border-width: 6px 4px 0 4px;
+            margin-top: 20px;
+         }
+         
+         .course-bundle-header .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+            border-color: transparent transparent #6c757d transparent;
+            border-width: 0 4px 6px 4px;
+            margin-top: 14px;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-selection--single:focus,
+         .course-bundle-header .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+         }
+         
+         .course-bundle-header .select2-dropdown {
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+            background: white;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #007bff;
+            color: white;
+         }
+         
+         .course-bundle-header .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: #e3f2fd;
+            color: #007bff;
+         }
+         
+         .course-bundle-header .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+         }
+         
+         /* Enhanced Dropdown Styling */
+         .course-bundle-header .input-group {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+         }
+         
+         .course-bundle-header .input-group-btn .btn {
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+         }
+         
+         .course-bundle-header .input-group-btn .btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+         }
+         
+         .course-bundle-header .input-group-btn .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+         }
+         
+         .course-bundle-header .input-group .form-control {
+            border: none;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0;
+            padding: 12px 15px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+         }
+         
+         .course-bundle-header .input-group .form-control.has-selection {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-left-color: #28a745;
+            color: #155724;
+            font-weight: 500;
+         }
+         
+         .course-bundle-header .input-group .form-control:focus {
+            box-shadow: none;
+            background: white;
+         }
+         
+         .course-bundle-header .dropdown-menu {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            min-width: 300px;
+         }
+         
+         .course-bundle-header .dropdown-menu li a {
+            padding: 12px 20px;
+            color: #495057;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f8f9fa;
+         }
+         
+         .course-bundle-header .dropdown-menu li a:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+         }
+         
+         .course-bundle-header .dropdown-menu li a small {
+            margin-top: 4px;
+            opacity: 0.8;
+         }
+         
+         .course-bundle-header .dropdown-menu li.divider {
+            margin: 8px 0;
+            border-color: #e9ecef;
+         }
+         
+         .course-bundle-header .input-group-btn .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+         }
+         
+         .course-bundle-header .input-group-btn .btn-success:hover {
+            background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+         }
+         
+                   .course-bundle-header .selected-bundle-info {
+             margin-top: 8px;
+             padding: 8px 12px;
+             background: rgba(102, 126, 234, 0.1);
+             border-radius: 6px;
+             border-left: 3px solid #667eea;
+          }
+          
+          .course-bundle-header .dropdown-menu li a i {
+             margin-right: 8px;
+             width: 16px;
+             text-align: center;
+          }
+          
+                   .course-bundle-header .dropdown-menu li a small {
+             display: block;
+             margin-top: 4px;
+             opacity: 0.8;
+             font-size: 12px;
+         }
+         
+         /* Modern Header Design - Replace old dropdown styles */
+         .course-bundle-header {
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             color: white;
+             padding: 40px 0;
+             margin-bottom: 30px;
+             border-radius: 16px;
+             box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+             position: relative;
+             overflow: hidden;
+         }
+         
+         .course-bundle-header::before {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+             opacity: 0.3;
+         }
+         
+         .course-bundle-header .header-content {
+             position: relative;
+             z-index: 2;
+             display: flex;
+             justify-content: space-between;
+             align-items: flex-start;
+             padding: 0 30px;
+         }
+         
+         .course-bundle-header .header-left {
+             flex: 1;
+             max-width: 70%;
+         }
+         
+         .course-bundle-header .header-right {
+             flex-shrink: 0;
+             text-align: right;
+         }
+         
+         .course-bundle-header .welcome-section {
+             margin-bottom: 30px;
+         }
+         
+         .course-bundle-header .welcome-title {
+             font-size: 2.5rem;
+             font-weight: 700;
+             margin: 0 0 10px 0;
+             color: #FFF;
+         }
+         
+         .course-bundle-header .welcome-title i {
+             margin-right: 15px;
+             font-size: 2.2rem;
+             opacity: 0.9;
+         }
+         
+         .course-bundle-header .welcome-subtitle {
+             font-size: 1.5rem;
+             opacity: 0.9;
+             margin: 0;
+             font-weight: 300;
+         }
+         
+         .course-bundle-header .selection-prompt {
+             display: flex;
+             align-items: center;
+             margin-bottom: 25px;
+             font-size: 1.5rem;
+             opacity: 0.9;
+         }
+         
+         .course-bundle-header .selection-prompt i {
+             margin-right: 10px;
+             font-size: 1.2rem;
+             animation: pulse 2s infinite;
+         }
+         
+         @keyframes pulse {
+             0%, 100% { transform: scale(1); opacity: 0.9; }
+             50% { transform: scale(1.1); opacity: 1; }
+         }
+         
+         .course-bundle-header .quick-bundle-cards {
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+             gap: 20px;
+             margin-bottom: 20px;
+         }
+         
+         .course-bundle-header .bundle-card {
+             background: rgba(255, 255, 255, 0.15);
+             backdrop-filter: blur(10px);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 12px;
+             padding: 20px;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             position: relative;
+             overflow: hidden;
+         }
+         
+         .course-bundle-header .bundle-card::before {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+             transition: left 0.5s ease;
+         }
+         
+         .course-bundle-header .bundle-card:hover::before {
+             left: 100%;
+         }
+         
+         .course-bundle-header .bundle-card:hover {
+             transform: translateY(-5px);
+             background: rgba(255, 255, 255, 0.25);
+             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+         }
+         
+         .course-bundle-header .bundle-card.create-new {
+             background: rgba(40, 167, 69, 0.2);
+             border-color: rgba(40, 167, 69, 0.4);
+         }
+         
+         .course-bundle-header .bundle-card.create-new:hover {
+             background: rgba(40, 167, 69, 0.3);
+         }
+         
+         .course-bundle-header .bundle-card .card-icon {
+             font-size: 2rem;
+             margin-bottom: 15px;
+             opacity: 0.9;
+         }
+         
+         .course-bundle-header .bundle-card .card-content h4 {
+             font-size: 1.6rem;
+             font-weight: 600;
+             margin: 0 0 8px 0;
+             color: #FFF;
+         }
+         
+         .course-bundle-header .bundle-card .card-content p {
+             font-size: 0.9rem;
+             opacity: 0.8;
+             margin: 0 0 15px 0;
+             line-height: 1.4;
+         }
+         
+         .course-bundle-header .bundle-card .card-meta {
+             display: flex;
+             align-items: center;
+         }
+         
+         .course-bundle-header .bundle-card .meta-item {
+             font-size: 1rem;
+             opacity: 0.7;
+             display: flex;
+             align-items: center;
+         }
+         
+         .course-bundle-header .bundle-card .meta-item i {
+             margin-right: 5px;
+         }
+         
+         .course-bundle-header .bundle-card .card-arrow {
+             position: absolute;
+             top: 20px;
+             right: 20px;
+             opacity: 0.6;
+             transition: all 0.3s ease;
+         }
+         
+         .course-bundle-header .bundle-card:hover .card-arrow {
+             opacity: 1;
+             transform: translateX(5px);
+         }
+         
+         .course-bundle-header .selected-bundle-display {
+             margin-top: 20px;
+         }
+         
+         .course-bundle-header .selected-bundle-card {
+             background: rgba(255, 255, 255, 0.15);
+             backdrop-filter: blur(10px);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 12px;
+             padding: 25px;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-header {
+             display: flex;
+             align-items: center;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-icon {
+             font-size: 2.5rem;
+             margin-right: 20px;
+             opacity: 0.9;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-info h3 {
+             font-size: 1.8rem;
+             font-weight: 600;
+             margin: 0 0 8px 0;
+             color: #FFF;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-info p {
+             font-size: 1rem;
+             opacity: 0.8;
+             margin: 0 0 15px 0;
+             line-height: 1.4;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-stats {
+             display: flex;
+             gap: 20px;
+         }
+         
+         .course-bundle-header .selected-bundle-card .stat-item {
+             display: flex;
+             align-items: center;
+             font-size: 1.3rem;
+             opacity: 0.8;
+         }
+         
+         .course-bundle-header .selected-bundle-card .stat-item i {
+             margin-right: 8px;
+             font-size: 1rem;
+         }
+         
+         .course-bundle-header .selected-bundle-card .bundle-actions {
+             display: flex;
+             gap: 15px;
+         }
+         
+         .course-bundle-header .action-buttons {
+             margin-bottom: 20px;
+         }
+         
+         .course-bundle-header .quick-stats {
+             display: flex;
+             gap: 15px;
+         }
+         
+         .course-bundle-header .stat-tile {
+             background: rgba(255, 255, 255, 0.15);
+             backdrop-filter: blur(10px);
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 10px;
+             padding: 15px;
+             text-align: center;
+             min-width: 80px;
+         }
+         
+         .course-bundle-header .stat-tile .stat-icon {
+             font-size: 1.5rem;
+             margin-bottom: 8px;
+             opacity: 0.9;
+         }
+         
+         .course-bundle-header .stat-tile .stat-number {
+             display: block;
+             font-size: 1.5rem;
+             font-weight: 700;
+             margin-bottom: 4px;
+         }
+         
+         .course-bundle-header .stat-tile .stat-label {
+             font-size: 0.8rem;
+             opacity: 0.8;
+             text-transform: uppercase;
+             letter-spacing: 0.5px;
+         }
+         
+         /* Responsive Design */
+         @media (max-width: 768px) {
+             .course-bundle-header .header-content {
+                 flex-direction: column;
+                 gap: 20px;
+             }
+             
+             .course-bundle-header .header-left,
+             .course-bundle-header .header-right {
+                 max-width: 100%;
+             }
+             
+             .course-bundle-header .welcome-title {
+                 font-size: 2rem;
+             }
+             
+             .course-bundle-header .quick-bundle-cards {
+                 grid-template-columns: 1fr;
+             }
+             
+             .course-bundle-header .selected-bundle-card {
+                 flex-direction: column;
+                 gap: 20px;
+                 text-align: center;
+             }
+             
+             .course-bundle-header .bundle-stats {
+                 justify-content: center;
+             }
+             
+             .course-bundle-header .quick-stats {
+                 justify-content: center;
+             }
+         }
+          
+          /* Enhanced Dropdown Styling */
+          .course-bundle-header .input-group {
+             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+             border-radius: 8px;
+             overflow: hidden;
+          }
+          
+          .course-bundle-header .input-group-btn .btn {
+             border: none;
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             color: white;
+             font-weight: 600;
+             padding: 12px 20px;
+             transition: all 0.3s ease;
+          }
+          
+          .course-bundle-header .input-group-btn .btn:hover {
+             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          }
+          
+          .course-bundle-header .input-group-btn .btn:disabled {
+             background: #6c757d;
+             cursor: not-allowed;
+             transform: none;
+             box-shadow: none;
+          }
+          
+          .course-bundle-header .input-group .form-control {
+             border: none;
+             border-left: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 0;
+             padding: 12px 15px;
+             font-size: 14px;
+             background: white;
+             transition: all 0.3s ease;
+          }
+          
+          .course-bundle-header .input-group .form-control.has-selection {
+             background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+             border-left-color: #28a745;
+             color: #155724;
+             font-weight: 500;
+          }
+          
+          .course-bundle-header .input-group .form-control:focus {
+             box-shadow: none;
+             background: white;
+          }
+          
+          .course-bundle-header .dropdown-menu {
+             border: none;
+             border-radius: 8px;
+             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+             padding: 8px 0;
+             min-width: 300px;
+          }
+          
+          .course-bundle-header .dropdown-menu li a {
+             padding: 12px 20px;
+             color: #495057;
+             transition: all 0.2s ease;
+             border-bottom: 1px solid #f8f9fa;
+          }
+          
+          .course-bundle-header .dropdown-menu li a:hover {
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             color: white;
+             text-decoration: none;
+          }
+          
+          .course-bundle-header .dropdown-menu li.divider {
+             margin: 8px 0;
+             border-color: #e9ecef;
+          }
+          
+          .course-bundle-header .input-group-btn .btn-success {
+             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+             border: none;
+             color: white;
+             padding: 12px 15px;
+             transition: all 0.3s ease;
+          }
+          
+          .course-bundle-header .input-group-btn .btn-success:hover {
+             background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+          }
+          
+          .course-bundle-header .selected-bundle-info {
+             margin-top: 8px;
+             padding: 8px 12px;
+             background: rgba(102, 126, 234, 0.1);
+             border-radius: 6px;
+             border-left: 3px solid #667eea;
+          }
+         
+         .course-bundle-header .btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+         }
+         
+         .course-bundle-header .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+         }
+         
+         /* Course Bundle Selector (Legacy - keeping for compatibility) */
+         .course-bundle-selector {
+            text-align: left;
+         }
+         
+         .course-bundle-selector label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #495057;
+         }
+         
+         .course-bundle-selector select {
+            width: 100%;
+            margin-left: 0;
+         }
+         
+         .panel-heading h2 {
+            margin: 0;
+            padding: 0;
+         }
       </style>
 
       <script src="assets/js/jquery.js"></script>
@@ -82,6 +1445,10 @@
       <script src="controllers/course-management.js"></script>
       <script src="assets/plugins/cropper/cropper.js"></script>
       <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+      
+      <!-- Select2 Plugin -->
+      <link type="text/css" href="admin_html/assets/plugins/form-select2/select2.css" rel="stylesheet">
+      <script src="admin_html/assets/plugins/form-select2/select2.min.js"></script>
    </head>
 
    <body class="animated-content" ng-app="courseManagementApp" ng-controller="courseManagementController" ng-cloak> 
@@ -130,11 +1497,20 @@
                     <div class="widget stay-on-collapse" id="widget-sidebar">
                        <nav role="navigation" class="widget-body">
                            <ul class="acc-menu">
-                              <li class="nav-separator"><span>Content Management</span></li>
+                              <li class="nav-separator"><span>Content Library</span></li>
                               <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
                               <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              
+                              <li class="nav-separator"><span>Courses</span></li>
                               <li><a href="course-management.html" class="active"><i class="ti ti-book"></i><span>Course Management</span></a></li>
-                              <li><a href="created-tests.html"><i class="ti ti-tablet"></i><span>Mock Tests</span></a></li>
+                              <li><a href="course-view.html"><i class="ti ti-eye"></i><span>Course View</span></a></li>
+                              
+                              <li class="nav-separator"><span>Exams</span></li>
+                              <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                              <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                              
+                              <li class="nav-separator"><span>Management</span></li>
+                              <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
                            </ul>
                        </nav>
@@ -146,183 +1522,360 @@
             <div class="static-content-wrapper">
                <div class="static-content">
                   <div class="page-content">
-                     <ol class="breadcrumb">
-                        <li><a href="index.html">Home</a></li>
-                        <li class="active"><a href="course-management.html">Course Management</a></li>
-                     </ol>
-                     <div class="container-fluid" style="padding-top: 4%;">
 
-                     <div class="alert alert-info">
-                        <h3><i class="ti ti-book"></i> Course Management System</h3>
-                        <p>Create and manage course bundles by organizing video content into chapters and modules. Build structured learning paths for students.</p>
-                        <p><i class="ti ti-info-alt"></i> This system allows you to create chapters by selecting parts from the video content library, organize them into modules, and bundle them into complete courses.</p>
-                     </div>
+                     <div class="container-fluid" style="padding-top: 20px;">
 
-                     <div class="row" ng-show="!createView">
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-info quickFilterDisabled quickFilter" ng-click="quickFilterCourses('ALL')" title="Show All Courses" ng-class="{'filterAppliedTile':courseFilterApplied == 'ALL'}">
-                              <div class="tile-icon"><i class="ti ti-book"></i></div>
-                              <div class="tile-heading"><span>Total Courses</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalCourses}}</span></div>
-                              <div class="tile-footer"><span class="text-grey tileBottom">{{summaryTileData.totalModules}} Modules</span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-orange quickFilterDisabled quickFilter" ng-click="quickFilterCourses('ACTIVE')" title="Filter Active Courses" ng-class="{'filterAppliedTile':courseFilterApplied == 'ACTIVE'}">
-                              <div class="tile-icon"><i class="ti ti-check"></i></div>
-                              <div class="tile-heading"><span>Active Courses</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalActive}}</span></div>
-                              <div class="tile-footer"><span class="text-grey tileBottom">Available</span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-success quickFilterDisabled quickFilter" ng-click="quickFilterCourses('CHAPTERS')" title="Filter by Chapters" ng-class="{'filterAppliedTile':courseFilterApplied == 'CHAPTERS'}">
-                              <div class="tile-icon"><i class="ti ti-layout"></i></div>
-                              <div class="tile-heading"><span>Total Chapters</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalChapters}}</span></div>
-                              <div class="tile-footer"><span class="text-default tileBottom">Organized</span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-indigo quickFilterDisabled">
-                              <div class="tile-icon"><i class="ti ti-bar-chart-alt"></i></div>
-                              <div class="tile-heading"><span>Total Parts</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalParts}}</span></div>
-                              <div class="tile-footer"><span class="text-default tileBottom">Video Content</span></div>
-                           </div>
-                        </div>
-                     </div>
+                                     <div class="course-bundle-header">
+                      <div class="header-content">
+                         <div class="header-left">
+                            <div class="welcome-section">
+                               <h2 class="welcome-title">
+                                  <i class="ti ti-layout-accordion-merged"></i>Course Management Center
+                               </h2>
+                               <p class="welcome-subtitle">Organize and manage your educational content with ease</p>
+                            </div>
+                            
+                            <div class="bundle-selection-section" ng-if="!selectedCourseBundle">
+                               <div class="selection-prompt">
+                                  <i class="ti ti-arrow-right"></i>
+                                  <span>Choose a course bundle to get started</span>
+                               </div>
+                               
+                               <div class="quick-bundle-cards">
+                                  <div class="bundle-card" ng-repeat="bundle in courseBundles.slice(0, 3)" ng-click="selectCourseBundle(bundle)">
+                                     <div class="card-icon">
+                                        <i class="ti ti-book-open"></i>
+                                     </div>
+                                     <div class="card-content">
+                                        <h4>{{bundle.title}}</h4>
+                                        <p>{{bundle.description}}</p>
+                                        <div class="card-meta">
+                                           <span class="meta-item">
+                                              <i class="ti ti-folder"></i> {{bundle.modulesIncluded ? bundle.modulesIncluded.length : 0}} Modules
+                                           </span>
+                                        </div>
+                                     </div>
+                                     <div class="card-arrow">
+                                        <i class="ti ti-arrow-right"></i>
+                                     </div>
+                                  </div>
+                                  
+                                  <div class="bundle-card create-new" ng-click="addNewCourse()">
+                                     <div class="card-icon">
+                                        <i class="ti ti-plus"></i>
+                                     </div>
+                                     <div class="card-content">
+                                        <h4>Create New Bundle</h4>
+                                        <p>Start building your course from scratch</p>
+                                     </div>
+                                     <div class="card-arrow">
+                                        <i class="ti ti-arrow-right"></i>
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                            
+                            <div class="selected-bundle-display" ng-if="selectedCourseBundle">
+                               <div class="selected-bundle-card">
+                                  <div class="bundle-header">
+                                     <div class="bundle-icon">
+                                        <i class="ti ti-book-open"></i>
+                                     </div>
+                                     <div class="bundle-info">
+                                        <h3>{{selectedCourseBundle.title}}</h3>
+                                        <p>{{selectedCourseBundle.description}}</p>
+                                        <div class="bundle-stats">
+                                           <span class="stat-item">
+                                              <i class="fa fa-circle"></i> Active
+                                           </span>
+                                           <span class="stat-item">
+                                              <i class="ti ti-user"></i> 32 Enrollments
+                                           </span>
+                                           <span class="stat-item">
+                                              <i class="ti ti-calendar"></i> ends on 31-Dec, 2025
+                                           </span>
+                                        </div>
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                         
+                         <div class="header-right">
+                            <div class="action-buttons">
+                               <button class="btn btn-success" ng-click="clearCourseBundleSelection()">
+                                  <i class="ti ti-layers" style="margin-right: 10px;"></i> Select Course
+                               </button>
+                            </div>
+                            
+                            <div class="quick-stats" ng-if="selectedCourseBundle">
+                               <div class="stat-tile">
+                                  <div class="stat-icon">
+                                     <i class="ti ti-folder"></i>
+                                  </div>
+                                  <div class="stat-content">
+                                     <span class="stat-number">{{filteredModules.length}}</span>
+                                     <span class="stat-label">Modules</span>
+                                  </div>
+                               </div>
+                               <div class="stat-tile">
+                                  <div class="stat-icon">
+                                     <i class="ti ti-list"></i>
+                                  </div>
+                                  <div class="stat-content">
+                                     <span class="stat-number">{{filteredChapters.length}}</span>
+                                     <span class="stat-label">Chapters</span>
+                                  </div>
+                               </div>
+                               <div class="stat-tile">
+                                  <div class="stat-icon">
+                                     <i class="ti ti-video-camera"></i>
+                                  </div>
+                                  <div class="stat-content">
+                                     <span class="stat-number">{{summaryTileData.totalParts}}</span>
+                                     <span class="stat-label">Parts</span>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
 
-                     <div data-widget-group="course-management-tabs" ng-show="!createView">
+
+                                           <div data-widget-group="course-management-tabs" ng-show="!createView && selectedCourseBundle">
                         <div class="row">
                            <div class="col-md-12">
                               <div class="panel panel-default">
-                                 <div class="panel-heading">
-                                    <h2>Course Management
-                                       <span>
-                                          <span class="button-icon titleIconx" ng-click="addNewCourse()" title="Add New Course"><i class="ti ti-plus"></i></span>
-                                          <span class="button-icon titleIconx" ng-click="addNewChapter()" title="Add New Chapter"><i class="ti ti-layout"></i></span>
-                                          <span class="button-icon titleIconx" ng-class="{'filterAppliedBank':courseFilterApplied != ''}" ng-click="removeFilterOnCourses()" title="Remove Filter"><i class="ti ti-filter"></i></span>
-                                       </span>
-                                    </h2>
-                                 </div>
                                  <div class="panel-body">
+                                    <div class="alert alert-warning" ng-show="!selectedCourseBundle">
+                                       <i class="ti ti-info"></i> Please select a Course Bundle from the dropdown above to view its Modules and Chapters.
+                                    </div>
                                     <ul class="nav nav-tabs" role="tablist">
                                        <li role="presentation" class="active">
-                                          <a href="#course-bundles" aria-controls="course-bundles" role="tab" data-toggle="tab">
-                                             <i class="ti ti-book"></i> Course Bundles
+                                          <a href="#modules" aria-controls="modules" role="tab" data-toggle="tab">
+                                             <i class="ti ti-folder" style="margin-right: 10px;"></i>Modules
                                           </a>
                                        </li>
                                        <li role="presentation">
                                           <a href="#chapters" aria-controls="chapters" role="tab" data-toggle="tab">
-                                             <i class="ti ti-layout"></i> Chapters
-                                          </a>
-                                       </li>
-                                       <li role="presentation">
-                                          <a href="#modules" aria-controls="modules" role="tab" data-toggle="tab">
-                                             <i class="ti ti-folder"></i> Modules
+                                             <i class="ti ti-book" style="margin-right: 10px;"></i>Chapters
                                           </a>
                                        </li>
                                     </ul>
 
                                     <div class="tab-content">
-                                       <div role="tabpanel" class="tab-pane active" id="course-bundles">
-                                          <div class="row" ng-show="courseBundles.length > 0">
+                                       <div role="tabpanel" class="tab-pane active" id="modules">
+                                          <div class="row">
+                                             <div class="col-md-12" style="margin-bottom: 20px;">
+                                                <button class="btn btn-default" ng-click="addNewModule()">
+                                                   <i class="ti ti-plus"></i> Add New Module
+                                                </button>
+                                             </div>
+                                          </div>
+                                          
+                                          <div class="row" ng-show="filteredModules.length > 0">
                                              <div class="col-md-12">
-                                                <div ng-repeat="bundle in courseBundles" class="module-card">
-                                                   <div class="module-header">
+                                                <div ng-repeat="module in filteredModules" class="module-card">
+                                                   <div class="module-header" ng-click="toggleModule(module)" ng-class="{'expanded': module.isExpanded}">
                                                       <div class="row">
                                                          <div class="col-md-8">
-                                                            <h3 class="module-title">
-                                                               <i class="ti ti-book"></i> {{bundle.title || 'Course Bundle ' + bundle.id}}
-                                                            </h3>
-                                                            <p class="text-muted">Display Key: {{bundle.displayKey}}</p>
+                                                            <div class="module-info">
+                                                               <div class="expand-indicator">
+                                                                  <i class="fa" ng-class="{'fa-folder-open-o': module.isExpanded, 'fa-folder-o': !module.isExpanded}"></i>
+                                                               </div>
+                                                               <div class="module-details">
+                                                                  <h3 class="module-title">
+                                                                     {{module.title}}
+                                                                     <span class="badge badge-info" ng-if="module.isDefault">Default</span>
+                                                                  </h3>
+                                                                  <p class="text-muted no-margin">Module Key: {{module.moduleKey}} | Classification Level: {{module.classificationLevel}}</p>
+                                                               </div>
+                                                            </div>
                                                          </div>
                                                          <div class="col-md-4 text-right">
-                                                            <button class="btn btn-primary btn-sm" ng-click="editCourseBundle(bundle)">
-                                                               <i class="ti ti-pencil"></i> Edit
-                                                            </button>
-                                                            <button class="btn btn-info btn-sm" ng-click="viewCourseBundle(bundle)">
-                                                               <i class="ti ti-eye"></i> View
+                                                            <button class="btn btn-primary btn-sm" ng-click="editModule(module); $event.stopPropagation();" ng-disabled="module.isDefault">
+                                                               <i class="ti ti-pencil"></i> Modify
                                                             </button>
                                                          </div>
                                                       </div>
                                                    </div>
-                                                   <div class="panel-body">
+                                                   <div class="module-content" ng-show="module.isExpanded" ng-class="{'expanded': module.isExpanded}">
                                                       <div class="row">
                                                          <div class="col-md-12">
-                                                            <h5><i class="ti ti-folder"></i> Modules Included:</h5>
-                                                            <div class="module-structure">
-                                                               <div ng-repeat="module in bundle.modules" class="module-structure-item">
-                                                                  <div class="module-structure-number">{{$index + 1}}</div>
-                                                                  <div>
-                                                                     <strong>{{module.title}}</strong> (Module {{module.moduleKey}})
-                                                                     <div class="text-muted">
-                                                                        Chapters: {{module.chapterIds.length}} | 
-                                                                        Disabled: {{module.disabledCourseIds.length}}
+                                                            <div class="chapters-table-container">
+                                                               <table class="table table-striped table-hover">
+                                                                  <thead>
+                                                                     <tr>
+                                                                        <th>Chapter</th>
+                                                                        <th>Name</th>
+                                                                        <th>Parts</th>
+                                                                        <th>Total Hours</th>
+                                                                        <th>Teacher</th>
+                                                                        <th>Status</th>
+                                                                        <th>Actions</th>
+                                                                     </tr>
+                                                                  </thead>
+                                                                  <tbody>
+                                                                     <tr ng-repeat="chapter in getChaptersForModule(module.moduleKey)">
+                                                                        <td><strong>{{chapter.code}}</strong></td>
+                                                                        <td>{{chapter.title}}</td>
+                                                                        <td>{{Object.keys(chapter.partsIncluded).length}} videos</td>
+                                                                        <td>{{calculateChapterDuration(chapter)}}</td>
+                                                                        <td>
+                                                                           <div class="teacher-info-compact">
+                                                                              <img ng-src="{{chapter.teacher.photo}}" alt="{{chapter.teacher.name}}" class="teacher-photo-tiny">
+                                                                              <span>{{chapter.teacher.name}}</span>
+                                                                           </div>
+                                                                        </td>
+                                                                        <td>
+                                                                           <span class="badge" ng-class="chapter.status == 1 ? 'badge-success' : 'badge-warning'">
+                                                                              {{chapter.status == 1 ? 'Active' : 'Inactive'}}
+                                                                           </span>
+                                                                        </td>
+                                                                        <td>
+                                                                           <button class="btn btn-xs btn-success" ng-click="toggleChapterStatus(chapter); $event.stopPropagation();" title="Toggle Status">
+                                                                              <i class="ti" ng-class="chapter.status == 1 ? 'ti-lock' : 'ti-unlock'"></i>
+                                                                           </button>
+                                                                           <button class="btn btn-xs btn-primary" ng-click="editChapter(chapter); $event.stopPropagation();" title="Modify">
+                                                                              <i class="ti ti-pencil"></i>
+                                                                           </button>
+                                                                        </td>
+                                                                     </tr>
+                                                                     <tr ng-if="getChaptersForModule(module.moduleKey).length === 0">
+                                                                        <td colspan="7" class="text-center text-muted">
+                                                                           <i class="ti ti-info"></i> No chapters assigned to this module yet
+                                                                        </td>
+                                                                     </tr>
+                                                                  </tbody>
+                                                               </table>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       
+                                                                              <!-- Chapters Tab Content -->
+                                       <div role="tabpanel" class="tab-pane" id="chapters">
+                                          <div class="row">
+                                             <div class="col-md-6" style="margin-bottom: 10px;">
+                                                <button class="btn btn-default" ng-click="addNewChapter()">
+                                                   <i class="ti ti-plus"></i> Add New Chapter
+                                                </button>
+                                             </div>
+                                             <div class="col-md-6" style="margin-bottom: 10px; text-align: right;">
+                                                <label style="margin-right: 10px; font-weight: 600; color: #495057;">Filter by Module:</label>
+                                                <select class="form-control" style="display: inline-block; width: 200px;" ng-model="selectedModuleFilter" ng-change="onModuleFilterChange()">
+                                                   <option value="">All Modules</option>
+                                                   <option ng-repeat="module in availableModules" value="{{module.moduleKey}}">{{module.title}}</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                          <div class="row" ng-show="getFilteredChaptersForDisplay().length > 0">
+                                             <div class="col-md-12">
+                                                <div ng-repeat="chapter in getFilteredChaptersForDisplay()" class="chapter-item">
+                                                   <div class="chapter-header" ng-click="toggleChapter(chapter)" ng-class="{'expanded': chapter.isExpanded}">
+                                                      <div class="row">
+                                                         <div class="col-md-8">
+                                                            <div class="chapter-info">
+                                                               <div class="expand-indicator">
+                                                                  <i class="fa" ng-class="{'fa-folder-open-o': chapter.isExpanded, 'fa-folder-o': !chapter.isExpanded}"></i>
+                                                               </div>
+                                                               <div class="chapter-details">
+                                                                  <h4 class="chapter-title">{{chapter.title}}</h4>
+                                                                  <p class="chapter-meta">
+                                                                     <span><b>Chapter {{chapter.code}}</b> of Physics<i class="fa fa-circle separator-dot" aria-hidden="true"></i> {{Object.keys(chapter.partsIncluded).length}} parts<i class="fa fa-circle separator-dot" aria-hidden="true"></i> 45h 30m
+                                                                     </span>
+                                                                  </p>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                         <div class="col-md-3">
+                                                            <div class="teacher-info-simple" ng-click="$event.stopPropagation();">
+                                                               <img ng-src="{{chapter.teacher.photo}}" alt="{{chapter.teacher.name}}" class="teacher-photo-small">
+                                                               <div class="teacher-details-simple">
+                                                                  <span class="teacher-name-simple">{{chapter.teacher.name}}</span>
+                                                                  <div class="teacher-rating-simple">
+                                                                     <div class="star-rating">
+                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index)"></i>
+                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 1)"></i>
+                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 2)"></i>
+                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 3)"></i>
+                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 4)"></i>
                                                                      </div>
+                                                                     <span class="rating-value">({{chapter.teacher.rating}})</span>
                                                                   </div>
                                                                </div>
                                                             </div>
                                                          </div>
-                                                      </div>
-                                                   </div>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       </div>
-
-                                       <div role="tabpanel" class="tab-pane" id="chapters">
-                                          <div class="row" ng-show="chapters.length > 0">
-                                             <div class="col-md-12">
-                                                <div ng-repeat="chapter in chapters" class="chapter-item">
-                                                   <div class="chapter-header">
-                                                      <div>
-                                                         <h4 class="chapter-title">{{chapter.title}}</h4>
-                                                         <p class="text-muted">Module: {{chapter.moduleCode}} | Code: {{chapter.code}}</p>
-                                                      </div>
-                                                      <div>
-                                                         <span class="chapter-code">{{chapter.code}}</span>
-                                                         <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter)">
-                                                            <i class="ti ti-pencil"></i> Edit
-                                                         </button>
-                                                         <button class="btn btn-info btn-sm" ng-click="viewChapter(chapter)">
-                                                            <i class="ti ti-eye"></i> View
-                                                         </button>
-                                                      </div>
-                                                   </div>
-                                                   <div class="parts-list">
-                                                      <h6><i class="ti ti-video-camera"></i> Parts Included:</h6>
-                                                      <div ng-repeat="(partNumber, part) in chapter.partsIncluded" class="part-item">
-                                                         <div class="part-number">{{partNumber}}</div>
-                                                         <div class="part-info">
-                                                            <div class="part-title">{{getVideoTitle(part.libraryId)}}</div>
-                                                            <div class="part-details">
-                                                               Type: {{part.type}} | Skip to Next: {{part.skipToNext ? 'Yes' : 'No'}}
+                                                         <div class="col-md-1 text-right">
+                                                            <div class="chapter-actions">
+                                                               <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter); $event.stopPropagation();">
+                                                                  <i class="ti ti-pencil"></i> Edit
+                                                               </button>
                                                             </div>
                                                          </div>
                                                       </div>
                                                    </div>
+                                                   
+                                                   <div class="parts-list" ng-show="chapter.isExpanded" ng-class="{'expanded': chapter.isExpanded}">
+                                                      <div class="parts-grid">
+                                                         <div ng-repeat="(partNumber, part) in chapter.partsIncluded" 
+                                                              class="part-card" 
+                                                              ng-click="openVideoModal(part, chapter, partNumber)"
+                                                              ng-class="{'part-card-hover': true}">
+                                                            <div class="part-header">
+                                                               <div class="part-number-badge">{{partNumber}}</div>
+                                                               <div class="part-type-badge" ng-class="'type-' + part.type.toLowerCase()">
+                                                                  {{part.type}}
+                                                               </div>
+                                                            </div>
+                                                            <div class="part-content">
+                                                               <div class="part-thumbnail">
+                                                                  <i class="ti ti-video-camera"></i>
+                                                               </div>
+                                                               <div class="part-info">
+                                                                  <h6 class="part-title">{{getVideoTitle(part.libraryId)}}</h6>
+                                                                  <div class="part-meta">
+                                                                     <span class="skip-indicator" ng-class="{'skip-enabled': part.skipToNext}">
+                                                                        <i class="ti ti-forward"></i> Skip to Next
+                                                                     </span>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                            <div class="part-actions">
+                                                               <button class="btn btn-sm btn-outline-primary" ng-click="openVideoModal(part, chapter, partNumber); $event.stopPropagation();">
+                                                                  <i class="ti ti-play"></i> Play
+                                                               </button>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                      <div ng-if="Object.keys(chapter.partsIncluded).length === 0" class="empty-parts">
+                                                         <i class="ti ti-video-camera-off"></i>
+                                                         <h6>No Video Parts</h6>
+                                                         <p>This chapter doesn't have any video parts assigned yet.</p>
+                                                         <button class="btn btn-primary btn-sm" ng-click="addPartsToChapter(chapter)">
+                                                            <i class="ti ti-plus"></i> Add Parts
+                                                         </button>
+                                                      </div>
+                                                   
+                                                   </div>
+                                                   
+                                                   </div>
                                                 </div>
                                              </div>
                                           </div>
-                                       </div>
-
-                                       <div role="tabpanel" class="tab-pane" id="modules">
-                                          <div class="row">
-                                             <div class="col-md-12">
-                                                <div class="alert alert-info">
-                                                   <h4><i class="ti ti-info"></i> Module Structure</h4>
-                                                   <p>Modules are automatically created based on the classification levels of video content:</p>
-                                                   <ul>
-                                                      <li><strong>Module 1:</strong> Biology (classificationLevel1 = 1)</li>
-                                                      <li><strong>Module 2:</strong> Chemistry (classificationLevel1 = 2)</li>
-                                                      <li><strong>Module 3:</strong> Mathematics (classificationLevel1 = 3)</li>
-                                                      <li><strong>Module 4:</strong> Physics (classificationLevel1 = 4)</li>
-                                                   </ul>
-                                                   <p>Chapters within each module correspond to classificationLevel2 values.</p>
-                                                </div>
+                                          <div ng-show="getFilteredChaptersForDisplay().length === 0" class="empty-chapters">
+                                             <div class="empty-icon">
+                                                <i class="ti ti-book-open"></i>
                                              </div>
+                                             <h4>No Chapters Available</h4>
+                                             <p>Create your first chapter to start organizing your course content.</p>
+                                             <button class="btn btn-primary btn-lg" ng-click="addNewChapter()">
+                                                <i class="ti ti-plus"></i> Add New Chapter
+                                             </button>
                                           </div>
                                        </div>
                                     </div>
@@ -331,9 +1884,106 @@
                            </div>
                         </div>
                      </div>
+                     
+                     <!-- Module Creation/Editing Modal -->
+                     <div class="modal fade" id="moduleModal" tabindex="-1" role="dialog" aria-labelledby="moduleModalLabel">
+                        <div class="modal-dialog modal-lg" role="document">
+                           <div class="modal-content">
+                              <div class="modal-header">
+                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                 </button>
+                                 <h4 class="modal-title" id="moduleModalLabel">
+                                    <i class="ti ti-folder"></i> 
+                                    {{editingModule ? 'Edit Module' : 'Create New Module'}}
+                                 </h4>
+                              </div>
+                              <div class="modal-body">
+                                 <form class="form-horizontal">
+                                    <div class="row">
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Module Title</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newModule.title" placeholder="Enter module title" required>
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Module Key</label>
+                                             <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="newModule.moduleKey" placeholder="Enter module key (e.g., 1, 2, 3...)" required>
+                                                <small class="help-block">Unique identifier for the module</small>
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Classification Level</label>
+                                             <div class="col-sm-9">
+                                                <input type="number" class="form-control" ng-model="newModule.classificationLevel" placeholder="Enter classification level" required>
+                                                <small class="help-block">Used for organizing video content</small>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Subject Area</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newModule.subjectArea">
+                                                   <option value="">Select Subject Area</option>
+                                                   <option value="Science">Science</option>
+                                                   <option value="Mathematics">Mathematics</option>
+                                                   <option value="Language">Language</option>
+                                                   <option value="Arts">Arts</option>
+                                                   <option value="Technology">Technology</option>
+                                                   <option value="Business">Business</option>
+                                                   <option value="Other">Other</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Difficulty Level</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newModule.difficultyLevel">
+                                                   <option value="Beginner">Beginner</option>
+                                                   <option value="Intermediate">Intermediate</option>
+                                                   <option value="Advanced">Advanced</option>
+                                                   <option value="Expert">Expert</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                          <div class="form-group">
+                                             <label class="col-sm-3 control-label">Status</label>
+                                             <div class="col-sm-9">
+                                                <select class="form-control" ng-model="newModule.active">
+                                                   <option value="1">Active</option>
+                                                   <option value="0">Inactive</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                       <label class="col-sm-3 control-label">Description</label>
+                                       <div class="col-sm-9">
+                                          <textarea class="form-control" ng-model="newModule.description" rows="3" placeholder="Enter module description"></textarea>
+                                       </div>
+                                    </div>
+                                 </form>
+                              </div>
+                              <div class="modal-footer">
+                                 <button type="button" class="btn btn-default" data-dismiss="modal">
+                                    <i class="ti ti-close"></i> Cancel
+                                 </button>
+                                 <button type="button" class="btn btn-primary" ng-click="saveModule()" ng-disabled="!newModule.title || !newModule.moduleKey">
+                                    <i class="ti ti-save"></i> {{editingModule ? 'Update Module' : 'Create Module'}}
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
 
                      <div data-widget-group="course-window" ng-show="createView">
-                        <div ng-show="!modifyCourseView && !chapterView">
+                        <div ng-show="!modifyCourseView && !chapterView && !moduleView">
                            <div class="panel panel-default">
                               <div class="panel-heading">
                                  <h2><i class="ti ti-book"></i> Create New Course Bundle</h2>
@@ -414,10 +2064,9 @@
                                              <div class="col-sm-9">
                                                 <select class="form-control" ng-model="newChapter.moduleCode" ng-change="filterPartsByModule()">
                                                    <option value="">Select Module</option>
-                                                   <option value="1">Module 1 - Biology</option>
-                                                   <option value="2">Module 2 - Chemistry</option>
-                                                   <option value="3">Module 3 - Mathematics</option>
-                                                   <option value="4">Module 4 - Physics</option>
+                                                   <option ng-repeat="module in availableModules" value="{{module.moduleKey}}" ng-if="module.active">
+                                                      Module {{module.moduleKey}} - {{module.title}}
+                                                   </option>
                                                 </select>
                                              </div>
                                           </div>
@@ -487,7 +2136,7 @@
                               </div>
                            </div>
                         </div>
-
+                        
                         <div ng-show="modifyCourseView" style="margin-top: -25px;">
                            <div class="panel panel-default">
                               <div class="panel-heading">
@@ -567,6 +2216,174 @@
       </div>
 
       <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
+      
+      <!-- Chapter Creation/Editing Modal -->
+      <div class="modal fade" id="chapterModal" tabindex="-1" role="dialog" aria-labelledby="chapterModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="chapterModalLabel">
+                     <i class="ti ti-book"></i> 
+                     {{editingChapter ? 'Edit Chapter' : 'Create New Chapter'}}
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <form class="form-horizontal">
+                     <div class="row">
+                        <div class="col-md-6">
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Module *</label>
+                              <div class="col-sm-9">
+                                 <select class="form-control" ng-model="newChapter.moduleCode" ng-change="filterPartsByModule()" required>
+                                    <option value="">Select Module</option>
+                                    <option ng-repeat="module in availableModules" value="{{module.moduleKey}}">{{module.title}}</option>
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Chapter Code *</label>
+                              <div class="col-sm-9">
+                                 <input type="text" class="form-control" ng-model="newChapter.code" placeholder="Enter chapter code (e.g., 1, 2, 3...)" required>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Chapter Title *</label>
+                              <div class="col-sm-9">
+                                 <input type="text" class="form-control" ng-model="newChapter.title" placeholder="Enter chapter title" required>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-6">
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Label</label>
+                              <div class="col-sm-9">
+                                 <input type="text" class="form-control" ng-model="newChapter.label" placeholder="Enter chapter label">
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Status</label>
+                              <div class="col-sm-9">
+                                 <select class="form-control" ng-model="newChapter.status">
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-3 control-label">Teacher</label>
+                              <div class="col-sm-9">
+                                 <select class="form-control" ng-model="newChapter.teacherId">
+                                    <option value="">Select Teacher</option>
+                                    <option value="1">Dr. Sarah Johnson</option>
+                                    <option value="2">Dr. Emily Rodriguez</option>
+                                    <option value="3">Prof. Michael Chen</option>
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     
+                     <div class="form-group" ng-if="newChapter.moduleCode">
+                        <label class="col-sm-3 control-label">Video Parts</label>
+                        <div class="col-sm-9">
+                           <div class="alert alert-info">
+                              <i class="ti ti-info"></i> Select video parts from the video content library for this chapter.
+                           </div>
+                           <div ng-if="filteredParts.length > 0" class="parts-selection">
+                              <div ng-repeat="part in filteredParts" class="part-selection-item">
+                                 <label class="checkbox-inline">
+                                    <input type="checkbox" ng-model="part.selected" ng-change="updatePartSelection()">
+                                    {{part.titleName}} ({{formatDuration(part.duration)}})
+                                 </label>
+                              </div>
+                           </div>
+                           <div ng-if="filteredParts.length === 0" class="text-muted">
+                              <i class="ti ti-info"></i> No video parts available for the selected module.
+                           </div>
+                        </div>
+                     </div>
+                  </form>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">
+                     <i class="ti ti-close"></i> Cancel
+                  </button>
+                  <button type="button" class="btn btn-primary" ng-click="saveChapter()" ng-disabled="!newChapter.title || !newChapter.moduleCode || !newChapter.code">
+                     <i class="ti ti-save"></i> {{editingChapter ? 'Update Chapter' : 'Create Chapter'}}
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+      
+      <!-- Video Player Modal -->
+      <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="videoModalLabel">
+                     <i class="ti ti-play"></i> {{selectedVideo.title}}
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="video-info">
+                     <div class="row">
+                        <div class="col-md-8">
+                           <div class="video-player-container">
+                              <div class="video-placeholder" ng-if="!selectedVideo.videoUrl">
+                                 <i class="ti ti-video-camera"></i>
+                                 <p>Video Player</p>
+                                 <small class="text-muted">Video URL: {{selectedVideo.libraryId}}</small>
+                              </div>
+                              <video ng-if="selectedVideo.videoUrl" controls class="video-player">
+                                 <source ng-src="{{selectedVideo.videoUrl}}" type="video/mp4">
+                                 Your browser does not support the video tag.
+                              </video>
+                           </div>
+                        </div>
+                        <div class="col-md-4">
+                           <div class="video-details">
+                              <h5>Video Details</h5>
+                              <ul class="list-unstyled">
+                                 <li><strong>Part:</strong> {{selectedVideo.partNumber}}</li>
+                                 <li><strong>Chapter:</strong> {{selectedVideo.chapterTitle}}</li>
+                                 <li><strong>Module:</strong> {{selectedVideo.moduleCode}}</li>
+                                 <li><strong>Type:</strong> {{selectedVideo.type}}</li>
+                                 <li><strong>Skip to Next:</strong> 
+                                    <span class="badge" ng-class="selectedVideo.skipToNext ? 'badge-success' : 'badge-warning'">
+                                       {{selectedVideo.skipToNext ? 'Yes' : 'No'}}
+                                    </span>
+                                 </li>
+                              </ul>
+                              
+                              <div class="video-actions">
+                                 <button class="btn btn-primary btn-block" ng-click="playNextVideo()" ng-if="hasNextVideo()">
+                                    <i class="ti ti-forward"></i> Play Next Part
+                                 </button>
+                                 <button class="btn btn-info btn-block" ng-click="addToPlaylist()">
+                                    <i class="ti ti-list"></i> Add to Playlist
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-success" ng-click="markAsCompleted()">
+                     <i class="ti ti-success"></i> Mark as Completed
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
 
       <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
       <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
@@ -594,6 +2411,117 @@
       <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
       <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
       <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
+
+      <!-- Course Bundle Creation Modal -->
+      <div class="modal fade" id="courseBundleModal" tabindex="-1" role="dialog" aria-labelledby="courseBundleModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="courseBundleModalLabel">
+                     <i class="ti ti-book-open"></i> Create New Course Bundle
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <form class="form-horizontal">
+                     <div class="row">
+                        <div class="col-md-6">
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Bundle Title</label>
+                              <div class="col-sm-8">
+                                 <input type="text" class="form-control" ng-model="newCourseBundle.title" placeholder="Enter course bundle title" required>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Bundle Code</label>
+                              <div class="col-sm-8">
+                                 <input type="text" class="form-control" ng-model="newCourseBundle.bundleCode" placeholder="Enter bundle code (e.g., CS001)" required>
+                                 <small class="help-block">Unique identifier for the course bundle</small>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Subject Area</label>
+                              <div class="col-sm-8">
+                                 <select class="form-control" ng-model="newCourseBundle.subjectArea">
+                                    <option value="">Select Subject Area</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Language">Language</option>
+                                    <option value="Arts">Arts</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Other">Other</option>
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-6">
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Difficulty Level</label>
+                              <div class="col-sm-8">
+                                 <select class="form-control" ng-model="newCourseBundle.difficultyLevel">
+                                    <option value="">Select Difficulty Level</option>
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Expert">Expert</option>
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Total Duration</label>
+                              <div class="col-sm-8">
+                                 <input type="text" class="form-control" ng-model="newCourseBundle.totalDuration" placeholder="e.g., 120 hours" required>
+                                 <small class="help-block">Estimated total duration for the bundle</small>
+                              </div>
+                           </div>
+                           <div class="form-group">
+                              <label class="col-sm-4 control-label">Price</label>
+                              <div class="col-sm-8">
+                                 <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    <input type="number" class="form-control" ng-model="newCourseBundle.price" placeholder="0.00" min="0" step="0.01">
+                                 </div>
+                                 <small class="help-block">Course bundle price</small>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-md-12">
+                           <div class="form-group">
+                              <label class="col-sm-2 control-label">Description</label>
+                              <div class="col-sm-10">
+                                 <textarea class="form-control" ng-model="newCourseBundle.description" rows="4" placeholder="Enter detailed description of the course bundle"></textarea>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-md-12">
+                           <div class="form-group">
+                              <label class="col-sm-2 control-label">Features</label>
+                              <div class="col-sm-10">
+                                 <textarea class="form-control" ng-model="newCourseBundle.features" rows="3" placeholder="Enter key features and benefits of this course bundle"></textarea>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </form>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" ng-click="cancelCourseBundleCreation()">
+                     <i class="ti ti-close"></i> Cancel
+                  </button>
+                  <button type="button" class="btn btn-primary" ng-click="saveCourseBundle()" ng-disabled="!newCourseBundle.title || !newCourseBundle.bundleCode">
+                     <i class="ti ti-check"></i> Create Course Bundle
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
 
    </body>
 </html>

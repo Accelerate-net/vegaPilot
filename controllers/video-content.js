@@ -50,7 +50,8 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     $scope.bunnyNetConfig = {
         libraryId: '475938',
         accessKey: '5244ed1d-5f30-4ba5-8837ee980f7c-898e-4d16',
-        baseUrl: 'https://video.bunnycdn.com/library'
+        baseUrl: 'https://video.bunnycdn.com/library',
+        storageUrl: 'https://storage.bunnycdn.com'
     };
     
     // Dummy data for testing
@@ -684,6 +685,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         }
     };
     
+    // Select video file function for button click
+    $scope.selectVideoFile = function() {
+        if (!$scope.uploadInProgress) {
+            document.getElementById('videoFile').click();
+        }
+    };
+    
     // Get video duration from file
     $scope.getVideoDuration = function(file) {
         var video = document.createElement('video');
@@ -749,25 +757,19 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         console.log('File size:', $scope.newVideo.file.size, 'bytes');
         console.log('Collection:', selectedCollection.name, '(ID:', selectedCollection.id + ')');
         
-        // Try different upload methods
-        $scope.tryUploadMethod1(selectedCollection);
+        // Upload video to Bunny.net
+        $scope.uploadVideoToBunny(selectedCollection);
     };
     
-    // Method 1: Direct file upload with proper headers
-    $scope.tryUploadMethod1 = function(selectedCollection) {
-        console.log('Trying Method 1: Direct file upload');
+    // Single upload method to Bunny.net
+    $scope.uploadVideoToBunny = function(selectedCollection) {
+        console.log('Uploading video to Bunny.net');
         
-        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
+        // Use the correct Bunny.net storage endpoint
+        var filename = $scope.newVideo.file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        var uploadUrl = $scope.bunnyNetConfig.storageUrl + '/' + $scope.bunnyNetConfig.libraryId + '/' + selectedCollection.name + '/' + filename;
         
-        // Create FormData
-        var formData = new FormData();
-        formData.append('file', $scope.newVideo.file);
-        
-        // Add metadata as separate fields
-        formData.append('title', $scope.newVideo.titleName);
-        formData.append('description', $scope.newVideo.titleName + ' - Uploaded via VegaPilot');
-        formData.append('tags', 'vegapilot,upload');
-        formData.append('collectionId', selectedCollection.id);
+        console.log('Upload URL:', uploadUrl);
         
         // Create XMLHttpRequest for upload with progress tracking
         var xhr = new XMLHttpRequest();
@@ -785,13 +787,10 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         
         // Upload complete
         xhr.addEventListener('load', function() {
-            console.log('Method 1 response:', xhr.status, xhr.responseText);
+            console.log('Upload response:', xhr.status, xhr.responseText);
             
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
-            } else if (xhr.status === 415) {
-                console.log('Method 1 failed with 415, trying Method 2...');
-                $scope.tryUploadMethod2(selectedCollection);
             } else {
                 $scope.handleUploadError(xhr.status, xhr.responseText);
             }
@@ -799,77 +798,17 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         
         // Upload error
         xhr.addEventListener('error', function() {
-            console.log('Method 1 error, trying Method 2...');
-            $scope.tryUploadMethod2(selectedCollection);
+            console.log('Upload failed with error');
+            $scope.handleUploadError('network', 'Network error occurred during upload');
         });
         
-        // Set request headers
-        xhr.open('POST', uploadUrl);
+        // Set request headers for raw binary upload
+        xhr.open('PUT', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
         
-        // Send the request
-        xhr.send(formData);
-    };
-    
-    // Method 2: Upload with different content type handling
-    $scope.tryUploadMethod2 = function(selectedCollection) {
-        console.log('Trying Method 2: Alternative upload method');
-        
-        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
-        
-        // Create FormData
-        var formData = new FormData();
-        formData.append('file', $scope.newVideo.file);
-        
-        // Add metadata as JSON string
-        var metadata = {
-            title: $scope.newVideo.titleName,
-            description: $scope.newVideo.titleName + ' - Uploaded via VegaPilot',
-            tags: ['vegapilot', 'upload'],
-            collectionId: selectedCollection.id
-        };
-        formData.append('metadata', JSON.stringify(metadata));
-        
-        // Create XMLHttpRequest
-        var xhr = new XMLHttpRequest();
-        
-        // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
-            if (e.lengthComputable) {
-                var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
-                    $scope.uploadProgress = Math.round(percentComplete);
-                    $scope.updateUploadStatus(percentComplete, selectedCollection.name);
-                });
-            }
-        });
-        
-        // Upload complete
-        xhr.addEventListener('load', function() {
-            console.log('Method 2 response:', xhr.status, xhr.responseText);
-            
-            if (xhr.status === 200 || xhr.status === 201) {
-                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
-            } else if (xhr.status === 415) {
-                console.log('Method 2 failed with 415, trying Method 3...');
-                $scope.tryUploadMethod3(selectedCollection);
-            } else {
-                $scope.handleUploadError(xhr.status, xhr.responseText);
-            }
-        });
-        
-        // Upload error
-        xhr.addEventListener('error', function() {
-            console.log('Method 2 error, trying Method 3...');
-            $scope.tryUploadMethod3(selectedCollection);
-        });
-        
-        // Set request headers
-        xhr.open('POST', uploadUrl);
-        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
-        
-        // Send the request
-        xhr.send(formData);
+        // Send the raw file binary
+        xhr.send($scope.newVideo.file);
     };
     
     // Method 3: Upload using fetch API with different approach
@@ -949,6 +888,227 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
+            } else if (xhr.status === 415) {
+                console.log('Method 4 failed with 415, trying Method 5...');
+                $scope.tryUploadMethod5(selectedCollection);
+            } else {
+                console.log('Method 4 failed, trying Method 5...');
+                $scope.tryUploadMethod5(selectedCollection);
+            }
+        });
+        
+        // Upload error
+        xhr.addEventListener('error', function() {
+            console.log('Method 4 error, trying Method 5...');
+            $scope.tryUploadMethod5(selectedCollection);
+        });
+        
+        // Set request headers
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        
+        // Send the request
+        xhr.send(formData);
+    };
+    
+    // Method 5: Direct binary upload without FormData
+    $scope.tryUploadMethod5 = function(selectedCollection) {
+        console.log('Trying Method 5: Direct binary upload');
+        
+        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
+        
+        // Create XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        
+        // Progress tracking
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                $scope.$apply(function() {
+                    $scope.uploadProgress = Math.round(percentComplete);
+                    $scope.updateUploadStatus(percentComplete, selectedCollection.name);
+                });
+            }
+        });
+        
+        // Upload complete
+        xhr.addEventListener('load', function() {
+            console.log('Method 5 response:', xhr.status, xhr.responseText);
+            
+            if (xhr.status === 200 || xhr.status === 201) {
+                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
+            } else if (xhr.status === 415) {
+                console.log('Method 5 failed with 415, trying Method 6...');
+                $scope.tryUploadMethod6(selectedCollection);
+            } else {
+                console.log('Method 5 failed, trying Method 6...');
+                $scope.tryUploadMethod6(selectedCollection);
+            }
+        });
+        
+        // Upload error
+        xhr.addEventListener('error', function() {
+            console.log('Method 5 error, trying Method 6...');
+            $scope.tryUploadMethod6(selectedCollection);
+        });
+        
+        // Set request headers for binary upload
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        
+        // Add metadata as query parameters
+        var metadataUrl = uploadUrl + '?title=' + encodeURIComponent($scope.newVideo.titleName) + 
+                         '&description=' + encodeURIComponent($scope.newVideo.titleName + ' - Uploaded via VegaPilot') +
+                         '&tags=vegapilot,upload' +
+                         '&collectionId=' + selectedCollection.id;
+        
+        xhr.open('POST', metadataUrl);
+        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+        
+        // Send the file directly as binary data
+        xhr.send($scope.newVideo.file);
+    };
+    
+    // Method 6: Try using pull zone approach (upload to a different endpoint)
+    $scope.tryUploadMethod6 = function(selectedCollection) {
+        console.log('Trying Method 6: Pull zone upload approach');
+        
+        // Try the pull zone endpoint
+        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/pullzone';
+        
+        // Create FormData with minimal fields
+        var formData = new FormData();
+        formData.append('file', $scope.newVideo.file);
+        
+        // Create XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        
+        // Progress tracking
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                $scope.$apply(function() {
+                    $scope.uploadProgress = Math.round(percentComplete);
+                    $scope.updateUploadStatus(percentComplete, selectedCollection.name);
+                });
+            }
+        });
+        
+        // Upload complete
+        xhr.addEventListener('load', function() {
+            console.log('Method 6 response:', xhr.status, xhr.responseText);
+            
+            if (xhr.status === 200 || xhr.status === 201) {
+                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
+            } else if (xhr.status === 415) {
+                console.log('Method 6 failed with 415, trying Method 7...');
+                $scope.tryUploadMethod7(selectedCollection);
+            } else {
+                console.log('Method 6 failed, trying Method 7...');
+                $scope.tryUploadMethod7(selectedCollection);
+            }
+        });
+        
+        // Upload error
+        xhr.addEventListener('error', function() {
+            console.log('Method 6 error, trying Method 7...');
+            $scope.tryUploadMethod7(selectedCollection);
+        });
+        
+        // Set request headers
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        
+        // Send the request
+        xhr.send(formData);
+    };
+    
+    // Method 7: Try using the Bunny.net direct upload approach
+    $scope.tryUploadMethod7 = function(selectedCollection) {
+        console.log('Trying Method 7: Direct upload with minimal headers');
+        
+        // Try a different endpoint structure
+        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos/upload';
+        
+        // Create FormData with only the file
+        var formData = new FormData();
+        formData.append('file', $scope.newVideo.file);
+        
+        // Create XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        
+        // Progress tracking
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                $scope.$apply(function() {
+                    $scope.uploadProgress = Math.round(percentComplete);
+                    $scope.updateUploadStatus(percentComplete, selectedCollection.name);
+                });
+            }
+        });
+        
+        // Upload complete
+        xhr.addEventListener('load', function() {
+            console.log('Method 7 response:', xhr.status, xhr.responseText);
+            
+            if (xhr.status === 200 || xhr.status === 201) {
+                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
+            } else if (xhr.status === 415) {
+                console.log('Method 7 failed with 415, trying Method 8...');
+                $scope.tryUploadMethod8(selectedCollection);
+            } else {
+                console.log('Method 7 failed, trying Method 8...');
+                $scope.tryUploadMethod8(selectedCollection);
+            }
+        });
+        
+        // Upload error
+        xhr.addEventListener('error', function() {
+            console.log('Method 7 error, trying Method 8...');
+            $scope.tryUploadMethod8(selectedCollection);
+        });
+        
+        // Set request headers - minimal approach
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        
+        // Send the request
+        xhr.send(formData);
+    };
+    
+    // Method 8: Try using different authentication header format
+    $scope.tryUploadMethod8 = function(selectedCollection) {
+        console.log('Trying Method 8: Different authentication header format');
+        
+        var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
+        
+        // Create FormData with minimal fields
+        var formData = new FormData();
+        formData.append('file', $scope.newVideo.file);
+        
+        // Create XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        
+        // Progress tracking
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                $scope.$apply(function() {
+                    $scope.uploadProgress = Math.round(percentComplete);
+                    $scope.updateUploadStatus(percentComplete, selectedCollection.name);
+                });
+            }
+        });
+        
+        // Upload complete
+        xhr.addEventListener('load', function() {
+            console.log('Method 8 response:', xhr.status, xhr.responseText);
+            
+            if (xhr.status === 200 || xhr.status === 201) {
+                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else {
                 console.log('All upload methods failed. Final error:', xhr.status, xhr.responseText);
                 $scope.handleUploadError(xhr.status, xhr.responseText);
@@ -961,9 +1121,11 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             $scope.handleUploadError(0, 'All upload methods failed');
         });
         
-        // Set request headers
+        // Try different header formats
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + $scope.bunnyNetConfig.accessKey);
+        xhr.setRequestHeader('X-Access-Key', $scope.bunnyNetConfig.accessKey);
         
         // Send the request
         xhr.send(formData);
@@ -1261,4 +1423,60 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     
     // Initialize controller
     $scope.init();
+    
+    // Navbar Brand Animation System
+    $scope.initNavbarAnimations = function() {
+        var brandElement = document.getElementById('animatedBrand');
+        if (!brandElement) return;
+        
+        var animations = [
+            'glow',
+            'gradient', 
+            'bounce',
+            'pulse',
+            'slide',
+            'rotate',
+            'wave',
+            'neon'
+        ];
+        
+        var currentAnimationIndex = 0;
+        
+        // Function to cycle through animations
+        var cycleAnimation = function() {
+            // Remove all animation classes
+            animations.forEach(function(anim) {
+                brandElement.classList.remove(anim);
+            });
+            
+            // Add current animation class
+            brandElement.classList.add(animations[currentAnimationIndex]);
+            
+            // Move to next animation
+            currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
+            
+            console.log('Navbar brand animation changed to:', animations[currentAnimationIndex - 1 === -1 ? animations.length - 1 : currentAnimationIndex - 1]);
+        };
+        
+        // Start with first animation
+        cycleAnimation();
+        
+        // Set interval to cycle every 8 seconds
+        setInterval(cycleAnimation, 8000);
+        
+        // Add hover effect for interactive feel
+        brandElement.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        brandElement.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    };
+    
+    // Initialize navbar animations after a short delay
+    $timeout(function() {
+        $scope.initNavbarAnimations();
+    }, 1000);
 });

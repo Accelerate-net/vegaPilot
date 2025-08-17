@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Course View - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Course View">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <!-- Font Awesome -->
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <!-- Themify Icons -->
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <!-- Core CSS with all styles -->
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <!-- Code Prettifier -->
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+      <!-- iCheck -->
+      <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+      <!-- Gridforms -->
+      <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
+      <!--[if lt IE 10]>
+      <script type="text/javascript" src="assets/js/media.match.min.js"></script>
+      <script type="text/javascript" src="assets/js/respond.min.js"></script>
+      <script type="text/javascript" src="assets/js/placeholder.min.js"></script>
+      <![endif]-->
+      <!-- The following CSS are included as plugins and can be removed if unused-->
+      <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">   <!-- Tokenfield -->
+      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">   <!-- Calendar Plugin -->
+      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">                        <!-- Select2 -->
+      <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">                        <!-- Dropzone -->
+
+      <!-- Course View Specific Styles -->
+      <style type="text/css">
+         .course-container { display: flex; min-height: 600px; }
+         .course-sidebar { width: 350px; background-color: #fff; padding: 30px; border-right: 1px solid #e0e0e0; overflow-y: auto; border-radius: 8px; margin-right: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+         .course-sidebar h2 { font-size: 22px; margin-bottom: 10px; color: #006073; }
+         .course-sidebar h3 { color: #ffb706; font-size: 16px; margin-bottom: 15px; }
+         .mentor { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 10px; }
+         .mentor img { width: 40px; height: 40px; border-radius: 50%; margin-top: 5px; }
+         .mentor-info { color: #8f8f8f; }
+         .mentor-info p { font-size: 13px; color: #afafaf; margin: 0; }
+         .chapter-list { list-style: none; }
+         .chapter { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; background-color: #f7f7f7; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
+         .chapter.active { background-color: #e5faff; color: #006073; border-color: #006073; }
+         .chapter:hover { background-color: #ececec; transform: translateX(5px); }
+         .chapter-number { font-weight: bold; margin-right: 15px; text-align: center; min-width: 30px; height: 30px; background: #006073; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+         .chapter.active .chapter-number { background: #ffb706; color: #006073; }
+         .chapter-details { flex-grow: 1; }
+         .chapter-title { font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+         .chapter-desc { font-size: 12px; color: #888; margin-bottom: 8px; }
+         .chapter-meta { display: flex; align-items: center; gap: 15px; font-size: 11px; color: #666; }
+         .chapter-duration { margin-left: auto; white-space: nowrap; text-align: right; min-width: 60px; font-weight: 500; }
+         .progress-ring { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #e0e0e0; display: inline-block; margin-right: 5px; position: relative; }
+         .progress-ring.completed { border-color: #28a745; background: #28a745; }
+         .progress-ring.completed::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; }
+         .progress-ring.in-progress { border-color: #ffc107; background: #ffc107; }
+         .progress-ring.in-progress::after { content: '▶'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8px; }
+         .progress-ring.not-started { border-color: #6c757d; }
+         .course-content { flex: 1; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+         .course-content h3 { font-size: 24px; margin-bottom: 10px; color: #2c3e50; }
+         .subtext { font-size: 16px; color: #666; margin-bottom: 30px; line-height: 1.6; }
+         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
+         .video-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; background: linear-gradient(135deg, #667eea, #764ba2); }
+         .part-info { background: #f8f9fa; padding: 25px; border-radius: 10px; border: 1px solid #e9ecef; }
+         .part-title { font-size: 20px; font-weight: 600; color: #2c3e50; margin-bottom: 15px; }
+         .part-description { color: #666; line-height: 1.6; margin-bottom: 20px; }
+         .part-meta { display: flex; gap: 20px; padding: 15px; background: white; border-radius: 8px; font-size: 14px; border: 1px solid #e9ecef; }
+         .meta-item { display: flex; align-items: center; gap: 8px; }
+         .loading { display: flex; align-items: center; justify-content: center; height: 200px; color: #666; }
+         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #006073; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 15px; }
+         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+         @media (max-width: 768px) { .course-container { flex-direction: column; } .course-sidebar { width: 100%; margin-right: 0; margin-bottom: 20px; } .course-content { padding: 20px; } }
+      </style>
+   </head>
+
+   <body class="animated-content" ng-app="courseViewApp" ng-controller="courseViewController" ng-cloak>
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <!-- logo-area -->
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+     
+      <div id="wrapper">
+         <div id="layout-static">
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div class="userinfo">
+                                <div class="avatar">
+                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
+                                </div>
+                                <div class="info">
+                                    <span class="username">{{profileData.name || 'Student User'}}</span>
+                                    <span class="useremail">{{profileData.email || 'student@vegapilot.com'}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li class="nav-separator"><span>Content Library</span></li>
+                              <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              
+                              <li class="nav-separator"><span>Courses</span></li>
+                              <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                              <li><a href="course-view.html" class="active"><i class="ti ti-eye"></i><span>Course View</span></a></li>
+                              
+                              <li class="nav-separator"><span>Exams</span></li>
+                              <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                              <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                              
+                              <li class="nav-separator"><span>Management</span></li>
+                              <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                              <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <ol class="breadcrumb">
+                        <li><a href="catalog.html">Courses</a></li>
+                        <li><a href="#" ng-click="goToCourse()">{{courseData.title}}</a></li>
+                        <li><a href="#" ng-click="goToModule()">{{moduleData.name}}</a></li>
+                        <li class="active">{{chapterData.name}}</li>
+                     </ol>
+                     <div class="container-fluid" style="padding-top: 4%;">
+
+                     <!-- Info Alert -->
+                     <div class="alert alert-info">
+                        <h3><i class="ti ti-play-circle"></i> Course Content Viewer</h3>
+                        <p>View and navigate through course content. Select parts from the sidebar to start learning.</p>
+                        <p><i class="ti ti-info-alt"></i> This is a demo with sample data. In production, this will show real course content and track your progress.</p>
+                     </div>
+
+                     <!-- Course View Container -->
+                     <div class="course-container">
+                        <!-- Course Sidebar -->
+                        <div class="course-sidebar">
+                           <h3 style="color: #ffb706" id="sidebarHeader">{{courseData.title}}</h3>
+                           <h2 style="color: #006073" id="sidebarTitle">{{chapterData.name}}</h2>
+                           
+                           <div class="mentor" id="mentorTile">
+                               <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAxMmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTAgMmMtMi42NyAwLTggMS4zNC04IDR2MmgxNnYtMmMwLTIuNjYtNS4zMy00LTgtNHoiLz4KPC9zdmc+Cjwvc3ZnPgo=" alt="Mentor">
+                               <div class="mentor-info">
+                                   <p><strong>Course Instructor</strong></p>
+                                   <p>Expert in {{courseData.category}}</p>
+                               </div>
+                           </div>
+                           
+                           <ul class="chapter-list" id="partsList">
+                               <li class="chapter" 
+                                   ng-repeat="part in chapterData.parts" 
+                                   ng-class="{'active': part.id === selectedPartId}"
+                                   ng-click="selectPart(part)">
+                                   <div class="chapter-number">{{$index + 1}}</div>
+                                   <div class="chapter-details">
+                                       <div class="chapter-title">{{part.title}}</div>
+                                       <div class="chapter-desc">{{part.description}}</div>
+                                       <div class="chapter-meta">
+                                           <span>
+                                               <span class="progress-ring" ng-class="part.progressStatus"></span>
+                                               {{part.progressText}}
+                                           </span>
+                                           <span>⏱ {{part.duration}}</span>
+                                       </div>
+                                   </div>
+                                   <div class="chapter-duration">{{part.duration}}</div>
+                               </li>
+                           </ul>
+                        </div>
+
+                        <!-- Course Content Area -->
+                        <div class="course-content">
+                           <div ng-if="selectedPart">
+                               <h3 id="contentTitle">{{selectedPart.title}}</h3>
+                               <p class="subtext" id="contentTitleSub">{{selectedPart.description}}</p>
+
+                               <div class="video-wrapper" id="videoRenderSpace">
+                                   <div class="video-placeholder" ng-if="!selectedPart.videoUrl">
+                                       🎥
+                                   </div>
+                                   <iframe ng-if="selectedPart.videoUrl" 
+                                           ng-src="{{selectedPart.videoUrl}}" 
+                                           frameborder="0" 
+                                           allowfullscreen>
+                                   </iframe>
+                               </div>
+                               
+                               <div class="part-info">
+                                   <div class="part-title">About this lesson</div>
+                                   <div class="part-description">{{selectedPart.fullDescription}}</div>
+                                   <div class="part-meta">
+                                       <div class="meta-item">
+                                           <span>⏱ Duration: {{selectedPart.duration}}</span>
+                                       </div>
+                                       <div class="meta-item">
+                                           <span>👁 Views: {{selectedPart.views}}</span>
+                                       </div>
+                                       <div class="meta-item">
+                                           <span>📥 Downloads: {{selectedPart.downloads}}</span>
+                                       </div>
+                                       <div class="meta-item">
+                                           <span>⭐ Rating: {{selectedPart.rating}}/5</span>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                           
+                           <div ng-if="!selectedPart" class="loading">
+                               <div class="spinner"></div>
+                               <span>Loading course content...</span>
+                           </div>
+                        </div>
+                     </div>
+                     
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Scripts -->
+      <script src="assets/js/jquery.min.js"></script>
+      <script src="assets/js/bootstrap.min.js"></script>
+      <script src="assets/js/angular.latest.min.js"></script>
+      
+      <script>
+          var courseViewApp = angular.module('courseViewApp', []);
+          
+          courseViewApp.controller('courseViewController', function($scope, $timeout) {
+              
+              // Initialize scope variables
+              $scope.courseData = {};
+              $scope.moduleData = {};
+              $scope.chapterData = {};
+              $scope.selectedPart = null;
+              $scope.selectedPartId = 0;
+              $scope.profileData = {};
+              
+              // Get URL parameters
+              function getUrlParams() {
+                  const urlParams = new URLSearchParams(window.location.search);
+                  return {
+                      courseId: urlParams.get('course') || '1',
+                      moduleId: urlParams.get('module') || '1',
+                      chapterId: urlParams.get('chapter') || '1',
+                      partId: urlParams.get('part') || '0'
+                  };
+              }
+              
+              // Initialize controller
+              $scope.init = function() {
+                  const params = getUrlParams();
+                  $scope.selectedPartId = parseInt(params.partId);
+                  
+                  $scope.loadCourseData(params.courseId);
+                  $scope.loadModuleData(params.moduleId);
+                  $scope.loadChapterData(params.chapterId);
+                  $scope.loadProfileData();
+              };
+              
+              // Load course data
+              $scope.loadCourseData = function(courseId) {
+                  $timeout(function() {
+                      $scope.courseData = {
+                          id: courseId,
+                          title: 'Advanced Web Development Masterclass',
+                          category: 'Web Development',
+                          description: 'Master modern web development with hands-on projects',
+                          instructor: 'John Smith',
+                          rating: '4.8',
+                          totalStudents: 1250
+                      };
+                  }, 500);
+              };
+              
+              // Load module data
+              $scope.loadModuleData = function(moduleId) {
+                  $timeout(function() {
+                      $scope.moduleData = {
+                          id: moduleId,
+                          name: 'Module 2: CSS3 Styling & Layout',
+                          description: 'Learn advanced CSS techniques and modern layout systems',
+                          totalChapters: 5,
+                          totalDuration: '4h 20m'
+                      };
+                  }, 600);
+              };
+              
+              // Load chapter data with parts
+              $scope.loadChapterData = function(chapterId) {
+                  $timeout(function() {
+                      $scope.chapterData = {
+                          id: chapterId,
+                          name: 'CSS Grid Layout System',
+                          description: 'Master CSS Grid for creating complex, responsive layouts',
+                          parts: [
+                              {
+                                  id: 0,
+                                  title: 'Introduction to CSS Grid',
+                                  description: 'Understanding the basics of CSS Grid layout',
+                                  fullDescription: 'CSS Grid is a powerful layout system that allows you to create two-dimensional layouts. In this lesson, you\'ll learn the fundamental concepts of Grid, including grid containers, grid items, and grid lines.',
+                                  duration: '15:30',
+                                  views: 1250,
+                                  downloads: 89,
+                                  rating: 4.9,
+                                  progressStatus: 'completed',
+                                  progressText: 'Completed',
+                                  videoUrl: null
+                              },
+                              {
+                                  id: 1,
+                                  title: 'Grid Container Properties',
+                                  description: 'Setting up grid containers and defining grid areas',
+                                  fullDescription: 'Learn how to define grid containers and use properties like display: grid, grid-template-columns, grid-template-rows, and grid-template-areas to create your grid structure.',
+                                  duration: '22:15',
+                                  views: 980,
+                                  downloads: 67,
+                                  rating: 4.7,
+                                  progressStatus: 'in-progress',
+                                  progressText: 'In Progress',
+                                  videoUrl: null
+                              },
+                              {
+                                  id: 2,
+                                  title: 'Grid Item Positioning',
+                                  description: 'Positioning items within the grid using grid-column and grid-row',
+                                  fullDescription: 'Master the art of positioning grid items using grid-column, grid-row, grid-area, and other positioning properties. Learn how to create complex layouts with precise control.',
+                                  duration: '28:45',
+                                  views: 850,
+                                  downloads: 54,
+                                  rating: 4.8,
+                                  progressStatus: 'not-started',
+                                  progressText: 'Not Started',
+                                  videoUrl: null
+                              },
+                              {
+                                  id: 3,
+                                  title: 'Responsive Grid Layouts',
+                                  description: 'Creating responsive designs with CSS Grid',
+                                  fullDescription: 'Learn advanced techniques for creating responsive grid layouts that adapt to different screen sizes. Use media queries, auto-fit, and minmax() for flexible designs.',
+                                  duration: '35:20',
+                                  views: 720,
+                                  downloads: 43,
+                                  rating: 4.6,
+                                  progressStatus: 'not-started',
+                                  progressText: 'Not Started',
+                                  videoUrl: null
+                              },
+                              {
+                                  id: 4,
+                                  title: 'Grid vs Flexbox',
+                                  description: 'When to use Grid vs Flexbox for different layouts',
+                                  fullDescription: 'Understand the differences between CSS Grid and Flexbox, and learn when to use each layout system. Grid is perfect for two-dimensional layouts, while Flexbox excels at one-dimensional layouts.',
+                                  duration: '18:30',
+                                  views: 650,
+                                  downloads: 38,
+                                  rating: 4.9,
+                                  progressStatus: 'not-started',
+                                  progressText: 'Not Started',
+                                  videoUrl: null
+                              }
+                          ]
+                      };
+                      
+                      // Select the first part by default or the specified part
+                      $scope.selectPart($scope.chapterData.parts[$scope.selectedPartId]);
+                  }, 700);
+              };
+              
+              // Load profile data
+              $scope.loadProfileData = function() {
+                  $scope.profileData = {
+                      name: 'John Doe',
+                      email: 'john.doe@example.com'
+                  };
+              };
+              
+              // Select part
+              $scope.selectPart = function(part) {
+                  $scope.selectedPart = part;
+                  $scope.selectedPartId = part.id;
+                  
+                  // Update URL without page reload
+                  const url = new URL(window.location);
+                  url.searchParams.set('part', part.id);
+                  window.history.pushState({}, '', url);
+                  
+                  // Show toaster
+                  $scope.showToasterMessage('Now playing: ' + part.title);
+                  
+                  // Update progress if needed
+                  if (part.progressStatus === 'not-started') {
+                      part.progressStatus = 'in-progress';
+                      part.progressText = 'In Progress';
+                  }
+              };
+              
+              // Show toaster message
+              $scope.showToasterMessage = function(message) {
+                  alert(message); // Simple alert for now
+              };
+              
+              // Navigation functions
+              $scope.goToCourse = function() {
+                  window.location.href = 'catalog.html';
+              };
+              
+              $scope.goToModule = function() {
+                  window.location.href = 'preview-course.html?course=' + $scope.courseData.id;
+              };
+              
+              // Initialize controller
+              $scope.init();
+          });
+      </script>
+   </body>
+</html>
