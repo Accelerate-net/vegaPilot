@@ -1,1 +1,22 @@
+# Environment variables (NEVER COMMIT!)
+.env
+
+# Dependencies
+node_modules/
+
+# Upload directory
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

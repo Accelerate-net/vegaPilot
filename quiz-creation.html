@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Quiz Creation - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Quiz Creation">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+
+      <style type="text/css">
+         /* Page Header Section */
+         .page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+         }
+         .page-header-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+         }
+         .page-header-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+         }
+         .page-header-section i {
+            margin-right: 8px;
+         }
+
+         /* Step Navigation */
+         .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+         }
+         .step-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            position: relative;
+            cursor: pointer;
+         }
+         .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 2px;
+            background: #dee2e6;
+            z-index: 0;
+         }
+         .step-item.active {
+            background: #e3f2f5;
+            border-radius: 6px;
+         }
+         .step-item.completed {
+            opacity: 0.7;
+         }
+         .step-number {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            border-radius: 50%;
+            background: #dee2e6;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+         }
+         .step-item.active .step-number {
+            background: #006073;
+            color: white;
+         }
+         .step-item.completed .step-number {
+            background: #28a745;
+            color: white;
+         }
+         .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+         }
+         .step-item.active .step-title {
+            color: #006073;
+         }
+
+         /* Section Card */
+         .section-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+         }
+         .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+         }
+
+         /* Batch Selection */
+         .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+         }
+         .batch-card {
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+         }
+         .batch-card:hover {
+            border-color: #006073;
+            background: #f8f9fa;
+         }
+         .batch-card.selected {
+            border-color: #006073;
+            background: #e3f2f5;
+         }
+         .batch-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+         }
+
+         /* Question Preview */
+         .question-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+         }
+         .question-preview-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 12px;
+         }
+         .question-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+         }
+
+         /* Custom Question Upload */
+         .upload-zone {
+            border: 2px dashed #006073;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+         }
+         .upload-zone:hover {
+            background: #f0f8fa;
+         }
+         .upload-zone.dragover {
+            background: #e3f2f5;
+            border-color: #005a6b;
+         }
+
+         /* Form Grid */
+         .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+         }
+         .form-group {
+            margin-bottom: 15px;
+         }
+         .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+         }
+         .form-group input,
+         .form-group select,
+         .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+         }
+         .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+         }
+
+         /* URL Preview */
+         .url-preview {
+            background: #e3f2f5;
+            border: 2px solid #006073;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+         }
+         .url-preview-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+         }
+         .url-preview-link {
+            font-size: 16px;
+            color: #006073;
+            font-weight: 600;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+         }
+         .copy-button {
+            margin-top: 10px;
+         }
+
+         /* Action Buttons */
+         .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+         }
+
+         /* Marking Scheme */
+         .marking-scheme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+         }
+         .marking-preset {
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+         }
+         .marking-preset:hover {
+            border-color: #006073;
+         }
+         .marking-preset.selected {
+            border-color: #006073;
+            background: #e3f2f5;
+         }
+         .marking-preset-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+         }
+         .marking-preset-details {
+            font-size: 13px;
+            color: #6c757d;
+         }
+
+         /* Question List */
+         .question-list {
+            max-height: 500px;
+            overflow-y: auto;
+         }
+         .question-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+         }
+         .question-item img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+         }
+         .question-item-details {
+            flex: 1;
+         }
+         .question-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+         }
+         .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+         }
+         .badge-batch {
+            background: #e3f2f5;
+            color: #006073;
+         }
+         .badge-custom {
+            background: #fff3cd;
+            color: #856404;
+         }
+      </style>
+   </head>
+   <body class="animated-content" ng-app="quizCreationApp" ng-controller="quizCreationController" ng-init="init()" ng-cloak>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+             <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+         </div>
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                            <ul class="acc-menu">
+                               <li class="nav-separator"><span>Content Library</span></li>
+                               <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                               <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
+                               <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                               <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
+
+                               <li class="nav-separator"><span>Courses</span></li>
+                               <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                               <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+
+                               <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                               <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                               <li><a href="quiz-creation.html" class="active"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
+                               <li><a href="quiz-listing.html"><i class="ti ti-view-list-alt"></i><span>Quiz Listing</span></a></li>
+
+                               <li class="nav-separator"><span>Management</span></li>
+                               <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                               <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                               <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
+                            </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <div class="container-fluid" style="padding-top: 4%;">
+
+                        <!-- Page Header -->
+                        <div class="page-header-section">
+                           <div>
+                              <h2><i class="ti ti-clipboard"></i> Quiz Creation</h2>
+                              <p>Create and configure quizzes from your question batches</p>
+                           </div>
+                           <div>
+                              <a href="practice-questions.html" class="btn btn-default">
+                                 <i class="ti ti-arrow-left"></i> Back to Questions
+                              </a>
+                           </div>
+                        </div>
+
+                  <!-- Step Navigation -->
+                  <div class="step-navigation">
+                     <div class="step-item" ng-class="{active: currentStep === 1, completed: currentStep > 1}" ng-click="goToStep(1)">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Select Questions</div>
+                     </div>
+                     <div class="step-item" ng-class="{active: currentStep === 2, completed: currentStep > 2}" ng-click="goToStep(2)">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Review & Add Custom</div>
+                     </div>
+                     <div class="step-item" ng-class="{active: currentStep === 3, completed: currentStep > 3}" ng-click="goToStep(3)">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Configure Quiz</div>
+                     </div>
+                     <div class="step-item" ng-class="{active: currentStep === 4}" ng-click="goToStep(4)">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Preview & Publish</div>
+                     </div>
+                  </div>
+
+                  <!-- Step 1: Select Questions from Batches -->
+                  <div ng-show="currentStep === 1">
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-package"></i> Select Question Batches
+                        </div>
+
+                        <div ng-if="availableBatches.length === 0" style="padding: 40px; text-align: center; color: #6c757d;">
+                           <i class="ti ti-info-alt" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                           <p style="font-size: 16px; margin-bottom: 10px;">No batches available</p>
+                           <p style="font-size: 14px;">Please upload questions in Practice Questions page first.</p>
+                           <a href="practice-questions.html" class="btn btn-primary" style="margin-top: 15px;">
+                              <i class="ti ti-upload"></i> Go to Practice Questions
+                           </a>
+                        </div>
+
+                        <div ng-if="availableBatches.length > 0">
+                           <p style="margin-bottom: 20px; color: #6c757d;">
+                              Select one or more batches to include questions in your quiz
+                           </p>
+
+                           <div class="batch-grid">
+                              <div ng-repeat="batch in availableBatches"
+                                   class="batch-card"
+                                   ng-class="{selected: batch.selected}"
+                                   ng-click="toggleBatch(batch.id)">
+                                 <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                                    <input type="checkbox"
+                                           class="batch-checkbox"
+                                           ng-model="batch.selected"
+                                           ng-click="$event.stopPropagation()">
+                                    <strong style="font-size: 15px;">{{batch.id}}</strong>
+                                 </div>
+                                 <div style="font-size: 13px; color: #6c757d;">
+                                    <div><i class="ti ti-files"></i> {{batch.count}} question(s)</div>
+                                    <div style="margin-top: 5px;"><i class="ti ti-calendar"></i> {{formatDate(batch.createdAt)}}</div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                              <strong>Selected: </strong>
+                              <span ng-if="getSelectedBatches().length === 0" style="color: #6c757d;">None</span>
+                              <span ng-if="getSelectedBatches().length > 0">
+                                 {{getSelectedBatches().length}} batch(es), {{getTotalQuestionsFromBatches()}} question(s)
+                              </span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="action-buttons">
+                        <div></div>
+                        <button class="btn btn-primary btn-lg"
+                                ng-click="nextStep()"
+                                ng-disabled="getSelectedBatches().length === 0">
+                           Next: Review Questions <i class="ti ti-arrow-right"></i>
+                        </button>
+                     </div>
+                  </div>
+
+                  <!-- Step 2: Review & Add Custom Questions -->
+                  <div ng-show="currentStep === 2">
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-list"></i> Questions from Batches ({{questionsFromBatches.length}})
+                        </div>
+
+                        <div class="question-list" ng-if="questionsFromBatches.length > 0">
+                           <div ng-repeat="question in questionsFromBatches" class="question-item">
+                              <img ng-src="{{question.imageData}}" alt="Question {{$index + 1}}">
+                              <div class="question-item-details">
+                                 <div style="margin-bottom: 8px;">
+                                    <span class="badge badge-batch">
+                                       <i class="ti ti-package"></i> {{question.batchId}}
+                                    </span>
+                                    <strong>{{question.id}}</strong>
+                                 </div>
+                                 <div style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">
+                                    Answer: <strong>{{question.correctAnswer}}</strong> •
+                                    Level: <strong>{{question.level || 'Not set'}}</strong> •
+                                    Subject: <strong>{{question.subject || 'Not set'}}</strong>
+                                 </div>
+                                 <div ng-if="question.ocrText" style="font-size: 12px; color: #495057; max-height: 60px; overflow: hidden; text-overflow: ellipsis;">
+                                    {{question.ocrText.substring(0, 200)}}{{question.ocrText.length > 200 ? '...' : ''}}
+                                 </div>
+                              </div>
+                              <div class="question-item-actions">
+                                 <button class="btn btn-danger btn-xs" ng-click="removeQuestion($index, 'batch')">
+                                    <i class="ti ti-trash"></i> Remove
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-plus"></i> Add Custom Questions
+                        </div>
+
+                        <div class="upload-zone"
+                             ng-class="{dragover: isDragover}"
+                             ng-click="triggerCustomImageUpload()">
+                           <i class="ti ti-image" style="font-size: 48px; color: #006073; margin-bottom: 15px;"></i>
+                           <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                              Upload Custom Question Images
+                           </div>
+                           <div style="font-size: 14px; color: #6c757d;">
+                              Click to browse or drag and drop image files here
+                           </div>
+                           <div style="font-size: 12px; color: #adb5bd; margin-top: 8px;">
+                              Supported formats: JPG, PNG • Maximum 10MB per image
+                           </div>
+                        </div>
+                        <input type="file"
+                               id="customImageInput"
+                               accept="image/*"
+                               multiple
+                               onchange="angular.element(this).scope().handleCustomImageUpload(event)"
+                               style="display: none;">
+
+                        <div ng-if="customQuestions.length > 0" style="margin-top: 20px;">
+                           <h5 style="margin-bottom: 15px; color: #333;">Custom Questions ({{customQuestions.length}})</h5>
+                           <div class="question-list">
+                              <div ng-repeat="question in customQuestions" class="question-item">
+                                 <img ng-src="{{question.imageData}}" alt="Custom Question {{$index + 1}}">
+                                 <div class="question-item-details">
+                                    <div style="margin-bottom: 8px;">
+                                       <span class="badge badge-custom">
+                                          <i class="ti ti-image"></i> Custom
+                                       </span>
+                                       <strong>{{question.id}}</strong>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                                       <div>
+                                          <label style="font-size: 11px; color: #6c757d;">Correct Answer</label>
+                                          <select ng-model="question.correctAnswer" class="form-control" style="padding: 5px; font-size: 13px;">
+                                             <option value="A">A</option>
+                                             <option value="B">B</option>
+                                             <option value="C">C</option>
+                                             <option value="D">D</option>
+                                          </select>
+                                       </div>
+                                       <div>
+                                          <label style="font-size: 11px; color: #6c757d;">Level</label>
+                                          <select ng-model="question.level" class="form-control" style="padding: 5px; font-size: 13px;">
+                                             <option value="Easy">Easy</option>
+                                             <option value="Medium">Medium</option>
+                                             <option value="Hard">Hard</option>
+                                          </select>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="question-item-actions">
+                                    <button class="btn btn-danger btn-xs" ng-click="removeQuestion($index, 'custom')">
+                                       <i class="ti ti-trash"></i> Remove
+                                    </button>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="action-buttons">
+                        <button class="btn btn-default btn-lg" ng-click="previousStep()">
+                           <i class="ti ti-arrow-left"></i> Previous
+                        </button>
+                        <button class="btn btn-primary btn-lg" ng-click="nextStep()">
+                           Next: Configure Quiz <i class="ti ti-arrow-right"></i>
+                        </button>
+                     </div>
+                  </div>
+
+                  <!-- Step 3: Configure Quiz -->
+                  <div ng-show="currentStep === 3">
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-settings"></i> Quiz Details
+                        </div>
+
+                        <div class="form-grid">
+                           <div class="form-group">
+                              <label><i class="ti ti-clipboard"></i> Quiz Title *</label>
+                              <input type="text"
+                                     ng-model="quizConfig.title"
+                                     class="form-control"
+                                     placeholder="e.g., NEET Mock Test 2024">
+                           </div>
+                           <div class="form-group">
+                              <label><i class="ti ti-timer"></i> Total Duration (minutes) *</label>
+                              <input type="number"
+                                     ng-model="quizConfig.duration"
+                                     class="form-control"
+                                     placeholder="e.g., 180"
+                                     min="1">
+                           </div>
+                        </div>
+
+                        <div class="form-group">
+                           <label><i class="ti ti-text"></i> Description</label>
+                           <textarea ng-model="quizConfig.description"
+                                     class="form-control"
+                                     placeholder="Optional description for students"></textarea>
+                        </div>
+                     </div>
+
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-check-box"></i> Marking Scheme
+                        </div>
+
+                        <div class="marking-scheme-grid">
+                           <div class="marking-preset"
+                                ng-class="{selected: quizConfig.markingScheme === 'default'}"
+                                ng-click="quizConfig.markingScheme = 'default'">
+                              <div class="marking-preset-title">
+                                 <i class="ti ti-check"></i> Default (NEET/JEE Pattern)
+                              </div>
+                              <div class="marking-preset-details">
+                                 +4 marks for correct answer<br>
+                                 -1 mark for incorrect answer<br>
+                                 0 marks for unanswered
+                              </div>
+                           </div>
+                           <div class="marking-preset"
+                                ng-class="{selected: quizConfig.markingScheme === 'no-negative'}"
+                                ng-click="quizConfig.markingScheme = 'no-negative'">
+                              <div class="marking-preset-title">
+                                 <i class="ti ti-check"></i> No Negative Marking
+                              </div>
+                              <div class="marking-preset-details">
+                                 +1 mark for correct answer<br>
+                                 0 marks for incorrect answer<br>
+                                 0 marks for unanswered
+                              </div>
+                           </div>
+                           <div class="marking-preset"
+                                ng-class="{selected: quizConfig.markingScheme === 'custom'}"
+                                ng-click="quizConfig.markingScheme = 'custom'">
+                              <div class="marking-preset-title">
+                                 <i class="ti ti-pencil"></i> Custom Marking
+                              </div>
+                              <div class="marking-preset-details">
+                                 Define your own marking scheme
+                              </div>
+                           </div>
+                        </div>
+
+                        <div ng-if="quizConfig.markingScheme === 'custom'" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+                           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                              <div class="form-group">
+                                 <label>Correct Answer Marks</label>
+                                 <input type="number" ng-model="quizConfig.customMarking.correct" class="form-control" placeholder="e.g., 4">
+                              </div>
+                              <div class="form-group">
+                                 <label>Incorrect Answer Marks</label>
+                                 <input type="number" ng-model="quizConfig.customMarking.incorrect" class="form-control" placeholder="e.g., -1">
+                              </div>
+                              <div class="form-group">
+                                 <label>Unanswered Marks</label>
+                                 <input type="number" ng-model="quizConfig.customMarking.unanswered" class="form-control" placeholder="e.g., 0">
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-calendar"></i> Schedule
+                        </div>
+
+                        <div class="form-grid">
+                           <div class="form-group">
+                              <label><i class="ti ti-calendar"></i> Start Date *</label>
+                              <input type="date"
+                                     ng-model="quizConfig.startDate"
+                                     class="form-control">
+                           </div>
+                           <div class="form-group">
+                              <label><i class="ti ti-time"></i> Start Time *</label>
+                              <input type="time"
+                                     ng-model="quizConfig.startTime"
+                                     class="form-control">
+                           </div>
+                           <div class="form-group">
+                              <label><i class="ti ti-calendar"></i> End Date *</label>
+                              <input type="date"
+                                     ng-model="quizConfig.endDate"
+                                     class="form-control">
+                           </div>
+                           <div class="form-group">
+                              <label><i class="ti ti-time"></i> End Time *</label>
+                              <input type="time"
+                                     ng-model="quizConfig.endTime"
+                                     class="form-control">
+                           </div>
+                        </div>
+
+                        <div style="padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-top: 15px;">
+                           <strong style="color: #856404;">
+                              <i class="ti ti-info-alt"></i> Schedule Window
+                           </strong>
+                           <p style="margin: 8px 0 0 0; color: #856404; font-size: 13px;">
+                              Students can take the quiz anytime between
+                              <strong>{{formatDateTime(quizConfig.startDate, quizConfig.startTime)}}</strong> and
+                              <strong>{{formatDateTime(quizConfig.endDate, quizConfig.endTime)}}</strong>
+                           </p>
+                        </div>
+                     </div>
+
+                     <div class="action-buttons">
+                        <button class="btn btn-default btn-lg" ng-click="previousStep()">
+                           <i class="ti ti-arrow-left"></i> Previous
+                        </button>
+                        <button class="btn btn-primary btn-lg" ng-click="nextStep()" ng-disabled="!isQuizConfigValid()">
+                           Next: Preview & Publish <i class="ti ti-arrow-right"></i>
+                        </button>
+                     </div>
+                  </div>
+
+                  <!-- Step 4: Preview & Publish -->
+                  <div ng-show="currentStep === 4">
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-eye"></i> Quiz Preview
+                        </div>
+
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+                           <h3 style="margin: 0 0 15px 0; color: #333;">{{quizConfig.title}}</h3>
+                           <p ng-if="quizConfig.description" style="color: #6c757d; margin-bottom: 15px;">{{quizConfig.description}}</p>
+
+                           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                              <div>
+                                 <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">Total Questions</div>
+                                 <div style="font-size: 24px; font-weight: 600; color: #006073;">
+                                    {{getTotalQuestions()}}
+                                 </div>
+                              </div>
+                              <div>
+                                 <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">Duration</div>
+                                 <div style="font-size: 24px; font-weight: 600; color: #006073;">
+                                    {{quizConfig.duration}} min
+                                 </div>
+                              </div>
+                              <div>
+                                 <div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">Maximum Marks</div>
+                                 <div style="font-size: 24px; font-weight: 600; color: #006073;">
+                                    {{getMaximumMarks()}}
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 13px;">
+                                 <div>
+                                    <strong>Marking Scheme:</strong>
+                                    <span ng-if="quizConfig.markingScheme === 'default'">+4 / -1 / 0</span>
+                                    <span ng-if="quizConfig.markingScheme === 'no-negative'">+1 / 0 / 0</span>
+                                    <span ng-if="quizConfig.markingScheme === 'custom'">
+                                       +{{quizConfig.customMarking.correct}} / {{quizConfig.customMarking.incorrect}} / {{quizConfig.customMarking.unanswered}}
+                                    </span>
+                                 </div>
+                                 <div>
+                                    <strong>Schedule:</strong>
+                                    {{formatDateTime(quizConfig.startDate, quizConfig.startTime)}} to {{formatDateTime(quizConfig.endDate, quizConfig.endTime)}}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px;">
+                           <h5 style="margin: 0 0 15px 0;">Questions Breakdown</h5>
+                           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 14px;">
+                              <div>
+                                 <i class="ti ti-package" style="color: #006073;"></i>
+                                 <strong>From Batches:</strong> {{questionsFromBatches.length}} questions
+                              </div>
+                              <div>
+                                 <i class="ti ti-image" style="color: #856404;"></i>
+                                 <strong>Custom Questions:</strong> {{customQuestions.length}} questions
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="section-card">
+                        <div class="section-title">
+                           <i class="ti ti-link"></i> Quiz URL
+                        </div>
+
+                        <div class="url-preview">
+                           <div class="url-preview-label">
+                              <i class="ti ti-world"></i> Share this URL with students:
+                           </div>
+                           <div class="url-preview-link">
+                              {{quizUrl}}
+                           </div>
+                           <button class="btn btn-primary copy-button" ng-click="copyQuizUrl()">
+                              <i class="ti ti-files"></i> Copy URL
+                           </button>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 15px; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 4px;">
+                           <strong style="color: #0c5460;">
+                              <i class="ti ti-info-alt"></i> Next Steps
+                           </strong>
+                           <ul style="margin: 8px 0 0 20px; color: #0c5460; font-size: 13px;">
+                              <li>Click "Publish Quiz" to make it available to students</li>
+                              <li>Share the quiz URL with your students</li>
+                              <li>Students can access the quiz during the scheduled window</li>
+                              <li>Monitor quiz attempts and results in real-time</li>
+                           </ul>
+                        </div>
+                     </div>
+
+                     <div class="action-buttons">
+                        <button class="btn btn-default btn-lg" ng-click="previousStep()">
+                           <i class="ti ti-arrow-left"></i> Previous
+                        </button>
+                        <div style="display: flex; gap: 15px;">
+                           <button class="btn btn-default btn-lg" ng-click="saveAsDraft()">
+                              <i class="ti ti-save"></i> Save as Draft
+                           </button>
+                           <button class="btn btn-success btn-lg" ng-click="publishQuiz()">
+                              <i class="ti ti-check"></i> Publish Quiz
+                           </button>
+                        </div>
+                     </div>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Angular JS -->
+      <script src="assets/js/angular.min.js"></script>
+      <script src="controllers/quiz-creation.js"></script>
+
+      <!-- jQuery and Bootstrap -->
+      <script src="assets/js/jquery.min.js"></script>
+      <script src="assets/js/bootstrap.min.js"></script>
+      <script src="assets/js/slimscroll/jquery.slimscroll.min.js"></script>
+      <script src="assets/js/app.js"></script>
+      <script src="assets/js/common.js"></script>
+   </body>
+</html>

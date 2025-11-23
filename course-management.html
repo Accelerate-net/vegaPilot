@@ -363,17 +363,49 @@
             background: #28a745;
             color: white;
          }
-         
+
          .type-audio {
             background: #ffc107;
             color: #212529;
          }
-         
+
          .type-document {
             background: #6f42c1;
             color: white;
          }
-         
+
+         .type-material {
+            background: #17a2b8;
+            color: white;
+         }
+
+         .type-quiz {
+            background: #6c757d;
+            color: white;
+         }
+
+         .part-number-badge-large {
+            background: #006073;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+         }
+
+         .part-type-icon {
+            color: #6c757d;
+         }
+
+         .part-brief {
+            margin-top: 5px;
+            font-style: italic;
+         }
+
          .part-content {
             display: flex;
             align-items: center;
@@ -436,7 +468,48 @@
             background: #007bff;
             color: white;
          }
-         
+
+         /* Selectable Part Cards */
+         .part-card.selectable {
+            cursor: pointer;
+            border: 2px solid transparent;
+         }
+
+         .part-card.selectable:hover {
+            border-color: #006073;
+         }
+
+         .part-card.selectable.selected {
+            border-color: #006073;
+            background: #f0f8ff;
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.2);
+         }
+
+         .selection-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #006073;
+            font-size: 24px;
+         }
+
+         .nav-tabs > li.disabled > a {
+            color: #999 !important;
+            cursor: not-allowed !important;
+            pointer-events: none;
+         }
+
+         /* Selected Module Card */
+         .module-card.selected {
+            border-left: 4px solid #006073;
+            background: #f0f8ff;
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.15);
+         }
+
+         .module-card.selected .module-header {
+            background: #f0f8ff;
+         }
+
          /* Empty States */
          .empty-parts, .empty-chapters {
             text-align: center;
@@ -777,24 +850,24 @@
          
          /* Course Bundle Header */
          .course-bundle-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
          }
-         
+
          .course-bundle-header .control-label {
             font-size: 16px;
             font-weight: 600;
-            color: #495057;
+            color: white;
             margin-bottom: 10px;
             display: block;
          }
-         
+
          .course-bundle-header .control-label i {
             margin-right: 8px;
-            color: #007bff;
+            color: #ffb706;
          }
          
          .course-bundle-header .form-control {
@@ -987,68 +1060,94 @@
          
          /* Modern Header Design - Replace old dropdown styles */
          .course-bundle-header {
-             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
              color: white;
-             padding: 40px 0;
-             margin-bottom: 30px;
-             border-radius: 16px;
-             box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+             padding: 25px 30px;
+             margin-bottom: 25px;
+             border-radius: 8px;
+             box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
              position: relative;
-             overflow: hidden;
          }
-         
-         .course-bundle-header::before {
-             content: '';
-             position: absolute;
-             top: 0;
-             left: 0;
-             right: 0;
-             bottom: 0;
-             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-             opacity: 0.3;
-         }
-         
+
          .course-bundle-header .header-content {
-             position: relative;
-             z-index: 2;
              display: flex;
              justify-content: space-between;
-             align-items: flex-start;
-             padding: 0 30px;
+             align-items: center;
+             gap: 20px;
          }
-         
+
          .course-bundle-header .header-left {
              flex: 1;
-             max-width: 70%;
          }
-         
+
          .course-bundle-header .header-right {
+             display: flex;
+             align-items: center;
+             gap: 10px;
              flex-shrink: 0;
-             text-align: right;
          }
-         
+
          .course-bundle-header .welcome-section {
-             margin-bottom: 30px;
+             margin: 0;
          }
-         
+
          .course-bundle-header .welcome-title {
-             font-size: 2.5rem;
-             font-weight: 700;
-             margin: 0 0 10px 0;
-             color: #FFF;
+             font-size: 1.75rem;
+             font-weight: 600;
+             margin: 0 0 8px 0;
+             color: white;
+             display: flex;
+             align-items: center;
+             gap: 10px;
          }
-         
+
          .course-bundle-header .welcome-title i {
-             margin-right: 15px;
-             font-size: 2.2rem;
+             font-size: 1.75rem;
              opacity: 0.9;
          }
-         
+
          .course-bundle-header .welcome-subtitle {
-             font-size: 1.5rem;
+             font-size: 0.95rem;
              opacity: 0.9;
              margin: 0;
-             font-weight: 300;
+             line-height: 1.5;
+         }
+
+         .course-bundle-header .btn {
+             padding: 10px 20px;
+             font-size: 14px;
+             font-weight: 500;
+             border: none;
+             border-radius: 6px;
+             transition: all 0.3s ease;
+             white-space: nowrap;
+         }
+
+         .course-bundle-header .btn i {
+             margin-right: 6px;
+         }
+
+         .course-bundle-header .btn-primary {
+             background: rgba(255, 255, 255, 0.2);
+             color: white;
+             border: 1px solid rgba(255, 255, 255, 0.3);
+         }
+
+         .course-bundle-header .btn-primary:hover {
+             background: rgba(255, 255, 255, 0.3);
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+         }
+
+         .course-bundle-header .btn-success {
+             background: #28a745;
+             color: white;
+         }
+
+         .course-bundle-header .btn-success:hover {
+             background: #218838;
+             transform: translateY(-1px);
+             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
          }
          
          .course-bundle-header .selection-prompt {
@@ -1449,6 +1548,119 @@
       <!-- Select2 Plugin -->
       <link type="text/css" href="admin_html/assets/plugins/form-select2/select2.css" rel="stylesheet">
       <script src="admin_html/assets/plugins/form-select2/select2.min.js"></script>
+
+      <!-- Drag and Drop Styles -->
+      <style>
+         .drag-item {
+            cursor: move !important;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            position: relative;
+            margin-bottom: 10px;
+         }
+
+         .drag-item.dragging {
+            opacity: 0.4;
+            background-color: #e3f2fd;
+            transform: scale(0.98);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border: 2px dashed #006073;
+         }
+
+         .drag-item.drag-over::before {
+            content: '';
+            position: absolute;
+            top: -7px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #dc3545;
+            box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+            z-index: 100;
+            animation: redLinePulse 0.8s ease-in-out infinite;
+         }
+
+         @keyframes redLinePulse {
+            0%, 100% {
+               opacity: 1;
+               box-shadow: 0 0 8px rgba(220, 53, 69, 0.6);
+            }
+            50% {
+               opacity: 0.7;
+               box-shadow: 0 0 12px rgba(220, 53, 69, 0.8);
+            }
+         }
+
+         .drag-item:not(.dragging):hover {
+            background-color: #f9f9f9;
+            transform: translateX(2px);
+         }
+
+         .drag-item .row {
+            pointer-events: none;
+         }
+
+         .drag-item .btn,
+         .drag-item input[type="checkbox"] {
+            pointer-events: auto;
+         }
+
+         /* Instructor Not Mapped Styles */
+         .teacher-not-mapped:hover {
+            border-color: #006073;
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.2);
+         }
+
+         .teacher-not-mapped:hover i {
+            color: #006073;
+         }
+
+         .teacher-not-mapped:hover span {
+            color: #006073;
+         }
+
+         /* Instructor Card Selection Styles */
+         .instructor-card:hover {
+            border-color: #006073 !important;
+            background: #f8f9fa !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.15);
+         }
+
+         .instructor-card.instructor-selected {
+            border-color: #28a745 !important;
+            background: linear-gradient(to right, #e8f5e9, #ffffff) !important;
+            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+         }
+
+         .instructor-card.instructor-selected img {
+            border-color: #28a745 !important;
+         }
+
+         /* Select Course Modal Styles */
+         #selectCourseModal .table-hover tbody tr:hover {
+            background-color: #e3f2fd !important;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.15);
+         }
+
+         #selectCourseModal .table-hover tbody tr.bg-success:hover {
+            background-color: #28a745 !important;
+         }
+
+         #selectCourseModal .table thead th {
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px 8px;
+         }
+
+         #selectCourseModal .table tbody td {
+            padding: 12px 8px;
+            border-top: 1px solid #f0f0f0;
+         }
+      </style>
    </head>
 
    <body class="animated-content" ng-app="courseManagementApp" ng-controller="courseManagementController" ng-cloak> 
@@ -1481,37 +1693,29 @@
            <div class="static-sidebar-wrapper sidebar-default">
               <div class="static-sidebar">
                  <div class="sidebar">
-                    <div class="widget">
-                        <div class="widget-body">
-                            <div class="userinfo">
-                                <div class="avatar">
-                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
-                                </div>
-                                <div class="info">
-                                    <span class="username">{{profileData.name || 'Admin User'}}</span>
-                                    <span class="useremail">{{profileData.email || 'admin@vegapilot.com'}}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="widget stay-on-collapse" id="widget-sidebar">
                        <nav role="navigation" class="widget-body">
                            <ul class="acc-menu">
                               <li class="nav-separator"><span>Content Library</span></li>
                               <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
                               <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
-                              
+                              <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
+
                               <li class="nav-separator"><span>Courses</span></li>
                               <li><a href="course-management.html" class="active"><i class="ti ti-book"></i><span>Course Management</span></a></li>
-                              <li><a href="course-view.html"><i class="ti ti-eye"></i><span>Course View</span></a></li>
-                              
-                              <li class="nav-separator"><span>Exams</span></li>
+                              <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+
+                              <li class="nav-separator"><span>Exams & Quizzes</span></li>
                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
                               <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
-                              
+                              <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
+
                               <li class="nav-separator"><span>Management</span></li>
                               <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                              <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                              <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
                            </ul>
                        </nav>
                     </div>
@@ -1529,114 +1733,35 @@
                       <div class="header-content">
                          <div class="header-left">
                             <div class="welcome-section">
-                               <h2 class="welcome-title">
-                                  <i class="ti ti-layout-accordion-merged"></i>Course Management Center
+                               <h2 class="welcome-title" ng-if="!selectedCourseBundle">
+                                  <i class="ti ti-layers"></i> Course Management
                                </h2>
-                               <p class="welcome-subtitle">Organize and manage your educational content with ease</p>
-                            </div>
-                            
-                            <div class="bundle-selection-section" ng-if="!selectedCourseBundle">
-                               <div class="selection-prompt">
-                                  <i class="ti ti-arrow-right"></i>
-                                  <span>Choose a course bundle to get started</span>
-                               </div>
-                               
-                               <div class="quick-bundle-cards">
-                                  <div class="bundle-card" ng-repeat="bundle in courseBundles.slice(0, 3)" ng-click="selectCourseBundle(bundle)">
-                                     <div class="card-icon">
-                                        <i class="ti ti-book-open"></i>
-                                     </div>
-                                     <div class="card-content">
-                                        <h4>{{bundle.title}}</h4>
-                                        <p>{{bundle.description}}</p>
-                                        <div class="card-meta">
-                                           <span class="meta-item">
-                                              <i class="ti ti-folder"></i> {{bundle.modulesIncluded ? bundle.modulesIncluded.length : 0}} Modules
-                                           </span>
-                                        </div>
-                                     </div>
-                                     <div class="card-arrow">
-                                        <i class="ti ti-arrow-right"></i>
-                                     </div>
-                                  </div>
-                                  
-                                  <div class="bundle-card create-new" ng-click="addNewCourse()">
-                                     <div class="card-icon">
-                                        <i class="ti ti-plus"></i>
-                                     </div>
-                                     <div class="card-content">
-                                        <h4>Create New Bundle</h4>
-                                        <p>Start building your course from scratch</p>
-                                     </div>
-                                     <div class="card-arrow">
-                                        <i class="ti ti-arrow-right"></i>
-                                     </div>
-                                  </div>
-                               </div>
-                            </div>
-                            
-                            <div class="selected-bundle-display" ng-if="selectedCourseBundle">
-                               <div class="selected-bundle-card">
-                                  <div class="bundle-header">
-                                     <div class="bundle-icon">
-                                        <i class="ti ti-book-open"></i>
-                                     </div>
-                                     <div class="bundle-info">
-                                        <h3>{{selectedCourseBundle.title}}</h3>
-                                        <p>{{selectedCourseBundle.description}}</p>
-                                        <div class="bundle-stats">
-                                           <span class="stat-item">
-                                              <i class="fa fa-circle"></i> Active
-                                           </span>
-                                           <span class="stat-item">
-                                              <i class="ti ti-user"></i> 32 Enrollments
-                                           </span>
-                                           <span class="stat-item">
-                                              <i class="ti ti-calendar"></i> ends on 31-Dec, 2025
-                                           </span>
-                                        </div>
-                                     </div>
-                                  </div>
-                               </div>
+                               <h2 class="welcome-title" ng-if="selectedCourseBundle">
+                                  <i class="ti ti-book"></i> {{selectedCourseBundle.title}}
+                               </h2>
+                               <p class="welcome-subtitle" ng-if="selectedCourseBundle" style="background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 4px; display: inline-block; margin: 0;">
+                                  <span style="font-weight: 500;">
+                                     <i class="ti ti-folder" style="margin-right: 4px;"></i>{{filteredModules.length}} Modules
+                                  </span>
+                                  <span style="margin: 0 12px; opacity: 0.5;">|</span>
+                                  <span style="font-weight: 500;">
+                                     <i class="ti ti-list" style="margin-right: 4px;"></i>{{filteredChapters.length}} Chapters
+                                  </span>
+                                  <span style="margin: 0 12px; opacity: 0.5;" ng-if="selectedCourseBundle.bundleCode">|</span>
+                                  <span style="font-weight: 400; opacity: 0.85;" ng-if="selectedCourseBundle.bundleCode">
+                                     <i class="ti ti-tag" style="margin-right: 4px;"></i>{{selectedCourseBundle.bundleCode}}
+                                  </span>
+                               </p>
                             </div>
                          </div>
-                         
+
                          <div class="header-right">
-                            <div class="action-buttons">
-                               <button class="btn btn-success" ng-click="clearCourseBundleSelection()">
-                                  <i class="ti ti-layers" style="margin-right: 10px;"></i> Select Course
-                               </button>
-                            </div>
-                            
-                            <div class="quick-stats" ng-if="selectedCourseBundle">
-                               <div class="stat-tile">
-                                  <div class="stat-icon">
-                                     <i class="ti ti-folder"></i>
-                                  </div>
-                                  <div class="stat-content">
-                                     <span class="stat-number">{{filteredModules.length}}</span>
-                                     <span class="stat-label">Modules</span>
-                                  </div>
-                               </div>
-                               <div class="stat-tile">
-                                  <div class="stat-icon">
-                                     <i class="ti ti-list"></i>
-                                  </div>
-                                  <div class="stat-content">
-                                     <span class="stat-number">{{filteredChapters.length}}</span>
-                                     <span class="stat-label">Chapters</span>
-                                  </div>
-                               </div>
-                               <div class="stat-tile">
-                                  <div class="stat-icon">
-                                     <i class="ti ti-video-camera"></i>
-                                  </div>
-                                  <div class="stat-content">
-                                     <span class="stat-number">{{summaryTileData.totalParts}}</span>
-                                     <span class="stat-label">Parts</span>
-                                  </div>
-                               </div>
-                            </div>
+                            <button class="btn btn-primary" ng-click="clearCourseBundleSelection()" style="margin-right: 10px;">
+                               <i class="ti ti-layers"></i> Select Course
+                            </button>
+                            <button class="btn" ng-click="addNewCourse()" style="background: #ffb706; color: #006073; border: none; font-weight: 600;">
+                               <i class="ti ti-plus"></i> New Bundle
+                            </button>
                          </div>
                       </div>
                    </div>
@@ -1651,23 +1776,28 @@
                                        <i class="ti ti-info"></i> Please select a Course Bundle from the dropdown above to view its Modules and Chapters.
                                     </div>
                                     <ul class="nav nav-tabs" role="tablist">
-                                       <li role="presentation" class="active">
-                                          <a href="#modules" aria-controls="modules" role="tab" data-toggle="tab">
-                                             <i class="ti ti-folder" style="margin-right: 10px;"></i>Modules
+                                       <li role="presentation" ng-class="{'active': !editingChapterParts && activeContentTab !== 'chapters', 'disabled': editingChapterParts}">
+                                          <a href="#modules" aria-controls="modules" role="tab" data-toggle="tab" ng-click="editingChapterParts ? $event.preventDefault() : switchToModulesTab()">
+                                             <i class="ti ti-folder" style="margin-right: 10px;"></i><span ng-if="!selectedModule">Modules</span><span ng-if="selectedModule">Module: {{selectedModule.title}}</span>
                                           </a>
                                        </li>
-                                       <li role="presentation">
-                                          <a href="#chapters" aria-controls="chapters" role="tab" data-toggle="tab">
-                                             <i class="ti ti-book" style="margin-right: 10px;"></i>Chapters
+                                       <li role="presentation" ng-show="selectedModule" ng-class="{'active': !editingChapterParts && activeContentTab === 'chapters', 'disabled': editingChapterParts}">
+                                          <a href="#chapters" aria-controls="chapters" role="tab" data-toggle="tab" ng-click="editingChapterParts && $event.preventDefault()">
+                                             <i class="ti ti-book" style="margin-right: 10px;"></i><span ng-if="!editingChapterData">Chapters</span><span ng-if="editingChapterData">Chapter: {{editingChapterData.code}}. {{editingChapterData.title}}</span>
+                                          </a>
+                                       </li>
+                                       <li role="presentation" ng-show="editingChapterParts" ng-class="{'active': editingChapterParts}">
+                                          <a href="#parts" aria-controls="parts" role="tab" data-toggle="tab">
+                                             <i class="ti ti-video-camera" style="margin-right: 10px;"></i>Parts
                                           </a>
                                        </li>
                                     </ul>
 
                                     <div class="tab-content">
-                                       <div role="tabpanel" class="tab-pane active" id="modules">
+                                       <div role="tabpanel" class="tab-pane" id="modules" ng-class="{'active': !editingChapterParts && activeContentTab !== 'chapters'}">
                                           <div class="row">
                                              <div class="col-md-12" style="margin-bottom: 20px;">
-                                                <button class="btn btn-default" ng-click="addNewModule()">
+                                                <button class="btn btn-default" ng-click="addNewModule()" style="display: none;">
                                                    <i class="ti ti-plus"></i> Add New Module
                                                 </button>
                                              </div>
@@ -1675,79 +1805,100 @@
                                           
                                           <div class="row" ng-show="filteredModules.length > 0">
                                              <div class="col-md-12">
-                                                <div ng-repeat="module in filteredModules" class="module-card">
-                                                   <div class="module-header" ng-click="toggleModule(module)" ng-class="{'expanded': module.isExpanded}">
-                                                      <div class="row">
-                                                         <div class="col-md-8">
-                                                            <div class="module-info">
-                                                               <div class="expand-indicator">
-                                                                  <i class="fa" ng-class="{'fa-folder-open-o': module.isExpanded, 'fa-folder-o': !module.isExpanded}"></i>
-                                                               </div>
-                                                               <div class="module-details">
-                                                                  <h3 class="module-title">
-                                                                     {{module.title}}
-                                                                     <span class="badge badge-info" ng-if="module.isDefault">Default</span>
-                                                                  </h3>
-                                                                  <p class="text-muted no-margin">Module Key: {{module.moduleKey}} | Classification Level: {{module.classificationLevel}}</p>
-                                                               </div>
-                                                            </div>
-                                                         </div>
-                                                         <div class="col-md-4 text-right">
-                                                            <button class="btn btn-primary btn-sm" ng-click="editModule(module); $event.stopPropagation();" ng-disabled="module.isDefault">
-                                                               <i class="ti ti-pencil"></i> Modify
-                                                            </button>
+                                                <!-- Group modules by segment -->
+                                                <div ng-repeat="segmentGroup in getModulesGroupedBySegment()" style="margin-bottom: 40px;">
+                                                   <!-- Segment Separator Header -->
+                                                   <div class="row" style="margin-bottom: 20px;" ng-if="segmentGroup.segment > 0">
+                                                      <div class="col-md-12">
+                                                         <div style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,96,115,0.2);">
+                                                            <h3 style="color: white; margin: 0; font-weight: 600; font-size: 20px;">
+                                                               <i class="ti ti-bookmark-alt"></i> {{segmentGroup.name}}
+                                                               <span style="font-size: 14px; opacity: 0.9; margin-left: 10px;">({{segmentGroup.modules.length}} modules)</span>
+                                                            </h3>
                                                          </div>
                                                       </div>
                                                    </div>
-                                                   <div class="module-content" ng-show="module.isExpanded" ng-class="{'expanded': module.isExpanded}">
-                                                      <div class="row">
-                                                         <div class="col-md-12">
-                                                            <div class="chapters-table-container">
-                                                               <table class="table table-striped table-hover">
-                                                                  <thead>
-                                                                     <tr>
-                                                                        <th>Chapter</th>
-                                                                        <th>Name</th>
-                                                                        <th>Parts</th>
-                                                                        <th>Total Hours</th>
-                                                                        <th>Teacher</th>
-                                                                        <th>Status</th>
-                                                                        <th>Actions</th>
-                                                                     </tr>
-                                                                  </thead>
-                                                                  <tbody>
-                                                                     <tr ng-repeat="chapter in getChaptersForModule(module.moduleKey)">
-                                                                        <td><strong>{{chapter.code}}</strong></td>
-                                                                        <td>{{chapter.title}}</td>
-                                                                        <td>{{Object.keys(chapter.partsIncluded).length}} videos</td>
-                                                                        <td>{{calculateChapterDuration(chapter)}}</td>
-                                                                        <td>
-                                                                           <div class="teacher-info-compact">
-                                                                              <img ng-src="{{chapter.teacher.photo}}" alt="{{chapter.teacher.name}}" class="teacher-photo-tiny">
-                                                                              <span>{{chapter.teacher.name}}</span>
-                                                                           </div>
-                                                                        </td>
-                                                                        <td>
-                                                                           <span class="badge" ng-class="chapter.status == 1 ? 'badge-success' : 'badge-warning'">
-                                                                              {{chapter.status == 1 ? 'Active' : 'Inactive'}}
-                                                                           </span>
-                                                                        </td>
-                                                                        <td>
-                                                                           <button class="btn btn-xs btn-success" ng-click="toggleChapterStatus(chapter); $event.stopPropagation();" title="Toggle Status">
-                                                                              <i class="ti" ng-class="chapter.status == 1 ? 'ti-lock' : 'ti-unlock'"></i>
-                                                                           </button>
-                                                                           <button class="btn btn-xs btn-primary" ng-click="editChapter(chapter); $event.stopPropagation();" title="Modify">
-                                                                              <i class="ti ti-pencil"></i>
-                                                                           </button>
-                                                                        </td>
-                                                                     </tr>
-                                                                     <tr ng-if="getChaptersForModule(module.moduleKey).length === 0">
-                                                                        <td colspan="7" class="text-center text-muted">
-                                                                           <i class="ti ti-info"></i> No chapters assigned to this module yet
-                                                                        </td>
-                                                                     </tr>
-                                                                  </tbody>
-                                                               </table>
+
+                                                   <!-- Modules in this segment -->
+                                                   <div ng-repeat="module in segmentGroup.modules" class="module-card" ng-class="{'selected': isModuleSelected(module)}">
+                                                      <div class="module-header" ng-click="toggleModule(module)" ng-class="{'expanded': module.isExpanded}">
+                                                         <div class="row">
+                                                            <div class="col-md-8">
+                                                               <div class="module-info">
+                                                                  <div class="expand-indicator">
+                                                                     <i class="fa" ng-class="{'fa-folder-open-o': module.isExpanded, 'fa-folder-o': !module.isExpanded}"></i>
+                                                                  </div>
+                                                                  <div class="module-details">
+                                                                     <h3 class="module-title">
+                                                                        {{module.title}}
+                                                                        <span class="badge badge-success" ng-if="isModuleSelected(module)">Selected</span>
+                                                                     </h3>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                            <div class="col-md-4 text-right">
+                                                               <button class="btn btn-success btn-sm" ng-click="selectModule(module); $event.stopPropagation();">
+                                                                  <i class="ti ti-book"></i> Modify Chapters
+                                                               </button>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+
+                                                      <!-- Expandable Chapter Summary Table -->
+                                                      <div class="module-content" ng-show="module.isExpanded" ng-class="{'expanded': module.isExpanded}">
+                                                         <div class="row">
+                                                            <div class="col-md-12">
+                                                               <div class="chapters-table-container">
+                                                                  <table class="table table-striped table-hover">
+                                                                     <thead>
+                                                                        <tr>
+                                                                           <th>Chapter</th>
+                                                                           <th>Name</th>
+                                                                           <th>Parts</th>
+                                                                           <th>Total Hours</th>
+                                                                           <th>Teacher</th>
+                                                                           <th>Status</th>
+                                                                        </tr>
+                                                                     </thead>
+                                                                     <tbody>
+                                                                        <!-- Group chapters by segment using ng-repeat-start/end -->
+                                                                        <tr ng-repeat-start="segmentGroup in getChaptersGroupedBySegmentForModule(module.moduleKey)" ng-if="false"></tr>
+                                                                        <!-- Segment Separator Row -->
+                                                                        <tr class="segment-separator-row" ng-if="segmentGroup.segment > 0">
+                                                                           <td colspan="6" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 10px 15px; border-top: 2px solid #006073; border-bottom: 2px solid #006073;">
+                                                                              <strong style="color: #006073; font-size: 14px;">
+                                                                                 <i class="ti ti-bookmark-alt" style="margin-right: 8px;"></i>{{segmentGroup.name}}
+                                                                                 <span style="font-weight: 400; opacity: 0.7; margin-left: 8px;">({{segmentGroup.chapters.length}} chapters)</span>
+                                                                              </strong>
+                                                                           </td>
+                                                                        </tr>
+                                                                        <!-- Chapters in this segment -->
+                                                                        <tr ng-repeat="chapter in segmentGroup.chapters">
+                                                                           <td><strong>{{chapter.code}}</strong></td>
+                                                                           <td>{{chapter.title}}</td>
+                                                                           <td>{{getPartsCountByType(chapter)}}</td>
+                                                                           <td>{{calculateChapterDuration(chapter)}}</td>
+                                                                           <td>
+                                                                              <div class="teacher-info-compact" ng-if="chapter.teacher">
+                                                                                 <img ng-src="{{chapter.teacher.photo}}" alt="{{chapter.teacher.name}}" class="teacher-photo-tiny">
+                                                                                 <span>{{chapter.teacher.name}}</span>
+                                                                              </div>
+                                                                           </td>
+                                                                           <td>
+                                                                              <span class="badge" ng-class="chapter.status == 1 ? 'badge-success' : 'badge-warning'">
+                                                                                 {{chapter.status == 1 ? 'Active' : 'Inactive'}}
+                                                                              </span>
+                                                                           </td>
+                                                                        </tr>
+                                                                        <tr ng-repeat-end ng-if="false"></tr>
+                                                                        <tr ng-if="getChaptersForModule(module.moduleKey).length === 0">
+                                                                           <td colspan="6" class="text-center text-muted">
+                                                                              <i class="ti ti-info"></i> No chapters assigned to this module yet
+                                                                           </td>
+                                                                        </tr>
+                                                                     </tbody>
+                                                                  </table>
+                                                               </div>
                                                             </div>
                                                          </div>
                                                       </div>
@@ -1758,133 +1909,469 @@
                                        </div>
                                        
                                                                               <!-- Chapters Tab Content -->
-                                       <div role="tabpanel" class="tab-pane" id="chapters">
-                                          <div class="row">
-                                             <div class="col-md-6" style="margin-bottom: 10px;">
-                                                <button class="btn btn-default" ng-click="addNewChapter()">
-                                                   <i class="ti ti-plus"></i> Add New Chapter
-                                                </button>
-                                             </div>
-                                             <div class="col-md-6" style="margin-bottom: 10px; text-align: right;">
-                                                <label style="margin-right: 10px; font-weight: 600; color: #495057;">Filter by Module:</label>
-                                                <select class="form-control" style="display: inline-block; width: 200px;" ng-model="selectedModuleFilter" ng-change="onModuleFilterChange()">
-                                                   <option value="">All Modules</option>
-                                                   <option ng-repeat="module in availableModules" value="{{module.moduleKey}}">{{module.title}}</option>
-                                                </select>
+                                       <div role="tabpanel" class="tab-pane" id="chapters" ng-class="{'active': !editingChapterParts && activeContentTab === 'chapters'}">
+                                          <!-- No Module Selected Message -->
+                                          <div class="row" ng-hide="selectedModule">
+                                             <div class="col-md-12">
+                                                <div style="text-align: center; padding: 60px 20px; background: #f9f9f9; border-radius: 8px; border: 2px dashed #ddd;">
+                                                   <i class="ti ti-info-alt" style="font-size: 48px; color: #999; margin-bottom: 20px;"></i>
+                                                   <h4 style="color: #666; margin-bottom: 10px;">No Module Selected</h4>
+                                                   <p style="color: #999;">Please select a module from the <strong>Modules</strong> tab to view its chapters.</p>
+                                                </div>
                                              </div>
                                           </div>
-                                          <div class="row" ng-show="getFilteredChaptersForDisplay().length > 0">
-                                             <div class="col-md-12">
-                                                <div ng-repeat="chapter in getFilteredChaptersForDisplay()" class="chapter-item">
-                                                   <div class="chapter-header" ng-click="toggleChapter(chapter)" ng-class="{'expanded': chapter.isExpanded}">
-                                                      <div class="row">
-                                                         <div class="col-md-8">
-                                                            <div class="chapter-info">
-                                                               <div class="expand-indicator">
-                                                                  <i class="fa" ng-class="{'fa-folder-open-o': chapter.isExpanded, 'fa-folder-o': !chapter.isExpanded}"></i>
-                                                               </div>
-                                                               <div class="chapter-details">
-                                                                  <h4 class="chapter-title">{{chapter.title}}</h4>
-                                                                  <p class="chapter-meta">
-                                                                     <span><b>Chapter {{chapter.code}}</b> of Physics<i class="fa fa-circle separator-dot" aria-hidden="true"></i> {{Object.keys(chapter.partsIncluded).length}} parts<i class="fa fa-circle separator-dot" aria-hidden="true"></i> 45h 30m
-                                                                     </span>
-                                                                  </p>
-                                                               </div>
-                                                            </div>
-                                                         </div>
-                                                         <div class="col-md-3">
-                                                            <div class="teacher-info-simple" ng-click="$event.stopPropagation();">
-                                                               <img ng-src="{{chapter.teacher.photo}}" alt="{{chapter.teacher.name}}" class="teacher-photo-small">
-                                                               <div class="teacher-details-simple">
-                                                                  <span class="teacher-name-simple">{{chapter.teacher.name}}</span>
-                                                                  <div class="teacher-rating-simple">
-                                                                     <div class="star-rating">
-                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index)"></i>
-                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 1)"></i>
-                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 2)"></i>
-                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 3)"></i>
-                                                                        <i class="fa" ng-class="getStarClass(chapter.teacher.rating, $index + 4)"></i>
+
+                                          <div ng-show="selectedModule">
+                                             <div class="row">
+                                                <div class="col-md-12" style="margin-bottom: 20px;">
+                                                   <button class="btn btn-default" ng-click="backToModules()">
+                                                      <i class="ti ti-arrow-left"></i> Back to Modules
+                                                   </button>
+                                                   <button class="btn btn-default" ng-click="addNewChapter()" style="display: none;">
+                                                      <i class="ti ti-plus"></i> Add New Chapter
+                                                   </button>
+                                                </div>
+                                             </div>
+
+                                          <!-- Grouped by Part View (for syllabus-based chapters) -->
+                                          <div ng-show="!editingChapterParts && shouldGroupByPart() && getFilteredChaptersForDisplay().length > 0">
+                                             <div ng-repeat="partGroup in getChaptersGroupedByPart()" style="margin-bottom: 30px;">
+                                                <!-- Part Header -->
+                                                <div class="row" style="margin-bottom: 15px;">
+                                                   <div class="col-md-12">
+                                                      <h4 style="color: #006073; font-weight: 600; border-bottom: 2px solid #ffb706; padding-bottom: 10px; margin-top: 0;">
+                                                         <i class="ti ti-bookmark"></i> {{partGroup.part}}: {{partGroup.label}}
+                                                         <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 10px;">
+                                                            ({{partGroup.chapters.length}} chapters)
+                                                         </span>
+                                                      </h4>
+                                                   </div>
+                                                </div>
+                                                <!-- Chapters in this Part -->
+                                                <div class="row">
+                                                   <div class="col-md-12">
+                                                      <div ng-repeat="chapter in partGroup.chapters" class="chapter-item">
+                                                         <div class="chapter-header" ng-click="toggleChapter(chapter)" ng-class="{'expanded': chapter.isExpanded}">
+                                                            <div class="row">
+                                                               <div class="col-md-8">
+                                                                  <div class="chapter-info">
+                                                                     <div class="expand-indicator">
+                                                                        <i class="fa" ng-class="{'fa-folder-open-o': chapter.isExpanded, 'fa-folder-o': !chapter.isExpanded}"></i>
                                                                      </div>
-                                                                     <span class="rating-value">({{chapter.teacher.rating}})</span>
+                                                                     <div class="chapter-details">
+                                                                        <h4 class="chapter-title">{{chapter.title}}</h4>
+                                                                        <p class="chapter-meta">
+                                                                           <span><b>Chapter {{chapter.code}}</b> of Physics<i class="fa fa-circle separator-dot" aria-hidden="true"></i> {{getPartsCount(chapter.partsIncluded)}} parts<i class="fa fa-circle separator-dot" aria-hidden="true"></i> {{calculateChapterDuration(chapter)}}
+                                                                           </span>
+                                                                        </p>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                               <div class="col-md-3">
+                                                                  <!-- Teacher assigned -->
+                                                                  <div class="teacher-info-simple" ng-if="chapter.teacher && chapter.teacher.name !== 'Unassigned'" ng-click="showTeacherProfile(chapter); $event.stopPropagation();" style="cursor: pointer;">
+                                                                     <img ng-src="{{chapter.teacher.photo || 'assets/img/default_user.png'}}" alt="{{chapter.teacher.name}}" class="teacher-photo-small">
+                                                                     <div class="teacher-details-simple">
+                                                                        <span class="teacher-name-simple">{{chapter.teacher.name}}</span>
+                                                                        <div class="teacher-rating-simple">
+                                                                           <div class="star-rating">
+                                                                              <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 0)"></i>
+                                                                              <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 1)"></i>
+                                                                              <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 2)"></i>
+                                                                              <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 3)"></i>
+                                                                              <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 4)"></i>
+                                                                           </div>
+                                                                           <span class="rating-value">({{chapter.teacher.rating}})</span>
+                                                                        </div>
+                                                                     </div>
+                                                                  </div>
+                                                                  <!-- No teacher assigned -->
+                                                                  <div class="teacher-not-mapped" ng-if="!chapter.teacher || chapter.teacher.name === 'Unassigned'" ng-click="assignInstructorToChapter(chapter); $event.stopPropagation();" style="cursor: pointer; padding: 8px 10px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; gap: 8px; background: #f9f9f9; transition: all 0.3s ease;">
+                                                                     <i class="ti ti-user" style="font-size: 20px; color: #999;"></i>
+                                                                     <div style="text-align: left; flex: 1;">
+                                                                        <div style="color: #666; font-size: 12px; font-weight: 500; line-height: 1.2;">Not Mapped</div>
+                                                                        <div style="color: #999; font-size: 10px; line-height: 1.2;">Click to assign</div>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                               <div class="col-md-1 text-right">
+                                                                  <div class="chapter-actions">
+                                                                     <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter); $event.stopPropagation();">
+                                                                        <i class="ti ti-pencil"></i> Edit
+                                                                     </button>
                                                                   </div>
                                                                </div>
                                                             </div>
                                                          </div>
-                                                         <div class="col-md-1 text-right">
-                                                            <div class="chapter-actions">
-                                                               <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter); $event.stopPropagation();">
-                                                                  <i class="ti ti-pencil"></i> Edit
-                                                               </button>
-                                                            </div>
-                                                         </div>
-                                                      </div>
-                                                   </div>
-                                                   
-                                                   <div class="parts-list" ng-show="chapter.isExpanded" ng-class="{'expanded': chapter.isExpanded}">
-                                                      <div class="parts-grid">
-                                                         <div ng-repeat="(partNumber, part) in chapter.partsIncluded" 
-                                                              class="part-card" 
-                                                              ng-click="openVideoModal(part, chapter, partNumber)"
-                                                              ng-class="{'part-card-hover': true}">
-                                                            <div class="part-header">
-                                                               <div class="part-number-badge">{{partNumber}}</div>
-                                                               <div class="part-type-badge" ng-class="'type-' + part.type.toLowerCase()">
-                                                                  {{part.type}}
-                                                               </div>
-                                                            </div>
-                                                            <div class="part-content">
-                                                               <div class="part-thumbnail">
-                                                                  <i class="ti ti-video-camera"></i>
-                                                               </div>
-                                                               <div class="part-info">
-                                                                  <h6 class="part-title">{{getVideoTitle(part.libraryId)}}</h6>
-                                                                  <div class="part-meta">
-                                                                     <span class="skip-indicator" ng-class="{'skip-enabled': part.skipToNext}">
-                                                                        <i class="ti ti-forward"></i> Skip to Next
-                                                                     </span>
+
+                                                         <div class="parts-list" ng-show="chapter.isExpanded" ng-class="{'expanded': chapter.isExpanded}">
+                                                            <div ng-if="hasPartIncluded(chapter.partsIncluded)" style="padding: 20px; background: #f8f9fa;">
+                                                               <h5 style="margin: 0 0 15px 0; color: #006073; font-weight: 600;">
+                                                                  <i class="ti ti-layers"></i> Parts Included in This Chapter ({{getPartsCount(chapter.partsIncluded)}})
+                                                               </h5>
+                                                               <div class="list-group">
+                                                                  <div ng-repeat="(partNumber, part) in chapter.partsIncluded" class="list-group-item" style="margin-bottom: 10px; border-radius: 6px; cursor: pointer;" ng-click="openVideoModal(part, chapter, partNumber)">
+                                                                     <div class="row">
+                                                                        <div class="col-md-1">
+                                                                           <div class="part-number-badge-large">{{partNumber}}</div>
+                                                                        </div>
+                                                                        <div class="col-md-1">
+                                                                           <div class="part-type-icon">
+                                                                              <i class="ti" ng-class="{
+                                                                                 'ti-video-camera': part.type === 'VIDEO',
+                                                                                 'ti-file': part.type === 'MATERIAL',
+                                                                                 'ti-clipboard': part.type === 'QUIZ'
+                                                                              }" style="font-size: 24px;"></i>
+                                                                           </div>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                           <div>
+                                                                              <strong>{{getVideoTitle(part.libraryId)}}</strong>
+                                                                           </div>
+                                                                           <div class="text-muted" style="font-size: 12px;">
+                                                                              <span class="badge" ng-class="'badge-' + (part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : part.type === 'QUIZ' ? 'secondary' : 'warning')">{{part.type}}</span>
+                                                                              <span ng-if="part.type === 'VIDEO'" style="margin-left: 10px;">
+                                                                                 <i class="ti ti-time"></i> {{formatDuration(part.duration)}}
+                                                                              </span>
+                                                                              <span ng-if="part.type === 'QUIZ'" style="margin-left: 10px;">
+                                                                                 <i class="ti ti-clipboard"></i> {{part.totalQuestions}} Q • {{part.maximumMarks}} Marks
+                                                                              </span>
+                                                                           </div>
+                                                                        </div>
+                                                                        <div class="col-md-4 text-right">
+                                                                           <span ng-if="part.skipToNext" class="badge badge-success">
+                                                                              <i class="ti ti-forward"></i> Skip to Next Enabled
+                                                                           </span>
+                                                                           <span ng-if="!part.skipToNext" class="badge badge-secondary">
+                                                                              <i class="ti ti-control-pause"></i> No Auto-Skip
+                                                                           </span>
+                                                                        </div>
+                                                                     </div>
                                                                   </div>
                                                                </div>
                                                             </div>
-                                                            <div class="part-actions">
-                                                               <button class="btn btn-sm btn-outline-primary" ng-click="openVideoModal(part, chapter, partNumber); $event.stopPropagation();">
-                                                                  <i class="ti ti-play"></i> Play
+                                                            <div ng-if="!hasPartIncluded(chapter.partsIncluded)" class="empty-parts">
+                                                               <i class="ti ti-video-camera-off"></i>
+                                                               <h6>No Parts Added</h6>
+                                                               <p>This chapter doesn't have any parts assigned yet.</p>
+                                                               <button class="btn btn-primary btn-sm" ng-click="addPartsToChapter(chapter)">
+                                                                  <i class="ti ti-plus"></i> Add Parts
                                                                </button>
                                                             </div>
                                                          </div>
                                                       </div>
-                                                      <div ng-if="Object.keys(chapter.partsIncluded).length === 0" class="empty-parts">
-                                                         <i class="ti ti-video-camera-off"></i>
-                                                         <h6>No Video Parts</h6>
-                                                         <p>This chapter doesn't have any video parts assigned yet.</p>
-                                                         <button class="btn btn-primary btn-sm" ng-click="addPartsToChapter(chapter)">
-                                                            <i class="ti ti-plus"></i> Add Parts
-                                                         </button>
-                                                      </div>
-                                                   
-                                                   </div>
-                                                   
                                                    </div>
                                                 </div>
                                              </div>
                                           </div>
-                                          <div ng-show="getFilteredChaptersForDisplay().length === 0" class="empty-chapters">
-                                             <div class="empty-icon">
-                                                <i class="ti ti-book-open"></i>
+
+                                          <!-- Ungrouped View (for non-syllabus chapters) -->
+                                          <div ng-show="!editingChapterParts && !shouldGroupByPart() && getFilteredChaptersForDisplay().length > 0">
+                                             <div class="row">
+                                                <div class="col-md-12">
+                                                   <div ng-repeat="chapter in getFilteredChaptersForDisplay()" class="chapter-item">
+                                                      <div class="chapter-header" ng-click="toggleChapter(chapter)" ng-class="{'expanded': chapter.isExpanded}">
+                                                         <div class="row">
+                                                            <div class="col-md-8">
+                                                               <div class="chapter-info">
+                                                                  <div class="expand-indicator">
+                                                                     <i class="fa" ng-class="{'fa-folder-open-o': chapter.isExpanded, 'fa-folder-o': !chapter.isExpanded}"></i>
+                                                                  </div>
+                                                                  <div class="chapter-details">
+                                                                     <h4 class="chapter-title">{{chapter.title}}</h4>
+                                                                     <p class="chapter-meta">
+                                                                        <span><b>Chapter {{chapter.code}}</b> | {{getPartsCount(chapter.partsIncluded)}} parts<i class="fa fa-circle separator-dot" aria-hidden="true"></i> {{calculateChapterDuration(chapter)}}
+                                                                        </span>
+                                                                     </p>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                               <!-- Teacher assigned -->
+                                                               <div class="teacher-info-simple" ng-if="chapter.teacher && chapter.teacher.name !== 'Unassigned'" ng-click="showTeacherProfile(chapter); $event.stopPropagation();" style="cursor: pointer;">
+                                                                  <img ng-src="{{chapter.teacher.photo || 'assets/img/default_user.png'}}" alt="{{chapter.teacher.name}}" class="teacher-photo-small">
+                                                                  <div class="teacher-details-simple">
+                                                                     <span class="teacher-name-simple">{{chapter.teacher.name}}</span>
+                                                                     <div class="teacher-rating-simple">
+                                                                        <div class="star-rating">
+                                                                           <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 0)"></i>
+                                                                           <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 1)"></i>
+                                                                           <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 2)"></i>
+                                                                           <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 3)"></i>
+                                                                           <i class="fa" ng-class="getStarClass(chapter.teacher.rating, 4)"></i>
+                                                                        </div>
+                                                                        <span class="rating-value">({{chapter.teacher.rating}})</span>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                               <!-- No teacher assigned -->
+                                                               <div class="teacher-not-mapped" ng-if="!chapter.teacher || chapter.teacher.name === 'Unassigned'" ng-click="assignInstructorToChapter(chapter); $event.stopPropagation();" style="cursor: pointer; padding: 8px 10px; border: 2px dashed #ccc; border-radius: 6px; display: flex; align-items: center; gap: 8px; background: #f9f9f9; transition: all 0.3s ease;">
+                                                                  <i class="ti ti-user" style="font-size: 20px; color: #999;"></i>
+                                                                  <div style="text-align: left; flex: 1;">
+                                                                     <div style="color: #666; font-size: 12px; font-weight: 500; line-height: 1.2;">Not Mapped</div>
+                                                                     <div style="color: #999; font-size: 10px; line-height: 1.2;">Click to assign</div>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                            <div class="col-md-1 text-right">
+                                                               <div class="chapter-actions">
+                                                                  <button class="btn btn-primary btn-sm" ng-click="editChapter(chapter); $event.stopPropagation();">
+                                                                     <i class="ti ti-pencil"></i> Edit
+                                                                  </button>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+
+                                                      <div class="parts-list" ng-show="chapter.isExpanded" ng-class="{'expanded': chapter.isExpanded}">
+                                                         <div ng-if="hasPartIncluded(chapter.partsIncluded)" style="padding: 20px; background: #f8f9fa;">
+                                                            <h5 style="margin: 0 0 15px 0; color: #006073; font-weight: 600;">
+                                                               <i class="ti ti-layers"></i> Parts Included in This Chapter ({{getPartsCount(chapter.partsIncluded)}})
+                                                            </h5>
+                                                            <div class="list-group">
+                                                               <div ng-repeat="(partNumber, part) in chapter.partsIncluded" class="list-group-item" style="margin-bottom: 10px; border-radius: 6px; cursor: pointer;" ng-click="openVideoModal(part, chapter, partNumber)">
+                                                                  <div class="row">
+                                                                     <div class="col-md-1">
+                                                                        <div class="part-number-badge-large">{{partNumber}}</div>
+                                                                     </div>
+                                                                     <div class="col-md-1">
+                                                                        <div class="part-type-icon">
+                                                                           <i class="ti" ng-class="{
+                                                                              'ti-video-camera': part.type === 'VIDEO',
+                                                                              'ti-file': part.type === 'MATERIAL',
+                                                                              'ti-clipboard': part.type === 'QUIZ'
+                                                                           }" style="font-size: 24px;"></i>
+                                                                        </div>
+                                                                     </div>
+                                                                     <div class="col-md-6">
+                                                                        <div>
+                                                                           <strong>{{getVideoTitle(part.libraryId)}}</strong>
+                                                                        </div>
+                                                                        <div class="text-muted" style="font-size: 12px;">
+                                                                           <span class="badge" ng-class="'badge-' + (part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : part.type === 'QUIZ' ? 'secondary' : 'warning')">{{part.type}}</span>
+                                                                           <span ng-if="part.type === 'VIDEO'" style="margin-left: 10px;">
+                                                                              <i class="ti ti-time"></i> {{formatDuration(part.duration)}}
+                                                                           </span>
+                                                                           <span ng-if="part.type === 'QUIZ'" style="margin-left: 10px;">
+                                                                              <i class="ti ti-clipboard"></i> {{part.totalQuestions}} Q • {{part.maximumMarks}} Marks
+                                                                           </span>
+                                                                        </div>
+                                                                     </div>
+                                                                     <div class="col-md-4 text-right">
+                                                                        <span ng-if="part.skipToNext" class="badge badge-success">
+                                                                           <i class="ti ti-forward"></i> Skip to Next Enabled
+                                                                        </span>
+                                                                        <span ng-if="!part.skipToNext" class="badge badge-secondary">
+                                                                           <i class="ti ti-control-pause"></i> No Auto-Skip
+                                                                        </span>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                         <div ng-if="!hasPartIncluded(chapter.partsIncluded)" class="empty-parts">
+                                                            <i class="ti ti-video-camera-off"></i>
+                                                            <h6>No Parts Added</h6>
+                                                            <p>This chapter doesn't have any parts assigned yet.</p>
+                                                            <button class="btn btn-primary btn-sm" ng-click="addPartsToChapter(chapter)">
+                                                               <i class="ti ti-plus"></i> Add Parts
+                                                            </button>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                </div>
                                              </div>
-                                             <h4>No Chapters Available</h4>
-                                             <p>Create your first chapter to start organizing your course content.</p>
-                                             <button class="btn btn-primary btn-lg" ng-click="addNewChapter()">
-                                                <i class="ti ti-plus"></i> Add New Chapter
-                                             </button>
+                                          </div>
+
+                                             <!-- No Chapters in Selected Module -->
+                                             <div ng-show="!editingChapterParts && getFilteredChaptersForDisplay().length === 0" class="empty-chapters">
+                                                <div class="empty-icon">
+                                                   <i class="ti ti-book-open"></i>
+                                                </div>
+                                                <h4>No Chapters in {{selectedModule.title}}</h4>
+                                                <p>This module doesn't have any chapters yet. Create your first chapter to start organizing your content.</p>
+                                                <button class="btn btn-primary btn-lg" ng-click="addNewChapter()" style="display: none;">
+                                                   <i class="ti ti-plus"></i> Add New Chapter
+                                                </button>
+                                             </div>
                                           </div>
                                        </div>
+
+                                       <!-- Parts Tab Content -->
+                                       <div role="tabpanel" class="tab-pane" id="parts" ng-class="{'active': editingChapterParts}">
+                                          <div class="row" ng-show="editingChapterData">
+                                             <div class="col-md-12">
+                                                <div class="panel panel-default">
+                                                   <div class="panel-heading" style="background-color: #006073; color: white; display: flex; justify-content: space-between; align-items: center;">
+                                                      <h4 class="panel-title" style="margin: 0;">
+                                                         <i class="ti ti-layers"></i> Chapter: {{editingChapterData.code}}. {{editingChapterData.title}}
+                                                      </h4>
+                                                      <div>
+                                                         <button class="btn btn-success btn-sm" ng-click="saveChapterParts()" ng-disabled="!hasChapterChanges()" style="margin-right: 8px;">
+                                                            <i class="ti ti-save"></i> Save
+                                                         </button>
+                                                         <button class="btn btn-default btn-sm" ng-click="cancelChapterPartsEdit()">
+                                                            <i class="ti ti-close"></i> Cancel
+                                                         </button>
+                                                      </div>
+                                                   </div>
+                                                   <div class="panel-body">
+                                                      <!-- Selected Parts List (Now shown first) -->
+                                                      <div class="form-group">
+                                                         <label style="font-size: 16px; font-weight: bold; color: #006073;">
+                                                            <i class="ti ti-check-box"></i> Parts Included in This Chapter ({{getSelectedPartsCount()}})
+                                                            <span style="font-size: 12px; color: #999; font-weight: normal; margin-left: 10px;">
+                                                               <i class="ti ti-hand-drag"></i> Drag to reorder
+                                                            </span>
+                                                         </label>
+                                                         <div ng-show="getSelectedPartsCount() === 0" class="alert alert-info">
+                                                            <i class="ti ti-info-alt"></i> No parts added yet. Select parts from the "Add More Parts" section below to include them in this chapter.
+                                                         </div>
+                                                         <div class="list-group" ng-show="getSelectedPartsCount() > 0" style="position: relative;">
+                                                            <div ng-repeat="(partNumber, part) in getPartsArray()"
+                                                                 class="list-group-item drag-item"
+                                                                 draggable="true"
+                                                                 ng-attr-data-index="{{$index}}"
+                                                                 ng-class="{'dragging': draggedIndex === $index, 'drag-over': dragOverIndex === $index}"
+                                                                 ondragstart="angular.element(this).scope().handleDragStart(event)"
+                                                                 ondragenter="angular.element(this).scope().handleDragEnter(event)"
+                                                                 ondragleave="angular.element(this).scope().handleDragLeave(event)"
+                                                                 ondragover="angular.element(this).scope().handleDragOver(event)"
+                                                                 ondrop="angular.element(this).scope().handleDrop(event)"
+                                                                 ondragend="angular.element(this).scope().handleDragEnd(event)"
+                                                                 style="transition: all 0.3s ease; position: relative;">
+                                                               <div class="row">
+                                                                  <div class="col-md-1">
+                                                                     <div class="part-number-badge-large">{{$index + 1}}</div>
+                                                                  </div>
+                                                                  <div class="col-md-1">
+                                                                     <div class="part-type-icon">
+                                                                        <i class="ti" ng-class="{
+                                                                           'ti-video-camera': part.type === 'VIDEO',
+                                                                           'ti-file': part.type === 'MATERIAL',
+                                                                           'ti-clipboard': part.type === 'QUIZ'
+                                                                        }" style="font-size: 24px;"></i>
+                                                                     </div>
+                                                                  </div>
+                                                                  <div class="col-md-5">
+                                                                     <div>
+                                                                        <strong>{{getVideoTitle(part.libraryId)}}</strong>
+                                                                     </div>
+                                                                     <div class="text-muted" style="font-size: 12px;">
+                                                                        <span class="badge" ng-class="'badge-' + (part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : part.type === 'QUIZ' ? 'secondary' : 'warning')">{{part.type}}</span>
+                                                                        <span ng-if="part.type === 'VIDEO'" style="margin-left: 10px;">
+                                                                           <i class="ti ti-time"></i> {{formatDuration(part.duration)}}
+                                                                        </span>
+                                                                        <span ng-if="part.type === 'QUIZ'" style="margin-left: 10px;">
+                                                                           <i class="ti ti-clipboard"></i> {{part.totalQuestions}} Q • {{part.maximumMarks}} Marks
+                                                                        </span>
+                                                                     </div>
+                                                                  </div>
+                                                                  <div class="col-md-3">
+                                                                     <label class="checkbox-inline">
+                                                                        <input type="checkbox" ng-model="part.skipToNext"> Skip to Next
+                                                                     </label>
+                                                                  </div>
+                                                                  <div class="col-md-2 text-right">
+                                                                     <button class="btn btn-xs btn-danger" ng-click="removePartFromChapter($index + 1); $event.stopPropagation();">
+                                                                        <i class="ti ti-trash"></i> Remove
+                                                                     </button>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+
+                                                      <hr style="margin: 30px 0; border-top: 2px solid #ddd;">
+
+                                                      <!-- Available Parts Selection (Now shown second, for adding new parts) -->
+                                                      <div class="form-group">
+                                                         <label style="font-size: 16px; font-weight: bold; color: #666;">
+                                                            <i class="ti ti-plus"></i> Add More Parts from Library
+                                                         </label>
+                                                         <p class="text-muted" style="margin-bottom: 15px;">
+                                                            Click on any video below to add it to this chapter, or use the buttons to link quizzes and attach materials.
+                                                         </p>
+
+                                                         <!-- Action Buttons for Quiz and Material -->
+                                                         <div class="row" style="margin-bottom: 20px;">
+                                                            <div class="col-md-12">
+                                                               <button class="btn btn-primary" ng-click="openLinkQuizModal()" style="margin-right: 10px;">
+                                                                  <i class="ti ti-clipboard"></i> Link Quiz
+                                                               </button>
+                                                               <button class="btn btn-success" ng-click="openAttachMaterialModal()">
+                                                                  <i class="ti ti-file"></i> Attach Material
+                                                               </button>
+                                                            </div>
+                                                         </div>
+
+                                                         <!-- Search Bar for Content Library -->
+                                                         <div class="row" style="margin-bottom: 20px;">
+                                                            <div class="col-md-6">
+                                                               <div class="input-group">
+                                                                  <span class="input-group-addon"><i class="ti ti-search"></i></span>
+                                                                  <input type="text" class="form-control" placeholder="Search videos by title or library ID..." ng-model="contentLibrarySearch">
+                                                                  <span class="input-group-btn" ng-if="contentLibrarySearch">
+                                                                     <button class="btn btn-default" type="button" ng-click="contentLibrarySearch = ''">
+                                                                        <i class="ti ti-close"></i>
+                                                                     </button>
+                                                                  </span>
+                                                               </div>
+                                                            </div>
+                                                            <div class="col-md-6 text-right">
+                                                               <span class="text-muted" style="line-height: 34px;">
+                                                                  Showing {{(videoParts | filter:filterContentLibrary).length}} videos
+                                                               </span>
+                                                            </div>
+                                                         </div>
+
+                                                         <div class="parts-grid">
+                                                            <div ng-repeat="part in videoParts | filter:filterContentLibrary" class="part-card selectable" ng-click="togglePartSelection(part)" ng-class="{'selected': isPartSelected(part.libraryId)}">
+                                                               <div class="part-header">
+                                                                  <div class="part-type-badge" ng-class="'type-' + part.type.toLowerCase()">
+                                                                     {{part.type}}
+                                                                  </div>
+                                                                  <div class="selection-indicator" ng-show="isPartSelected(part.libraryId)">
+                                                                     <i class="fa fa-check-circle"></i>
+                                                                  </div>
+                                                               </div>
+                                                               <div class="part-content">
+                                                                  <div class="part-thumbnail">
+                                                                     <i class="ti ti-video-camera"></i>
+                                                                  </div>
+                                                                  <div class="part-info">
+                                                                     <h6 class="part-title">{{part.title}}</h6>
+                                                                     <div class="part-meta">
+                                                                        <span><i class="ti ti-time"></i> {{formatDuration(part.duration)}}</span>
+                                                                     </div>
+                                                                     <div class="part-brief" ng-if="part.brief">
+                                                                        <small class="text-muted">{{part.brief}}</small>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+
+                                                         <!-- Empty State -->
+                                                         <div ng-if="(videoParts | filter:filterContentLibrary).length === 0" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
+                                                            <i class="ti ti-video-camera" style="font-size: 48px; color: #dee2e6;"></i>
+                                                            <p class="text-muted" style="margin-top: 15px;">No videos found matching this module and chapter.</p>
+                                                         </div>
+                                                      </div>
+
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+
                                     </div>
                                  </div>
                               </div>
                            </div>
                         </div>
                      </div>
-                     
+
                      <!-- Module Creation/Editing Modal -->
                      <div class="modal fade" id="moduleModal" tabindex="-1" role="dialog" aria-labelledby="moduleModalLabel">
                         <div class="modal-dialog modal-lg" role="document">
@@ -1971,12 +2458,7 @@
                                  </form>
                               </div>
                               <div class="modal-footer">
-                                 <button type="button" class="btn btn-default" data-dismiss="modal">
-                                    <i class="ti ti-close"></i> Cancel
-                                 </button>
-                                 <button type="button" class="btn btn-primary" ng-click="saveModule()" ng-disabled="!newModule.title || !newModule.moduleKey">
-                                    <i class="ti ti-save"></i> {{editingModule ? 'Update Module' : 'Create Module'}}
-                                 </button>
+                                 <!-- Save and Cancel buttons removed as per requirements -->
                               </div>
                            </div>
                         </div>
@@ -2426,88 +2908,37 @@
                </div>
                <div class="modal-body">
                   <form class="form-horizontal">
-                     <div class="row">
-                        <div class="col-md-6">
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Bundle Title</label>
-                              <div class="col-sm-8">
-                                 <input type="text" class="form-control" ng-model="newCourseBundle.title" placeholder="Enter course bundle title" required>
-                              </div>
-                           </div>
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Bundle Code</label>
-                              <div class="col-sm-8">
-                                 <input type="text" class="form-control" ng-model="newCourseBundle.bundleCode" placeholder="Enter bundle code (e.g., CS001)" required>
-                                 <small class="help-block">Unique identifier for the course bundle</small>
-                              </div>
-                           </div>
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Subject Area</label>
-                              <div class="col-sm-8">
-                                 <select class="form-control" ng-model="newCourseBundle.subjectArea">
-                                    <option value="">Select Subject Area</option>
-                                    <option value="Science">Science</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Language">Language</option>
-                                    <option value="Arts">Arts</option>
-                                    <option value="Technology">Technology</option>
-                                    <option value="Business">Business</option>
-                                    <option value="Other">Other</option>
-                                 </select>
-                              </div>
-                           </div>
-                        </div>
-                        <div class="col-md-6">
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Difficulty Level</label>
-                              <div class="col-sm-8">
-                                 <select class="form-control" ng-model="newCourseBundle.difficultyLevel">
-                                    <option value="">Select Difficulty Level</option>
-                                    <option value="Beginner">Beginner</option>
-                                    <option value="Intermediate">Intermediate</option>
-                                    <option value="Advanced">Advanced</option>
-                                    <option value="Expert">Expert</option>
-                                 </select>
-                              </div>
-                           </div>
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Total Duration</label>
-                              <div class="col-sm-8">
-                                 <input type="text" class="form-control" ng-model="newCourseBundle.totalDuration" placeholder="e.g., 120 hours" required>
-                                 <small class="help-block">Estimated total duration for the bundle</small>
-                              </div>
-                           </div>
-                           <div class="form-group">
-                              <label class="col-sm-4 control-label">Price</label>
-                              <div class="col-sm-8">
-                                 <div class="input-group">
-                                    <span class="input-group-addon">$</span>
-                                    <input type="number" class="form-control" ng-model="newCourseBundle.price" placeholder="0.00" min="0" step="0.01">
-                                 </div>
-                                 <small class="help-block">Course bundle price</small>
-                              </div>
-                           </div>
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">Bundle Title <span style="color: red;">*</span></label>
+                        <div class="col-sm-9">
+                           <input type="text" class="form-control" ng-model="newCourseBundle.title" placeholder="Enter course bundle title" required>
+                           <small class="help-block">Enter a descriptive title for your course bundle</small>
                         </div>
                      </div>
-                     <div class="row">
-                        <div class="col-md-12">
-                           <div class="form-group">
-                              <label class="col-sm-2 control-label">Description</label>
-                              <div class="col-sm-10">
-                                 <textarea class="form-control" ng-model="newCourseBundle.description" rows="4" placeholder="Enter detailed description of the course bundle"></textarea>
-                              </div>
-                           </div>
+
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">Bundle Code <span style="color: red;">*</span></label>
+                        <div class="col-sm-9">
+                           <input type="text" class="form-control" ng-model="newCourseBundle.bundleCode" placeholder="Enter bundle code (e.g., IAT-2024)" required>
+                           <small class="help-block">Unique identifier for the course bundle</small>
                         </div>
                      </div>
-                     <div class="row">
-                        <div class="col-md-12">
-                           <div class="form-group">
-                              <label class="col-sm-2 control-label">Features</label>
-                              <div class="col-sm-10">
-                                 <textarea class="form-control" ng-model="newCourseBundle.features" rows="3" placeholder="Enter key features and benefits of this course bundle"></textarea>
-                              </div>
-                           </div>
+
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">Select Syllabus <span style="color: red;">*</span></label>
+                        <div class="col-sm-9">
+                           <select class="form-control" ng-model="newCourseBundle.syllabusCode" ng-change="onSyllabusSelected()" required>
+                              <option value="">-- Select a Syllabus --</option>
+                              <option ng-repeat="syllabus in uniqueSyllabi" value="{{syllabus.code}}">{{syllabus.name}}</option>
+                           </select>
+                           <small class="help-block">Select a syllabus to initialize modules and chapters. Segments (Plus One/Plus Two) will be used for module classification.</small>
                         </div>
+                     </div>
+
+                     <div ng-if="newCourseBundle.syllabusCode" class="alert alert-info" style="margin: 20px 15px;">
+                        <i class="ti ti-info-alt"></i> <strong>Syllabus Selected:</strong> {{getSelectedSyllabusName()}}
+                        <br>
+                        <small>Modules will be organized by segments for easier classification</small>
                      </div>
                   </form>
                </div>
@@ -2515,8 +2946,431 @@
                   <button type="button" class="btn btn-default" ng-click="cancelCourseBundleCreation()">
                      <i class="ti ti-close"></i> Cancel
                   </button>
-                  <button type="button" class="btn btn-primary" ng-click="saveCourseBundle()" ng-disabled="!newCourseBundle.title || !newCourseBundle.bundleCode">
+                  <button type="button" class="btn btn-primary" ng-click="saveCourseBundle()" ng-disabled="!newCourseBundle.title || !newCourseBundle.bundleCode || !newCourseBundle.syllabusCode">
                      <i class="ti ti-check"></i> Create Course Bundle
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Teacher Profile Modal -->
+      <div class="modal fade" id="teacherProfileModal" tabindex="-1" role="dialog" aria-labelledby="teacherProfileModalLabel">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header" style="background-color: #006073; color: white;">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="teacherProfileModalLabel">
+                     <i class="ti ti-user"></i> Instructor Profile
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="row" ng-if="selectedTeacherProfile">
+                     <div class="col-md-4 text-center">
+                        <img ng-src="{{selectedTeacherProfile.photo || 'assets/img/default_user.png'}}" alt="{{selectedTeacherProfile.name}}"
+                             style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #006073; margin-bottom: 15px;">
+                        <div class="star-rating" style="font-size: 20px; margin-bottom: 10px;">
+                           <i class="fa" ng-class="getStarClass(selectedTeacherProfile.rating, 0)"></i>
+                           <i class="fa" ng-class="getStarClass(selectedTeacherProfile.rating, 1)"></i>
+                           <i class="fa" ng-class="getStarClass(selectedTeacherProfile.rating, 2)"></i>
+                           <i class="fa" ng-class="getStarClass(selectedTeacherProfile.rating, 3)"></i>
+                           <i class="fa" ng-class="getStarClass(selectedTeacherProfile.rating, 4)"></i>
+                        </div>
+                        <p style="font-size: 18px; font-weight: bold; color: #666;">{{selectedTeacherProfile.rating}}/5.0</p>
+                        <p style="color: #999; font-size: 14px;">{{selectedTeacherProfile.studentsCount || 0}} Students</p>
+                     </div>
+                     <div class="col-md-8">
+                        <h3 style="color: #006073; margin-top: 0;">{{selectedTeacherProfile.name}}</h3>
+                        <p style="color: #666; font-size: 16px; margin-bottom: 20px;"><em>{{selectedTeacherProfile.brief || selectedTeacherProfile.about}}</em></p>
+
+                        <div style="margin-bottom: 15px;">
+                           <strong style="color: #006073;"><i class="ti ti-bookmark"></i> Specialization:</strong>
+                           <p style="margin-left: 25px; color: #666;">{{selectedTeacherProfile.specialization || selectedTeacherProfile.expertSubject}}</p>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                           <strong style="color: #006073;"><i class="ti ti-briefcase"></i> Experience:</strong>
+                           <p style="margin-left: 25px; color: #666;">{{selectedTeacherProfile.experience || 'N/A'}}</p>
+                        </div>
+
+                        <div style="margin-bottom: 15px;" ng-if="selectedTeacherProfile.education || selectedTeacherProfile.qualifications">
+                           <strong style="color: #006073;"><i class="ti ti-medall"></i> Education:</strong>
+                           <p style="margin-left: 25px; color: #666;">{{selectedTeacherProfile.education || selectedTeacherProfile.qualifications}}</p>
+                        </div>
+
+                        <div ng-if="selectedTeacherProfile.bio">
+                           <strong style="color: #006073;"><i class="ti ti-info-alt"></i> About:</strong>
+                           <p style="margin-left: 25px; color: #666;">{{selectedTeacherProfile.bio}}</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" ng-click="openChangeInstructorModal()">
+                     <i class="ti ti-reload"></i> Change Instructor
+                  </button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">
+                     <i class="ti ti-close"></i> Close
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Change Instructor Modal -->
+      <div class="modal fade" id="changeInstructorModal" tabindex="-1" role="dialog" aria-labelledby="changeInstructorModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header" style="background-color: #006073; color: white;">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="changeInstructorModalLabel">
+                     <i class="ti ti-reload"></i> Change Instructor for: {{currentChapterForTeacherChange.title}}
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="row" style="margin-bottom: 15px;">
+                     <div class="col-md-12">
+                        <div class="input-group">
+                           <span class="input-group-addon"><i class="ti ti-search"></i></span>
+                           <input type="text" class="form-control" placeholder="Search instructors by name, subject, or expertise..." ng-model="instructorSearchQuery">
+                        </div>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class="col-md-12">
+                        <div style="max-height: 450px; overflow-y: auto; padding: 5px;">
+                           <div ng-repeat="instructor in availableInstructors | filter:instructorSearchQuery"
+                                class="instructor-card"
+                                ng-class="{'instructor-selected': selectedNewInstructor.id === instructor.id}"
+                                ng-click="selectNewInstructor(instructor)"
+                                style="padding: 15px; border: 2px solid #ddd; margin-bottom: 12px; background: white; cursor: pointer; border-radius: 8px; transition: all 0.3s ease;">
+                              <div class="row">
+                                 <div class="col-md-2 text-center">
+                                    <img ng-src="{{instructor.photo || 'assets/img/default_user.png'}}"
+                                         alt="{{instructor.name}}"
+                                         style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid #ddd; object-fit: cover;">
+                                 </div>
+                                 <div class="col-md-10">
+                                    <h4 style="margin: 0 0 8px 0; color: #006073; font-weight: 600;">
+                                       {{instructor.name}}
+                                       <span ng-if="selectedNewInstructor.id === instructor.id" style="float: right; color: #28a745;">
+                                          <i class="ti ti-check-box" style="font-size: 24px;"></i>
+                                       </span>
+                                    </h4>
+                                    <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">{{instructor.brief}}</p>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; color: #777;">
+                                       <span><i class="ti ti-bookmark-alt"></i> <strong>Subject:</strong> {{instructor.expertSubject}}</span>
+                                       <span><i class="ti ti-briefcase"></i> <strong>Experience:</strong> {{instructor.experience}} years</span>
+                                       <span>
+                                          <i class="ti ti-star"></i> <strong>Rating:</strong>
+                                          <span style="color: #ffb706; font-weight: bold;">{{instructor.rating}}/5</span>
+                                       </span>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                           <div ng-if="availableInstructors.length === 0" class="text-center" style="padding: 60px 20px; color: #999;">
+                              <i class="ti ti-info-alt" style="font-size: 56px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
+                              <p style="font-size: 16px;">Loading instructors...</p>
+                           </div>
+                           <div ng-if="availableInstructors.length > 0 && (availableInstructors | filter:instructorSearchQuery).length === 0" class="text-center" style="padding: 60px 20px; color: #999;">
+                              <i class="ti ti-search" style="font-size: 56px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
+                              <p style="font-size: 16px;">No instructors found matching your search.</p>
+                              <p style="font-size: 14px; color: #bbb;">Try adjusting your search criteria</p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-primary" ng-click="confirmInstructorChange()" ng-disabled="!selectedNewInstructor.id">
+                     <i class="ti ti-check"></i> Assign Instructor
+                  </button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">
+                     <i class="ti ti-close"></i> Cancel
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Select Course Bundle Modal -->
+      <div class="modal fade" id="selectCourseModal" tabindex="-1" role="dialog" aria-labelledby="selectCourseModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header" style="background-color: #006073; color: white;">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="selectCourseModalLabel">
+                     <i class="ti ti-layers"></i> Select Course Bundle
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="row" style="margin-bottom: 20px;">
+                     <div class="col-md-12">
+                        <div class="input-group">
+                           <span class="input-group-addon"><i class="ti ti-search"></i></span>
+                           <input type="text" class="form-control" placeholder="Search course bundles by title or code..." ng-model="courseBundleSearchQuery">
+                           <span class="input-group-btn" ng-if="courseBundleSearchQuery">
+                              <button class="btn btn-default" ng-click="courseBundleSearchQuery = ''">
+                                 <i class="ti ti-close"></i>
+                              </button>
+                           </span>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="row">
+                     <div class="col-md-12">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                           <table class="table table-hover" style="margin-bottom: 0;">
+                              <thead style="background: #f8f9fa; position: sticky; top: 0; z-index: 10;">
+                                 <tr>
+                                    <th style="width: 60px;"><i class="ti ti-hash"></i></th>
+                                    <th>Course Bundle</th>
+                                    <th style="width: 150px; text-align: center;">Modules</th>
+                                    <th style="width: 150px; text-align: center;">Chapters</th>
+                                    <th style="width: 100px; text-align: center;">Status</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr ng-repeat="bundle in courseBundles | filter:courseBundleSearchQuery"
+                                     ng-click="selectCourseBundleFromModal(bundle)"
+                                     style="cursor: pointer; transition: all 0.2s ease;"
+                                     ng-class="{'bg-success': selectedCourseBundle && selectedCourseBundle.id === bundle.id}"
+                                     ng-style="selectedCourseBundle && selectedCourseBundle.id === bundle.id ? {'color': 'white'} : {}">
+                                    <td style="vertical-align: middle;">
+                                       <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #006073 0%, #008ba3 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                          <i class="ti ti-book"></i>
+                                       </div>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                       <div>
+                                          <strong style="font-size: 15px;">{{bundle.title}}</strong>
+                                          <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
+                                             Code: {{bundle.bundleCode}}
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td style="text-align: center; vertical-align: middle;">
+                                       <span style="display: inline-block; padding: 4px 12px; background: #e3f2fd; color: #1976d2; border-radius: 12px; font-weight: 500;">
+                                          {{bundle.modulesIncluded ? bundle.modulesIncluded.length : 0}}
+                                       </span>
+                                    </td>
+                                    <td style="text-align: center; vertical-align: middle;">
+                                       <span style="display: inline-block; padding: 4px 12px; background: #fff3e0; color: #f57c00; border-radius: 12px; font-weight: 500;">
+                                          {{getChapterCountForBundle(bundle)}}
+                                       </span>
+                                    </td>
+                                    <td style="text-align: center; vertical-align: middle;">
+                                       <span class="badge" ng-class="bundle.active == 1 ? 'badge-success' : 'badge-warning'">
+                                          {{bundle.active == 1 ? 'Active' : 'Inactive'}}
+                                       </span>
+                                    </td>
+                                 </tr>
+                                 <tr ng-if="courseBundles.length === 0">
+                                    <td colspan="5" class="text-center" style="padding: 60px 20px; color: #999;">
+                                       <i class="ti ti-info-alt" style="font-size: 56px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
+                                       <p style="font-size: 16px;">No course bundles available</p>
+                                       <button class="btn btn-primary" ng-click="closeSelectCourseModal(); addNewCourse();">
+                                          <i class="ti ti-plus"></i> Create Your First Bundle
+                                       </button>
+                                    </td>
+                                 </tr>
+                                 <tr ng-if="courseBundles.length > 0 && (courseBundles | filter:courseBundleSearchQuery).length === 0">
+                                    <td colspan="5" class="text-center" style="padding: 60px 20px; color: #999;">
+                                       <i class="ti ti-search" style="font-size: 56px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
+                                       <p style="font-size: 16px;">No course bundles found matching your search</p>
+                                       <p style="font-size: 14px; color: #bbb;">Try adjusting your search criteria</p>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <div class="modal-footer" style="background: #f8f9fa;">
+                  <div style="text-align: left; flex: 1; color: #666;">
+                     <i class="ti ti-info-alt"></i> Click on a row to select and open the course bundle
+                  </div>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">
+                     <i class="ti ti-close"></i> Close
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Link Quiz Modal -->
+      <div class="modal fade" id="linkQuizModal" tabindex="-1" role="dialog">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title">
+                     <i class="ti ti-clipboard"></i> Link Quiz to Chapter
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="alert alert-info" style="margin-bottom: 20px;">
+                     <i class="ti ti-info-alt"></i> Select a quiz from the list below to add it as a part in this chapter.
+                  </div>
+
+                  <!-- Search Bar -->
+                  <div class="form-group">
+                     <div class="input-group">
+                        <span class="input-group-addon"><i class="ti ti-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search quizzes by title or description..." ng-model="quizSearchQuery">
+                        <span class="input-group-btn" ng-if="quizSearchQuery">
+                           <button class="btn btn-default" type="button" ng-click="quizSearchQuery = ''">
+                              <i class="ti ti-close"></i>
+                           </button>
+                        </span>
+                     </div>
+                  </div>
+
+                  <!-- Quiz List -->
+                  <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+                     <table class="table table-hover" style="margin-bottom: 0;">
+                        <thead style="background: #f8f9fa;">
+                           <tr>
+                              <th style="width: 50px;"></th>
+                              <th>Quiz Title</th>
+                              <th style="width: 100px; text-align: center;">Questions</th>
+                              <th style="width: 100px; text-align: center;">Max Marks</th>
+                              <th style="width: 100px; text-align: center;">Duration</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr ng-repeat="quiz in availableQuizzes | filter:filterQuizzes"
+                               ng-click="selectQuizForLink(quiz)"
+                               ng-class="{'success': selectedQuizForLink.id === quiz.id}"
+                               style="cursor: pointer;">
+                              <td style="text-align: center; vertical-align: middle;">
+                                 <i class="fa" ng-class="selectedQuizForLink.id === quiz.id ? 'fa-check-circle text-success' : 'fa-circle-o'"></i>
+                              </td>
+                              <td style="vertical-align: middle;">
+                                 <strong>{{quiz.title}}</strong>
+                                 <div style="font-size: 12px; color: #666;" ng-if="quiz.description">
+                                    {{quiz.description | limitTo:80}}{{quiz.description.length > 80 ? '...' : ''}}
+                                 </div>
+                              </td>
+                              <td style="text-align: center; vertical-align: middle;">
+                                 <span class="badge badge-primary">{{quiz.totalQuestions}}</span>
+                              </td>
+                              <td style="text-align: center; vertical-align: middle;">
+                                 <span class="badge badge-info">{{quiz.maximumMarks}}</span>
+                              </td>
+                              <td style="text-align: center; vertical-align: middle;">
+                                 {{quiz.duration}} min
+                              </td>
+                           </tr>
+                           <tr ng-if="(availableQuizzes | filter:filterQuizzes).length === 0">
+                              <td colspan="5" class="text-center" style="padding: 40px; color: #999;">
+                                 <i class="ti ti-clipboard" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                                 <p ng-if="!quizSearchQuery">No published quizzes available</p>
+                                 <p ng-if="quizSearchQuery">No quizzes found matching your search</p>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" ng-click="closeLinkQuizModal()">
+                     <i class="ti ti-close"></i> Cancel
+                  </button>
+                  <button type="button" class="btn btn-primary" ng-click="linkQuizToChapter()" ng-disabled="!selectedQuizForLink">
+                     <i class="ti ti-check"></i> Link Quiz
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Attach Material Modal -->
+      <div class="modal fade" id="attachMaterialModal" tabindex="-1" role="dialog">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title">
+                     <i class="ti ti-file"></i> Attach Material (PDF)
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="alert alert-info" style="margin-bottom: 20px;">
+                     <i class="ti ti-info-alt"></i> Upload a PDF document to add it as a study material in this chapter.
+                  </div>
+
+                  <form class="form-horizontal">
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">Material Title <span class="text-danger">*</span></label>
+                        <div class="col-sm-9">
+                           <input type="text" class="form-control" ng-model="materialUpload.title" placeholder="Enter material title" required>
+                           <small class="help-block">This will be shown to students</small>
+                        </div>
+                     </div>
+
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">PDF File <span class="text-danger">*</span></label>
+                        <div class="col-sm-9">
+                           <div style="position: relative;">
+                              <input type="file"
+                                     id="materialFileInput"
+                                     accept=".pdf,application/pdf"
+                                     onchange="angular.element(this).scope().handleMaterialFileSelect(event)"
+                                     style="display: none;">
+                              <button type="button"
+                                      class="btn btn-default btn-block"
+                                      onclick="document.getElementById('materialFileInput').click()">
+                                 <i class="ti ti-upload"></i>
+                                 {{materialUpload.fileName || 'Choose PDF File'}}
+                              </button>
+                           </div>
+                           <small class="help-block">Only PDF files are allowed</small>
+                        </div>
+                     </div>
+
+                     <div class="form-group">
+                        <label class="col-sm-3 control-label">Brief Description</label>
+                        <div class="col-sm-9">
+                           <textarea class="form-control" ng-model="materialUpload.brief" rows="3" placeholder="Optional brief description of the material"></textarea>
+                        </div>
+                     </div>
+
+                     <!-- File Preview -->
+                     <div class="form-group" ng-if="materialUpload.fileName">
+                        <div class="col-sm-9 col-sm-offset-3">
+                           <div style="padding: 15px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #28a745;">
+                              <div style="display: flex; align-items: center;">
+                                 <i class="fa fa-file-pdf-o" style="font-size: 32px; color: #dc3545; margin-right: 15px;"></i>
+                                 <div>
+                                    <div style="font-weight: bold; color: #333;">{{materialUpload.fileName}}</div>
+                                    <div style="font-size: 12px; color: #666;">PDF Document</div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </form>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" ng-click="closeAttachMaterialModal()">
+                     <i class="ti ti-close"></i> Cancel
+                  </button>
+                  <button type="button" class="btn btn-success" ng-click="attachMaterialToChapter()" ng-disabled="!materialUpload.file || !materialUpload.title">
+                     <i class="ti ti-check"></i> Attach Material
                   </button>
                </div>
             </div>

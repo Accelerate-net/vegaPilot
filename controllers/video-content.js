@@ -25,7 +25,23 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     
     // Video list data
     $scope.listData = [];
-    
+    $scope.filteredVideos = [];
+
+    // Filter settings
+    $scope.showFilters = false;
+    $scope.videoFilters = {
+        searchText: '',
+        chapterId: '',
+        moduleId: '',
+        instructorId: '',
+        sortBy: '-createdOn'
+    };
+
+    // Available filter options (will be populated from data)
+    $scope.availableChapters = [];
+    $scope.availableModules = [];
+    $scope.availableInstructors = [];
+
     // New video object
     $scope.newVideo = {
         file: null,
@@ -47,19 +63,15 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     $scope.bunnyCollections = [];
     $scope.loadingCollections = false;
     $scope.creatingCollection = false;
-    $scope.bunnyNetConfig = {
-        libraryId: '475938',
-        accessKey: '5244ed1d-5f30-4ba5-8837ee980f7c-898e-4d16',
-        baseUrl: 'https://video.bunnycdn.com/library',
-        storageUrl: 'https://storage.bunnycdn.com'
-    };
+
+    // API Configuration - Use proxy server
+    var API_BASE = '/api/bunny';
     
     // Dummy data for testing
     $scope.dummyVideos = [
         {
             videoId: 20000,
             videoDisplayKey: '4a97f519-198e-4ddb-9cc0-46c019ba5875',
-            
             titleCode: 1,
             titleName: 'Introduction To Animal Kingdom',
             durationInSeconds: 2310,
@@ -71,12 +83,17 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             lastUpdatedOn: 1754809057,
             status: 1,
             thumbnail: 'https://via.placeholder.com/60x40/007bff/ffffff?text=V1',
-            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
+            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+            chapterId: 'CH001',
+            chapterName: 'Animal Kingdom Basics',
+            moduleId: 'MOD01',
+            moduleName: 'Biology Fundamentals',
+            instructorId: 'INS01',
+            instructorName: 'Dr. Sarah Johnson'
         },
         {
             videoId: 20001,
             videoDisplayKey: '7b2e8f63-2a9f-5eec-8dd1-57d12acb8f86',
-            
             titleCode: 2,
             titleName: 'Advanced Physics Concepts',
             durationInSeconds: 1845,
@@ -88,7 +105,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             lastUpdatedOn: 1754809058,
             status: 1,
             thumbnail: 'https://via.placeholder.com/60x40/28a745/ffffff?text=V2',
-            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4'
+            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+            chapterId: 'CH002',
+            chapterName: 'Mechanics',
+            moduleId: 'MOD02',
+            moduleName: 'Physics Advanced',
+            instructorId: 'INS02',
+            instructorName: 'Prof. Michael Chen'
         },
         {
             videoId: 20002,
@@ -106,7 +129,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             lastUpdatedOn: 1754809059,
             status: 1,
             thumbnail: 'https://via.placeholder.com/60x40/ffc107/ffffff?text=V3',
-            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_3mb.mp4'
+            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_3mb.mp4',
+            chapterId: 'CH003',
+            chapterName: 'Lab Safety',
+            moduleId: 'MOD03',
+            moduleName: 'Chemistry Basics',
+            instructorId: 'INS01',
+            instructorName: 'Dr. Sarah Johnson'
         },
         {
             videoId: 20003,
@@ -124,7 +153,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             lastUpdatedOn: 1754809060,
             status: 1,
             thumbnail: 'https://via.placeholder.com/60x40/dc3545/ffffff?text=V4',
-            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_4mb.mp4'
+            videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_4mb.mp4',
+            chapterId: 'CH004',
+            chapterName: 'Calculus Basics',
+            moduleId: 'MOD04',
+            moduleName: 'Mathematics Core',
+            instructorId: 'INS03',
+            instructorName: 'Dr. Emily Davis'
         },
         {
             videoId: 20004,
@@ -140,6 +175,12 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             createdOn: 1754809061,
             lastUpdatedBy: '3c4f0321-7805-4110-a8a1-18790e9de023',
             lastUpdatedOn: 1754809061,
+            chapterId: 'CH001',
+            chapterName: 'Animal Kingdom Basics',
+            moduleId: 'MOD01',
+            moduleName: 'Biology Fundamentals',
+            instructorId: 'INS02',
+            instructorName: 'Prof. Michael Chen',
             status: 1,
             thumbnail: 'https://via.placeholder.com/60x40/6f42c1/ffffff?text=V5',
             videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4'
@@ -225,6 +266,10 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         $timeout(function() {
             $scope.listData = $scope.dummyVideos;
             $scope.totalPages = 1;
+
+            // Populate filter options and apply initial filters
+            $scope.populateFilterOptions();
+            $scope.applyFilters();
         }, 500);
     };
     
@@ -258,82 +303,33 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     // Load Bunny.net collections
     $scope.loadBunnyCollections = function() {
         $scope.loadingCollections = true;
-        
-        // Make actual API call to Bunny.net
-        $scope.fetchBunnyCollections();
+
+        // Use proxy server to fetch collections
+        $http.get(API_BASE + '/folders')
+            .then(function(response) {
+                console.log('Collections loaded from proxy:', response.data);
+                $scope.bunnyCollections = response.data.map(function(folder) {
+                    return {
+                        guid: folder.id,
+                        name: folder.name,
+                        videoCount: folder.videoCount || 0
+                    };
+                });
+                $scope.loadingCollections = false;
+            })
+            .catch(function(error) {
+                console.error('Error loading collections from proxy:', error);
+                $scope.loadingCollections = false;
+                $scope.loadFallbackCollections();
+            });
     };
     
     // Load storage data from Bunny.net
     $scope.loadBunnyStorage = function() {
-        console.log('Loading storage data from Bunny.net...');
-        
-        // Set loading state
-        $scope.summaryTileData.totalStorage = 'Loading...';
-        
-        // Try multiple endpoints to get storage data
-        var endpoints = [
-            // Library info endpoint
-            $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId,
-            // Library statistics endpoint
-            $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/statistics',
-            // Library usage endpoint
-            $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/usage'
-        ];
-        
-        var tryEndpoint = function(index) {
-            if (index >= endpoints.length) {
-                // All endpoints failed, use fallback calculation
-                console.log('All storage endpoints failed, using fallback calculation');
-                $scope.calculateFallbackStorage();
-                return;
-            }
-            
-            var url = endpoints[index];
-            console.log('Trying storage endpoint:', url);
-            
-            $http.get(url, {
-                headers: {
-                    'AccessKey': $scope.bunnyNetConfig.accessKey
-                }
-            }).then(function(response) {
-                console.log('Storage API response from', url, ':', response.data);
-                
-                var storageData = response.data;
-                var storageUsed = null;
-                
-                // Try different possible field names for storage
-                if (storageData.storageUsed !== undefined) {
-                    storageUsed = storageData.storageUsed;
-                } else if (storageData.storage !== undefined) {
-                    storageUsed = storageData.storage;
-                } else if (storageData.used !== undefined) {
-                    storageUsed = storageData.used;
-                } else if (storageData.bytes !== undefined) {
-                    storageUsed = storageData.bytes;
-                } else if (storageData.size !== undefined) {
-                    storageUsed = storageData.size;
-                }
-                
-                if (storageUsed !== null && storageUsed !== undefined) {
-                    // Convert bytes to GB
-                    var storageGB = (storageUsed / (1024 * 1024 * 1024)).toFixed(2);
-                    $scope.summaryTileData.totalStorage = storageGB;
-                    console.log('✅ Storage updated from Bunny.net:', storageGB + ' GB');
-                    $scope.showToaster('Storage data updated from Bunny.net', 'success');
-                } else {
-                    console.log('No storage data found in response from', url);
-                    // Try next endpoint
-                    tryEndpoint(index + 1);
-                }
-            }).catch(function(error) {
-                console.error('Error fetching storage data from', url, ':', error);
-                // Try next endpoint
-                tryEndpoint(index + 1);
-            });
-        };
-        
-        // Start trying endpoints
-        tryEndpoint(0);
+        console.log('Loading storage data - using fallback calculation');
+        // For now, use fallback calculation
+        // TODO: Add storage endpoint to proxy server if needed
+        $scope.calculateFallbackStorage();
     };
     
     // Fallback storage calculation
@@ -691,7 +687,16 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             document.getElementById('videoFile').click();
         }
     };
-    
+
+    // Remove selected file
+    $scope.removeSelectedFile = function() {
+        if (!$scope.uploadInProgress) {
+            $scope.newVideo.file = null;
+            $scope.newVideo.durationInSeconds = null;
+            document.getElementById('videoFile').value = '';
+        }
+    };
+
     // Get video duration from file
     $scope.getVideoDuration = function(file) {
         var video = document.createElement('video');
@@ -761,19 +766,18 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         $scope.uploadVideoToBunny(selectedCollection);
     };
     
-    // Single upload method to Bunny.net
+    // Single upload method to Bunny.net via proxy server
     $scope.uploadVideoToBunny = function(selectedCollection) {
-        console.log('Uploading video to Bunny.net');
-        
-        // Use the correct Bunny.net storage endpoint
-        var filename = $scope.newVideo.file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        var uploadUrl = $scope.bunnyNetConfig.storageUrl + '/' + $scope.bunnyNetConfig.libraryId + '/' + selectedCollection.name + '/' + filename;
-        
-        console.log('Upload URL:', uploadUrl);
-        
-        // Create XMLHttpRequest for upload with progress tracking
+        console.log('Uploading video to Bunny.net via proxy server');
+
+        // Create FormData for file upload
+        var formData = new FormData();
+        formData.append('file', $scope.newVideo.file);
+        formData.append('folderId', selectedCollection.guid);
+
+        // Use XMLHttpRequest for progress tracking
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
         xhr.upload.addEventListener('progress', function(e) {
             if (e.lengthComputable) {
@@ -784,31 +788,33 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 });
             }
         });
-        
+
         // Upload complete
         xhr.addEventListener('load', function() {
             console.log('Upload response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
-                $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    $scope.handleUploadSuccess(response, selectedCollection);
+                } catch(e) {
+                    console.log('Error parsing response:', e);
+                    $scope.handleUploadError(xhr.status, 'Invalid response format');
+                }
             } else {
                 $scope.handleUploadError(xhr.status, xhr.responseText);
             }
         });
-        
+
         // Upload error
         xhr.addEventListener('error', function() {
-            console.log('Upload failed with error');
+            console.log('Upload failed with network error');
             $scope.handleUploadError('network', 'Network error occurred during upload');
         });
-        
-        // Set request headers for raw binary upload
-        xhr.open('PUT', uploadUrl);
-        xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
-        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        
-        // Send the raw file binary
-        xhr.send($scope.newVideo.file);
+
+        // Set up and send the request to proxy server
+        xhr.open('POST', API_BASE + '/upload');
+        xhr.send(formData);
     };
     
     // Method 3: Upload using fetch API with different approach
@@ -1378,9 +1384,16 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         var remainingSeconds = seconds % 60;
         return minutes + ':' + (remainingSeconds < 10 ? '0' : '') + remainingSeconds;
     };
-    
 
-    
+    // Get Bunny.net embed URL for video player
+    $scope.getBunnyEmbedUrl = function(videoId) {
+        // Bunny.net iframe embed URL format
+        // https://iframe.mediadelivery.net/embed/{libraryId}/{videoId}
+        var embedUrl = 'https://iframe.mediadelivery.net/embed/534211/' + videoId;
+        return $sce.trustAsResourceUrl(embedUrl);
+    };
+
+
     $scope.copyToClipboard = function(text, event) {
         event.stopPropagation();
         
@@ -1405,22 +1418,188 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     // Toaster notification system
     $scope.toasterVisible = false;
     $scope.toasterMessage = '';
-    
+
     $scope.showToaster = function(message, type) {
         $scope.toasterMessage = '<div class="alert alert-' + type + '">' + message + '</div>';
         $scope.toasterVisible = true;
-        
+
         $timeout(function() {
             $scope.toasterVisible = false;
         }, 3000);
     };
-    
+
+    // ===== VIDEO FILTER FUNCTIONS =====
+
+    // Populate filter dropdowns
+    $scope.populateFilterOptions = function() {
+        // Extract unique chapters from video data
+        var chaptersMap = {};
+        var modulesMap = {};
+        var instructorsMap = {};
+
+        $scope.listData.forEach(function(video) {
+            // Extract chapter info (you'll need to add chapterId and chapterName to your video data)
+            if (video.chapterId && video.chapterName) {
+                chaptersMap[video.chapterId] = video.chapterName;
+            }
+
+            // Extract module info
+            if (video.moduleId && video.moduleName) {
+                modulesMap[video.moduleId] = video.moduleName;
+            }
+
+            // Extract instructor info
+            if (video.instructorId && video.instructorName) {
+                instructorsMap[video.instructorId] = video.instructorName;
+            }
+        });
+
+        // Convert maps to arrays
+        $scope.availableChapters = Object.keys(chaptersMap).map(function(id) {
+            return { id: id, name: chaptersMap[id] };
+        });
+
+        $scope.availableModules = Object.keys(modulesMap).map(function(id) {
+            return { id: id, name: modulesMap[id] };
+        });
+
+        $scope.availableInstructors = Object.keys(instructorsMap).map(function(id) {
+            return { id: id, name: instructorsMap[id] };
+        });
+
+        console.log('Filter options populated:', {
+            chapters: $scope.availableChapters.length,
+            modules: $scope.availableModules.length,
+            instructors: $scope.availableInstructors.length
+        });
+    };
+
+    // Apply filters to video list
+    $scope.applyFilters = function() {
+        console.log('Applying filters:', $scope.videoFilters);
+
+        var filtered = $scope.listData.slice(); // Start with all videos
+
+        // Apply search filter (title or video ID)
+        if ($scope.videoFilters.searchText) {
+            var searchLower = $scope.videoFilters.searchText.toLowerCase();
+            filtered = filtered.filter(function(video) {
+                var titleMatch = video.titleName && video.titleName.toLowerCase().indexOf(searchLower) !== -1;
+                var idMatch = video.videoId && video.videoId.toString().indexOf(searchLower) !== -1;
+                var displayKeyMatch = video.videoDisplayKey && video.videoDisplayKey.toLowerCase().indexOf(searchLower) !== -1;
+                return titleMatch || idMatch || displayKeyMatch;
+            });
+        }
+
+        // Apply chapter filter
+        if ($scope.videoFilters.chapterId) {
+            filtered = filtered.filter(function(video) {
+                return video.chapterId === $scope.videoFilters.chapterId;
+            });
+        }
+
+        // Apply module filter
+        if ($scope.videoFilters.moduleId) {
+            filtered = filtered.filter(function(video) {
+                return video.moduleId === $scope.videoFilters.moduleId;
+            });
+        }
+
+        // Apply instructor filter
+        if ($scope.videoFilters.instructorId) {
+            filtered = filtered.filter(function(video) {
+                return video.instructorId === $scope.videoFilters.instructorId;
+            });
+        }
+
+        // Apply sorting
+        if ($scope.videoFilters.sortBy) {
+            var sortField = $scope.videoFilters.sortBy;
+            var isDescending = sortField.startsWith('-');
+            var field = isDescending ? sortField.substring(1) : sortField;
+
+            filtered.sort(function(a, b) {
+                var aVal = a[field];
+                var bVal = b[field];
+
+                // Handle string comparison
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal ? bVal.toLowerCase() : '';
+                }
+
+                // Handle null/undefined values
+                if (aVal === null || aVal === undefined) aVal = '';
+                if (bVal === null || bVal === undefined) bVal = '';
+
+                if (aVal < bVal) return isDescending ? 1 : -1;
+                if (aVal > bVal) return isDescending ? -1 : 1;
+                return 0;
+            });
+        }
+
+        $scope.filteredVideos = filtered;
+        console.log('Filtered results:', $scope.filteredVideos.length + ' videos');
+
+        // Update summary data
+        $scope.updateFilteredSummary();
+    };
+
+    // Clear all filters
+    $scope.clearFilters = function() {
+        $scope.videoFilters = {
+            searchText: '',
+            chapterId: '',
+            moduleId: '',
+            instructorId: '',
+            sortBy: '-createdOn'
+        };
+        $scope.applyFilters();
+    };
+
+    // Check if any filters are active
+    $scope.hasActiveFilters = function() {
+        return $scope.videoFilters.searchText ||
+               $scope.videoFilters.chapterId ||
+               $scope.videoFilters.moduleId ||
+               $scope.videoFilters.instructorId;
+    };
+
+    // Get name helpers for active filters display
+    $scope.getChapterName = function(chapterId) {
+        var chapter = $scope.availableChapters.find(function(c) { return c.id === chapterId; });
+        return chapter ? chapter.name : chapterId;
+    };
+
+    $scope.getModuleName = function(moduleId) {
+        var module = $scope.availableModules.find(function(m) { return m.id === moduleId; });
+        return module ? module.name : moduleId;
+    };
+
+    $scope.getInstructorName = function(instructorId) {
+        var instructor = $scope.availableInstructors.find(function(i) { return i.id === instructorId; });
+        return instructor ? instructor.name : instructorId;
+    };
+
+    // Update summary data for filtered results
+    $scope.updateFilteredSummary = function() {
+        if ($scope.filteredVideos.length === 0) return;
+
+        var totalDuration = $scope.filteredVideos.reduce(function(sum, video) {
+            return sum + (video.durationInSeconds || 0);
+        }, 0);
+
+        // Update summary tiles to reflect filtered data
+        $scope.summaryTileData.total = $scope.filteredVideos.length;
+        $scope.summaryTileData.totalDuration = Math.round(totalDuration / 60);
+    };
+
     // Logout function
     $scope.logoutNow = function() {
         $cookies.remove('userToken');
         window.location.href = 'login.html';
     };
-    
+
     // Initialize controller
     $scope.init();
     

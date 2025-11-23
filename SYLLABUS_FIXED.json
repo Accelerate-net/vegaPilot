@@ -1,0 +1,601 @@
+{
+    "code": "IAT_SYLLABUS",
+    "name": "IAT Syllabus",
+    "syllabus": [
+        {
+            "segment": 1,
+            "name": "Plus One",
+            "modules": [
+                {
+                    "id": 1,
+                    "moduleName": "Biology",
+                    "chapters": [
+                        {
+                            "id": 1,
+                            "chapterNumber": "1",
+                            "title": "The Living World"
+                        },
+                        {
+                            "id": 2,
+                            "chapterNumber": "2",
+                            "title": "Biological Classification"
+                        },
+                        {
+                            "id": 3,
+                            "chapterNumber": "3",
+                            "title": "Plant Kingdom"
+                        },
+                        {
+                            "id": 4,
+                            "chapterNumber": "4",
+                            "title": "Animal Kingdom"
+                        },
+                        {
+                            "id": 5,
+                            "chapterNumber": "5",
+                            "title": "Morphology of Flowering Plants"
+                        },
+                        {
+                            "id": 6,
+                            "chapterNumber": "6",
+                            "title": "Anatomy of Flowering Plants"
+                        },
+                        {
+                            "id": 7,
+                            "chapterNumber": "7",
+                            "title": "Structural Organisation in Animals"
+                        },
+                        {
+                            "id": 8,
+                            "chapterNumber": "8",
+                            "title": "Cell: The Unit Life"
+                        },
+                        {
+                            "id": 9,
+                            "chapterNumber": "9",
+                            "title": "Biomolecules"
+                        },
+                        {
+                            "id": 10,
+                            "chapterNumber": "10",
+                            "title": "Cell Cycle and Cell Division"
+                        },
+                        {
+                            "id": 11,
+                            "chapterNumber": "11",
+                            "title": "Photosynthesis in Higher Plants"
+                        },
+                        {
+                            "id": 12,
+                            "chapterNumber": "12",
+                            "title": "Respiration in Plants"
+                        },
+                        {
+                            "id": 13,
+                            "chapterNumber": "13",
+                            "title": "Plant Growth and Development"
+                        },
+                        {
+                            "id": 14,
+                            "chapterNumber": "14",
+                            "title": "Breathing and Exchange of Gases"
+                        },
+                        {
+                            "id": 15,
+                            "chapterNumber": "15",
+                            "title": "Body Fluids and Circulation"
+                        },
+                        {
+                            "id": 16,
+                            "chapterNumber": "16",
+                            "title": "Excretory Products and their Elimination"
+                        },
+                        {
+                            "id": 17,
+                            "chapterNumber": "17",
+                            "title": "Locomotion and Movement"
+                        },
+                        {
+                            "id": 18,
+                            "chapterNumber": "18",
+                            "title": "Neural Control and Coordination"
+                        },
+                        {
+                            "id": 19,
+                            "chapterNumber": "19",
+                            "title": "Chemical Coordination and Integration"
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "moduleName": "Chemistry",
+                    "chapters": [
+                        {
+                            "id": 33,
+                            "chapterNumber": "1",
+                            "title": "Some Basic Concepts of Chemistry"
+                        },
+                        {
+                            "id": 34,
+                            "chapterNumber": "2",
+                            "title": "Structure of Atom"
+                        },
+                        {
+                            "id": 35,
+                            "chapterNumber": "3",
+                            "title": "Classification of Elements and Periodicity in Properties"
+                        },
+                        {
+                            "id": 36,
+                            "chapterNumber": "4",
+                            "title": "Chemical Bonding and Molecular Structure"
+                        },
+                        {
+                            "id": 37,
+                            "chapterNumber": "5",
+                            "title": "Thermodynamics"
+                        },
+                        {
+                            "id": 38,
+                            "chapterNumber": "6",
+                            "title": "Equilibrium"
+                        },
+                        {
+                            "id": 39,
+                            "chapterNumber": "7",
+                            "title": "Redox reactions"
+                        },
+                        {
+                            "id": 40,
+                            "chapterNumber": "8",
+                            "title": "Organic Chemistry - Some basic principles and techniques"
+                        },
+                        {
+                            "id": 41,
+                            "chapterNumber": "9",
+                            "title": "Hydrocarbons"
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "moduleName": "Mathematics",
+                    "chapters": [
+                        {
+                            "id": 52,
+                            "chapterNumber": "1",
+                            "title": "Sets"
+                        },
+                        {
+                            "id": 53,
+                            "chapterNumber": "2",
+                            "title": "Relations and Functions"
+                        },
+                        {
+                            "id": 54,
+                            "chapterNumber": "3",
+                            "title": "Trigonometric Functions"
+                        },
+                        {
+                            "id": 55,
+                            "chapterNumber": "4",
+                            "title": "Complex Numbers and Quadratic Equations"
+                        },
+                        {
+                            "id": 56,
+                            "chapterNumber": "5",
+                            "title": "Linear Inequalities"
+                        },
+                        {
+                            "id": 57,
+                            "chapterNumber": "6",
+                            "title": "Permutations and Combinations"
+                        },
+                        {
+                            "id": 58,
+                            "chapterNumber": "7",
+                            "title": "Binomial Theorem"
+                        },
+                        {
+                            "id": 59,
+                            "chapterNumber": "8",
+                            "title": "Sequences and Series"
+                        },
+                        {
+                            "id": 60,
+                            "chapterNumber": "9",
+                            "title": "Straight Lines"
+                        },
+                        {
+                            "id": 61,
+                            "chapterNumber": "10",
+                            "title": "Conic Sections"
+                        },
+                        {
+                            "id": 62,
+                            "chapterNumber": "11",
+                            "title": "Introduction to Three-Dimensional Geometry"
+                        },
+                        {
+                            "id": 63,
+                            "chapterNumber": "12",
+                            "title": "Limits and Derivatives"
+                        },
+                        {
+                            "id": 64,
+                            "chapterNumber": "13",
+                            "title": "Statistics"
+                        },
+                        {
+                            "id": 65,
+                            "chapterNumber": "14",
+                            "title": "Probability"
+                        },
+                        {
+                            "id": 66,
+                            "chapterNumber": "15",
+                            "title": "Logarithm"
+                        }
+                    ]
+                },
+                {
+                    "id": 4,
+                    "moduleName": "Physics",
+                    "chapters": [
+                        {
+                            "id": 80,
+                            "chapterNumber": "1",
+                            "title": "Units and Measurement"
+                        },
+                        {
+                            "id": 81,
+                            "chapterNumber": "2",
+                            "title": "Motion in a Straight Line"
+                        },
+                        {
+                            "id": 82,
+                            "chapterNumber": "3",
+                            "title": "Motion in a Plane"
+                        },
+                        {
+                            "id": 83,
+                            "chapterNumber": "4",
+                            "title": "Laws of Motion"
+                        },
+                        {
+                            "id": 84,
+                            "chapterNumber": "5",
+                            "title": "Work, Energy and Power"
+                        },
+                        {
+                            "id": 85,
+                            "chapterNumber": "6",
+                            "title": "Systems of Particles and Rotational Motion"
+                        },
+                        {
+                            "id": 86,
+                            "chapterNumber": "7",
+                            "title": "Gravitation"
+                        },
+                        {
+                            "id": 87,
+                            "chapterNumber": "8",
+                            "title": "Mechanical Properties of Solids"
+                        },
+                        {
+                            "id": 88,
+                            "chapterNumber": "9",
+                            "title": "Mechanical Properties of Fluids"
+                        },
+                        {
+                            "id": 89,
+                            "chapterNumber": "10",
+                            "title": "Thermal Properties of Matter"
+                        },
+                        {
+                            "id": 90,
+                            "chapterNumber": "11",
+                            "title": "Thermodynamics"
+                        },
+                        {
+                            "id": 91,
+                            "chapterNumber": "12",
+                            "title": "Kinetic Theory"
+                        },
+                        {
+                            "id": 92,
+                            "chapterNumber": "13",
+                            "title": "Oscillations"
+                        },
+                        {
+                            "id": 93,
+                            "chapterNumber": "14",
+                            "title": "Waves"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "segment": 2,
+            "name": "Plus Two",
+            "modules": [
+                {
+                    "id": 1,
+                    "moduleName": "Biology",
+                    "chapters": [
+                        {
+                            "id": 20,
+                            "chapterNumber": "1",
+                            "title": "Sexual Reproduction in Flowering Plants"
+                        },
+                        {
+                            "id": 21,
+                            "chapterNumber": "2",
+                            "title": "Human Reproduction"
+                        },
+                        {
+                            "id": 22,
+                            "chapterNumber": "3",
+                            "title": "Reproductive Health"
+                        },
+                        {
+                            "id": 23,
+                            "chapterNumber": "4",
+                            "title": "Principles of Inheritance and Variation"
+                        },
+                        {
+                            "id": 24,
+                            "chapterNumber": "5",
+                            "title": "Molecular Basis of Inheritance"
+                        },
+                        {
+                            "id": 25,
+                            "chapterNumber": "6",
+                            "title": "Evolution"
+                        },
+                        {
+                            "id": 26,
+                            "chapterNumber": "7",
+                            "title": "Human Health and Disease"
+                        },
+                        {
+                            "id": 27,
+                            "chapterNumber": "8",
+                            "title": "Microbes in Human Welfare"
+                        },
+                        {
+                            "id": 28,
+                            "chapterNumber": "9",
+                            "title": "Biotechnology: Principles and Processes"
+                        },
+                        {
+                            "id": 29,
+                            "chapterNumber": "10",
+                            "title": "Biotechnology and its Applications"
+                        },
+                        {
+                            "id": 30,
+                            "chapterNumber": "11",
+                            "title": "Organisms and Populations"
+                        },
+                        {
+                            "id": 31,
+                            "chapterNumber": "12",
+                            "title": "Ecosystem"
+                        },
+                        {
+                            "id": 32,
+                            "chapterNumber": "13",
+                            "title": "Biodiversity and Conservation"
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "moduleName": "Chemistry",
+                    "chapters": [
+                        {
+                            "id": 42,
+                            "chapterNumber": "1",
+                            "title": "Solutions"
+                        },
+                        {
+                            "id": 43,
+                            "chapterNumber": "2",
+                            "title": "Electrochemistry"
+                        },
+                        {
+                            "id": 44,
+                            "chapterNumber": "3",
+                            "title": "Chemical Kinetics"
+                        },
+                        {
+                            "id": 45,
+                            "chapterNumber": "4",
+                            "title": "The d and f Blocks"
+                        },
+                        {
+                            "id": 46,
+                            "chapterNumber": "5",
+                            "title": "The Coordination Compounds"
+                        },
+                        {
+                            "id": 47,
+                            "chapterNumber": "6",
+                            "title": "Haloalkenes and Haloarenes"
+                        },
+                        {
+                            "id": 48,
+                            "chapterNumber": "7",
+                            "title": "Alcohols Phenols and Ethers"
+                        },
+                        {
+                            "id": 49,
+                            "chapterNumber": "8",
+                            "title": "Aldehydes Ketones and Carboxylic Acids"
+                        },
+                        {
+                            "id": 50,
+                            "chapterNumber": "9",
+                            "title": "Amines"
+                        },
+                        {
+                            "id": 51,
+                            "chapterNumber": "10",
+                            "title": "Biomolecules"
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "moduleName": "Mathematics",
+                    "chapters": [
+                        {
+                            "id": 67,
+                            "chapterNumber": "1",
+                            "title": "Relations and Functions"
+                        },
+                        {
+                            "id": 68,
+                            "chapterNumber": "2",
+                            "title": "Inverse Trigonometric Functions"
+                        },
+                        {
+                            "id": 69,
+                            "chapterNumber": "3",
+                            "title": "Matrices"
+                        },
+                        {
+                            "id": 70,
+                            "chapterNumber": "4",
+                            "title": "Determinants"
+                        },
+                        {
+                            "id": 71,
+                            "chapterNumber": "5",
+                            "title": "Continuity and Differentiability"
+                        },
+                        {
+                            "id": 72,
+                            "chapterNumber": "6",
+                            "title": "Application of Derivatives"
+                        },
+                        {
+                            "id": 73,
+                            "chapterNumber": "7",
+                            "title": "Integrals"
+                        },
+                        {
+                            "id": 74,
+                            "chapterNumber": "8",
+                            "title": "Application of Integrals"
+                        },
+                        {
+                            "id": 75,
+                            "chapterNumber": "9",
+                            "title": "Differential Equations"
+                        },
+                        {
+                            "id": 76,
+                            "chapterNumber": "10",
+                            "title": "Vector Algebra"
+                        },
+                        {
+                            "id": 77,
+                            "chapterNumber": "11",
+                            "title": "Three Dimensional Geometry"
+                        },
+                        {
+                            "id": 78,
+                            "chapterNumber": "12",
+                            "title": "Linear Programming"
+                        },
+                        {
+                            "id": 79,
+                            "chapterNumber": "13",
+                            "title": "Probability"
+                        }
+                    ]
+                },
+                {
+                    "id": 4,
+                    "moduleName": "Physics",
+                    "chapters": [
+                        {
+                            "id": 94,
+                            "chapterNumber": "1",
+                            "title": "Electric Charges and Fields"
+                        },
+                        {
+                            "id": 95,
+                            "chapterNumber": "2",
+                            "title": "Electrostatic Potential and Capacitance"
+                        },
+                        {
+                            "id": 96,
+                            "chapterNumber": "3",
+                            "title": "Current Electricity"
+                        },
+                        {
+                            "id": 97,
+                            "chapterNumber": "4",
+                            "title": "Moving Charges and Magnetism"
+                        },
+                        {
+                            "id": 98,
+                            "chapterNumber": "5",
+                            "title": "Magnetism and Matter"
+                        },
+                        {
+                            "id": 99,
+                            "chapterNumber": "6",
+                            "title": "Electromagnetic Induction"
+                        },
+                        {
+                            "id": 100,
+                            "chapterNumber": "7",
+                            "title": "Alternating Current"
+                        },
+                        {
+                            "id": 101,
+                            "chapterNumber": "8",
+                            "title": "Electromagnetic Waves"
+                        },
+                        {
+                            "id": 102,
+                            "chapterNumber": "9",
+                            "title": "Ray Optics and Optical Instruments"
+                        },
+                        {
+                            "id": 103,
+                            "chapterNumber": "10",
+                            "title": "Wave Optics"
+                        },
+                        {
+                            "id": 104,
+                            "chapterNumber": "11",
+                            "title": "Dual Nature of Radiation and Matter"
+                        },
+                        {
+                            "id": 105,
+                            "chapterNumber": "12",
+                            "title": "Atoms"
+                        },
+                        {
+                            "id": 106,
+                            "chapterNumber": "13",
+                            "title": "Nuclei"
+                        },
+                        {
+                            "id": 107,
+                            "chapterNumber": "14",
+                            "title": "Semiconductor Electronics: Materials, Devices and Simple Circuits"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

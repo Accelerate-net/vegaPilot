@@ -1559,29 +1559,37 @@
            <div class="static-sidebar-wrapper sidebar-default">
               <div class="static-sidebar">
                  <div class="sidebar">
+                    <div class="widget">
+                        <div class="widget-body">
+                            <div class="userinfo">
+                                <div class="avatar">
+                                    <img src="assets/img/default_user.png" class="img-responsive img-circle"> 
+                                </div>
+                                <div class="info">
+                                    <span class="username">{{profileData.name || 'Admin User'}}</span>
+                                    <span class="useremail">{{profileData.email || 'admin@vegapilot.com'}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="widget stay-on-collapse" id="widget-sidebar">
                        <nav role="navigation" class="widget-body">
                            <ul class="acc-menu">
                               <li class="nav-separator"><span>Content Library</span></li>
                               <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
-                              <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
                               <li><a href="video-content.html" class="active"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
-                              <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
-
+                              
                               <li class="nav-separator"><span>Courses</span></li>
                               <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
-                              <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
-
-                              <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                              <li><a href="course-view.html"><i class="ti ti-eye"></i><span>Course View</span></a></li>
+                              
+                              <li class="nav-separator"><span>Exams</span></li>
                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
                               <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
-                              <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
-
+                              
                               <li class="nav-separator"><span>Management</span></li>
                               <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
-                              <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
-                              <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
                            </ul>
                        </nav>
                     </div>
@@ -1839,126 +1847,380 @@
 
                               <div class="panel-body">
                                  <!-- Upload Progress -->
-                                 <div ng-if="uploadInProgress" class="alert alert-info">
-                                    <strong>Uploading... {{uploadProgress}}%</strong>
-                                    <div class="progress" style="margin-top: 10px;">
-                                       <div class="progress-bar progress-bar-striped active" role="progressbar" ng-style="{'width': uploadProgress + '%'}"></div>
+                                 <div ng-if="uploadInProgress" style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 2px solid #667eea; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                       <div style="display: flex; align-items: center; gap: 12px;">
+                                          <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+                                             <i class="ti ti-cloud-up" style="font-size: 20px; color: white;"></i>
+                                          </div>
+                                          <div>
+                                             <div style="font-size: 18px; font-weight: 700; color: #333; margin-bottom: 4px;">
+                                                <span ng-if="uploadProgress < 100">Uploading to Bunny.net Cloud</span>
+                                                <span ng-if="uploadProgress >= 100" style="color: #28a745;">
+                                                   <i class="ti ti-check"></i> Upload Complete!
+                                                </span>
+                                             </div>
+                                             <div style="font-size: 13px; color: #6c757d;" ng-if="uploadProgress < 100">
+                                                {{newVideo.file.name}} • {{(newVideo.file.size / (1024*1024)).toFixed(2)}} MB
+                                             </div>
+                                          </div>
+                                       </div>
+                                       <div style="font-size: 28px; font-weight: 700; color: #667eea;">{{uploadProgress}}%</div>
+                                    </div>
+
+                                    <!-- Progress Bar with Animation -->
+                                    <div style="width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                                       <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 6px; transition: width 0.4s ease-out; position: relative; overflow: hidden;"
+                                            ng-style="{'width': uploadProgress + '%'}">
+                                          <div style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2s infinite;"></div>
+                                       </div>
+                                    </div>
+
+                                    <!-- Status Message -->
+                                    <div style="margin-top: 15px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #667eea;">
+                                       <div style="font-size: 14px; color: #495057; font-weight: 500;">
+                                          <i class="ti ti-info-circle" style="color: #667eea; margin-right: 6px;"></i>
+                                          <span ng-if="uploadProgress < 30">Preparing video file for upload...</span>
+                                          <span ng-if="uploadProgress >= 30 && uploadProgress < 60">Transferring data to cloud storage...</span>
+                                          <span ng-if="uploadProgress >= 60 && uploadProgress < 90">Processing and optimizing video...</span>
+                                          <span ng-if="uploadProgress >= 90 && uploadProgress < 100">Finalizing upload...</span>
+                                          <span ng-if="uploadProgress >= 100" style="color: #28a745;">Video successfully uploaded to {{newVideo.collectionName}}!</span>
+                                       </div>
                                     </div>
                                  </div>
 
-                                 <!-- Error Display -->
-                                 <div ng-if="uploadStatus && uploadStatus.type === 'error'" class="alert alert-danger">
-                                    <strong>Error!</strong> {{uploadStatus.message}}
+                                 <!-- Success Message -->
+                                 <div class="upload-success" ng-if="uploadStatus && uploadStatus.type === 'success'" style="margin-bottom: 20px;">
+                                    <div class="alert alert-success" style="border-left: 4px solid #28a745; background: #d4edda; border: 1px solid #c3e6cb;">
+                                       <i class="ti ti-check-circle" style="font-size: 20px;"></i>
+                                       <strong>Success!</strong> {{uploadStatus.message}}
+                                    </div>
                                  </div>
+
+                                 <!-- Error Display (if any) -->
+                                 <div class="upload-error" ng-if="uploadStatus && uploadStatus.type === 'error'" style="margin-bottom: 20px;">
+                                    <div class="alert alert-danger" style="border-left: 4px solid #dc3545;">
+                                       <i class="ti ti-alert" style="font-size: 20px;"></i>
+                                       <strong>Error!</strong> {{uploadStatus.message}}
+                                    </div>
+                                 </div>
+
+                                 <style>
+                                    @keyframes pulse {
+                                       0%, 100% { transform: scale(1); opacity: 1; }
+                                       50% { transform: scale(1.05); opacity: 0.9; }
+                                    }
+                                    @keyframes shimmer {
+                                       0% { transform: translateX(-100%); }
+                                       100% { transform: translateX(100%); }
+                                    }
+                                 </style>
 
                                  <form class="form-horizontal" enctype="multipart/form-data">
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Video File</label>
-                                       <div class="col-sm-10">
-                                          <input type="file" id="videoFile" accept="video/*"
-                                                 onchange="angular.element(this).scope().onVideoFileSelect(event)"
-                                                 ng-disabled="uploadInProgress">
-                                          <p ng-if="newVideo.file" class="help-block">
-                                             <strong>{{newVideo.file.name}}</strong> ({{(newVideo.file.size / (1024*1024)).toFixed(2)}} MB)
-                                          </p>
-                                       </div>
-                                    </div>
+                                       <div class="row">
+                                          <div class="col-md-12">
+                                             <div class="form-group">
+                                                <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 15px; display: block; font-size: 15px;">
+                                                   <i class="ti ti-video-camera" style="color: #667eea; margin-right: 8px;"></i>
+                                                   Video File
+                                                </label>
+                                                <div class="col-sm-12" style="padding: 0;">
+                                                   <!-- Dropzone Area - Enhanced -->
+                                                   <div ng-if="!newVideo.file"
+                                                        class="dropzone-area"
+                                                        ng-class="{'dragover': isDragOver, 'disabled': uploadInProgress}"
+                                                        ng-drop="true"
+                                                        ng-drop-success="onVideoFileSelect($event)"
+                                                        ng-drag-over="isDragOver = true"
+                                                        ng-drag-leave="isDragOver = false"
+                                                        ng-click="!uploadInProgress && document.getElementById('videoFile').click()"
+                                                        style="border: 3px dashed #667eea;
+                                                               border-radius: 12px;
+                                                               padding: 40px;
+                                                               text-align: center;
+                                                               background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                                                               cursor: pointer;
+                                                               transition: all 0.3s ease;
+                                                               position: relative;
+                                                               overflow: hidden;"
+                                                        onmouseover="this.style.borderColor='#764ba2'; this.style.background='linear-gradient(135deg, #fff 0%, #f8f9fa 100%)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.2)';"
+                                                        onmouseout="this.style.borderColor='#667eea'; this.style.background='linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)'; this.style.boxShadow='none';">
 
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Title</label>
-                                       <div class="col-sm-10">
-                                          <input type="text" class="form-control" ng-model="newVideo.titleName"
-                                                 placeholder="Enter video title" maxlength="80" ng-disabled="uploadInProgress">
-                                       </div>
-                                    </div>
+                                                      <div style="position: relative; z-index: 1;">
+                                                         <div style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                                                            <i class="ti ti-cloud-up" style="font-size: 36px; color: white;"></i>
+                                                         </div>
 
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Number Code</label>
-                                       <div class="col-sm-10">
-                                          <input type="number" class="form-control" ng-model="newVideo.titleCode"
-                                                 placeholder="Index or Part Number" ng-disabled="uploadInProgress">
-                                       </div>
-                                    </div>
+                                                         <h3 style="color: #333; font-weight: 600; margin-bottom: 10px;">Drop your video here</h3>
+                                                         <p style="color: #6c757d; margin-bottom: 20px; font-size: 14px;">or click to browse from your computer</p>
 
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Cloud Folder</label>
-                                       <div class="col-sm-10">
-                                          <div class="input-group">
-                                             <select class="form-control" ng-model="newVideo.collectionName" ng-change="onCollectionChange()" ng-disabled="uploadInProgress">
-                                                <option value="">Select folder</option>
-                                                <option ng-repeat="collection in bunnyCollections" value="{{collection.name}}">
-                                                   {{collection.name}} ({{collection.videoCount}} videos)
-                                                </option>
-                                                <option value="__custom__">+ Create New</option>
-                                             </select>
-                                             <span class="input-group-btn">
-                                                <button type="button" class="btn btn-default" ng-click="refreshCollections()" ng-disabled="loadingCollections || uploadInProgress">
-                                                   <i class="fa fa-refresh" ng-class="{'fa-spin': loadingCollections}"></i>
-                                                </button>
-                                             </span>
+                                                         <button type="button" class="btn btn-primary" ng-click="selectVideoFile(); $event.stopPropagation();" ng-disabled="uploadInProgress"
+                                                                 style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 12px 30px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                                                            <i class="ti ti-folder" style="margin-right: 8px;"></i> Browse Files
+                                                         </button>
+
+                                                         <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; display: inline-block;">
+                                                            <small style="color: #6c757d; font-size: 12px;">
+                                                               <i class="ti ti-info-circle" style="color: #667eea;"></i>
+                                                               <strong>Supported:</strong> MP4, AVI, MOV, WMV, FLV, WebM, MKV • <strong>Max:</strong> 500MB
+                                                            </small>
+                                                         </div>
+                                                      </div>
+
+                                                      <input type="file" class="form-control" id="videoFile" accept="video/*"
+                                                             onchange="angular.element(this).scope().onVideoFileSelect(event)"
+                                                             style="display: none;"
+                                                             ng-disabled="uploadInProgress">
+                                                   </div>
+
+                                                   <!-- File Info Display - Enhanced -->
+                                                   <div ng-if="newVideo.file" style="padding: 25px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 12px; border: 2px solid #28a745; position: relative;">
+                                                      <div style="position: absolute; top: 15px; right: 15px;">
+                                                         <button type="button" class="btn btn-sm" ng-click="removeSelectedFile()" ng-disabled="uploadInProgress"
+                                                                 style="background: white; border: 2px solid #28a745; color: #28a745; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                                                            <i class="ti ti-close"></i> Remove
+                                                         </button>
+                                                      </div>
+
+                                                      <div style="display: flex; align-items: start; gap: 20px;">
+                                                         <div style="width: 60px; height: 60px; border-radius: 10px; background: linear-gradient(135deg, #28a745, #20c997); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                            <i class="ti ti-check-circle" style="font-size: 28px; color: white;"></i>
+                                                         </div>
+
+                                                         <div style="flex: 1;">
+                                                            <h4 style="color: #155724; margin: 0 0 12px 0; font-weight: 700;">
+                                                               <i class="ti ti-file-video"></i> Video File Selected
+                                                            </h4>
+
+                                                            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb;">
+                                                               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                                                  <div>
+                                                                     <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">File Name</div>
+                                                                     <div style="font-size: 14px; color: #333; font-weight: 500; word-break: break-all;">{{newVideo.file.name}}</div>
+                                                                  </div>
+                                                                  <div>
+                                                                     <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">File Size</div>
+                                                                     <div style="font-size: 14px; color: #333; font-weight: 500;">{{(newVideo.file.size / (1024*1024)).toFixed(2)}} MB</div>
+                                                                  </div>
+                                                                  <div>
+                                                                     <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">File Type</div>
+                                                                     <div style="font-size: 14px; color: #333; font-weight: 500;">{{newVideo.file.type || 'video/*'}}</div>
+                                                                  </div>
+                                                                  <div>
+                                                                     <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Status</div>
+                                                                     <div>
+                                                                        <span class="label label-success" style="background: #28a745; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                                           <i class="ti ti-check"></i> Ready to Upload
+                                                                        </span>
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
                                           </div>
-                                          <p ng-if="loadingCollections" class="help-block">Loading folders...</p>
-                                          <p ng-if="!loadingCollections && bunnyCollections.length > 0" class="help-block text-success">
-                                             {{bunnyCollections.length}} folders available
-                                          </p>
-                                       </div>
-                                    </div>
 
-                                    <div ng-if="newVideo.collectionName === '__custom__'" class="form-group">
-                                       <label class="col-sm-2 control-label">New Folder Name</label>
-                                       <div class="col-sm-10">
-                                          <div class="input-group">
-                                             <input type="text" class="form-control" ng-model="newVideo.customCollectionName"
-                                                    placeholder="Enter folder name" maxlength="50" ng-disabled="uploadInProgress">
-                                             <span class="input-group-btn">
-                                                <button type="button" class="btn btn-success" ng-click="createCollection()"
-                                                        ng-disabled="!newVideo.customCollectionName || creatingCollection || uploadInProgress">
-                                                   <i class="ti ti-plus"></i> Create
-                                                </button>
-                                             </span>
+                                          <!-- Video Metadata Form -->
+                                          <div class="col-md-12" style="margin-top: 25px;">
+                                             <div style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #e9ecef;">
+                                                <h4 style="color: #333; font-weight: 700; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f8f9fa;">
+                                                   <i class="ti ti-settings" style="color: #667eea;"></i> Video Details
+                                                </h4>
+
+                                                <div class="row">
+                                                   <!-- Title -->
+                                                   <div class="col-md-8">
+                                                      <div class="form-group" style="margin-bottom: 20px;">
+                                                         <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 14px;">
+                                                            <i class="ti ti-text" style="color: #667eea; margin-right: 6px;"></i>
+                                                            Video Title *
+                                                         </label>
+                                                         <input type="text" class="form-control" ng-model="newVideo.titleName"
+                                                                placeholder="e.g., Introduction to Python Programming"
+                                                                maxlength="80"
+                                                                ng-disabled="uploadInProgress"
+                                                                style="border: 2px solid #e9ecef; border-radius: 8px; padding: 12px 15px; font-size: 14px; transition: all 0.3s ease;"
+                                                                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                                                                onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
+                                                      </div>
+                                                   </div>
+
+                                                   <!-- Number Code -->
+                                                   <div class="col-md-4">
+                                                      <div class="form-group" style="margin-bottom: 20px;">
+                                                         <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 14px;">
+                                                            <i class="ti ti-hash" style="color: #667eea; margin-right: 6px;"></i>
+                                                            Part Number
+                                                         </label>
+                                                         <input type="number" class="form-control" ng-model="newVideo.titleCode"
+                                                                placeholder="e.g., 1, 2, 3..."
+                                                                ng-disabled="uploadInProgress"
+                                                                style="border: 2px solid #e9ecef; border-radius: 8px; padding: 12px 15px; font-size: 14px; transition: all 0.3s ease;"
+                                                                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                                                                onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
+                                                      </div>
+                                                   </div>
+
+                                                   <!-- Cloud Storage Folder -->
+                                                   <div class="col-md-12">
+                                                      <div class="form-group" style="margin-bottom: 20px;">
+                                                         <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 14px;">
+                                                            <i class="ti ti-folder" style="color: #667eea; margin-right: 6px;"></i>
+                                                            Cloud Storage Folder *
+                                                         </label>
+                                                         <div class="input-group">
+                                                            <select class="form-control" ng-model="newVideo.collectionName"
+                                                                    ng-change="onCollectionChange()"
+                                                                    ng-disabled="uploadInProgress"
+                                                                    style="border: 2px solid #e9ecef; border-radius: 8px 0 0 8px; padding: 12px 15px; font-size: 14px; height: 48px;">
+                                                               <option value="">Select a folder on Bunny.net</option>
+                                                               <option ng-repeat="collection in bunnyCollections" value="{{collection.name}}">
+                                                                  {{collection.name}} ({{collection.videoCount}} videos)
+                                                               </option>
+                                                               <option value="__custom__">+ Create New Folder</option>
+                                                            </select>
+                                                            <span class="input-group-btn">
+                                                               <button type="button" class="btn btn-info" ng-click="refreshCollections()"
+                                                                       ng-disabled="loadingCollections || uploadInProgress"
+                                                                       style="height: 48px; padding: 0 20px; border-radius: 0 8px 8px 0; border: 2px solid #17a2b8; border-left: none;">
+                                                                  <i class="fa fa-refresh" ng-class="{'fa-spin': loadingCollections}"></i>
+                                                               </button>
+                                                            </span>
+                                                         </div>
+
+                                                         <!-- Collections Status -->
+                                                         <div class="collections-status" style="margin-top: 10px;">
+                                                            <div ng-if="loadingCollections" style="padding: 10px; background: #d1ecf1; border-radius: 6px; border-left: 4px solid #17a2b8;">
+                                                               <i class="fa fa-spinner fa-spin" style="color: #17a2b8;"></i>
+                                                               <span style="color: #0c5460; font-size: 13px; font-weight: 500;"> Loading folders from Cloud Storage...</span>
+                                                            </div>
+                                                            <div ng-if="!loadingCollections && bunnyCollections.length === 0" style="padding: 10px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+                                                               <i class="ti ti-alert" style="color: #856404;"></i>
+                                                               <span style="color: #856404; font-size: 13px; font-weight: 500;"> No folders found.</span>
+                                                               <button type="button" class="btn btn-xs btn-warning" ng-click="testBunnyConnection()" style="margin-left: 8px;">
+                                                                  Test Connection
+                                                               </button>
+                                                            </div>
+                                                            <div ng-if="!loadingCollections && bunnyCollections.length > 0" style="padding: 10px; background: #d4edda; border-radius: 6px; border-left: 4px solid #28a745;">
+                                                               <i class="ti ti-check" style="color: #155724;"></i>
+                                                               <span style="color: #155724; font-size: 13px; font-weight: 500;"> {{bunnyCollections.length}} folders available</span>
+                                                            </div>
+                                                         </div>
+
+                                                         <!-- Custom Collection Input -->
+                                                         <div ng-if="newVideo.collectionName === '__custom__'" style="margin-top: 12px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #667eea;">
+                                                            <label style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 13px;">
+                                                               <i class="ti ti-plus" style="color: #667eea;"></i> Create New Folder
+                                                            </label>
+                                                            <div class="input-group">
+                                                               <input type="text" class="form-control" ng-model="newVideo.customCollectionName"
+                                                                      placeholder="Enter folder name (e.g., Python Course)"
+                                                                      maxlength="50"
+                                                                      ng-disabled="uploadInProgress"
+                                                                      style="border: 2px solid #e9ecef; border-radius: 6px 0 0 6px; padding: 10px 15px;">
+                                                               <span class="input-group-btn">
+                                                                  <button type="button" class="btn btn-success" ng-click="createCollection()"
+                                                                          ng-disabled="!newVideo.customCollectionName || creatingCollection || uploadInProgress"
+                                                                          style="border-radius: 0 6px 6px 0; padding: 10px 20px; font-weight: 600;">
+                                                                     <i class="ti ti-plus"></i> Create
+                                                                  </button>
+                                                               </span>
+                                                            </div>
+                                                         </div>
+                                                      </div>
+                                                   </div>
+
+                                                   <!-- Classification Levels -->
+                                                   <div class="col-md-6">
+                                                      <div class="form-group" style="margin-bottom: 20px;">
+                                                         <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 14px;">
+                                                            <i class="ti ti-bookmark" style="color: #667eea; margin-right: 6px;"></i>
+                                                            Classification Level 1
+                                                         </label>
+                                                         <select class="form-control" ng-model="newVideo.classificationLevel1"
+                                                                 ng-disabled="uploadInProgress"
+                                                                 style="border: 2px solid #e9ecef; border-radius: 8px; padding: 12px 15px; font-size: 14px; height: 48px;">
+                                                            <option value="">Select Level 1</option>
+                                                            <option value="1">Level 1 - Beginner</option>
+                                                            <option value="2">Level 2 - Intermediate</option>
+                                                            <option value="3">Level 3 - Advanced</option>
+                                                            <option value="4">Level 4 - Expert</option>
+                                                            <option value="5">Level 5 - Master</option>
+                                                         </select>
+                                                      </div>
+                                                   </div>
+
+                                                   <div class="col-md-6">
+                                                      <div class="form-group" style="margin-bottom: 20px;">
+                                                         <label class="control-label" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block; font-size: 14px;">
+                                                            <i class="ti ti-bookmark-alt" style="color: #667eea; margin-right: 6px;"></i>
+                                                            Classification Level 2
+                                                         </label>
+                                                         <select class="form-control" ng-model="newVideo.classificationLevel2"
+                                                                 ng-disabled="uploadInProgress"
+                                                                 style="border: 2px solid #e9ecef; border-radius: 8px; padding: 12px 15px; font-size: 14px; height: 48px;">
+                                                            <option value="">Select Level 2</option>
+                                                            <option value="1">Level 1 - Basic</option>
+                                                            <option value="2">Level 2 - Standard</option>
+                                                            <option value="3">Level 3 - Enhanced</option>
+                                                            <option value="4">Level 4 - Premium</option>
+                                                            <option value="5">Level 5 - Elite</option>
+                                                         </select>
+                                                      </div>
+                                                   </div>
+                                                </div>
+                                             </div>
                                           </div>
                                        </div>
-                                    </div>
+                                    </form>
 
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Classification Level 1</label>
-                                       <div class="col-sm-10">
-                                          <select class="form-control" ng-model="newVideo.classificationLevel1" ng-disabled="uploadInProgress">
-                                             <option value="">Select Level 1</option>
-                                             <option value="1">Level 1 - Beginner</option>
-                                             <option value="2">Level 2 - Intermediate</option>
-                                             <option value="3">Level 3 - Advanced</option>
-                                             <option value="4">Level 4 - Expert</option>
-                                             <option value="5">Level 5 - Master</option>
-                                          </select>
+                                    <!-- Upload Button Footer -->
+                                    <div style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 2px solid #667eea;">
+                                       <!-- Form Validation Message -->
+                                       <div ng-if="!isFormComplete() && !uploadInProgress" style="margin-bottom: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                          <i class="ti ti-alert" style="color: #856404;"></i>
+                                          <span style="color: #856404; font-size: 13px; font-weight: 500;">
+                                             Please complete all required fields: Video File, Title, and Cloud Folder
+                                          </span>
+                                       </div>
+
+                                       <button type="button" class="btn btn-block" ng-click="uploadVideo()" ng-disabled="!isFormComplete() || uploadInProgress"
+                                               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                      border: none;
+                                                      color: white;
+                                                      padding: 18px 30px;
+                                                      border-radius: 10px;
+                                                      font-weight: 700;
+                                                      font-size: 18px;
+                                                      transition: all 0.3s ease;
+                                                      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+                                                      position: relative;
+                                                      overflow: hidden;"
+                                               onmouseover="if(!this.disabled) { this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.5)'; }"
+                                               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)';">
+
+                                          <span ng-if="!uploadInProgress" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                             <i class="ti ti-cloud-up" style="font-size: 24px;"></i>
+                                             <span>Upload Video to Bunny.net Cloud</span>
+                                          </span>
+
+                                          <span ng-if="uploadInProgress" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                             <i class="fa fa-spinner fa-spin" style="font-size: 20px;"></i>
+                                             <span>Uploading to Cloud... {{uploadProgress}}%</span>
+                                          </span>
+                                       </button>
+
+                                       <!-- Helper Text -->
+                                       <div style="margin-top: 15px; text-align: center;">
+                                          <small style="color: #6c757d; font-size: 12px;">
+                                             <i class="ti ti-shield" style="color: #28a745;"></i>
+                                             Your video will be securely uploaded to Bunny.net CDN for fast streaming worldwide
+                                          </small>
                                        </div>
                                     </div>
-
-                                    <div class="form-group">
-                                       <label class="col-sm-2 control-label">Classification Level 2</label>
-                                       <div class="col-sm-10">
-                                          <select class="form-control" ng-model="newVideo.classificationLevel2" ng-disabled="uploadInProgress">
-                                             <option value="">Select Level 2</option>
-                                             <option value="1">Level 1 - Basic</option>
-                                             <option value="2">Level 2 - Standard</option>
-                                             <option value="3">Level 3 - Enhanced</option>
-                                             <option value="4">Level 4 - Premium</option>
-                                             <option value="5">Level 5 - Elite</option>
-                                          </select>
-                                       </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                       <div class="col-sm-offset-2 col-sm-10">
-                                          <button type="button" class="btn btn-primary btn-lg" ng-click="uploadVideo()" ng-disabled="!isFormComplete() || uploadInProgress">
-                                             <i class="ti ti-cloud-up" ng-if="!uploadInProgress"></i>
-                                             <i class="fa fa-spinner fa-spin" ng-if="uploadInProgress"></i>
-                                             <span ng-if="!uploadInProgress">Upload to Cloud</span>
-                                             <span ng-if="uploadInProgress">Uploading... {{uploadProgress}}%</span>
-                                          </button>
-                                       </div>
-                                    </div>
-                                 </form>
                               </div>
                            </div>
                         </div>

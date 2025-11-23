@@ -1,0 +1,124 @@
+{
+  "syllabi": [
+    {
+      "id": "NEET_2025",
+      "name": "NEET 2025 - Medical Entrance Exam",
+      "description": "Complete syllabus for National Eligibility cum Entrance Test (NEET) 2025 covering Physics, Chemistry, and Biology",
+      "category": "Medical Entrance",
+      "modules": [
+        {
+          "moduleId": "MOD_PHYS_NEET",
+          "moduleName": "Physics",
+          "moduleCode": "PHYS",
+          "sequence": 1,
+          "chapters": [
+            {
+              "chapterId": "CH_PHYS_001",
+              "chapterName": "Physical World and Measurement",
+              "chapterCode": "PHY-01",
+              "sequence": 1,
+              "estimatedDuration": "8 hours",
+              "topics": ["Units and Measurement", "Dimensions", "Errors in Measurement", "Significant Figures"]
+            },
+            {
+              "chapterId": "CH_PHYS_002",
+              "chapterName": "Kinematics",
+              "chapterCode": "PHY-02",
+              "sequence": 2,
+              "estimatedDuration": "12 hours",
+              "topics": ["Motion in a Straight Line", "Motion in a Plane", "Projectile Motion", "Uniform Circular Motion"]
+            },
+            {
+              "chapterId": "CH_PHYS_003",
+              "chapterName": "Laws of Motion",
+              "chapterCode": "PHY-03",
+              "sequence": 3,
+              "estimatedDuration": "10 hours",
+              "topics": ["Newton's Laws of Motion", "Friction", "Circular Motion", "Dynamics of Circular Motion"]
+            }
+          ]
+        },
+        {
+          "moduleId": "MOD_CHEM_NEET",
+          "moduleName": "Chemistry",
+          "moduleCode": "CHEM",
+          "sequence": 2,
+          "chapters": [
+            {
+              "chapterId": "CH_CHEM_001",
+              "chapterName": "Some Basic Concepts of Chemistry",
+              "chapterCode": "CHE-01",
+              "sequence": 1,
+              "estimatedDuration": "10 hours",
+              "topics": ["Matter", "Atoms and Molecules", "Mole Concept", "Stoichiometry"]
+            },
+            {
+              "chapterId": "CH_CHEM_002",
+              "chapterName": "Structure of Atom",
+              "chapterCode": "CHE-02",
+              "sequence": 2,
+              "estimatedDuration": "12 hours",
+              "topics": ["Thomson Model", "Rutherford Model", "Bohr Model", "Quantum Mechanical Model"]
+            }
+          ]
+        },
+        {
+          "moduleId": "MOD_BIO_NEET",
+          "moduleName": "Biology",
+          "moduleCode": "BIO",
+          "sequence": 3,
+          "chapters": [
+            {
+              "chapterId": "CH_BIO_001",
+              "chapterName": "The Living World",
+              "chapterCode": "BIO-01",
+              "sequence": 1,
+              "estimatedDuration": "6 hours",
+              "topics": ["What is Living?", "Biodiversity", "Taxonomic Categories", "Nomenclature"]
+            },
+            {
+              "chapterId": "CH_BIO_002",
+              "chapterName": "Biological Classification",
+              "chapterCode": "BIO-02",
+              "sequence": 2,
+              "estimatedDuration": "8 hours",
+              "topics": ["Five Kingdom Classification", "Monera", "Protista", "Fungi"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "JEE_MAIN_2025",
+      "name": "JEE Main 2025 - Engineering Entrance",
+      "description": "Complete syllabus for Joint Entrance Examination (JEE) Main 2025",
+      "category": "Engineering Entrance",
+      "modules": [
+        {
+          "moduleId": "MOD_MATH_JEE",
+          "moduleName": "Mathematics",
+          "moduleCode": "MATH",
+          "sequence": 1,
+          "chapters": [
+            {
+              "chapterId": "CH_MATH_001",
+              "chapterName": "Sets, Relations and Functions",
+              "chapterCode": "MTH-01",
+              "sequence": 1,
+              "estimatedDuration": "10 hours",
+              "topics": ["Sets", "Relations", "Functions", "Composition of functions"]
+            },
+            {
+              "chapterId": "CH_MATH_002",
+              "chapterName": "Complex Numbers",
+              "chapterCode": "MTH-02",
+              "sequence": 2,
+              "estimatedDuration": "12 hours",
+              "topics": ["Complex numbers", "Argand plane", "Modulus and argument"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

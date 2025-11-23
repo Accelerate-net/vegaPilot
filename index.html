@@ -12,6 +12,162 @@
 
     <link rel="shortcut icon" href="assets/icons/favicon.png">
 
+    <style>
+        /* Smooth Animations for Login Page */
+
+        /* Logo Animation */
+        .login-logo {
+            animation: fadeInDown 0.8s ease-out;
+            display: inline-block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Panel Animation */
+        .panel {
+            animation: slideUpFadeIn 1s ease-out 0.3s backwards;
+        }
+
+        @keyframes slideUpFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Group Stagger Animation */
+        .form-group:nth-child(1) {
+            animation: fadeInRight 0.6s ease-out 0.6s backwards;
+        }
+
+        .form-group:nth-child(2) {
+            animation: fadeInRight 0.6s ease-out 0.8s backwards;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Input Focus Animation */
+        .form-control {
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group-addon {
+            transition: all 0.3s ease;
+        }
+
+        .input-group:focus-within .input-group-addon {
+            background-color: #5db2ff;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Button Animation */
+        .btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(93, 178, 255, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Panel Footer Animation */
+        .panel-footer {
+            animation: fadeIn 0.6s ease-out 1s backwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Error Message Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        p[ng-if="isLoginError"] {
+            animation: shake 0.5s ease-in-out, fadeIn 0.3s ease-out;
+        }
+
+        /* Container Animation */
+        #login-form {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Smooth Page Load */
+        body.focused-form {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Input Placeholder Animation */
+        .form-control::placeholder {
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus::placeholder {
+            transform: translateX(5px);
+            opacity: 0.6;
+        }
+    </style>
+
     <!-- Controller -->
       <script src="assets/js/jquery.js"></script>
       <script src="assets/js/angular.min.js"></script>

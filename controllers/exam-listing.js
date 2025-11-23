@@ -30,6 +30,7 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     // Exam data
     $scope.exams = [];
     $scope.filteredExams = [];
+    $scope.selectedExam = null;
     
     // Dummy exam data for testing
     $scope.dummyExams = [
@@ -224,6 +225,84 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
             createdOn: 1742333503,
             lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
             lastUpdatedOn: 1742333503
+        },
+        {
+            id: 50003,
+            displayKey: '7gh66f9h-25b5-7bgf-eb1h-g03h8g5637h2',
+            title: 'Chemistry Olympiad Qualifier',
+            brief: 'Preliminary round for Chemistry Olympiad - covers all major chemistry topics',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>Duration: 120 minutes</li><li>30 Multiple Choice Questions</li><li>Each question carries 3 marks</li><li>No negative marking</li><li>Top scorers advance to next round</li></ol>',
+            duration: 120,
+            totalQuestions: 30,
+            challengeQuestionAllowed: 0,
+            numberOfSections: 3,
+            switchSectionsAllowed: 1,
+            markingSchemeOverall: 2,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Organic Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({length: 10}, function(_, i) { return {o: i+1, qi: 4000+i, ms: 3}; })
+                },
+                {
+                    order: 2,
+                    name: 'Inorganic Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({length: 10}, function(_, i) { return {o: i+1, qi: 4010+i, ms: 3}; })
+                },
+                {
+                    order: 3,
+                    name: 'Physical Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({length: 10}, function(_, i) { return {o: i+1, qi: 4020+i, ms: 3}; })
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742220000,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742300000
+        },
+        {
+            id: 50004,
+            displayKey: '8hi77g0i-36c6-8chi-fc2i-h14i9h6748i3',
+            title: 'Mathematics Rapid Fire Quiz',
+            brief: 'Quick math assessment covering algebra, geometry, and calculus basics',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>Speed test - 60 minutes only</li><li>20 questions</li><li>+5 for correct, -2 for incorrect</li><li>Calculator not allowed</li><li>All questions must be attempted</li></ol>',
+            duration: 60,
+            totalQuestions: 20,
+            challengeQuestionAllowed: 1,
+            numberOfSections: 1,
+            switchSectionsAllowed: 0,
+            markingSchemeOverall: 3,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Mathematics',
+                    duration: 60,
+                    totalQuestions: 20,
+                    enableSectionWiseTimer: true,
+                    sectionMarkingScheme: 1,
+                    questions: Array.from({length: 20}, function(_, i) { return {o: i+1, qi: 5000+i, ms: 5}; })
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742100000,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742250000
         }
     ];
     
@@ -382,6 +461,18 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
         var date = new Date(timestamp * 1000);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
+
+    // Get marking scheme label
+    $scope.getMarkingSchemeLabel = function(scheme) {
+        switch(parseInt(scheme)) {
+            case 0: return 'No Marking Scheme';
+            case 1: return '+4 for correct, -1 for incorrect';
+            case 2: return '+4 for correct, 0 for incorrect (No negative)';
+            case 3: return '+3 for correct, -1 for incorrect';
+            case 4: return 'Custom Marking Scheme';
+            default: return 'Standard Marking';
+        }
+    };
     
     // Copy to clipboard
     $scope.copyToClipboard = function(text, event) {
@@ -407,8 +498,25 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     
     // View exam
     $scope.viewExam = function(exam) {
-        console.log('Viewing exam:', exam);
-        $scope.showToaster('Exam viewer coming soon!', 'info');
+        $scope.selectedExam = angular.copy(exam);
+        $('#viewExamModal').modal('show');
+    };
+
+    // Edit exam from view modal
+    $scope.editExamFromView = function() {
+        $('#viewExamModal').modal('hide');
+        $scope.editExam($scope.selectedExam);
+    };
+
+    // Duplicate exam from view modal
+    $scope.duplicateExamFromView = function() {
+        $('#viewExamModal').modal('hide');
+        $scope.duplicateExam($scope.selectedExam);
+    };
+
+    // View section questions
+    $scope.viewSectionQuestions = function(section) {
+        $scope.showToaster('Section has ' + section.questions.length + ' questions (IDs: ' + section.questions.map(function(q) { return q.qi; }).join(', ') + ')', 'info');
     };
     
     // Edit exam
@@ -423,9 +531,27 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     
     // Duplicate exam
     $scope.duplicateExam = function(exam) {
-        console.log('Duplicating exam:', exam);
-        $scope.showToaster('Exam duplication feature coming soon!', 'info');
+        var duplicatedExam = angular.copy(exam);
+        duplicatedExam.id = $scope.exams.length > 0 ? Math.max.apply(Math, $scope.exams.map(function(e) { return e.id; })) + 1 : 1;
+        duplicatedExam.displayKey = generateUUID();
+        duplicatedExam.title = exam.title + ' (Copy)';
+        duplicatedExam.status = 0; // Set to draft
+        duplicatedExam.createdOn = Math.floor(Date.now() / 1000);
+        duplicatedExam.lastUpdatedOn = Math.floor(Date.now() / 1000);
+
+        $scope.exams.unshift(duplicatedExam);
+        $scope.applyFilters();
+        $scope.calculateSummary();
+        $scope.showToaster('Exam duplicated successfully! The new exam is now in Draft mode.', 'success');
     };
+
+    // Generate UUID for exam display key
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
     
     // Delete exam
     $scope.deleteExam = function(exam) {

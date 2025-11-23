@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Practice Questions - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Practice Questions">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+
+      <!-- PDF.js Library -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+      <!-- Tesseract.js for OCR -->
+      <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
+      <style type="text/css">
+         /* Page Header Section */
+         .page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+         }
+         .page-header-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+         }
+         .page-header-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+         }
+         .page-header-section i {
+            margin-right: 8px;
+         }
+
+         /* Upload Section */
+         .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+         }
+         .upload-area {
+            border: 2px dashed #006073;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+         }
+         .upload-area:hover {
+            background: #e7f5f7;
+            border-color: #004d5c;
+         }
+         .upload-area.dragover {
+            background: #d4edda;
+            border-color: #28a745;
+         }
+         .upload-icon {
+            font-size: 48px;
+            color: #006073;
+            margin-bottom: 15px;
+         }
+         .upload-text {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+         }
+         .upload-hint {
+            font-size: 13px;
+            color: #6c757d;
+         }
+         #pdfFileInput {
+            display: none;
+         }
+
+         /* Processing Status */
+         .processing-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            display: none;
+         }
+         .processing-status.active {
+            display: block;
+         }
+         .progress-bar-container {
+            width: 100%;
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 10px;
+         }
+         .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+         }
+
+         /* Questions List */
+         .questions-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         }
+         .questions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+         }
+         .questions-count {
+            font-size: 14px;
+            color: #6c757d;
+         }
+         .question-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+         }
+         .question-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #006073;
+         }
+         .question-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9ecef;
+         }
+         .question-id {
+            font-weight: 600;
+            color: #006073;
+            font-size: 14px;
+         }
+         .question-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+         }
+         .question-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+         }
+         .badge-mcq {
+            background: #e7f5f7;
+            color: #006073;
+         }
+         .answer-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #d4edda;
+            color: #155724;
+         }
+         .question-body {
+            padding: 20px;
+         }
+         .question-image-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+         }
+         .question-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+         }
+         .question-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+         }
+         .detail-item {
+            display: flex;
+            flex-direction: column;
+         }
+         .detail-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+         }
+         .detail-value {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+         }
+         .question-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+         }
+         .btn-edit {
+            background: #006073;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+         .btn-edit:hover {
+            background: #004d5c;
+         }
+         .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+         .btn-delete:hover {
+            background: #c82333;
+         }
+
+         /* Empty State */
+         .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+         }
+         .empty-state i {
+            font-size: 64px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+         }
+         .empty-state h4 {
+            color: #495057;
+            margin-bottom: 8px;
+         }
+         .empty-state p {
+            color: #6c757d;
+         }
+
+         /* Edit Modal */
+         .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+         }
+         .modal-backdrop.active {
+            display: flex !important;
+         }
+         .modal-dialog {
+            background: white;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+         }
+         .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+         }
+         .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+         }
+         .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+         }
+         .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+         }
+         .modal-body {
+            padding: 25px;
+         }
+         .form-group {
+            margin-bottom: 20px;
+         }
+         .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+         }
+         .form-group input,
+         .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+         }
+         .form-group input:focus,
+         .form-group select:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         }
+         .modal-footer {
+            padding: 15px 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+         }
+         .btn-save {
+            background: #006073;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+         }
+         .btn-save:hover {
+            background: #004d5c;
+         }
+         .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+         }
+         .btn-cancel:hover {
+            background: #5a6268;
+         }
+      </style>
+
+      <script src="assets/js/angular.min.js"></script>
+      <script src="controllers/practice-questions.js"></script>
+   </head>
+
+   <body class="animated-content" ng-app="practiceQuestionsApp" ng-controller="practiceQuestionsController" ng-cloak>
+      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+         <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+            <span class="icon-bg">
+             <i class="ti ti-menu"></i>
+            </span>
+            </a>
+            </span>
+            <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+         </div>
+         <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+               </a>
+               <ul class="dropdown-menu userinfo arrow">
+                  <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
+               </ul>
+            </li>
+         </ul>
+      </header>
+
+      <div id="wrapper">
+         <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+               <div class="static-sidebar">
+                  <div class="sidebar">
+                     <div class="widget stay-on-collapse" id="widget-sidebar">
+                        <nav role="navigation" class="widget-body">
+                            <ul class="acc-menu">
+                               <li class="nav-separator"><span>Content Library</span></li>
+                               <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                               <li><a href="practice-questions.html" class="active"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
+                               <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                               <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
+
+                               <li class="nav-separator"><span>Courses</span></li>
+                               <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                               <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+
+                               <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                               <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                               <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
+                               <li><a href="quiz-listing.html"><i class="ti ti-view-list-alt"></i><span>Quiz Listing</span></a></li>
+
+                               <li class="nav-separator"><span>Management</span></li>
+                               <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                               <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                               <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
+                            </ul>
+                        </nav>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <div class="container-fluid" style="padding-top: 4%;">
+
+                     <!-- Page Header -->
+                     <div class="page-header-section">
+                        <div>
+                           <h2><i class="ti ti-clipboard"></i> Practice Questions</h2>
+                           <p>Upload PDF files to convert each page into practice questions with answer keys.</p>
+                        </div>
+                     </div>
+
+                     <!-- Upload Section -->
+                     <div class="upload-section">
+                        <h4 style="margin-top: 0; margin-bottom: 20px; color: #333;">
+                           <i class="ti ti-upload"></i> Upload PDF
+                        </h4>
+
+                        <!-- Batch Label Input -->
+                        <div style="margin-bottom: 20px;">
+                           <label style="display: block; font-size: 13px; font-weight: 600; color: #495057; margin-bottom: 8px;">
+                              <i class="ti ti-tag"></i> Batch Label (Optional)
+                           </label>
+                           <input type="text"
+                                  ng-model="currentBatchLabel"
+                                  class="form-control"
+                                  placeholder="e.g., ChapterOne, BiologySet1, MockTest (leave empty to use filename)"
+                                  style="font-size: 14px; padding: 10px 15px;">
+                           <small style="display: block; margin-top: 5px; color: #6c757d;">
+                              Next Batch ID: <strong>{{nextBatchNumber}}</strong>
+                              <span ng-if="currentBatchLabel"> - Will be saved as: <strong style="color: #006073;">{{nextBatchNumber}}-{{sanitizedLabel}}</strong></span>
+                           </small>
+                        </div>
+
+                        <div class="upload-area"
+                             ng-click="triggerFileInput()"
+                             ng-class="{dragover: isDragover}"
+                             ng-drop="handleDrop($event)"
+                             ng-dragover="handleDragover($event)"
+                             ng-dragleave="handleDragleave($event)">
+                           <div class="upload-icon">
+                              <i class="ti ti-file"></i>
+                           </div>
+                           <div class="upload-text">
+                              Click to upload or drag and drop
+                           </div>
+                           <div class="upload-hint">
+                              PDF files only • Maximum 50MB
+                           </div>
+                        </div>
+                        <input type="file"
+                               id="pdfFileInput"
+                               accept="application/pdf"
+                               onchange="angular.element(this).scope().handleFileSelect(event)"
+                               style="display: none;">
+
+                        <!-- Processing Status -->
+                        <div class="processing-status" ng-class="{active: isProcessing}">
+                           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                              <i class="ti ti-reload" style="font-size: 18px; color: #856404;"></i>
+                              <strong style="color: #856404;">{{processingMessage}}</strong>
+                           </div>
+                           <div class="progress-bar-container">
+                              <div class="progress-bar" ng-style="{width: processingProgress + '%'}">
+                                 {{processingProgress}}%
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Batch Management Section -->
+                     <div ng-if="batchesList.length > 0" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                           <h4 style="margin: 0; color: #333;">
+                              <i class="ti ti-package"></i> Batch Management
+                           </h4>
+                           <button ng-click="createQuizFromSelectedBatches()"
+                                   ng-disabled="selectedBatchesCount === 0"
+                                   class="btn btn-primary btn-sm"
+                                   style="padding: 8px 16px;">
+                              <i class="ti ti-plus"></i> Create Quiz from Selected Batches
+                           </button>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                           <div ng-repeat="batch in batchesList"
+                                style="border: 2px solid; border-color: {{batch.selected ? '#006073' : '#e9ecef'}}; border-radius: 6px; padding: 15px; background: {{batch.selected ? '#f0f8fa' : 'white'}}; cursor: pointer; transition: all 0.2s;"
+                                ng-click="toggleBatchSelection(batch.id)">
+                              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                                 <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox"
+                                           ng-checked="batch.selected"
+                                           ng-click="toggleBatchSelection(batch.id); $event.stopPropagation()"
+                                           style="width: 18px; height: 18px; cursor: pointer;">
+                                    <strong style="font-size: 15px; color: #333;">{{batch.id}}</strong>
+                                 </div>
+                                 <button ng-click="deleteBatch(batch.id); $event.stopPropagation();"
+                                         class="btn btn-danger btn-xs"
+                                         style="padding: 4px 8px; font-size: 11px;">
+                                    <i class="ti ti-trash"></i> Delete
+                                 </button>
+                              </div>
+                              <div style="font-size: 13px; color: #6c757d;">
+                                 <div><i class="ti ti-files"></i> {{batch.count}} question(s)</div>
+                                 <div style="margin-top: 5px;"><i class="ti ti-calendar"></i> {{formatDate(batch.createdAt)}}</div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Questions List -->
+                     <div class="questions-section">
+                        <div class="questions-header">
+                           <h4 style="margin: 0; color: #333;">
+                              <i class="ti ti-list"></i> Practice Questions
+                           </h4>
+                           <div class="questions-count">
+                              Total: <strong>{{filteredQuestions.length}}</strong> question(s)
+                              <span ng-if="selectedBatchFilter" style="color: #006073; margin-left: 10px;">
+                                 (Batch: {{selectedBatchFilter}})
+                              </span>
+                           </div>
+                        </div>
+
+                        <!-- Batch Filter -->
+                        <div ng-if="batchesList.length > 0" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                           <label style="font-size: 13px; font-weight: 600; color: #495057;">Filter by Batch:</label>
+                           <select ng-model="selectedBatchFilter"
+                                   class="form-control"
+                                   style="width: auto; display: inline-block; font-size: 13px; padding: 6px 12px;">
+                              <option value="">All Batches</option>
+                              <option ng-repeat="batch in batchesList" value="{{batch.id}}">{{batch.id}} ({{batch.count}} questions)</option>
+                           </select>
+                        </div>
+
+                        <!-- Questions -->
+                        <div ng-if="filteredQuestions.length > 0">
+                           <div ng-repeat="question in filteredQuestions track by question.uuid" class="question-card">
+                              <div class="question-header">
+                                 <div class="question-id">
+                                    Question #{{$index + 1}} • ID: {{question.id}}
+                                    <span style="font-size: 12px; color: #6c757d; font-weight: normal; margin-left: 8px;">
+                                       • by Abhijith on {{formatDate(question.createdAt)}}
+                                    </span>
+                                    <span ng-if="question.batchId" style="font-size: 12px; color: #006073; font-weight: 600; margin-left: 8px; background: #e3f2f5; padding: 2px 8px; border-radius: 4px;">
+                                       <i class="ti ti-package"></i> {{question.batchId}}
+                                    </span>
+                                 </div>
+                                 <div class="question-meta">
+                                    <span class="question-badge badge-mcq">{{question.answerType}}</span>
+                                    <span class="answer-badge">Correct: {{question.correctAnswer}}</span>
+                                 </div>
+                              </div>
+                              <div class="question-body">
+                                 <div class="question-image-container">
+                                    <img ng-src="{{question.imageData}}" class="question-image" alt="Question {{$index + 1}}">
+                                 </div>
+                                 <!-- OCR Text Section -->
+                                 <div style="padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
+                                    <div style="font-size: 11px; color: #6c757d; margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
+                                       <i class="ti ti-text"></i> OCR Extracted Text
+                                       <span ng-if="question.isProcessingOCR" style="color: #856404; font-weight: normal; text-transform: none;">
+                                          - Processing... {{question.ocrProgress}}%
+                                       </span>
+                                    </div>
+                                    <div ng-if="question.ocrText" style="font-size: 13px; color: #495057; line-height: 1.6; white-space: pre-wrap;">{{question.ocrText}}</div>
+                                    <div ng-if="!question.ocrText && !question.isProcessingOCR" style="font-size: 13px; color: #adb5bd; font-style: italic;">
+                                       No text extracted yet
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <!-- Question Metadata -->
+                              <div class="question-metadata" style="padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
+                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: 15px;">
+                                    <!-- Average Time -->
+                                    <div style="display: flex; flex-direction: column;">
+                                       <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Avg Time</label>
+                                       <input ng-model="question.averageTime" type="text" class="form-control" placeholder="seconds" maxlength="4" style="font-size: 13px; padding: 6px 10px;">
+                                       <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px;">
+                                          <span ng-click="question.averageTime = 30" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">30s</span>
+                                          <span ng-click="question.averageTime = 60" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">1m</span>
+                                          <span ng-click="question.averageTime = 120" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">2m</span>
+                                          <span ng-click="question.averageTime = 180" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">3m</span>
+                                       </div>
+                                    </div>
+
+                                    <!-- Difficulty Level -->
+                                    <div style="display: flex; flex-direction: column;">
+                                       <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Level</label>
+                                       <div style="display: flex; gap: 5px;">
+                                          <button ng-click="question.level = 'Easy'"
+                                                  ng-class="{'btn-success': question.level === 'Easy'}"
+                                                  class="btn btn-sm"
+                                                  style="flex: 1; padding: 6px; font-size: 11px;">Easy</button>
+                                          <button ng-click="question.level = 'Medium'"
+                                                  ng-class="{'btn-warning': question.level === 'Medium'}"
+                                                  class="btn btn-sm"
+                                                  style="flex: 1; padding: 6px; font-size: 11px;">Medium</button>
+                                          <button ng-click="question.level = 'Hard'"
+                                                  ng-class="{'btn-danger': question.level === 'Hard'}"
+                                                  class="btn btn-sm"
+                                                  style="flex: 1; padding: 6px; font-size: 11px;">Hard</button>
+                                       </div>
+                                    </div>
+
+                                    <!-- Correct Answer -->
+                                    <div style="display: flex; flex-direction: column;">
+                                       <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Correct Answer</label>
+                                       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+                                          <button ng-click="question.correctAnswer = 'A'"
+                                                  ng-class="{'btn-success': question.correctAnswer === 'A'}"
+                                                  class="btn btn-sm"
+                                                  style="padding: 6px; font-size: 12px; font-weight: 600;">A</button>
+                                          <button ng-click="question.correctAnswer = 'B'"
+                                                  ng-class="{'btn-success': question.correctAnswer === 'B'}"
+                                                  class="btn btn-sm"
+                                                  style="padding: 6px; font-size: 12px; font-weight: 600;">B</button>
+                                          <button ng-click="question.correctAnswer = 'C'"
+                                                  ng-class="{'btn-success': question.correctAnswer === 'C'}"
+                                                  class="btn btn-sm"
+                                                  style="padding: 6px; font-size: 12px; font-weight: 600;">C</button>
+                                          <button ng-click="question.correctAnswer = 'D'"
+                                                  ng-class="{'btn-success': question.correctAnswer === 'D'}"
+                                                  class="btn btn-sm"
+                                                  style="padding: 6px; font-size: 12px; font-weight: 600;">D</button>
+                                       </div>
+                                    </div>
+
+                                    <!-- Module and Chapter -->
+                                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                                       <!-- Module -->
+                                       <div style="display: flex; flex-direction: column;">
+                                          <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Module</label>
+                                          <select ng-model="question.subject" class="form-control" style="font-size: 13px; padding: 6px 10px;">
+                                             <option value="">None</option>
+                                             <option value="Physics">Physics</option>
+                                             <option value="Chemistry">Chemistry</option>
+                                             <option value="Mathematics">Mathematics</option>
+                                             <option value="Biology">Biology</option>
+                                          </select>
+                                       </div>
+
+                                       <!-- Chapter -->
+                                       <div style="display: flex; flex-direction: column;">
+                                          <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">
+                                             Chapter <span ng-if="question.subject">from {{question.subject}}</span>
+                                          </label>
+                                          <select ng-model="question.chapter" class="form-control" style="font-size: 13px; padding: 6px 10px;">
+                                             <option value="">None</option>
+
+                                             <!-- Physics Chapters -->
+                                             <optgroup label="Physics - Plus One" ng-if="question.subject == 'Physics'">
+                                                <option value="1P01">Chapter 1: Physical World</option>
+                                                <option value="1P02">Chapter 2: Units and Measurements</option>
+                                                <option value="1P03">Chapter 3: Motion in a Straight Line</option>
+                                                <option value="1P04">Chapter 4: Motion in a Plane</option>
+                                                <option value="1P05">Chapter 5: Laws of Motion</option>
+                                                <option value="1P06">Chapter 6: Work, Energy and Power</option>
+                                                <option value="1P07">Chapter 7: System of Particles and Rotational Motion</option>
+                                                <option value="1P08">Chapter 8: Gravitation</option>
+                                                <option value="1P09">Chapter 9: Mechanical Properties of Solids</option>
+                                                <option value="1P10">Chapter 10: Mechanical Properties of Fluids</option>
+                                                <option value="1P11">Chapter 11: Thermal Properties of Matter</option>
+                                                <option value="1P12">Chapter 12: Thermodynamics</option>
+                                                <option value="1P13">Chapter 13: Kinetic Theory</option>
+                                                <option value="1P14">Chapter 14: Oscillations</option>
+                                                <option value="1P15">Chapter 15: Waves</option>
+                                             </optgroup>
+
+                                             <optgroup label="Physics - Plus Two" ng-if="question.subject == 'Physics'">
+                                                <option value="2P01">Chapter 1: Electric Charges and Fields</option>
+                                                <option value="2P02">Chapter 2: Electrostatic Potential and Capacitance</option>
+                                                <option value="2P03">Chapter 3: Current Electricity</option>
+                                                <option value="2P04">Chapter 4: Moving Charges and Magnetism</option>
+                                                <option value="2P05">Chapter 5: Magnetism and Matter</option>
+                                                <option value="2P06">Chapter 6: Electromagnetic Induction</option>
+                                                <option value="2P07">Chapter 7: Alternating Current</option>
+                                                <option value="2P08">Chapter 8: Electromagnetic Waves</option>
+                                                <option value="2P09">Chapter 9: Ray Optics and Optical Instruments</option>
+                                                <option value="2P10">Chapter 10: Wave Optics</option>
+                                                <option value="2P11">Chapter 11: Dual Nature of Radiation and Matter</option>
+                                                <option value="2P12">Chapter 12: Atoms</option>
+                                                <option value="2P13">Chapter 13: Nuclei</option>
+                                                <option value="2P14">Chapter 14: Semiconductor Electronics</option>
+                                                <option value="2P15">Chapter 15: Communication Systems</option>
+                                             </optgroup>
+
+                                             <!-- Chemistry Chapters -->
+                                             <optgroup label="Chemistry - Plus One" ng-if="question.subject == 'Chemistry'">
+                                                <option value="1C01">Chapter 1: Some Basic Concepts of Chemistry</option>
+                                                <option value="1C02">Chapter 2: Structure of Atom</option>
+                                                <option value="1C03">Chapter 3: Classification of Elements and Periodicity</option>
+                                                <option value="1C04">Chapter 4: Chemical Bonding and Molecular Structure</option>
+                                                <option value="1C05">Chapter 5: States of Matter</option>
+                                                <option value="1C06">Chapter 6: Thermodynamics</option>
+                                                <option value="1C07">Chapter 7: Equilibrium</option>
+                                                <option value="1C08">Chapter 8: Redox Reactions</option>
+                                                <option value="1C09">Chapter 9: Hydrogen</option>
+                                                <option value="1C10">Chapter 10: The s-Block Elements</option>
+                                                <option value="1C11">Chapter 11: The p-Block Elements</option>
+                                                <option value="1C12">Chapter 12: Organic Chemistry - Basic Principles</option>
+                                                <option value="1C13">Chapter 13: Hydrocarbons</option>
+                                                <option value="1C14">Chapter 14: Environmental Chemistry</option>
+                                             </optgroup>
+
+                                             <optgroup label="Chemistry - Plus Two" ng-if="question.subject == 'Chemistry'">
+                                                <option value="2C01">Chapter 1: The Solid State</option>
+                                                <option value="2C02">Chapter 2: Solutions</option>
+                                                <option value="2C03">Chapter 3: Electrochemistry</option>
+                                                <option value="2C04">Chapter 4: Chemical Kinetics</option>
+                                                <option value="2C05">Chapter 5: Surface Chemistry</option>
+                                                <option value="2C06">Chapter 6: General Principles and Processes of Isolation of Elements</option>
+                                                <option value="2C07">Chapter 7: The p-Block Elements</option>
+                                                <option value="2C08">Chapter 8: The d and f Block Elements</option>
+                                                <option value="2C09">Chapter 9: Coordination Compounds</option>
+                                                <option value="2C10">Chapter 10: Haloalkanes and Haloarenes</option>
+                                                <option value="2C11">Chapter 11: Alcohols, Phenols and Ethers</option>
+                                                <option value="2C12">Chapter 12: Aldehydes, Ketones and Carboxylic Acids</option>
+                                                <option value="2C13">Chapter 13: Amines</option>
+                                                <option value="2C14">Chapter 14: Biomolecules</option>
+                                                <option value="2C15">Chapter 15: Polymers</option>
+                                                <option value="2C16">Chapter 16: Chemistry in Everyday Life</option>
+                                             </optgroup>
+
+                                             <!-- Mathematics Chapters -->
+                                             <optgroup label="Mathematics - Plus One" ng-if="question.subject == 'Mathematics'">
+                                                <option value="1M01">Chapter 1: Sets</option>
+                                                <option value="1M02">Chapter 2: Relations and Functions</option>
+                                                <option value="1M03">Chapter 3: Trigonometric Functions</option>
+                                                <option value="1M04">Chapter 4: Principle of Mathematical Induction</option>
+                                                <option value="1M05">Chapter 5: Complex Numbers and Quadratic Equations</option>
+                                                <option value="1M06">Chapter 6: Linear Inequalities</option>
+                                                <option value="1M07">Chapter 7: Permutations and Combinations</option>
+                                                <option value="1M08">Chapter 8: Binomial Theorem</option>
+                                                <option value="1M09">Chapter 9: Sequences and Series</option>
+                                                <option value="1M10">Chapter 10: Straight Lines</option>
+                                                <option value="1M11">Chapter 11: Conic Sections</option>
+                                                <option value="1M12">Chapter 12: Introduction to Three Dimensional Geometry</option>
+                                                <option value="1M13">Chapter 13: Limits and Derivatives</option>
+                                                <option value="1M14">Chapter 14: Mathematical Reasoning</option>
+                                                <option value="1M15">Chapter 15: Statistics</option>
+                                                <option value="1M16">Chapter 16: Probability</option>
+                                             </optgroup>
+
+                                             <optgroup label="Mathematics - Plus Two" ng-if="question.subject == 'Mathematics'">
+                                                <option value="2M01">Chapter 1: Relations and Functions</option>
+                                                <option value="2M02">Chapter 2: Inverse Trigonometric Functions</option>
+                                                <option value="2M03">Chapter 3: Matrices</option>
+                                                <option value="2M04">Chapter 4: Determinants</option>
+                                                <option value="2M05">Chapter 5: Continuity and Differentiability</option>
+                                                <option value="2M06">Chapter 6: Application of Derivatives</option>
+                                                <option value="2M07">Chapter 7: Integrals</option>
+                                                <option value="2M08">Chapter 8: Application of Integrals</option>
+                                                <option value="2M09">Chapter 9: Differential Equations</option>
+                                                <option value="2M10">Chapter 10: Vector Algebra</option>
+                                                <option value="2M11">Chapter 11: Three Dimensional Geometry</option>
+                                                <option value="2M12">Chapter 12: Linear Programming</option>
+                                                <option value="2M13">Chapter 13: Probability</option>
+                                             </optgroup>
+
+                                             <!-- Biology Chapters -->
+                                             <optgroup label="Biology - Plus One" ng-if="question.subject == 'Biology'">
+                                                <option value="1B01">Chapter 1: Diversity of the Living World</option>
+                                                <option value="1B02">Chapter 2: Biological Classification</option>
+                                                <option value="1B03">Chapter 3: Plant Kingdom</option>
+                                                <option value="1B04">Chapter 4: Animal Kingdom</option>
+                                                <option value="1B05">Chapter 5: Morphology of Flowering Plants</option>
+                                                <option value="1B06">Chapter 6: Anatomy of Flowering Plants</option>
+                                                <option value="1B07">Chapter 7: Structural Organisation in Animals</option>
+                                                <option value="1B08">Chapter 8: Cell - The Unit of Life</option>
+                                                <option value="1B09">Chapter 9: Biomolecules</option>
+                                                <option value="1B10">Chapter 10: Cell Cycle and Cell Division</option>
+                                                <option value="1B11">Chapter 11: Transport in Plants</option>
+                                                <option value="1B12">Chapter 12: Mineral Nutrition</option>
+                                                <option value="1B13">Chapter 13: Photosynthesis in Higher Plants</option>
+                                                <option value="1B14">Chapter 14: Respiration in Plants</option>
+                                                <option value="1B15">Chapter 15: Plant Growth and Development</option>
+                                                <option value="1B16">Chapter 16: Digestion and Absorption</option>
+                                                <option value="1B17">Chapter 17: Breathing and Exchange of Gases</option>
+                                                <option value="1B18">Chapter 18: Body Fluids and Circulation</option>
+                                                <option value="1B19">Chapter 19: Excretory Products and Their Elimination</option>
+                                                <option value="1B20">Chapter 20: Locomotion and Movement</option>
+                                                <option value="1B21">Chapter 21: Neural Control and Coordination</option>
+                                                <option value="1B22">Chapter 22: Chemical Coordination and Integration</option>
+                                             </optgroup>
+
+                                             <optgroup label="Biology - Plus Two" ng-if="question.subject == 'Biology'">
+                                                <option value="2B01">Chapter 1: Reproduction in Organisms</option>
+                                                <option value="2B02">Chapter 2: Sexual Reproduction in Flowering Plants</option>
+                                                <option value="2B03">Chapter 3: Human Reproduction</option>
+                                                <option value="2B04">Chapter 4: Reproductive Health</option>
+                                                <option value="2B05">Chapter 5: Principles of Inheritance and Variation</option>
+                                                <option value="2B06">Chapter 6: Molecular Basis of Inheritance</option>
+                                                <option value="2B07">Chapter 7: Evolution</option>
+                                                <option value="2B08">Chapter 8: Human Health and Disease</option>
+                                                <option value="2B09">Chapter 9: Strategies for Enhancement in Food Production</option>
+                                                <option value="2B10">Chapter 10: Microbes in Human Welfare</option>
+                                                <option value="2B11">Chapter 11: Biotechnology: Principles and Processes</option>
+                                                <option value="2B12">Chapter 12: Biotechnology and Its Applications</option>
+                                                <option value="2B13">Chapter 13: Organisms and Populations</option>
+                                                <option value="2B14">Chapter 14: Ecosystem</option>
+                                                <option value="2B15">Chapter 15: Biodiversity and Conservation</option>
+                                                <option value="2B16">Chapter 16: Environmental Issues</option>
+                                             </optgroup>
+                                          </select>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div class="question-actions">
+                                 <button class="btn-delete" ng-click="deleteQuestion(question)">
+                                    <i class="ti ti-trash"></i> Delete
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div ng-if="questions.length === 0" class="empty-state">
+                           <i class="ti ti-clipboard"></i>
+                           <h4>No Practice Questions Yet</h4>
+                           <p>Upload a PDF file to create practice questions from each page.</p>
+                        </div>
+                     </div>
+
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Edit Modal -->
+      <div class="modal-backdrop" ng-class="{active: editModalOpen}">
+         <div class="modal-dialog">
+            <div class="modal-header">
+               <h3><i class="ti ti-pencil"></i> Edit Question</h3>
+               <button class="modal-close" ng-click="closeEditModal()">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <div class="form-group">
+                  <label>Question ID</label>
+                  <input type="text" ng-model="currentQuestion.id" disabled>
+               </div>
+               <div class="form-group">
+                  <label>UUID</label>
+                  <input type="text" ng-model="currentQuestion.uuid" disabled>
+               </div>
+               <div class="form-group">
+                  <label>Answer Type</label>
+                  <select ng-model="currentQuestion.answerType">
+                     <option value="MCQ">MCQ</option>
+                  </select>
+               </div>
+               <div class="form-group">
+                  <label>Correct Answer</label>
+                  <select ng-model="currentQuestion.correctAnswer">
+                     <option value="A">A</option>
+                     <option value="B">B</option>
+                     <option value="C">C</option>
+                     <option value="D">D</option>
+                  </select>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn-save" ng-click="saveQuestion()">
+                  <i class="ti ti-check"></i> Save Changes
+               </button>
+               <button class="btn-cancel" ng-click="closeEditModal()">
+                  <i class="ti ti-close"></i> Cancel
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Scripts -->
+      <script src="assets/js/jquery.min.js"></script>
+      <script src="assets/js/bootstrap.min.js"></script>
+      <script src="assets/js/slimscroll/jquery.slimscroll.min.js"></script>
+      <script src="assets/js/app.js"></script>
+      <script src="assets/js/common.js"></script>
+   </body>
+</html>

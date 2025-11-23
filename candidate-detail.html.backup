@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Student Detail - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Student Detail">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+
+      <style type="text/css">
+         body {
+            background: #f5f6fa;
+         }
+
+         /* Profile Header */
+         .profile-header {
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            color: white;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+         }
+
+         .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+         }
+
+         .profile-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+         }
+
+         .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            object-fit: cover;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+         }
+
+         .profile-avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 600;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+         }
+
+         .profile-info h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            font-weight: 300;
+         }
+
+         .profile-meta {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+         }
+
+         .profile-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            opacity: 0.95;
+         }
+
+         .profile-meta-item i {
+            font-size: 16px;
+         }
+
+         .profile-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+         }
+
+         .profile-stat {
+            text-align: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+         }
+
+         .profile-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+         }
+
+         .profile-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+         }
+
+         /* Content Container */
+         .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 30px 30px;
+         }
+
+         /* Tabs */
+         .tabs-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+         }
+
+         .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            padding: 0 20px;
+         }
+
+         .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #6c757d;
+         }
+
+         .tab:hover {
+            color: #006073;
+         }
+
+         .tab.active {
+            color: #006073;
+            border-bottom-color: #006073;
+         }
+
+         .tab-content {
+            padding: 30px;
+         }
+
+         .tab-pane {
+            display: none;
+         }
+
+         .tab-pane.active {
+            display: block;
+         }
+
+         /* Section */
+         .section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+         }
+
+         .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+         }
+
+         /* Info Grid */
+         .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+         }
+
+         .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+         }
+
+         .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+         }
+
+         .info-value {
+            font-size: 15px;
+            color: #2c3e50;
+            font-weight: 500;
+         }
+
+         /* Course Card */
+         .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+         }
+
+         .course-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+         }
+
+         .course-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+         }
+
+         .course-card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            color: white;
+         }
+
+         .course-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+         }
+
+         .course-card-subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+         }
+
+         .course-card-body {
+            padding: 20px;
+         }
+
+         .progress-section {
+            margin-bottom: 20px;
+         }
+
+         .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #6c757d;
+         }
+
+         .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+         }
+
+         .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #006073, #28a745);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+         }
+
+         .course-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+         }
+
+         .course-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+         }
+
+         .course-stat-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #006073;
+         }
+
+         .course-stat-info {
+            flex: 1;
+         }
+
+         .course-stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+         }
+
+         .course-stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+         }
+
+         .course-card-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+         }
+
+         .payment-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+         }
+
+         .payment-badge.paid {
+            background: #d4edda;
+            color: #155724;
+         }
+
+         .payment-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+         }
+
+         .btn-unenroll {
+            padding: 6px 14px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+
+         .btn-unenroll:hover {
+            background: #bd2130;
+         }
+
+         /* Payment Details */
+         .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+         }
+
+         .payment-table th,
+         .payment-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+         }
+
+         .payment-table th {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            background: #f8f9fa;
+         }
+
+         .payment-table td {
+            font-size: 14px;
+            color: #2c3e50;
+         }
+
+         .invoice-link {
+            color: #007bff;
+            text-decoration: none;
+         }
+
+         .invoice-link:hover {
+            text-decoration: underline;
+         }
+
+         /* Performance Chart Placeholder */
+         .performance-chart {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 15px;
+         }
+
+         /* Exam Results */
+         .exam-results-table {
+            width: 100%;
+            border-collapse: collapse;
+         }
+
+         .exam-results-table th,
+         .exam-results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+         }
+
+         .exam-results-table th {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            background: #f8f9fa;
+         }
+
+         .exam-results-table td {
+            font-size: 14px;
+            color: #2c3e50;
+         }
+
+         .score-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+         }
+
+         .score-badge.excellent {
+            background: #d4edda;
+            color: #155724;
+         }
+
+         .score-badge.good {
+            background: #d1ecf1;
+            color: #0c5460;
+         }
+
+         .score-badge.average {
+            background: #fff3cd;
+            color: #856404;
+         }
+
+         .score-badge.poor {
+            background: #f8d7da;
+            color: #721c24;
+         }
+
+         /* Confirmation Modal */
+         .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+         }
+
+         .modal-backdrop.active {
+            display: flex;
+         }
+
+         .modal-dialog {
+            background: white;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideDown 0.3s ease;
+         }
+
+         @keyframes modalSlideDown {
+            from {
+               transform: translateY(-50px);
+               opacity: 0;
+            }
+            to {
+               transform: translateY(0);
+               opacity: 1;
+            }
+         }
+
+         .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+         }
+
+         .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+         }
+
+         .modal-close {
+            background: transparent;
+            border: none;
+            color: #6c757d;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+         }
+
+         .modal-close:hover {
+            background: #f8f9fa;
+         }
+
+         .modal-body {
+            padding: 25px;
+         }
+
+         .modal-footer {
+            padding: 15px 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+         }
+
+         /* Empty State */
+         .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+         }
+
+         .empty-state i {
+            font-size: 64px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+         }
+
+         .empty-state h3 {
+            color: #495057;
+            margin-bottom: 10px;
+         }
+
+         /* Responsive */
+         @media (max-width: 768px) {
+            .profile-header-content {
+               flex-direction: column;
+               text-align: center;
+            }
+
+            .profile-meta,
+            .profile-stats {
+               flex-direction: column;
+               gap: 10px;
+            }
+
+            .tabs {
+               overflow-x: auto;
+            }
+
+            .courses-grid {
+               grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+               grid-template-columns: 1fr;
+            }
+         }
+      </style>
+   </head>
+
+   <body ng-app="StudentDetailApp" ng-controller="StudentDetailController" ng-cloak>
+      <!-- Profile Header -->
+      <div class="profile-header">
+         <div class="profile-header-content">
+            <img ng-if="student.avatar" ng-src="{{student.avatar}}" class="profile-avatar" alt="{{student.name}}">
+            <div ng-if="!student.avatar" class="profile-avatar-placeholder">
+               {{getInitials(student.name)}}
+            </div>
+            <div class="profile-info">
+               <h1>{{student.name}}</h1>
+               <div class="profile-meta">
+                  <div class="profile-meta-item">
+                     <i class="ti ti-id-badge"></i>
+                     <span>ID: {{student.id}}</span>
+                  </div>
+                  <div class="profile-meta-item">
+                     <i class="ti ti-email"></i>
+                     <span>{{student.email}}</span>
+                  </div>
+                  <div class="profile-meta-item">
+                     <i class="ti ti-mobile"></i>
+                     <span>{{student.mobile}}</span>
+                  </div>
+               </div>
+               <div class="profile-stats">
+                  <div class="profile-stat">
+                     <div class="profile-stat-value">{{student.enrolledCourses.length}}</div>
+                     <div class="profile-stat-label">Enrolled Courses</div>
+                  </div>
+                  <div class="profile-stat">
+                     <div class="profile-stat-value">{{getAverageProgress()}}%</div>
+                     <div class="profile-stat-label">Avg Progress</div>
+                  </div>
+                  <div class="profile-stat">
+                     <div class="profile-stat-value">{{getAverageScore()}}%</div>
+                     <div class="profile-stat-label">Avg Score</div>
+                  </div>
+                  <div class="profile-stat">
+                     <div class="profile-stat-value">{{getTotalVideoWatched()}}</div>
+                     <div class="profile-stat-label">Videos Watched</div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content-container">
+         <!-- Tabs -->
+         <div class="tabs-container">
+            <div class="tabs">
+               <div class="tab" ng-class="{active: activeTab === 'profile'}" ng-click="setActiveTab('profile')">
+                  <i class="ti ti-user"></i> Profile
+               </div>
+               <div class="tab" ng-class="{active: activeTab === 'courses'}" ng-click="setActiveTab('courses')">
+                  <i class="ti ti-book"></i> Enrolled Courses
+               </div>
+               <div class="tab" ng-class="{active: activeTab === 'performance'}" ng-click="setActiveTab('performance')">
+                  <i class="ti ti-bar-chart"></i> Performance
+               </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div class="tab-content">
+               <div class="tab-pane" ng-class="{active: activeTab === 'profile'}">
+                  <div class="info-grid">
+                     <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value">{{student.name}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Student ID</div>
+                        <div class="info-value">{{student.id}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value">{{student.email}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Mobile Number</div>
+                        <div class="info-value">{{student.mobile}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Enrollment Date</div>
+                        <div class="info-value">{{student.enrollmentDate | date:'MMMM d, y'}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                           <span class="status-badge" ng-class="{active: student.status === 'active', inactive: student.status !== 'active'}">
+                              {{student.status}}
+                           </span>
+                        </div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Address</div>
+                        <div class="info-value">{{student.address || 'Not provided'}}</div>
+                     </div>
+                     <div class="info-item">
+                        <div class="info-label">Date of Birth</div>
+                        <div class="info-value">{{student.dob ? (student.dob | date:'MMMM d, y') : 'Not provided'}}</div>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Courses Tab -->
+               <div class="tab-pane" ng-class="{active: activeTab === 'courses'}">
+                  <div class="courses-grid" ng-if="student.enrolledCourses.length > 0">
+                     <div class="course-card" ng-repeat="enrollment in student.enrolledCourses">
+                        <div class="course-card-header">
+                           <div class="course-card-title">{{enrollment.courseName}}</div>
+                           <div class="course-card-subtitle">Enrolled on {{enrollment.enrollmentDate | date:'MMM d, y'}}</div>
+                        </div>
+                        <div class="course-card-body">
+                           <!-- Progress -->
+                           <div class="progress-section">
+                              <div class="progress-label">
+                                 <span>Course Progress</span>
+                                 <span><strong>{{enrollment.progress}}%</strong></span>
+                              </div>
+                              <div class="progress-bar-container">
+                                 <div class="progress-bar-fill" style="width: {{enrollment.progress}}%"></div>
+                              </div>
+                           </div>
+
+                           <!-- Course Stats -->
+                           <div class="course-stats">
+                              <div class="course-stat">
+                                 <div class="course-stat-icon">
+                                    <i class="ti ti-video-camera"></i>
+                                 </div>
+                                 <div class="course-stat-info">
+                                    <div class="course-stat-value">{{enrollment.videosWatched}}/{{enrollment.totalVideos}}</div>
+                                    <div class="course-stat-label">Videos Watched</div>
+                                 </div>
+                              </div>
+                              <div class="course-stat">
+                                 <div class="course-stat-icon">
+                                    <i class="ti ti-check-box"></i>
+                                 </div>
+                                 <div class="course-stat-info">
+                                    <div class="course-stat-value">{{enrollment.completedChapters}}/{{enrollment.totalChapters}}</div>
+                                    <div class="course-stat-label">Chapters Done</div>
+                                 </div>
+                              </div>
+                              <div class="course-stat">
+                                 <div class="course-stat-icon">
+                                    <i class="ti ti-time"></i>
+                                 </div>
+                                 <div class="course-stat-info">
+                                    <div class="course-stat-value">{{enrollment.timeSpent}}h</div>
+                                    <div class="course-stat-label">Time Spent</div>
+                                 </div>
+                              </div>
+                              <div class="course-stat">
+                                 <div class="course-stat-icon">
+                                    <i class="ti ti-flag"></i>
+                                 </div>
+                                 <div class="course-stat-info">
+                                    <div class="course-stat-value">{{enrollment.lastAccessed | date:'MMM d'}}</div>
+                                    <div class="course-stat-label">Last Accessed</div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Payment Details -->
+                           <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                              <table class="payment-table">
+                                 <tr>
+                                    <td style="border: none; font-size: 12px; color: #6c757d;">Course Fee</td>
+                                    <td style="border: none; font-weight: 600; text-align: right;">${{enrollment.payment.amount}}</td>
+                                 </tr>
+                                 <tr>
+                                    <td style="font-size: 12px; color: #6c757d;">Payment Date</td>
+                                    <td style="text-align: right;">{{enrollment.payment.date | date:'MMM d, y'}}</td>
+                                 </tr>
+                                 <tr>
+                                    <td style="font-size: 12px; color: #6c757d;">Invoice</td>
+                                    <td style="text-align: right;">
+                                       <a href="#" class="invoice-link" ng-click="downloadInvoice(enrollment.payment.invoiceId)">
+                                          {{enrollment.payment.invoiceId}}
+                                       </a>
+                                    </td>
+                                 </tr>
+                              </table>
+                           </div>
+                        </div>
+                        <div class="course-card-footer">
+                           <span class="payment-badge paid">
+                              <i class="ti ti-check"></i> {{enrollment.payment.status}}
+                           </span>
+                           <button class="btn-unenroll" ng-click="confirmUnenroll(enrollment)">
+                              <i class="ti ti-close"></i> Unenroll
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="empty-state" ng-if="student.enrolledCourses.length === 0">
+                     <i class="ti ti-book"></i>
+                     <h3>No Enrolled Courses</h3>
+                     <p>This student is not currently enrolled in any courses.</p>
+                  </div>
+               </div>
+
+               <!-- Performance Tab -->
+               <div class="tab-pane" ng-class="{active: activeTab === 'performance'}">
+                  <div class="section">
+                     <div class="section-title">Recent Exam Results</div>
+                     <table class="exam-results-table" ng-if="getRecentExams().length > 0">
+                        <thead>
+                           <tr>
+                              <th>Exam Name</th>
+                              <th>Course</th>
+                              <th>Date</th>
+                              <th>Score</th>
+                              <th>Status</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr ng-repeat="exam in getRecentExams()">
+                              <td>{{exam.examName}}</td>
+                              <td>{{exam.courseName}}</td>
+                              <td>{{exam.date | date:'MMM d, y'}}</td>
+                              <td>
+                                 <span class="score-badge" ng-class="getScoreClass(exam.score)">
+                                    {{exam.score}}%
+                                 </span>
+                              </td>
+                              <td>{{exam.status}}</td>
+                           </tr>
+                        </tbody>
+                     </table>
+
+                     <div class="empty-state" ng-if="getRecentExams().length === 0">
+                        <i class="ti ti-clipboard"></i>
+                        <h3>No Exam Results</h3>
+                        <p>This student hasn't taken any exams yet.</p>
+                     </div>
+                  </div>
+
+                  <div class="section">
+                     <div class="section-title">Performance Overview</div>
+                     <div class="performance-chart">
+                        <div style="text-align: center;">
+                           <i class="ti ti-bar-chart" style="font-size: 48px; color: #dee2e6;"></i>
+                           <p style="margin-top: 10px;">Performance charts will be displayed here</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Unenroll Confirmation Modal -->
+      <div class="modal-backdrop" ng-class="{active: unenrollModalOpen}">
+         <div class="modal-dialog">
+            <div class="modal-header">
+               <h3><i class="ti ti-alert"></i> Confirm Unenrollment</h3>
+               <button class="modal-close" ng-click="closeUnenrollModal()">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <p style="font-size: 15px; color: #495057; line-height: 1.6;">
+                  Are you sure you want to unenroll <strong>{{student.name}}</strong> from <strong>{{enrollmentToRemove.courseName}}</strong>?
+               </p>
+               <p style="font-size: 13px; color: #6c757d; margin-top: 10px;">
+                  This action cannot be undone. The student's progress and exam results will be preserved but they will lose access to the course.
+               </p>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-default" ng-click="closeUnenrollModal()">Cancel</button>
+               <button class="btn btn-danger" ng-click="unenrollStudent()">
+                  <i class="ti ti-close"></i> Unenroll Student
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Scripts -->
+      <script src="assets/js/jquery.min.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/bootstrap.min.js"></script>
+      <script src="controllers/candidate-detail.js"></script>
+   </body>
+</html>

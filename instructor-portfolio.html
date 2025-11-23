@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Instructor Portfolio - VegaPilot</title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-touch-fullscreen" content="yes">
+      <meta name="description" content="VegaPilot Instructor Portfolio Management">
+      <meta name="author" content="VegaPilot">
+      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
+      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+
+      <!-- Instructor Portfolio Specific Styles -->
+      <style type="text/css">
+         /* Page Container */
+         .instructor-container {
+            padding: 20px 0;
+         }
+
+         /* Header Section */
+         .page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+         }
+
+         .page-header-section h2 {
+            margin: 0;
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+         }
+
+         .page-header-section p {
+            margin: 5px 0 0 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+         }
+
+         /* Stats Cards */
+         .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+         }
+
+         .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+         }
+
+         .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+         }
+
+         .stat-icon.teal { background: #006073; }
+         .stat-icon.green { background: #28a745; }
+         .stat-icon.orange { background: #fd7e14; }
+         .stat-icon.blue { background: #007bff; }
+
+         .stat-info h3 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+         }
+
+         .stat-info p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            color: #6c757d;
+         }
+
+         /* Search and Filter Bar */
+         .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+         }
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         }
+
+         .filter-select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+         }
+
+         .filter-select:focus {
+            outline: none;
+            border-color: #006073;
+         }
+
+         /* Instructors Table */
+         .instructors-table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+         }
+
+         .instructors-table {
+            width: 100%;
+            border-collapse: collapse;
+         }
+
+         .instructors-table thead {
+            background: #f8f9fa;
+         }
+
+         .instructors-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e9ecef;
+         }
+
+         .instructors-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+         }
+
+         .instructors-table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+
+         .instructors-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+         }
+
+         .instructor-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+         }
+
+         .instructor-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+         }
+
+         .instructor-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+         }
+
+         .instructor-brief {
+            color: #6c757d;
+            font-size: 13px;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+         }
+
+         .subject-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e7f5f7;
+            color: #006073;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+         }
+
+         .qualifications-list {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.6;
+         }
+
+         .action-buttons {
+            display: flex;
+            gap: 8px;
+         }
+
+         .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+         }
+
+         .btn-icon:hover {
+            transform: translateY(-2px);
+         }
+
+         .btn-edit {
+            background: #007bff;
+            color: white;
+         }
+
+         .btn-edit:hover {
+            background: #0056b3;
+         }
+
+         .btn-delete {
+            background: #dc3545;
+            color: white;
+         }
+
+         .btn-delete:hover {
+            background: #bd2130;
+         }
+
+         /* Empty State */
+         .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+         }
+
+         .empty-state i {
+            font-size: 64px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+         }
+
+         .empty-state h3 {
+            color: #495057;
+            margin-bottom: 10px;
+         }
+
+         .empty-state p {
+            color: #6c757d;
+            margin-bottom: 20px;
+         }
+
+         /* Modal Styles */
+         .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+         }
+
+         .modal-backdrop.active {
+            display: flex;
+         }
+
+         .modal-dialog {
+            background: white;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideDown 0.3s ease;
+         }
+
+         @keyframes modalSlideDown {
+            from {
+               transform: translateY(-50px);
+               opacity: 0;
+            }
+            to {
+               transform: translateY(0);
+               opacity: 1;
+            }
+         }
+
+         .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+         }
+
+         .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            color: white;
+         }
+
+         .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+         }
+
+         .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+         }
+
+         .modal-body {
+            padding: 25px;
+         }
+
+         .modal-footer {
+            padding: 15px 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+         }
+
+         .form-section {
+            margin-bottom: 25px;
+         }
+
+         .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+         }
+
+         .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+         }
+
+         .form-row.full {
+            grid-template-columns: 1fr;
+         }
+
+         .form-group {
+            margin-bottom: 20px;
+         }
+
+         .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+         }
+
+         .form-group label .required {
+            color: #dc3545;
+            margin-left: 3px;
+         }
+
+         .form-input,
+         .form-textarea,
+         .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+         }
+
+         .form-input:focus,
+         .form-textarea:focus,
+         .form-select:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         }
+
+         .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+         }
+
+         .photo-upload-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+         }
+
+         .photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e9ecef;
+         }
+
+         .photo-preview-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #adb5bd;
+            border: 3px dashed #dee2e6;
+         }
+
+         .photo-upload-controls {
+            flex: 1;
+         }
+
+         .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+         }
+
+         .file-input {
+            display: none;
+         }
+
+         .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s ease;
+         }
+
+         .file-input-label:hover {
+            background: #0056b3;
+         }
+
+         .file-name {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6c757d;
+         }
+
+         /* Loading Overlay */
+         .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+         }
+
+         .loading-overlay.active {
+            display: flex;
+         }
+
+         .loading-content {
+            text-align: center;
+         }
+
+         .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #006073;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+         }
+
+         @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+         }
+
+         .loading-text {
+            color: #495057;
+            font-size: 16px;
+            font-weight: 500;
+         }
+
+         /* Responsive */
+         @media (max-width: 768px) {
+            .stats-row {
+               grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+               flex-direction: column;
+            }
+
+            .instructors-table-container {
+               overflow-x: auto;
+            }
+
+            .form-row {
+               grid-template-columns: 1fr;
+            }
+
+            .photo-upload-section {
+               flex-direction: column;
+            }
+         }
+
+         /* Star Rating Styles */
+         .star-rating {
+            color: #ffb706;
+         }
+
+         .star-rating i {
+            margin: 0 2px;
+         }
+      </style>
+   </head>
+
+   <body class="animated-content" ng-app="InstructorPortfolioApp" ng-controller="InstructorPortfolioController" ng-cloak>
+     <!-- Top Navbar -->
+     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+           <span class="icon-bg">
+            <i class="ti ti-menu"></i>
+           </span>
+           </a>
+           </span>
+           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <ul class="nav navbar-nav toolbar pull-right">
+           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
+           </li>
+           <li class="dropdown toolbar-icon-bg">
+              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+              <img class="img-circle" src="assets/img/default_user.png" alt="" />
+              </a>
+              <ul class="dropdown-menu userinfo arrow">
+                 <li><a href="catalog.html"><i class="ti ti-shift-right"></i><span>Back to Catalog</span></a></li>
+              </ul>
+           </li>
+        </ul>
+     </header>
+
+      <!-- Main Wrapper -->
+      <div id="wrapper">
+         <div id="layout-static">
+           <!-- Sidebar -->
+           <div class="static-sidebar-wrapper sidebar-default">
+              <div class="static-sidebar">
+                 <div class="sidebar">
+                    <div class="widget stay-on-collapse" id="widget-sidebar">
+                       <nav role="navigation" class="widget-body">
+                           <ul class="acc-menu">
+                              <li class="nav-separator"><span>Content Library</span></li>
+                              <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question Bank</span></a></li>
+                              <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
+                              <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                              <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
+
+                              <li class="nav-separator"><span>Courses</span></li>
+                              <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                              <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+
+                              <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                              <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                              <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                              <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
+
+                              <li class="nav-separator"><span>Management</span></li>
+                              <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                              <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                              <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                              <li><a href="instructor-portfolio.html" class="active"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
+                              <li><a href="mentor-profiles.html"><i class="ti ti-user"></i><span>Mentor Profiles</span></a></li>
+                           </ul>
+                       </nav>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+            <!-- Main Content Area -->
+            <div class="static-content-wrapper">
+               <div class="static-content">
+                  <div class="page-content">
+                     <div class="container-fluid">
+                        <div class="instructor-container">
+
+                           <!-- Page Header -->
+                           <div class="page-header-section">
+                              <div>
+                                 <h2><i class="ti ti-id-badge"></i> Instructor Portfolio</h2>
+                                 <p>Manage instructor profiles and their teaching assignments</p>
+                              </div>
+                              <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 600;" ng-click="openCreateModal()">
+                                 <i class="ti ti-plus"></i> Add New Instructor
+                              </button>
+                           </div>
+
+                           <!-- Statistics Cards -->
+                           <div class="stats-row">
+                              <div class="stat-card">
+                                 <div class="stat-icon teal">
+                                    <i class="ti ti-user"></i>
+                                 </div>
+                                 <div class="stat-info">
+                                    <h3>{{instructors.length}}</h3>
+                                    <p>Total Instructors</p>
+                                 </div>
+                              </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon green">
+                                    <i class="ti ti-check-box"></i>
+                                 </div>
+                                 <div class="stat-info">
+                                    <h3>{{getActiveInstructors()}}</h3>
+                                    <p>Active Instructors</p>
+                                 </div>
+                              </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon orange">
+                                    <i class="ti ti-book"></i>
+                                 </div>
+                                 <div class="stat-info">
+                                    <h3>{{getTotalSubjects()}}</h3>
+                                    <p>Subjects Covered</p>
+                                 </div>
+                              </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon blue">
+                                    <i class="ti ti-briefcase"></i>
+                                 </div>
+                                 <div class="stat-info">
+                                    <h3>{{getAverageExperience()}}</h3>
+                                    <p>Avg. Experience</p>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Filter Bar -->
+                           <div class="filter-bar">
+                              <div class="search-wrapper">
+                                 <i class="ti ti-search"></i>
+                                 <input type="text"
+                                        class="search-input"
+                                        placeholder="Search by name, subject, or qualifications..."
+                                        ng-model="searchQuery"
+                                        ng-change="filterInstructors()">
+                              </div>
+                              <select class="filter-select" ng-model="filterSubject" ng-change="filterInstructors()">
+                                 <option value="">All Subjects</option>
+                                 <option ng-repeat="subject in getUniqueSubjects()" value="{{subject}}">{{subject}}</option>
+                              </select>
+                              <select class="filter-select" ng-model="sortBy" ng-change="sortInstructors()">
+                                 <option value="name">Sort by Name</option>
+                                 <option value="subject">Sort by Subject</option>
+                                 <option value="experience">Sort by Experience</option>
+                              </select>
+                           </div>
+
+                           <!-- Instructors Table -->
+                           <div class="instructors-table-container" ng-if="filteredInstructors.length > 0">
+                              <table class="instructors-table">
+                                 <thead>
+                                    <tr>
+                                       <th>Instructor</th>
+                                       <th>Brief</th>
+                                       <th>Expert Subject</th>
+                                       <th>Qualifications</th>
+                                       <th>Experience</th>
+                                       <th>Contribution</th>
+                                       <th>Actions</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody>
+                                    <tr ng-repeat="instructor in filteredInstructors" ng-click="viewInstructor(instructor)">
+                                       <td>
+                                          <div class="instructor-name-cell">
+                                             <img ng-if="instructor.photo"
+                                                  ng-src="{{instructor.photo}}"
+                                                  alt="{{instructor.name}}"
+                                                  class="instructor-photo">
+                                             <div ng-if="!instructor.photo"
+                                                  class="instructor-photo"
+                                                  style="background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">
+                                                {{getInitials(instructor.name)}}
+                                             </div>
+                                             <div>
+                                                <div class="instructor-name">{{instructor.name}}</div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="instructor-brief">{{instructor.brief}}</div>
+                                       </td>
+                                       <td>
+                                          <span class="subject-badge">{{instructor.expertSubject}}</span>
+                                       </td>
+                                       <td>
+                                          <div class="qualifications-list">{{instructor.qualifications}}</div>
+                                       </td>
+                                       <td>{{instructor.experience}} years</td>
+                                       <td ng-click="$event.stopPropagation()">
+                                          <button class="btn"
+                                                  style="padding: 6px 12px; background: #e7f5f7; color: #006073; border: none; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer;"
+                                                  ng-click="viewInstructorLessons(instructor)"
+                                                  title="View lessons taught by this instructor">
+                                             {{instructor.lessons ? instructor.lessons.length : 0}} Lessons
+                                          </button>
+                                       </td>
+                                       <td>
+                                          <div class="action-buttons" ng-click="$event.stopPropagation()">
+                                             <button class="btn-icon btn-edit"
+                                                     ng-click="openEditModal(instructor)"
+                                                     title="Edit Instructor">
+                                                <i class="ti ti-pencil"></i>
+                                             </button>
+                                             <button class="btn-icon btn-delete"
+                                                     ng-click="confirmDelete(instructor)"
+                                                     title="Delete Instructor">
+                                                <i class="ti ti-trash"></i>
+                                             </button>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+
+                           <!-- Empty State -->
+                           <div class="instructors-table-container" ng-if="filteredInstructors.length === 0">
+                              <div class="empty-state">
+                                 <i class="ti ti-id-badge"></i>
+                                 <h3>No Instructors Found</h3>
+                                 <p>{{searchQuery || filterSubject ? 'No instructors match your search criteria.' : 'Get started by adding your first instructor.'}}</p>
+                                 <button class="btn btn-success" ng-click="openCreateModal()" ng-if="!searchQuery && !filterSubject">
+                                    <i class="ti ti-plus"></i> Add Your First Instructor
+                                 </button>
+                              </div>
+                           </div>
+
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Create/Edit Instructor Modal -->
+      <div class="modal-backdrop" ng-class="{active: editModalOpen}">
+         <div class="modal-dialog">
+            <div class="modal-header">
+               <h3><i class="ti ti-id-badge"></i> {{editMode ? 'Edit' : 'Add New'}} Instructor</h3>
+               <button class="modal-close" ng-click="closeEditModal()">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <!-- Basic Information -->
+               <div class="form-section">
+                  <div class="form-section-title">Basic Information</div>
+
+                  <div class="form-group">
+                     <label>Instructor Name <span class="required">*</span></label>
+                     <input type="text"
+                            class="form-input"
+                            ng-model="currentInstructor.name"
+                            placeholder="Enter full name"
+                            ng-keypress="$event.keyCode == 13 && saveInstructor()">
+                  </div>
+
+                  <div class="form-group">
+                     <label>Brief Description <span class="required">*</span></label>
+                     <textarea class="form-textarea"
+                               ng-model="currentInstructor.brief"
+                               placeholder="Short introduction (e.g., Senior Mathematics Educator with 10+ years experience)"
+                               rows="2"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                     <label>Profile Photo</label>
+                     <div class="photo-upload-section">
+                        <img ng-if="currentInstructor.photo && !currentInstructor.photoPreview"
+                             ng-src="{{currentInstructor.photo}}"
+                             class="photo-preview"
+                             alt="Instructor photo">
+                        <img ng-if="currentInstructor.photoPreview"
+                             ng-src="{{currentInstructor.photoPreview}}"
+                             class="photo-preview"
+                             alt="Photo preview">
+                        <div ng-if="!currentInstructor.photo && !currentInstructor.photoPreview"
+                             class="photo-preview-placeholder">
+                           <i class="ti ti-camera"></i>
+                        </div>
+                        <div class="photo-upload-controls">
+                           <div class="file-input-wrapper">
+                              <input type="file"
+                                     id="photoInput"
+                                     class="file-input"
+                                     accept="image/*"
+                                     onchange="angular.element(this).scope().handlePhotoSelect(this.files[0])">
+                              <label for="photoInput" class="file-input-label">
+                                 <i class="ti ti-upload"></i> Choose Photo
+                              </label>
+                           </div>
+                           <span class="file-name" ng-if="currentInstructor.photoFile">{{currentInstructor.photoFile.name}}</span>
+                           <span class="file-name" ng-if="!currentInstructor.photoFile" style="color: #adb5bd;">JPG, PNG (Max 2MB)</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Professional Details -->
+               <div class="form-section">
+                  <div class="form-section-title">Professional Details</div>
+
+                  <div class="form-row">
+                     <div class="form-group">
+                        <label>Expert Subject <span class="required">*</span></label>
+                        <input type="text"
+                               class="form-input"
+                               ng-model="currentInstructor.expertSubject"
+                               placeholder="e.g., Mathematics, Physics, Chemistry">
+                     </div>
+
+                     <div class="form-group">
+                        <label>Years of Experience <span class="required">*</span></label>
+                        <input type="number"
+                               class="form-input"
+                               ng-model="currentInstructor.experience"
+                               placeholder="e.g., 10"
+                               min="0">
+                     </div>
+                  </div>
+
+                  <div class="form-group">
+                     <label>Qualifications <span class="required">*</span></label>
+                     <textarea class="form-textarea"
+                               ng-model="currentInstructor.qualifications"
+                               placeholder="List degrees, certifications, and credentials (e.g., M.Sc in Mathematics, Ph.D in Applied Mathematics, Certified Educator)"
+                               rows="3"></textarea>
+                  </div>
+               </div>
+
+               <!-- Additional Information -->
+               <div class="form-section">
+                  <div class="form-section-title">Additional Information</div>
+
+                  <div class="form-group">
+                     <label>Email</label>
+                     <input type="email"
+                            class="form-input"
+                            ng-model="currentInstructor.email"
+                            placeholder="instructor@example.com">
+                  </div>
+
+                  <div class="form-group">
+                     <label>Phone</label>
+                     <input type="tel"
+                            class="form-input"
+                            ng-model="currentInstructor.phone"
+                            placeholder="+1 (555) 123-4567">
+                  </div>
+
+                  <div class="form-group">
+                     <label>Bio / About</label>
+                     <textarea class="form-textarea"
+                               ng-model="currentInstructor.bio"
+                               placeholder="Detailed biography, teaching philosophy, and achievements..."
+                               rows="4"></textarea>
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-default" ng-click="closeEditModal()">Cancel</button>
+               <button class="btn btn-success"
+                      ng-click="saveInstructor()"
+                      ng-disabled="!currentInstructor.name || !currentInstructor.brief || !currentInstructor.expertSubject || !currentInstructor.qualifications || !currentInstructor.experience">
+                  <i class="ti ti-check"></i> {{editMode ? 'Update' : 'Create'}} Instructor
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="modal-backdrop" ng-class="{active: deleteModalOpen}">
+         <div class="modal-dialog" style="max-width: 500px;">
+            <div class="modal-header" style="background: #dc3545;">
+               <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
+               <button class="modal-close" ng-click="closeDeleteModal()">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <p style="font-size: 15px; color: #495057; line-height: 1.6;">
+                  Are you sure you want to delete <strong>{{instructorToDelete.name}}</strong>?
+               </p>
+               <p style="font-size: 13px; color: #6c757d; margin-top: 10px;">
+                  This action cannot be undone. All course chapter assignments for this instructor will need to be reassigned.
+               </p>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-default" ng-click="closeDeleteModal()">Cancel</button>
+               <button class="btn btn-danger" ng-click="deleteInstructor()">
+                  <i class="ti ti-trash"></i> Delete Instructor
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Instructor Profile View Modal -->
+      <div class="modal-backdrop" ng-class="{active: viewModalOpen}">
+         <div class="modal-dialog" style="max-width: 800px;">
+            <div class="modal-header" style="background-color: #006073; color: white;">
+               <h3><i class="ti ti-user"></i> Instructor Profile</h3>
+               <button class="modal-close" ng-click="closeViewModal()" style="color: white; opacity: 0.8;">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <div class="row" ng-if="selectedInstructor">
+                  <div class="col-md-4 text-center">
+                     <img ng-src="{{selectedInstructor.photo || 'assets/img/default_user.png'}}" alt="{{selectedInstructor.name}}"
+                          style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #006073; margin-bottom: 15px;">
+                     <div class="star-rating" style="font-size: 20px; margin-bottom: 10px;">
+                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 0)"></i>
+                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 1)"></i>
+                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 2)"></i>
+                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 3)"></i>
+                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 4)"></i>
+                     </div>
+                     <p style="font-size: 18px; font-weight: bold; color: #666;">{{selectedInstructor.rating || 0}}/5.0</p>
+                     <p style="color: #999; font-size: 14px;">{{selectedInstructor.studentsCount || 0}} Students</p>
+                  </div>
+                  <div class="col-md-8">
+                     <h3 style="color: #006073; margin-top: 0;">{{selectedInstructor.name}}</h3>
+                     <p style="color: #666; font-size: 16px; margin-bottom: 20px;"><em>{{selectedInstructor.brief}}</em></p>
+
+                     <div style="margin-bottom: 15px;">
+                        <strong style="color: #006073;"><i class="ti ti-bookmark"></i> Expert Subject:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.expertSubject}}</p>
+                     </div>
+
+                     <div style="margin-bottom: 15px;">
+                        <strong style="color: #006073;"><i class="ti ti-briefcase"></i> Experience:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.experience}} years</p>
+                     </div>
+
+                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.qualifications">
+                        <strong style="color: #006073;"><i class="ti ti-medall"></i> Qualifications:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.qualifications}}</p>
+                     </div>
+
+                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.email">
+                        <strong style="color: #006073;"><i class="ti ti-email"></i> Email:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.email}}</p>
+                     </div>
+
+                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.phone">
+                        <strong style="color: #006073;"><i class="ti ti-mobile"></i> Phone:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.phone}}</p>
+                     </div>
+
+                     <div ng-if="selectedInstructor.bio">
+                        <strong style="color: #006073;"><i class="ti ti-info-alt"></i> About:</strong>
+                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.bio}}</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-primary" ng-click="editFromView()">
+                  <i class="ti ti-pencil"></i> Edit Instructor
+               </button>
+               <button class="btn btn-default" ng-click="closeViewModal()">
+                  <i class="ti ti-close"></i> Close
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Lessons Modal -->
+      <div class="modal-backdrop" ng-class="{active: lessonsModalOpen}">
+         <div class="modal-dialog" style="max-width: 900px;">
+            <div class="modal-header">
+               <h3><i class="ti ti-book"></i> Lessons Taught by {{selectedInstructorForLessons.name}}</h3>
+               <button class="modal-close" ng-click="closeLessonsModal()">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <div ng-if="selectedInstructorForLessons.lessons && selectedInstructorForLessons.lessons.length > 0">
+                  <p style="color: #6c757d; margin-bottom: 20px;">
+                     <strong>{{selectedInstructorForLessons.name}}</strong> has contributed to <strong>{{selectedInstructorForLessons.lessons.length}}</strong> lesson(s) across different courses.
+                  </p>
+
+                  <div style="max-height: 500px; overflow-y: auto;">
+                     <table class="instructors-table" style="margin-bottom: 0;">
+                        <thead>
+                           <tr>
+                              <th style="width: 50px;">#</th>
+                              <th>Course Name</th>
+                              <th>Chapter/Lesson</th>
+                              <th>Duration</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr ng-repeat="lesson in selectedInstructorForLessons.lessons" style="cursor: default;">
+                              <td style="text-align: center; color: #6c757d;">{{$index + 1}}</td>
+                              <td>
+                                 <div style="font-weight: 600; color: #2c3e50; margin-bottom: 3px;">{{lesson.courseName}}</div>
+                                 <div style="font-size: 12px; color: #6c757d;">{{lesson.courseCode}}</div>
+                              </td>
+                              <td>
+                                 <div style="font-weight: 500; color: #006073;">{{lesson.chapterName}}</div>
+                              </td>
+                              <td style="color: #6c757d;">{{lesson.duration || 'N/A'}}</td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+
+               <div ng-if="!selectedInstructorForLessons.lessons || selectedInstructorForLessons.lessons.length === 0"
+                    style="text-align: center; padding: 40px 20px;">
+                  <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
+                  <h4 style="color: #495057; margin-bottom: 8px;">No Lessons Assigned</h4>
+                  <p style="color: #6c757d;">This instructor hasn't been assigned to any lessons yet.</p>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-default" ng-click="closeLessonsModal()">
+                  <i class="ti ti-close"></i> Close
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" ng-class="{active: isLoading}">
+         <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">{{loadingMessage}}</div>
+         </div>
+      </div>
+
+      <!-- Scripts -->
+      <script src="assets/js/jquery.min.js"></script>
+      <script src="assets/js/angular.min.js"></script>
+      <script src="assets/js/bootstrap.min.js"></script>
+      <script src="assets/js/slimscroll/jquery.slimscroll.min.js"></script>
+      <script src="assets/js/app.js"></script>
+      <script src="assets/js/common.js"></script>
+      <script src="controllers/instructor-portfolio.js"></script>
+   </body>
+</html>
