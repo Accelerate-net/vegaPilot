@@ -452,6 +452,7 @@
                               <li class="nav-separator"><span>Courses</span></li>
                               <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
                               <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+                              <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
                               <li class="nav-separator"><span>Exams & Quizzes</span></li>
                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
@@ -652,9 +653,9 @@
       </div>
 
       <!-- Enrolled Courses Modal -->
-      <div class="modal-backdrop" ng-class="{active: coursesModalOpen}" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-         <div class="modal-dialog" style="background: white; border-radius: 8px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0;">
+      <div class="modal-backdrop" ng-class="{active: coursesModalOpen}" ng-style="{'display': coursesModalOpen ? 'flex' : 'none'}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+         <div class="modal-dialog" style="background: white; border-radius: 8px; max-width: 900px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
+            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
                <h3 style="margin: 0; font-size: 20px; color: white;">
                   <i class="ti ti-book"></i> Enrolled Courses - {{selectedStudentForCourses.name}}
                </h3>
@@ -662,7 +663,7 @@
                   <i class="ti ti-close"></i>
                </button>
             </div>
-            <div class="modal-body" style="padding: 25px;">
+            <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
                <div ng-if="selectedStudentForCourses && selectedStudentForCourses.enrolledCourses.length > 0">
                   <table style="width: 100%; border-collapse: collapse;">
                      <thead>
@@ -704,8 +705,127 @@
                   <p style="font-size: 16px; margin: 0;">No courses enrolled</p>
                </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px;">
-               <button class="btn btn-default" ng-click="closeCoursesModal()">
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; background: white; border-radius: 0 0 8px 8px;">
+               <button class="btn btn-success" ng-click="openEnrollCourseModal()" style="display: inline-flex; align-items: center; gap: 5px;">
+                  <i class="ti ti-plus"></i> <span>Enroll Course</span>
+               </button>
+               <button class="btn btn-default" ng-click="closeCoursesModal()" style="display: inline-flex; align-items: center; gap: 5px;">
+                  <i class="ti ti-close"></i> <span>Close</span>
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!-- Enroll Course Modal -->
+      <div class="modal-backdrop" ng-class="{active: enrollCourseModalOpen}" ng-style="{'display': enrollCourseModalOpen ? 'flex' : 'none'}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+         <div class="modal-dialog" style="background: white; border-radius: 8px; max-width: 1000px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
+            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
+               <h3 style="margin: 0; font-size: 20px; color: white;">
+                  <i class="ti ti-book"></i> Enroll Course - {{selectedStudentForCourses.name}}
+               </h3>
+               <button class="modal-close" ng-click="closeEnrollCourseModal()" style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
+               <!-- Search Bar -->
+               <div style="margin-bottom: 20px;">
+                  <div class="input-group">
+                     <span class="input-group-addon" style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
+                        <i class="ti ti-search"></i>
+                     </span>
+                     <input type="text"
+                            class="form-control"
+                            placeholder="Search courses by name or code..."
+                            ng-model="courseSearchQuery"
+                            style="border-left: none;">
+                     <span class="input-group-btn" ng-if="courseSearchQuery">
+                        <button class="btn btn-default"
+                                ng-click="courseSearchQuery = ''"
+                                style="border: 1px solid #dee2e6; border-left: none;">
+                           <i class="ti ti-close"></i>
+                        </button>
+                     </span>
+                  </div>
+               </div>
+
+               <div ng-if="filteredAvailableCoursesForEnrollment.length > 0">
+                  <p style="color: #6c757d; margin-bottom: 20px;">
+                     Showing <strong>{{filteredAvailableCoursesForEnrollment.length}}</strong> available course(s).
+                  </p>
+
+                  <div style="max-height: 500px; overflow-y: auto;">
+                     <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                           <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 10;">
+                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Course Name
+                              </th>
+                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Code
+                              </th>
+                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Duration
+                              </th>
+                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Price
+                              </th>
+                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Status
+                              </th>
+                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                                 Action
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr ng-repeat="course in filteredAvailableCoursesForEnrollment"
+                               style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;"
+                               onmouseover="this.style.background='#f8f9fa'"
+                               onmouseout="this.style.background='white'">
+                              <td style="padding: 15px;">
+                                 <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}</div>
+                                 <div style="font-size: 12px; color: #6c757d;">{{course.modules || 0}} modules</div>
+                              </td>
+                              <td style="padding: 15px;">
+                                 <div style="color: #333; font-size: 13px;">{{course.courseCode}}</div>
+                              </td>
+                              <td style="padding: 15px; text-align: center;">
+                                 <div style="color: #333; font-size: 13px;">
+                                    <i class="ti ti-calendar" style="margin-right: 5px; color: #6c757d;"></i>{{course.duration || 'N/A'}}
+                                 </div>
+                              </td>
+                              <td style="padding: 15px; text-align: center;">
+                                 <div style="font-weight: 600; color: #006073; font-size: 14px;">
+                                    ${{course.price || 0}}
+                                 </div>
+                              </td>
+                              <td style="padding: 15px; text-align: center;">
+                                 <span style="display: inline-block; padding: 4px 10px; background: #d4edda; color: #155724; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
+                                    {{course.status || 'Active'}}
+                                 </span>
+                              </td>
+                              <td style="padding: 15px; text-align: center;">
+                                 <button class="btn btn-sm btn-success"
+                                         ng-click="enrollStudentToCourse(course)"
+                                         style="padding: 6px 15px; font-size: 12px;">
+                                    <i class="ti ti-plus"></i> Enroll
+                                 </button>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+
+               <div ng-if="filteredAvailableCoursesForEnrollment.length === 0" style="text-align: center; padding: 40px; color: #6c757d;">
+                  <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
+                  <p style="font-size: 16px; margin: 0;" ng-if="!courseSearchQuery">No courses available for enrollment</p>
+                  <p style="font-size: 16px; margin: 0;" ng-if="courseSearchQuery">No courses found matching "{{courseSearchQuery}}"</p>
+               </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;">
+               <button class="btn btn-default" ng-click="closeEnrollCourseModal()">
                   <i class="ti ti-close"></i> Close
                </button>
             </div>
@@ -771,12 +891,17 @@
       </div>
 
       <!-- Scripts -->
-      <script src="assets/js/jquery.min.js"></script>
-      <script src="assets/js/angular.min.js"></script>
-      <script src="assets/js/bootstrap.min.js"></script>
-      <script src="assets/js/slimscroll/jquery.slimscroll.min.js"></script>
-      <script src="assets/js/app.js"></script>
-      <script src="assets/js/common.js"></script>
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="assets/js/angular.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
       <script src="controllers/candidate-profile.js"></script>
    </body>
 </html>

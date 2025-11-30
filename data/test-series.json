@@ -1,0 +1,46 @@
+[
+    {
+        "id": 1742334000000,
+        "title": "IAT 2026 - Comprehensive Mock Series",
+        "description": "A complete test series for IISER Aptitude Test aspirants. Includes topic-wise tests and full-length mock exams.",
+        "exams": [
+            {
+                "id": 50000,
+                "access": "free"
+            },
+            {
+                "id": 50003,
+                "access": "premium"
+            }
+        ],
+        "createdAt": "2025-03-24T10:00:00.000Z"
+    },
+    {
+        "id": 1742334100000,
+        "title": "JEE Main Physics Booster",
+        "description": "Targeted practice for JEE Main Physics. Focuses on high-weightage topics and previous year patterns.",
+        "exams": [
+            {
+                "id": 50001,
+                "access": "free"
+            },
+            {
+                "id": 50004,
+                "access": "premium"
+            }
+        ],
+        "createdAt": "2025-03-25T14:30:00.000Z"
+    },
+    {
+        "id": 1742334200000,
+        "title": "NEET Biology Masterclass",
+        "description": "Extensive biology question bank for NEET. Covers both Botany and Zoology with detailed solutions.",
+        "exams": [
+            {
+                "id": 50002,
+                "access": "premium"
+            }
+        ],
+        "createdAt": "2025-03-26T09:15:00.000Z"
+    }
+]

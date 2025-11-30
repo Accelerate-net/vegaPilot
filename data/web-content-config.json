@@ -1,0 +1,11 @@
+{
+    "autoEnroll": {
+        "courses": [],
+        "validity": {
+            "type": "duration",
+            "value": 365,
+            "unit": "days"
+        }
+    },
+    "discounts": []
+}

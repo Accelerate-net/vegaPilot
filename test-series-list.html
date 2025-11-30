@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Test Series List - VegaPilot</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="description" content="VegaPilot Test Series List">
+    <meta name="author" content="VegaPilot">
+    <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+        rel='stylesheet'>
+    <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-cookies.js"></script>
+
+    <!-- Page Specific Styles -->
+    <style>
+        /* Page Header Section */
+        .page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .page-header-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .page-header-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Test Series Table */
+        .test-series-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-series-table thead {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            color: white;
+        }
+
+        .test-series-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-series-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .test-series-table tbody tr:hover {
+            background: #f8f9fc;
+            transform: scale(1.002);
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.1);
+        }
+
+        .test-series-table td {
+            padding: 18px 20px;
+            vertical-align: middle;
+        }
+
+        .series-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .series-description {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .exam-count-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e7f5f7;
+            color: #006073;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .access-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .access-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .access-badge.free {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .access-badge.premium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        .modal-backdrop.active {
+            display: flex !important;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 8px;
+            max-width: 1200px;
+            width: 95%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideDown 0.3s ease;
+        }
+
+        @keyframes modalSlideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            color: white;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 25px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 15px 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+            background: #f9fafb;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #006073;
+            margin-bottom: 15px;
+        }
+
+        /* Exam Grid Styles */
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .exam-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .exam-card:hover {
+            border-color: #006073;
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.15);
+        }
+
+        .exam-card.selected {
+            border-color: #006073;
+            background: #e7f5f7;
+        }
+
+        .exam-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .exam-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .exam-info {
+            flex: 1;
+        }
+
+        .exam-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .exam-meta {
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .access-type-selector {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+        }
+
+        .exam-card.selected .access-type-selector {
+            display: block;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+            margin: 0;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #6c757d;
+            margin: 0 0 10px 0;
+        }
+
+        .selected-exams-summary {
+            background: #e7f5f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .summary-item strong {
+            color: #006073;
+        }
+    </style>
+
+    <script src="controllers/test-series-list.js"></script>
+</head>
+
+<body class="animated-content" ng-app="testSeriesApp" ng-controller="testSeriesController" ng-cloak>
+    <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+                <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+                    <span class="icon-bg">
+                        <i class="ti ti-menu"></i>
+                    </span>
+                </a>
+            </span>
+            <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+                <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+                <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+                    <img class="img-circle" src="assets/img/default_user.png" alt="" />
+                </a>
+                <ul class="dropdown-menu userinfo arrow">
+                    <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
+                </ul>
+            </li>
+        </ul>
+    </header>
+
+    <div id="wrapper">
+        <div id="layout-static">
+            <div class="static-sidebar-wrapper sidebar-default">
+                <div class="static-sidebar">
+                    <div class="sidebar">
+                        <div class="widget stay-on-collapse" id="widget-sidebar">
+                            <nav role="navigation" class="widget-body">
+                                <ul class="acc-menu">
+                                    <li><a href="index.html"><i class="ti ti-home"></i><span>Dashboard</span></a></li>
+
+                                    <li class="nav-separator"><span>Content</span></li>
+                                    <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice Questions</span></a></li>
+                                    <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video Content</span></a></li>
+                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video Management</span></a></li>
+
+                                    <li class="nav-separator"><span>Courses</span></li>
+                                    <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
+                                    <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+                                    <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+
+                                    <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                                    <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
+                                    <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam Listing</span></a></li>
+                                    <li><a href="test-series-list.html" class="active"><i class="ti ti-clipboard"></i><span>Test Series</span></a></li>
+                                    <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz Creation</span></a></li>
+                                    <li><a href="quiz-listing.html"><i class="ti ti-view-list-alt"></i><span>Quiz Listing</span></a></li>
+
+                                    <li class="nav-separator"><span>Management</span></li>
+                                    <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                                    <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                                    <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student Profile</span></a></li>
+                                    <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="static-content-wrapper">
+                <div class="static-content">
+                    <div class="page-content">
+                        <div class="container-fluid" style="padding-top: 4%;">
+
+                            <!-- Page Header -->
+                            <div class="page-header-section">
+                                <div>
+                                    <h2><i class="ti ti-clipboard"></i> Test Series Management</h2>
+                                    <p>Create and manage test series with multiple exams</p>
+                                </div>
+                                <button class="btn btn-success" ng-click="openCreateModal()" style="padding: 10px 20px;">
+                                    <i class="ti ti-plus"></i> Create Test Series
+                                </button>
+                            </div>
+
+                            <!-- Test Series Table -->
+                            <div ng-show="testSeriesList.length > 0">
+                                <table class="test-series-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Test Series Name</th>
+                                            <th style="text-align: center;">Total Exams</th>
+                                            <th style="text-align: center;">Access Type</th>
+                                            <th style="text-align: center;">Status</th>
+                                            <th style="text-align: center;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="series in testSeriesList" ng-click="viewSeriesDetails(series)">
+                                            <td>
+                                                <div class="series-name">{{series.name}}</div>
+                                                <div class="series-description" ng-if="series.description">{{series.description}}</div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <span class="exam-count-badge">{{series.exams.length}} Exams</span>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="access-badges">
+                                                    <span class="access-badge free" ng-if="getFreeExamsCount(series) > 0">
+                                                        {{getFreeExamsCount(series)}} Free
+                                                    </span>
+                                                    <span class="access-badge premium" ng-if="getPremiumExamsCount(series) > 0">
+                                                        {{getPremiumExamsCount(series)}} Premium
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <span class="status-badge" ng-class="{active: series.status === 'active', inactive: series.status !== 'active'}">
+                                                    {{series.status}}
+                                                </span>
+                                            </td>
+                                            <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                                <div style="display: flex; gap: 5px; justify-content: center;">
+                                                    <button class="btn btn-xs btn-primary" ng-click="editSeries(series)" title="Edit">
+                                                        <i class="ti ti-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-xs btn-danger" ng-click="deleteSeries(series)" title="Delete">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div ng-if="testSeriesList.length === 0" class="empty-state">
+                                <i class="ti ti-clipboard"></i>
+                                <h3>No Test Series Found</h3>
+                                <p style="color: #adb5bd;">Create your first test series to get started</p>
+                                <button class="btn btn-success" ng-click="openCreateModal()" style="margin-top: 15px;">
+                                    <i class="ti ti-plus"></i> Create Test Series
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Test Series Modal -->
+    <div class="modal-backdrop" ng-class="{active: createModalOpen}" ng-style="{'display': createModalOpen ? 'flex' : 'none'}">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>
+                    <i class="ti ti-plus"></i> {{editMode ? 'Edit Test Series' : 'Create Test Series'}}
+                </h3>
+                <button class="modal-close" ng-click="closeCreateModal()">
+                    <i class="ti ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <div class="form-section-title">Basic Information</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Test Series Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" ng-model="currentSeries.name" placeholder="e.g., IAT 2026 - Mock Tests" required style="height: 38px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Status</label>
+                            <select class="form-control" ng-model="currentSeries.status" style="height: 38px;">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Description</label>
+                        <textarea class="form-control" ng-model="currentSeries.description" rows="2" placeholder="Brief description of the test series" style="resize: vertical; min-height: 60px;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Selected Exams Summary -->
+                <div class="selected-exams-summary" ng-if="getSelectedExamsCount() > 0">
+                    <div class="summary-item">
+                        <span>Total Selected Exams:</span>
+                        <strong>{{getSelectedExamsCount()}}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Free Access Exams:</span>
+                        <strong style="color: #155724;">{{getSelectedFreeCount()}}</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Premium Access Exams:</span>
+                        <strong style="color: #856404;">{{getSelectedPremiumCount()}}</strong>
+                    </div>
+                </div>
+
+                <!-- Exam Selection -->
+                <div class="form-section">
+                    <div class="form-section-title">Select Exams <span style="color: red;">*</span></div>
+
+                    <!-- Search Bar -->
+                    <div class="search-box">
+                        <div class="input-group">
+                            <span class="input-group-addon" style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
+                                <i class="ti ti-search"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Search exams by name..." ng-model="examSearchQuery" style="border-left: none;">
+                            <span class="input-group-btn" ng-if="examSearchQuery">
+                                <button class="btn btn-default" ng-click="examSearchQuery = ''" style="border: 1px solid #dee2e6; border-left: none;">
+                                    <i class="ti ti-close"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Exam Grid -->
+                    <div class="exam-grid">
+                        <div class="exam-card"
+                             ng-repeat="exam in filteredAvailableExams"
+                             ng-class="{selected: isExamSelected(exam)}"
+                             ng-click="toggleExamSelection(exam)">
+                            <div class="exam-card-header">
+                                <input type="checkbox"
+                                       class="exam-checkbox"
+                                       ng-checked="isExamSelected(exam)"
+                                       ng-click="$event.stopPropagation(); toggleExamSelection(exam)">
+                                <div class="exam-info">
+                                    <div class="exam-title">{{exam.title}}</div>
+                                    <div class="exam-meta">
+                                        <span><i class="ti ti-time"></i> {{exam.duration}} min</span>
+                                        <span><i class="ti ti-help"></i> {{exam.totalQuestions}} questions</span>
+                                        <span><i class="ti ti-layout-grid2"></i> {{exam.numberOfSections}} sections</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Access Type Selector (shown when selected) -->
+                            <div class="access-type-selector" ng-if="isExamSelected(exam)">
+                                <div class="radio-group">
+                                    <div class="radio-option" ng-click="$event.stopPropagation(); setExamAccessType(exam, 'free')">
+                                        <input type="radio"
+                                               name="access_{{exam.id}}"
+                                               value="free"
+                                               ng-checked="getExamAccessType(exam) === 'free'"
+                                               ng-click="$event.stopPropagation()">
+                                        <label>Free Access</label>
+                                    </div>
+                                    <div class="radio-option" ng-click="$event.stopPropagation(); setExamAccessType(exam, 'premium')">
+                                        <input type="radio"
+                                               name="access_{{exam.id}}"
+                                               value="premium"
+                                               ng-checked="getExamAccessType(exam) === 'premium'"
+                                               ng-click="$event.stopPropagation()">
+                                        <label>Premium Access</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ng-if="filteredAvailableExams.length === 0" style="text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="ti ti-info-alt" style="font-size: 36px; color: #dee2e6; margin-bottom: 10px;"></i>
+                        <p ng-if="!examSearchQuery">No exams available</p>
+                        <p ng-if="examSearchQuery">No exams found matching "{{examSearchQuery}}"</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" ng-click="closeCreateModal()">
+                    <i class="ti ti-close"></i> Cancel
+                </button>
+                <button class="btn btn-success" ng-click="saveTestSeries()" ng-disabled="!canSaveTestSeries()">
+                    <i class="ti ti-check"></i> {{editMode ? 'Update' : 'Create'}} Test Series
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div ng-if="isLoading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center;">
+            <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #006073; margin-bottom: 15px;"></i>
+            <p style="margin: 0; color: #333;">{{loadingMessage}}</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script src="assets/plugins/iCheck/icheck.min.js"></script>
+</body>
+
+</html>

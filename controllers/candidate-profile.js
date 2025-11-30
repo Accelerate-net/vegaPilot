@@ -504,6 +504,82 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         }, 300);
     };
 
+    // ===== Available Courses Data =====
+    $scope.availableCourses = [
+        {
+            courseId: 'C001',
+            courseCode: 'MATH-101',
+            courseName: 'Advanced Mathematics',
+            duration: '6 months',
+            price: 299,
+            modules: 8,
+            status: 'Active'
+        },
+        {
+            courseId: 'C002',
+            courseCode: 'PHY-101',
+            courseName: 'Physics Fundamentals',
+            duration: '5 months',
+            price: 349,
+            modules: 10,
+            status: 'Active'
+        },
+        {
+            courseId: 'C003',
+            courseCode: 'CS-101',
+            courseName: 'Computer Science Basics',
+            duration: '8 months',
+            price: 399,
+            modules: 10,
+            status: 'Active'
+        },
+        {
+            courseId: 'C004',
+            courseCode: 'CHEM-101',
+            courseName: 'Chemistry Essentials',
+            duration: '6 months',
+            price: 329,
+            modules: 9,
+            status: 'Active'
+        },
+        {
+            courseId: 'C005',
+            courseCode: 'BIO-101',
+            courseName: 'Biology Fundamentals',
+            duration: '5 months',
+            price: 299,
+            modules: 7,
+            status: 'Active'
+        },
+        {
+            courseId: 'C006',
+            courseCode: 'ENG-201',
+            courseName: 'English Literature',
+            duration: '4 months',
+            price: 279,
+            modules: 12,
+            status: 'Active'
+        },
+        {
+            courseId: 'C007',
+            courseCode: 'HIST-101',
+            courseName: 'World History',
+            duration: '6 months',
+            price: 249,
+            modules: 10,
+            status: 'Active'
+        },
+        {
+            courseId: 'C008',
+            courseCode: 'ECO-101',
+            courseName: 'Economics Basics',
+            duration: '5 months',
+            price: 299,
+            modules: 8,
+            status: 'Active'
+        }
+    ];
+
     // ===== Enrolled Courses Modal =====
     $scope.coursesModalOpen = false;
     $scope.selectedStudentForCourses = null;
@@ -518,6 +594,111 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         $timeout(function() {
             $scope.selectedStudentForCourses = null;
         }, 300);
+    };
+
+    // ===== Enroll Course Modal =====
+    $scope.enrollCourseModalOpen = false;
+    $scope.courseSearchQuery = '';
+    $scope.filteredAvailableCoursesForEnrollment = [];
+
+    $scope.openEnrollCourseModal = function() {
+        if (!$scope.selectedStudentForCourses) return;
+
+        // Filter out courses already enrolled
+        var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+            return c.courseId;
+        });
+
+        $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+            return enrolledCourseIds.indexOf(course.courseId) === -1;
+        });
+
+        $scope.courseSearchQuery = '';
+        $scope.enrollCourseModalOpen = true;
+    };
+
+    $scope.closeEnrollCourseModal = function() {
+        $scope.enrollCourseModalOpen = false;
+        $scope.courseSearchQuery = '';
+        $timeout(function() {
+            $scope.filteredAvailableCoursesForEnrollment = [];
+        }, 300);
+    };
+
+    // Watch for search query changes
+    $scope.$watch('courseSearchQuery', function(newVal) {
+        if (!$scope.enrollCourseModalOpen) return;
+
+        if (!newVal) {
+            // Show all available courses (not enrolled)
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+                return c.courseId;
+            });
+
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+                return enrolledCourseIds.indexOf(course.courseId) === -1;
+            });
+        } else {
+            // Filter by search query
+            var searchLower = newVal.toLowerCase();
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+                return c.courseId;
+            });
+
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+                var notEnrolled = enrolledCourseIds.indexOf(course.courseId) === -1;
+                var matchesSearch = course.courseName.toLowerCase().indexOf(searchLower) !== -1 ||
+                                  course.courseCode.toLowerCase().indexOf(searchLower) !== -1;
+                return notEnrolled && matchesSearch;
+            });
+        }
+    });
+
+    $scope.enrollStudentToCourse = function(course) {
+        if (!$scope.selectedStudentForCourses || !course) return;
+
+        $scope.showLoading('Enrolling student to ' + course.courseName + '...');
+
+        $timeout(function() {
+            // Create new enrollment
+            var newEnrollment = {
+                courseId: course.courseId,
+                courseCode: course.courseCode,
+                courseName: course.courseName,
+                enrollmentDate: new Date(),
+                progress: 0,
+                videosWatched: 0,
+                totalVideos: 20,
+                completedChapters: 0,
+                totalChapters: course.modules || 8,
+                timeSpent: 0,
+                lastAccessed: new Date(),
+                payment: {
+                    amount: course.price,
+                    date: new Date(),
+                    status: 'Paid',
+                    invoiceId: 'INV-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000)
+                },
+                exams: []
+            };
+
+            // Add to student's enrolled courses
+            $scope.selectedStudentForCourses.enrolledCourses.push(newEnrollment);
+
+            // Update the filtered list
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+                return c.courseId;
+            });
+
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(c) {
+                return enrolledCourseIds.indexOf(c.courseId) === -1;
+            });
+
+            $scope.hideLoading();
+
+            // Show success message
+            alert('Successfully enrolled ' + $scope.selectedStudentForCourses.name + ' to ' + course.courseName + '!');
+        }, 800);
     };
 
     // ===== Date and Validity Helper Functions =====

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Web Content Manager - VegaPilot</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="description" content="VegaPilot Web Content Manager">
+    <meta name="author" content="VegaPilot">
+    <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+        rel='stylesheet'>
+    <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+
+    <!-- Page Specific Styles -->
+    <style>
+        /* Page Header Section - Copied from courses-list.html */
+        .page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .page-header-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .page-header-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .page-header-section i {
+            margin-right: 8px;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #006073;
+            margin: 0;
+        }
+
+        /* Course Grid Styles */
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .course-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #f9fafb;
+            height: 100%;
+        }
+
+        .course-checkbox {
+            display: none;
+        }
+
+        .course-checkbox:checked+.course-card {
+            border-color: #006073;
+            background: #e5faff;
+            box-shadow: 0 2px 5px rgba(0, 96, 115, 0.1);
+        }
+
+        .course-checkbox:checked+.course-card .course-icon {
+            background: #006073;
+            color: white;
+        }
+
+        .course-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #e0f2f1;
+            color: #006073;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        /* Table Styles - Copied from courses-list.html */
+        .custom-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .custom-table thead {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            color: white;
+        }
+
+        .custom-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: none;
+        }
+
+        .custom-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+        }
+
+        .custom-table tbody tr:hover {
+            background: #f8f9fc;
+        }
+
+        .custom-table td {
+            padding: 18px 20px;
+            vertical-align: middle;
+            color: #4b5563;
+        }
+
+        .validity-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.2);
+            color: white;
+        }
+
+        .btn-success-custom {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-success-custom:hover {
+            background: #059669;
+            color: white;
+        }
+
+        /* Modal Styles */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-modal.active {
+            display: flex;
+        }
+
+        .custom-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideDown 0.3s ease;
+        }
+
+        .custom-modal-header {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .custom-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .custom-modal-body {
+            padding: 25px;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="animated-content">
+    <!-- Top Navbar -->
+    <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+        <div class="logo-area">
+            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+                <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+                    <span class="icon-bg">
+                        <i class="ti ti-menu"></i>
+                    </span>
+                </a>
+            </span>
+            <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+        </div>
+        <ul class="nav navbar-nav toolbar pull-right">
+            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+                <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
+            </li>
+            <li class="dropdown toolbar-icon-bg">
+                <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+                    <img class="img-circle" src="assets/img/default_user.png" alt="" />
+                </a>
+                <ul class="dropdown-menu userinfo arrow">
+                    <li><a href="catalog.html"><i class="ti ti-shift-right"></i><span>Back to Catalog</span></a></li>
+                </ul>
+            </li>
+        </ul>
+    </header>
+
+    <!-- Main Wrapper -->
+    <div id="wrapper">
+        <div id="layout-static">
+            <!-- Sidebar -->
+            <div class="static-sidebar-wrapper sidebar-default">
+                <div class="static-sidebar">
+                    <div class="sidebar">
+                        <div class="widget stay-on-collapse" id="widget-sidebar">
+                            <nav role="navigation" class="widget-body">
+                                <ul class="acc-menu">
+                                    <li class="nav-separator"><span>Content Library</span></li>
+                                    <li><a href="question-bank.html"><i class="ti ti-bookmark-alt"></i><span>Question
+                                                Bank</span></a></li>
+                                    <li><a href="practice-questions.html"><i class="ti ti-clipboard"></i><span>Practice
+                                                Questions</span></a></li>
+                                    <li><a href="video-content.html"><i class="ti ti-video-camera"></i><span>Video
+                                                Content</span></a></li>
+                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud"></i><span>Video
+                                                Management</span></a></li>
+
+                                    <li class="nav-separator"><span>Courses</span></li>
+                                    <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course
+                                                Management</span></a></li>
+                                    <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses
+                                                List</span></a></li>
+
+                                    <li class="nav-separator"><span>Web Content</span></li>
+                                    <li><a href="web-content-manager.html" class="active"><i
+                                                class="ti ti-world"></i><span>Content Manager</span></a></li>
+
+                                    <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                                    <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam
+                                                Creation</span></a></li>
+                                    <li><a href="exam-listing.html"><i class="ti ti-list"></i><span>Exam
+                                                Listing</span></a></li>
+                                    <li><a href="quiz-creation.html"><i class="ti ti-clipboard"></i><span>Quiz
+                                                Creation</span></a></li>
+
+                                    <li class="nav-separator"><span>Management</span></li>
+                                    <li><a href="catalog.html"><i
+                                                class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                                    <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                                    <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Student
+                                                Profile</span></a></li>
+                                    <li><a href="instructor-portfolio.html"><i
+                                                class="ti ti-id-badge"></i><span>Instructor Portfolio</span></a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="static-content-wrapper">
+                <div class="static-content">
+                    <div class="page-content">
+                        <div class="container-fluid" style="padding-top: 20px;">
+
+                            <!-- Page Header -->
+                            <div class="page-header-section">
+                                <div>
+                                    <h2><i class="ti ti-world"></i> Web Content Manager</h2>
+                                    <p>Manage auto-enrollment settings and discount codes for crisprlearning.com</p>
+                                </div>
+                            </div>
+
+                            <!-- Auto-Enrollment Section -->
+                            <div class="section-card">
+                                <div class="section-header">
+                                    <h2 class="section-title"><i class="ti ti-user" style="margin-right: 10px;"></i>New
+                                        User Auto-Enrollment</h2>
+                                    <button class="btn btn-primary-custom" id="saveAutoEnrollBtn">
+                                        <i class="ti ti-save"></i> Save Changes
+                                    </button>
+                                </div>
+
+                                <div class="form-group">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                        <label style="font-weight: 600; color: #4b5563; margin: 0;">Selected
+                                            Courses</label>
+                                        <button class="btn btn-default" id="openCourseSelectModalBtn"
+                                            style="border: 1px solid #d1d5db; color: #4b5563;">
+                                            <i class="ti ti-plus"></i> Select Courses
+                                        </button>
+                                    </div>
+
+                                    <div class="course-grid" id="selectedCoursesList"
+                                        style="grid-template-columns: 1fr;">
+                                        <!-- Selected courses will be populated here -->
+                                        <div class="text-center"
+                                            style="padding: 30px; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; color: #6b7280;">
+                                            <i class="ti ti-book"
+                                                style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                            No courses selected for auto-enrollment.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Discount Codes Section -->
+                            <div class="section-card">
+                                <div class="section-header">
+                                    <h2 class="section-title"><i class="ti ti-ticket"
+                                            style="margin-right: 10px;"></i>Discount Codes</h2>
+                                    <button class="btn btn-success-custom" id="addDiscountBtn">
+                                        <i class="ti ti-plus"></i> Add New Code
+                                    </button>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="custom-table" id="discountTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Type</th>
+                                                <th>Value</th>
+                                                <th>Valid Until</th>
+                                                <th>Usage Limit</th>
+                                                <th>Status</th>
+                                                <th style="text-align: right;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Discount codes will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div> <!-- .container-fluid -->
+                    </div> <!-- #page-content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Selection Modal -->
+    <div class="custom-modal" id="courseSelectModal">
+        <div class="custom-modal-content" style="width: 800px;">
+            <div class="custom-modal-header">
+                <h3>Select Courses</h3>
+                <button class="close-modal"
+                    style="background:none; border:none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="custom-modal-body" style="padding: 0;">
+                <div style="padding: 20px; border-bottom: 1px solid #eee;">
+                    <input type="text" id="courseSearchInput" class="form-control"
+                        placeholder="Search courses by name or code...">
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; padding: 20px;">
+                    <div class="course-grid" id="modalCourseList">
+                        <!-- All courses will be populated here -->
+                    </div>
+                </div>
+                <div
+                    style="padding: 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #f9fafb;">
+                    <button type="button" class="btn btn-default close-modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" id="confirmCourseSelectionBtn">Confirm
+                        Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Discount Modal -->
+    <div class="custom-modal" id="discountModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3>Add Discount Code</h3>
+                <button class="close-modal"
+                    style="background:none; border:none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="custom-modal-body">
+                <form id="discountForm">
+                    <div class="form-group">
+                        <label>Code</label>
+                        <input type="text" class="form-control" name="code" placeholder="e.g. WELCOME20" required
+                            style="text-transform: uppercase;">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Discount Type</label>
+                                <select class="form-control" name="type">
+                                    <option value="percentage">Percentage (%)</option>
+                                    <option value="fixed">Fixed Amount ($)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Value</label>
+                                <input type="number" class="form-control" name="value" required min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Valid Until</label>
+                        <input type="date" class="form-control" name="validUntil" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Usage Limit (Optional)</label>
+                        <input type="number" class="form-control" name="usageLimit"
+                            placeholder="Leave empty for unlimited">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                        <button type="button" class="btn btn-default close-modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary-custom">Create Code</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="controllers/web-content-manager.js"></script>
+</body>
+
+</html>

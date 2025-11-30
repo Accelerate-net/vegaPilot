@@ -362,6 +362,466 @@ app.get('/health', (req, res) => {
     });
 });
 
+// ===== Web Content Manager Endpoints =====
+
+const WEB_CONTENT_CONFIG_PATH = path.join(__dirname, 'data', 'web-content-config.json');
+
+// Helper to read config
+function readWebContentConfig() {
+    try {
+        if (!fs.existsSync(WEB_CONTENT_CONFIG_PATH)) {
+            return { autoEnroll: { courses: [], validity: { type: 'duration', value: 365, unit: 'days' } }, discounts: [] };
+        }
+        const data = fs.readFileSync(WEB_CONTENT_CONFIG_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading web content config:', error);
+        return { autoEnroll: { courses: [], validity: {} }, discounts: [] };
+    }
+}
+
+// Helper to write config
+function writeWebContentConfig(config) {
+    try {
+        fs.writeFileSync(WEB_CONTENT_CONFIG_PATH, JSON.stringify(config, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Error writing web content config:', error);
+        return false;
+    }
+}
+
+// Get Web Content Config
+app.get('/api/web-content/config', (req, res) => {
+    const config = readWebContentConfig();
+    res.json(config);
+});
+
+// Save Auto-Enroll Config
+app.post('/api/web-content/auto-enroll', (req, res) => {
+    const config = readWebContentConfig();
+    config.autoEnroll = req.body;
+
+    if (writeWebContentConfig(config)) {
+        res.json({ success: true, message: 'Auto-enroll configuration saved' });
+    } else {
+        res.status(500).json({ error: 'Failed to save configuration' });
+    }
+});
+
+// Save Discount Codes
+app.post('/api/web-content/discounts', (req, res) => {
+    const config = readWebContentConfig();
+    config.discounts = req.body;
+
+    if (writeWebContentConfig(config)) {
+        res.json({ success: true, message: 'Discount codes saved' });
+    } else {
+        res.status(500).json({ error: 'Failed to save configuration' });
+    }
+});
+
+// Get All Courses (Mock implementation - synced with courses-list.js)
+app.get('/api/courses', (req, res) => {
+    // This data matches the hardcoded list in controllers/courses-list.js
+    const courses = [
+        {
+            code: 'CR004',
+            title: 'IAT 2026 – Exclusive 1 Year Course',
+            category: 'Science',
+            description: 'Comprehensive preparation for IISER Aptitude Test 2026',
+            modulesList: ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
+            totalModules: 4,
+            totalChapters: 57,
+            totalDuration: '201h 45m',
+            status: 'Active',
+            totalStudents: 450,
+            instructor: 'Expert Faculty Team',
+            rating: '4.9'
+        },
+        {
+            code: 'CR001',
+            title: 'Advanced Web Development Masterclass',
+            category: 'Web Development',
+            description: 'Master modern web development with hands-on projects',
+            modulesList: ['HTML5', 'CSS3', 'JavaScript', 'React', 'Node.js'],
+            totalModules: 5,
+            totalChapters: 45,
+            totalDuration: '85h 30m',
+            status: 'Active',
+            totalStudents: 1250,
+            instructor: 'John Smith',
+            rating: '4.8'
+        },
+        {
+            code: 'CR002',
+            title: 'Data Science and Machine Learning',
+            category: 'Data Science',
+            description: 'Complete guide to data science and ML algorithms',
+            modulesList: ['Python', 'Statistics', 'ML Algorithms', 'Deep Learning'],
+            totalModules: 4,
+            totalChapters: 52,
+            totalDuration: '95h 15m',
+            status: 'Active',
+            totalStudents: 890,
+            instructor: 'Dr. Sarah Williams',
+            rating: '4.9'
+        },
+        {
+            code: 'CR003',
+            title: 'Digital Marketing Fundamentals',
+            category: 'Marketing',
+            description: 'Learn digital marketing strategies and tools',
+            modulesList: ['SEO', 'Social Media', 'Content Marketing', 'Analytics'],
+            totalModules: 4,
+            totalChapters: 32,
+            totalDuration: '48h 20m',
+            status: 'Active',
+            totalStudents: 675,
+            instructor: 'Mark Thompson',
+            rating: '4.7'
+        },
+        {
+            code: 'CR005',
+            title: 'Python Programming Bootcamp',
+            category: 'Programming',
+            description: 'From beginner to advanced Python programming',
+            modulesList: ['Basics', 'OOP', 'Data Structures', 'Web Development'],
+            totalModules: 4,
+            totalChapters: 38,
+            totalDuration: '62h 45m',
+            status: 'Active',
+            totalStudents: 1120,
+            instructor: 'James Anderson',
+            rating: '4.8'
+        },
+        {
+            code: 'CR006',
+            title: 'UI/UX Design Masterclass',
+            category: 'Design',
+            description: 'Master user interface and user experience design',
+            modulesList: ['Design Principles', 'Wireframing', 'Prototyping', 'Testing'],
+            totalModules: 4,
+            totalChapters: 28,
+            totalDuration: '42h 30m',
+            status: 'Draft',
+            totalStudents: 0,
+            instructor: 'Emily Chen',
+            rating: '4.6'
+        },
+        {
+            code: 'CR007',
+            title: 'Cloud Computing with AWS',
+            category: 'Cloud Computing',
+            description: 'Comprehensive AWS cloud services and architecture',
+            modulesList: ['EC2', 'S3', 'Lambda', 'Database Services'],
+            totalModules: 4,
+            totalChapters: 35,
+            totalDuration: '55h 15m',
+            status: 'Active',
+            totalStudents: 540,
+            instructor: 'Michael Brown',
+            rating: '4.8'
+        }
+    ];
+    res.json(courses);
+});
+
+// Get All Exams (Mock implementation - synced with exam-listing.js)
+app.get('/api/exams', (req, res) => {
+    const exams = [
+        {
+            id: 50000,
+            displayKey: '4df33c6e-9282-48dc-b8ee-d70e5d2304ef',
+            title: 'IAT Mock Test - 1',
+            brief: 'Boost your IISER Aptitude Test 2025 preparation with our specially curated mock test',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>There are 4 Sections in this exam, containing 15 questions each.</li><li>Sections will be in the order Biology, Chemistry, Mathematics, and Physics</li><li>You can switch between Sections anytime during the exam</li><li>Every question is an MCQ with only Single Right Answer. You may choose answers from A, B, C, D options.</li><li>Each correct answer awards +4 marks, while each incorrect answer results in a -1 mark penalty.</li><li>There is no mandatory question to attempt, and any unattempted questions receive 0 marks.</li></ol>',
+            duration: 180,
+            totalQuestions: 60,
+            challengeQuestionAllowed: 1,
+            numberOfSections: 4,
+            switchSectionsAllowed: 1,
+            markingSchemeOverall: 1,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Biology',
+                    duration: 45,
+                    totalQuestions: 15,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: [
+                        { o: 1, qi: 1000, ms: 1 }, { o: 2, qi: 1001, ms: 1 }, { o: 3, qi: 1002, ms: 1 },
+                        { o: 4, qi: 1003, ms: 1 }, { o: 5, qi: 1004, ms: 1 }, { o: 6, qi: 1005, ms: 1 },
+                        { o: 7, qi: 1006, ms: 1 }, { o: 8, qi: 1007, ms: 1 }, { o: 9, qi: 1008, ms: 1 },
+                        { o: 10, qi: 1009, ms: 1 }, { o: 11, qi: 1010, ms: 1 }, { o: 12, qi: 1011, ms: 1 },
+                        { o: 13, qi: 1012, ms: 1 }, { o: 14, qi: 1013, ms: 1 }, { o: 15, qi: 1014, ms: 1 }
+                    ]
+                },
+                {
+                    order: 2,
+                    name: 'Chemistry',
+                    duration: 45,
+                    totalQuestions: 15,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: [
+                        { o: 1, qi: 1015, ms: 1 }, { o: 2, qi: 1016, ms: 1 }, { o: 3, qi: 1017, ms: 1 },
+                        { o: 4, qi: 1018, ms: 1 }, { o: 5, qi: 1019, ms: 1 }, { o: 6, qi: 1020, ms: 1 },
+                        { o: 7, qi: 1021, ms: 1 }, { o: 8, qi: 1022, ms: 1 }, { o: 9, qi: 1023, ms: 1 },
+                        { o: 10, qi: 1024, ms: 1 }, { o: 11, qi: 1025, ms: 1 }, { o: 12, qi: 1026, ms: 1 },
+                        { o: 13, qi: 1027, ms: 1 }, { o: 14, qi: 1028, ms: 1 }, { o: 15, qi: 1029, ms: 1 }
+                    ]
+                },
+                {
+                    order: 3,
+                    name: 'Mathematics',
+                    duration: 45,
+                    totalQuestions: 15,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: [
+                        { o: 1, qi: 1030, ms: 1 }, { o: 2, qi: 1031, ms: 1 }, { o: 3, qi: 1032, ms: 1 },
+                        { o: 4, qi: 1033, ms: 1 }, { o: 5, qi: 1034, ms: 1 }, { o: 6, qi: 1035, ms: 1 },
+                        { o: 7, qi: 1036, ms: 1 }, { o: 8, qi: 1037, ms: 1 }, { o: 9, qi: 1038, ms: 1 },
+                        { o: 10, qi: 1039, ms: 1 }, { o: 11, qi: 1040, ms: 1 }, { o: 12, qi: 1041, ms: 1 },
+                        { o: 13, qi: 1042, ms: 1 }, { o: 14, qi: 1043, ms: 1 }, { o: 15, qi: 1044, ms: 1 }
+                    ]
+                },
+                {
+                    order: 4,
+                    name: 'Physics',
+                    duration: 45,
+                    totalQuestions: 15,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: [
+                        { o: 1, qi: 1045, ms: 1 }, { o: 2, qi: 1046, ms: 1 }, { o: 3, qi: 1047, ms: 1 },
+                        { o: 4, qi: 1048, ms: 1 }, { o: 5, qi: 1049, ms: 1 }, { o: 6, qi: 1050, ms: 1 },
+                        { o: 7, qi: 1051, ms: 1 }, { o: 8, qi: 1052, ms: 1 }, { o: 9, qi: 1053, ms: 1 },
+                        { o: 10, qi: 1054, ms: 1 }, { o: 11, qi: 1055, ms: 1 }, { o: 12, qi: 1056, ms: 1 },
+                        { o: 13, qi: 1057, ms: 1 }, { o: 14, qi: 1058, ms: 1 }, { o: 15, qi: 1059, ms: 1 }
+                    ]
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742333501,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742333501
+        },
+        {
+            id: 50001,
+            displayKey: '5ef44d7f-0393-59ed-c9ff-e81f6e3415f0',
+            title: 'JEE Main Practice Test - Physics',
+            brief: 'Comprehensive physics practice test covering mechanics, thermodynamics, and modern physics',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>This test contains 25 questions from Physics</li><li>Each question carries 4 marks</li><li>Negative marking of 1 mark for wrong answers</li><li>Time limit: 100 minutes</li><li>Use of calculator is allowed</li></ol>',
+            duration: 100,
+            totalQuestions: 25,
+            challengeQuestionAllowed: 0,
+            numberOfSections: 1,
+            switchSectionsAllowed: 0,
+            markingSchemeOverall: 1,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Physics',
+                    duration: 100,
+                    totalQuestions: 25,
+                    enableSectionWiseTimer: true,
+                    sectionMarkingScheme: 0,
+                    questions: [
+                        { o: 1, qi: 2000, ms: 1 }, { o: 2, qi: 2001, ms: 1 }, { o: 3, qi: 2002, ms: 1 },
+                        { o: 4, qi: 2003, ms: 1 }, { o: 5, qi: 2004, ms: 1 }, { o: 6, qi: 2005, ms: 1 },
+                        { o: 7, qi: 2006, ms: 1 }, { o: 8, qi: 2007, ms: 1 }, { o: 9, qi: 2008, ms: 1 },
+                        { o: 10, qi: 2009, ms: 1 }, { o: 11, qi: 2010, ms: 1 }, { o: 12, qi: 2011, ms: 1 },
+                        { o: 13, qi: 2012, ms: 1 }, { o: 14, qi: 2013, ms: 1 }, { o: 15, qi: 2014, ms: 1 },
+                        { o: 16, qi: 2015, ms: 1 }, { o: 17, qi: 2016, ms: 1 }, { o: 18, qi: 2017, ms: 1 },
+                        { o: 19, qi: 2018, ms: 1 }, { o: 20, qi: 2019, ms: 1 }, { o: 21, qi: 2020, ms: 1 },
+                        { o: 22, qi: 2021, ms: 1 }, { o: 23, qi: 2022, ms: 1 }, { o: 24, qi: 2023, ms: 1 },
+                        { o: 25, qi: 2024, ms: 1 }
+                    ]
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742333502,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742333502
+        },
+        {
+            id: 50002,
+            displayKey: '6fg55e8g-14a4-6afe-da0g-f92g7f4526g1',
+            title: 'NEET Biology Mock Test',
+            brief: 'Complete biology mock test for NEET preparation covering botany and zoology',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>This test contains 90 questions from Biology</li><li>Questions are divided into Botany and Zoology sections</li><li>Each correct answer gives 4 marks</li><li>No negative marking</li><li>Time limit: 200 minutes</li></ol>',
+            duration: 200,
+            totalQuestions: 90,
+            challengeQuestionAllowed: 1,
+            numberOfSections: 2,
+            switchSectionsAllowed: 1,
+            markingSchemeOverall: 2,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Botany',
+                    duration: 100,
+                    totalQuestions: 45,
+                    enableSectionWiseTimer: true,
+                    sectionMarkingScheme: 1,
+                    questions: [
+                        { o: 1, qi: 3000, ms: 4 }, { o: 2, qi: 3001, ms: 4 }, { o: 3, qi: 3002, ms: 4 },
+                        { o: 4, qi: 3003, ms: 4 }, { o: 5, qi: 3004, ms: 4 }, { o: 6, qi: 3005, ms: 4 },
+                        { o: 7, qi: 3006, ms: 4 }, { o: 8, qi: 3007, ms: 4 }, { o: 9, qi: 3008, ms: 4 },
+                        { o: 10, qi: 3009, ms: 4 }, { o: 11, qi: 3010, ms: 4 }, { o: 12, qi: 3011, ms: 4 },
+                        { o: 13, qi: 3012, ms: 4 }, { o: 14, qi: 3013, ms: 4 }, { o: 15, qi: 3014, ms: 4 },
+                        { o: 16, qi: 3015, ms: 4 }, { o: 17, qi: 3016, ms: 4 }, { o: 18, qi: 3017, ms: 4 },
+                        { o: 19, qi: 3018, ms: 4 }, { o: 20, qi: 3019, ms: 4 }, { o: 21, qi: 3020, ms: 4 },
+                        { o: 22, qi: 3021, ms: 4 }, { o: 23, qi: 3022, ms: 4 }, { o: 24, qi: 3023, ms: 4 },
+                        { o: 25, qi: 3024, ms: 4 }, { o: 26, qi: 3025, ms: 4 }, { o: 27, qi: 3026, ms: 4 },
+                        { o: 28, qi: 3027, ms: 4 }, { o: 29, qi: 3028, ms: 4 }, { o: 30, qi: 3029, ms: 4 },
+                        { o: 31, qi: 3030, ms: 4 }, { o: 32, qi: 3031, ms: 4 }, { o: 33, qi: 3032, ms: 4 },
+                        { o: 34, qi: 3033, ms: 4 }, { o: 35, qi: 3034, ms: 4 }, { o: 36, qi: 3035, ms: 4 },
+                        { o: 37, qi: 3036, ms: 4 }, { o: 38, qi: 3037, ms: 4 }, { o: 39, qi: 3038, ms: 4 },
+                        { o: 40, qi: 3039, ms: 4 }, { o: 41, qi: 3040, ms: 4 }, { o: 42, qi: 3041, ms: 4 },
+                        { o: 43, qi: 3042, ms: 4 }, { o: 44, qi: 3043, ms: 4 }, { o: 45, qi: 3044, ms: 4 }
+                    ]
+                },
+                {
+                    order: 2,
+                    name: 'Zoology',
+                    duration: 100,
+                    totalQuestions: 45,
+                    enableSectionWiseTimer: true,
+                    sectionMarkingScheme: 1,
+                    questions: [
+                        { o: 1, qi: 3045, ms: 4 }, { o: 2, qi: 3046, ms: 4 }, { o: 3, qi: 3047, ms: 4 },
+                        { o: 4, qi: 3048, ms: 4 }, { o: 5, qi: 3049, ms: 4 }, { o: 6, qi: 3050, ms: 4 },
+                        { o: 7, qi: 3051, ms: 4 }, { o: 8, qi: 3052, ms: 4 }, { o: 9, qi: 3053, ms: 4 },
+                        { o: 10, qi: 3054, ms: 4 }, { o: 11, qi: 3055, ms: 4 }, { o: 12, qi: 3056, ms: 4 },
+                        { o: 13, qi: 3057, ms: 4 }, { o: 14, qi: 3058, ms: 4 }, { o: 15, qi: 3059, ms: 4 },
+                        { o: 16, qi: 3060, ms: 4 }, { o: 17, qi: 3061, ms: 4 }, { o: 18, qi: 3062, ms: 4 },
+                        { o: 19, qi: 3063, ms: 4 }, { o: 20, qi: 3064, ms: 4 }, { o: 21, qi: 3065, ms: 4 },
+                        { o: 22, qi: 3066, ms: 4 }, { o: 23, qi: 3067, ms: 4 }, { o: 24, qi: 3068, ms: 4 },
+                        { o: 25, qi: 3069, ms: 4 }, { o: 26, qi: 3070, ms: 4 }, { o: 27, qi: 3071, ms: 4 },
+                        { o: 28, qi: 3072, ms: 4 }, { o: 29, qi: 3073, ms: 4 }, { o: 30, qi: 3074, ms: 4 },
+                        { o: 31, qi: 3075, ms: 4 }, { o: 32, qi: 3076, ms: 4 }, { o: 33, qi: 3077, ms: 4 },
+                        { o: 34, qi: 3078, ms: 4 }, { o: 35, qi: 3079, ms: 4 }, { o: 36, qi: 3080, ms: 4 },
+                        { o: 37, qi: 3081, ms: 4 }, { o: 38, qi: 3082, ms: 4 }, { o: 39, qi: 3083, ms: 4 },
+                        { o: 40, qi: 3084, ms: 4 }, { o: 41, qi: 3085, ms: 4 }, { o: 42, qi: 3086, ms: 4 },
+                        { o: 43, qi: 3087, ms: 4 }, { o: 44, qi: 3088, ms: 4 }, { o: 45, qi: 3089, ms: 4 }
+                    ]
+                }
+            ],
+            status: 0,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742333503,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742333503
+        },
+        {
+            id: 50003,
+            displayKey: '7gh66f9h-25b5-7bgf-eb1h-g03h8g5637h2',
+            title: 'Chemistry Olympiad Qualifier',
+            brief: 'Preliminary round for Chemistry Olympiad - covers all major chemistry topics',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>Duration: 120 minutes</li><li>30 Multiple Choice Questions</li><li>Each question carries 3 marks</li><li>No negative marking</li><li>Top scorers advance to next round</li></ol>',
+            duration: 120,
+            totalQuestions: 30,
+            challengeQuestionAllowed: 0,
+            numberOfSections: 3,
+            switchSectionsAllowed: 1,
+            markingSchemeOverall: 2,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Organic Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({ length: 10 }, function (_, i) { return { o: i + 1, qi: 4000 + i, ms: 3 }; })
+                },
+                {
+                    order: 2,
+                    name: 'Inorganic Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({ length: 10 }, function (_, i) { return { o: i + 1, qi: 4010 + i, ms: 3 }; })
+                },
+                {
+                    order: 3,
+                    name: 'Physical Chemistry',
+                    duration: 40,
+                    totalQuestions: 10,
+                    enableSectionWiseTimer: false,
+                    sectionMarkingScheme: 0,
+                    questions: Array.from({ length: 10 }, function (_, i) { return { o: i + 1, qi: 4020 + i, ms: 3 }; })
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742220000,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742300000
+        },
+        {
+            id: 50004,
+            displayKey: '8hi77g0i-36c6-8chi-fc2i-h14i9h6748i3',
+            title: 'Mathematics Rapid Fire Quiz',
+            brief: 'Quick math assessment covering algebra, geometry, and calculus basics',
+            photo: 'data:image/png;base64,sample',
+            specialTerms: '<ol><li>Speed test - 60 minutes only</li><li>20 questions</li><li>+5 for correct, -2 for incorrect</li><li>Calculator not allowed</li><li>All questions must be attempted</li></ol>',
+            duration: 60,
+            totalQuestions: 20,
+            challengeQuestionAllowed: 1,
+            numberOfSections: 1,
+            switchSectionsAllowed: 0,
+            markingSchemeOverall: 3,
+            sectionsData: [
+                {
+                    order: 1,
+                    name: 'Mathematics',
+                    duration: 60,
+                    totalQuestions: 20,
+                    enableSectionWiseTimer: true,
+                    sectionMarkingScheme: 1,
+                    questions: Array.from({ length: 20 }, function (_, i) { return { o: i + 1, qi: 5000 + i, ms: 5 }; })
+                }
+            ],
+            status: 1,
+            createdBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            createdOn: 1742100000,
+            lastUpdatedBy: '66599dd1-c984-4cd0-944d-72b3a1492552',
+            lastUpdatedOn: 1742250000
+        }
+    ];
+    res.json(exams);
+});
+
+// Get Test Series
+app.get('/api/test-series', (req, res) => {
+    const configPath = path.join(__dirname, 'data', 'test-series.json');
+    if (fs.existsSync(configPath)) {
+        const data = fs.readFileSync(configPath, 'utf8');
+        res.json(JSON.parse(data));
+    } else {
+        res.json([]);
+    }
+});
+
+// Save Test Series
+app.post('/api/test-series', (req, res) => {
+    const configPath = path.join(__dirname, 'data', 'test-series.json');
+    fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
+});
+
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {

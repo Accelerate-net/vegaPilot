@@ -1,6 +1,6 @@
 var app = angular.module('courseManagementApp', ['ngCookies']);
 
-app.controller('courseManagementController', function($scope, $http, $cookies, $timeout) {
+app.controller('courseManagementController', function($scope, $http, $cookies, $timeout, $sce) {
     
     // Initialize scope variables
     $scope.createView = false;
@@ -2050,6 +2050,53 @@ app.controller('courseManagementController', function($scope, $http, $cookies, $
         var minutes = Math.floor(seconds / 60);
         var secs = seconds % 60;
         return minutes + ':' + (secs < 10 ? '0' : '') + secs;
+    };
+
+    // Video Preview functionality
+    $scope.videoPreview = {
+        part: null
+    };
+
+    $scope.showVideoPreview = function(part, event) {
+        // Only show preview for VIDEO type parts with a source
+        if (part.type !== 'VIDEO' || !part.source) {
+            return;
+        }
+
+        // Stop event propagation to prevent triggering parent clicks
+        if (event && event.stopPropagation) {
+            event.stopPropagation();
+        }
+
+        // Store the part data
+        $scope.videoPreview.part = part;
+
+        // Use Bootstrap's modal method to show the modal
+        // This handles backdrop, scroll lock, and animations automatically
+        $('#videoPreviewModal').modal('show');
+    };
+
+    $scope.hideVideoPreview = function() {
+        // Use Bootstrap's modal method to hide the modal
+        $('#videoPreviewModal').modal('hide');
+    };
+
+    // Clean up part data when modal is hidden
+    $('#videoPreviewModal').on('hidden.bs.modal', function () {
+        $scope.$apply(function() {
+            $scope.videoPreview.part = null;
+        });
+    });
+
+    $scope.getBunnyEmbedUrl = function(videoId) {
+        if (!videoId) return '';
+        // Bunny.net iframe embed URL format
+        // Using the CDN hostname from the environment or default
+        var cdnHostname = 'vz-031fe1cb-299.b-cdn.net'; // This should match your Bunny.net CDN
+        var libraryId = '534211'; // This should match your Bunny.net library ID
+
+        // Return the trusted URL for the iframe with autoplay enabled
+        return $sce.trustAsResourceUrl('https://iframe.mediadelivery.net/embed/' + libraryId + '/' + videoId + '?autoplay=true&preload=true');
     };
 
     // Drag and drop for parts reordering

@@ -252,6 +252,27 @@
             font-size: 14px;
             margin: 0;
          }
+
+         /* Filter Badge */
+         .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            background: #e7f5f7;
+            color: #006073;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #b3dce3;
+         }
+         .filter-badge i {
+            font-size: 10px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+         }
+         .filter-badge i:hover {
+            opacity: 1;
+         }
       </style>
    </head>
    <body class="animated-content" ng-app="quizReportApp" ng-controller="quizReportController" ng-init="init()" ng-cloak>
@@ -298,6 +319,7 @@
                                <li class="nav-separator"><span>Courses</span></li>
                                <li><a href="course-management.html"><i class="ti ti-book"></i><span>Course Management</span></a></li>
                                <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+                               <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
                                <li class="nav-separator"><span>Exams & Quizzes</span></li>
                                <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
@@ -421,16 +443,121 @@
                         </div>
 
                         <!-- Filter Bar -->
-                        <div class="filter-bar">
-                           <input type="text"
-                                  class="search-input"
-                                  ng-model="searchQuery"
-                                  placeholder="Search by student name or email...">
-                           <select class="filter-select" ng-model="statusFilter">
-                              <option value="all">All Status</option>
-                              <option value="completed">Completed</option>
-                              <option value="in-progress">In Progress</option>
-                           </select>
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+                           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                              <h4 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">
+                                 <i class="ti ti-filter"></i> Filters
+                              </h4>
+                              <button class="btn btn-sm btn-default" ng-click="clearFilters()" ng-if="hasActiveFilters()">
+                                 <i class="ti ti-reload"></i> Clear Filters
+                              </button>
+                           </div>
+
+                           <!-- Row 1: Search, Status, Date Range -->
+                           <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Search</label>
+                                 <input type="text"
+                                        class="form-control"
+                                        ng-model="searchQuery"
+                                        placeholder="Search by student name or email..."
+                                        style="height: 38px;">
+                              </div>
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Status</label>
+                                 <select class="form-control" ng-model="statusFilter" style="height: 38px;">
+                                    <option value="all">All Status</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in-progress">In Progress</option>
+                                 </select>
+                              </div>
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                    <i class="ti ti-calendar"></i> From Date & Time
+                                 </label>
+                                 <input type="datetime-local"
+                                        class="form-control"
+                                        ng-model="dateFrom"
+                                        style="height: 38px;">
+                              </div>
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                    <i class="ti ti-calendar"></i> To Date & Time
+                                 </label>
+                                 <input type="datetime-local"
+                                        class="form-control"
+                                        ng-model="dateTo"
+                                        style="height: 38px;">
+                              </div>
+                           </div>
+
+                           <!-- Row 2: Course and Batch Filters -->
+                           <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 15px;">
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                    <i class="ti ti-book"></i> Course
+                                 </label>
+                                 <select class="form-control" ng-model="selectedCourseFilter" ng-change="onCourseChange()" style="height: 38px;">
+                                    <option value="">All Courses</option>
+                                    <option ng-repeat="course in availableCourses" value="{{course.id}}">{{course.name}}</option>
+                                 </select>
+                              </div>
+                              <div>
+                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                    <i class="ti ti-layout-grid2"></i> Batch
+                                 </label>
+                                 <select class="form-control"
+                                         ng-model="selectedBatchFilter"
+                                         ng-disabled="!selectedCourseFilter"
+                                         style="height: 38px;">
+                                    <option value="">All Batches</option>
+                                    <option ng-repeat="batch in filteredBatchesForCourse" value="{{batch.id}}">{{batch.name}}</option>
+                                 </select>
+                              </div>
+                              <div style="display: flex; align-items: flex-end;">
+                                 <div style="padding: 8px 12px; background: #e7f5f7; border-radius: 6px; border-left: 3px solid #006073; font-size: 12px; color: #006073; width: 100%;">
+                                    <i class="ti ti-info-alt"></i>
+                                    <span ng-if="!selectedCourseFilter">Select a course to filter by batch-specific students</span>
+                                    <span ng-if="selectedCourseFilter && !selectedBatchFilter">Showing all batches in selected course</span>
+                                    <span ng-if="selectedCourseFilter && selectedBatchFilter">Showing only students from selected batch</span>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Active Filters Summary -->
+                           <div ng-if="hasActiveFilters()" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                              <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                 <span style="font-size: 12px; font-weight: 600; color: #6c757d;">Active Filters:</span>
+                                 <span ng-if="searchQuery" class="filter-badge">
+                                    Search: "{{searchQuery}}" <i class="ti ti-close" ng-click="searchQuery = ''" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                                 <span ng-if="statusFilter !== 'all'" class="filter-badge">
+                                    Status: {{statusFilter}} <i class="ti ti-close" ng-click="statusFilter = 'all'" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                                 <span ng-if="dateFrom" class="filter-badge">
+                                    From: {{dateFrom}} <i class="ti ti-close" ng-click="dateFrom = null" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                                 <span ng-if="dateTo" class="filter-badge">
+                                    To: {{dateTo}} <i class="ti ti-close" ng-click="dateTo = null" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                                 <span ng-if="selectedCourseFilter" class="filter-badge">
+                                    Course: {{getCourseName(selectedCourseFilter)}} <i class="ti ti-close" ng-click="clearCourseFilter()" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                                 <span ng-if="selectedBatchFilter" class="filter-badge">
+                                    Batch: {{getBatchName(selectedBatchFilter)}} <i class="ti ti-close" ng-click="selectedBatchFilter = ''" style="cursor: pointer; margin-left: 4px;"></i>
+                                 </span>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Export Button and Record Count -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 15px 0;">
+                           <div style="color: #6c757d; font-size: 14px;">
+                              <strong>{{getFilteredRankings().length}}</strong> record(s) found
+                           </div>
+                           <button class="btn btn-primary" ng-click="exportRankListPDF()" ng-disabled="getFilteredRankings().length === 0" style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                              <i class="ti ti-download"></i> Export Rank List to PDF
+                           </button>
                         </div>
 
                         <!-- Rank Table -->
@@ -497,15 +624,18 @@
          </div>
       </div>
 
-      <!-- Angular JS -->
-      <script src="assets/js/angular.min.js"></script>
+      <!-- Scripts -->
+      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+      <script type="text/javascript" src="assets/js/angular.min.js"></script>
+      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+      <script type="text/javascript" src="assets/js/application.js"></script>
+      <script type="text/javascript" src="assets/demo/demo.js"></script>
       <script src="controllers/quiz-attempt-report.js"></script>
-
-      <!-- jQuery and Bootstrap -->
-      <script src="assets/js/jquery.min.js"></script>
-      <script src="assets/js/bootstrap.min.js"></script>
-      <script src="assets/js/slimscroll/jquery.slimscroll.min.js"></script>
-      <script src="assets/js/app.js"></script>
-      <script src="assets/js/common.js"></script>
    </body>
 </html>

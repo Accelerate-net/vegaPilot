@@ -337,6 +337,18 @@
             align-items: center;
             margin-bottom: 12px;
          }
+
+         .part-actions {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+         }
+
+         .part-actions .btn {
+            font-size: 11px;
+            padding: 4px 8px;
+            line-height: 1.2;
+         }
          
          .part-number-badge {
             background: #007bff;
@@ -471,8 +483,9 @@
 
          /* Selectable Part Cards */
          .part-card.selectable {
-            cursor: pointer;
+            cursor: default;
             border: 2px solid transparent;
+            position: relative;
          }
 
          .part-card.selectable:hover {
@@ -491,6 +504,18 @@
             right: 10px;
             color: #006073;
             font-size: 24px;
+         }
+
+
+         /* Card content clickable area */
+         .part-card.selectable .part-content {
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+         }
+
+         .part-card.selectable .part-content:hover {
+            opacity: 0.95;
          }
 
          .nav-tabs > li.disabled > a {
@@ -1705,6 +1730,7 @@
                               <li class="nav-separator"><span>Courses</span></li>
                               <li><a href="course-management.html" class="active"><i class="ti ti-book"></i><span>Course Management</span></a></li>
                               <li><a href="courses-list.html"><i class="ti ti-list"></i><span>Courses List</span></a></li>
+                              <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
                               <li class="nav-separator"><span>Exams & Quizzes</span></li>
                               <li><a href="exam-creation-wizard.html"><i class="ti ti-pencil"></i><span>Exam Creation</span></a></li>
@@ -2326,16 +2352,31 @@
                                                          </div>
 
                                                          <div class="parts-grid">
-                                                            <div ng-repeat="part in videoParts | filter:filterContentLibrary" class="part-card selectable" ng-click="togglePartSelection(part)" ng-class="{'selected': isPartSelected(part.libraryId)}">
+                                                            <div ng-repeat="part in videoParts | filter:filterContentLibrary"
+                                                                 class="part-card selectable"
+                                                                 ng-class="{'selected': isPartSelected(part.libraryId), 'has-preview': part.type === 'VIDEO' && part.source}">
                                                                <div class="part-header">
                                                                   <div class="part-type-badge" ng-class="'type-' + part.type.toLowerCase()">
                                                                      {{part.type}}
                                                                   </div>
-                                                                  <div class="selection-indicator" ng-show="isPartSelected(part.libraryId)">
-                                                                     <i class="fa fa-check-circle"></i>
+                                                                  <div class="part-actions">
+                                                                     <button class="btn btn-xs btn-default"
+                                                                             ng-if="part.type === 'VIDEO' && part.source"
+                                                                             ng-click="showVideoPreview(part, $event)"
+                                                                             title="Preview Video"
+                                                                             style="margin-right: 5px;">
+                                                                        <i class="ti ti-eye"></i>
+                                                                     </button>
+                                                                     <button class="btn btn-xs"
+                                                                             ng-class="isPartSelected(part.libraryId) ? 'btn-success' : 'btn-primary'"
+                                                                             ng-click="togglePartSelection(part); $event.stopPropagation();"
+                                                                             title="{{isPartSelected(part.libraryId) ? 'Remove from Parts' : 'Add to Parts'}}">
+                                                                        <i class="fa" ng-class="isPartSelected(part.libraryId) ? 'fa-check' : 'fa-plus'"></i>
+                                                                        {{isPartSelected(part.libraryId) ? 'Added' : 'Add'}}
+                                                                     </button>
                                                                   </div>
                                                                </div>
-                                                               <div class="part-content">
+                                                               <div class="part-content" ng-click="part.type === 'VIDEO' && part.source && showVideoPreview(part, $event)">
                                                                   <div class="part-thumbnail">
                                                                      <i class="ti ti-video-camera"></i>
                                                                   </div>
@@ -2351,6 +2392,7 @@
                                                                </div>
                                                             </div>
                                                          </div>
+
 
                                                          <!-- Empty State -->
                                                          <div ng-if="(videoParts | filter:filterContentLibrary).length === 0" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
@@ -2861,6 +2903,48 @@
                   <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                   <button type="button" class="btn btn-success" ng-click="markAsCompleted()">
                      <i class="ti ti-success"></i> Mark as Completed
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Video Preview Modal -->
+      <div class="modal fade" id="videoPreviewModal" tabindex="-1" role="dialog" aria-labelledby="videoPreviewModalLabel">
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h4 class="modal-title" id="videoPreviewModalLabel">
+                     <i class="ti ti-video-camera"></i> {{videoPreview.part.title}}
+                  </h4>
+               </div>
+               <div class="modal-body">
+                  <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; background: #000;">
+                     <iframe ng-if="videoPreview.part.type === 'VIDEO' && videoPreview.part.source"
+                             ng-src="{{getBunnyEmbedUrl(videoPreview.part.source)}}"
+                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                             loading="lazy"
+                             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                             allowfullscreen="true">
+                     </iframe>
+                  </div>
+                  <div style="margin-top: 15px;">
+                     <span style="margin-right: 20px;"><i class="ti ti-time"></i> {{formatDuration(videoPreview.part.duration)}}</span>
+                     <span><i class="ti ti-bookmark"></i> {{videoPreview.part.libraryId}}</span>
+                  </div>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">
+                     <i class="ti ti-close"></i> Hide
+                  </button>
+                  <button type="button" class="btn"
+                          ng-class="isPartSelected(videoPreview.part.libraryId) ? 'btn-danger' : 'btn-success'"
+                          ng-click="togglePartSelection(videoPreview.part)">
+                     <i class="fa" ng-class="isPartSelected(videoPreview.part.libraryId) ? 'fa-minus' : 'fa-plus'"></i>
+                     {{isPartSelected(videoPreview.part.libraryId) ? 'Remove from Parts' : 'Add to Parts'}}
                   </button>
                </div>
             </div>
