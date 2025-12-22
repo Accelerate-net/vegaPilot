@@ -13,6 +13,8 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
     $scope.searchQuery = '';
     $scope.filterSubject = '';
     $scope.sortBy = 'name';
+    $scope.sortColumn = '';
+    $scope.sortReverse = false;
 
     // ===== Modal States =====
     $scope.editModalOpen = false;
@@ -401,6 +403,52 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
             if (aVal < bVal) return -1;
             if (aVal > bVal) return 1;
             return 0;
+        });
+    };
+
+    // ===== Sort by Column =====
+    $scope.sortByColumn = function(column) {
+        // If clicking the same column, toggle sort direction
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        // Sort the filtered instructors
+        $scope.filteredInstructors.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'name':
+                    aVal = a.name.toLowerCase();
+                    bVal = b.name.toLowerCase();
+                    break;
+                case 'expertSubject':
+                    aVal = a.expertSubject ? a.expertSubject.toLowerCase() : '';
+                    bVal = b.expertSubject ? b.expertSubject.toLowerCase() : '';
+                    break;
+                case 'experience':
+                    aVal = a.experience || 0;
+                    bVal = b.experience || 0;
+                    // For numeric values, return directly
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'lessonCount':
+                    aVal = a.lessons ? a.lessons.length : 0;
+                    bVal = b.lessons ? b.lessons.length : 0;
+                    // For numeric values, return directly
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                default:
+                    return 0;
+            }
+
+            // For string values
+            var comparison = 0;
+            if (aVal < bVal) comparison = -1;
+            if (aVal > bVal) comparison = 1;
+
+            return $scope.sortReverse ? -comparison : comparison;
         });
     };
 

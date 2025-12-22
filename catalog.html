@@ -268,9 +268,6 @@
             margin-bottom: 8px;
          }
          
-         .search-box { margin-bottom: 30px; }
-         .search-box .form-control { border-radius: 25px; padding-left: 20px; height: 50px; }
-         
          .filter-tags { margin: 20px 0; }
          .filter-tag { 
             display: inline-block; 
@@ -308,10 +305,64 @@
             font-size: 24px;
          }
          
-         .empty-state p { 
-            color: #bbb; 
+         .empty-state p {
+            color: #bbb;
             font-size: 16px;
             line-height: 1.6;
+         }
+
+         /* Filter Bar */
+         .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+         }
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         }
+
+         .filter-select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+            transition: all 0.3s ease;
+         }
+
+         .filter-select:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
          }
          
          .modal-body { max-height: 70vh; overflow-y: auto; }
@@ -514,20 +565,21 @@
                      </div>
 
                      <!-- Search and Filters -->
-                     <div class="row">
-                        <div class="col-md-12">
-                           <div class="search-box">
-                              <div class="input-group">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button"><i class="ti ti-search"></i></button>
-                                 </span>
-                                 <input type="text" class="form-control" placeholder="Search catalog items by title, code, or description..." ng-model="searchQuery" ng-change="applySearch()">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button" ng-click="clearSearch()"><i class="ti ti-close"></i></button>
-                                 </span>
-                              </div>
-                           </div>
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti ti-search"></i>
+                           <input type="text" class="search-input" placeholder="Search catalog items by title, code, or description..." ng-model="searchQuery" ng-change="applyFilters()">
                         </div>
+                        <select class="filter-select" ng-model="filterType" ng-change="applyFilters()">
+                           <option value="">All Types</option>
+                           <option value="1">Courses</option>
+                           <option value="2">Exams</option>
+                        </select>
+                        <select class="filter-select" ng-model="filterStatus" ng-change="applyFilters()">
+                           <option value="">All Status</option>
+                           <option value="1">Active</option>
+                           <option value="0">Inactive</option>
+                        </select>
                      </div>
 
                      <!-- Active Filters -->

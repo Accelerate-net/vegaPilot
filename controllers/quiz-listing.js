@@ -18,6 +18,10 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     $scope.quizSearchQuery = '';
     $scope.attemptSearchQuery = '';
 
+    // Sorting variables
+    $scope.sortColumn = '';
+    $scope.sortReverse = false;
+
     // ===== Initialize Controller =====
     $scope.init = function() {
         $scope.loadQuizzes();
@@ -311,6 +315,74 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
         var formattedTime = hours + ':' + minutes + ' ' + ampm;
 
         return formattedDate + ' ' + formattedTime;
+    };
+
+    // ===== Sort By Column =====
+    $scope.sortByColumn = function(column) {
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        // Get the current displayed quizzes and sort them
+        var quizzesToSort = $scope.getDisplayedQuizzes();
+
+        quizzesToSort.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'title':
+                    aVal = a.title ? a.title.toLowerCase() : '';
+                    bVal = b.title ? b.title.toLowerCase() : '';
+                    break;
+                case 'status':
+                    aVal = a.status ? a.status.toLowerCase() : '';
+                    bVal = b.status ? b.status.toLowerCase() : '';
+                    break;
+                case 'totalQuestions':
+                    aVal = parseInt(a.totalQuestions) || 0;
+                    bVal = parseInt(b.totalQuestions) || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'duration':
+                    aVal = parseInt(a.duration) || 0;
+                    bVal = parseInt(b.duration) || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'maximumMarks':
+                    aVal = parseInt(a.maximumMarks) || 0;
+                    bVal = parseInt(b.maximumMarks) || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'attemptCount':
+                    aVal = a.attempts ? a.attempts.length : 0;
+                    bVal = b.attempts ? b.attempts.length : 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'createdAt':
+                    aVal = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    bVal = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                default:
+                    return 0;
+            }
+
+            // String comparison
+            if (aVal < bVal) {
+                return $scope.sortReverse ? 1 : -1;
+            }
+            if (aVal > bVal) {
+                return $scope.sortReverse ? -1 : 1;
+            }
+            return 0;
+        });
+
+        // Update the appropriate array based on current tab
+        if ($scope.currentTab === 'all') {
+            $scope.allQuizzes = quizzesToSort;
+        } else if ($scope.currentTab === 'published') {
+            $scope.publishedQuizzes = quizzesToSort;
+        } else if ($scope.currentTab === 'draft') {
+            $scope.draftQuizzes = quizzesToSort;
+        }
     };
 
 }]);

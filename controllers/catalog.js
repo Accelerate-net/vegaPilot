@@ -10,6 +10,8 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     
     // Search and filters
     $scope.searchQuery = '';
+    $scope.filterType = '';
+    $scope.filterStatus = '';
     $scope.activeFilters = [];
     
     // Summary data for tiles
@@ -229,39 +231,89 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         };
     };
     
-    // Apply search
-    $scope.applySearch = function() {
-        if (!$scope.searchQuery) {
-            $scope.filteredCatalog = $scope.catalog;
-        } else {
+    // Apply filters (combining search, type, and status)
+    $scope.applyFilters = function() {
+        $scope.filteredCatalog = $scope.catalog;
+
+        // Apply search filter
+        if ($scope.searchQuery) {
             var query = $scope.searchQuery.toLowerCase();
-            $scope.filteredCatalog = $scope.catalog.filter(function(item) {
+            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
                 return item.title.toLowerCase().includes(query) ||
                        item.code.toLowerCase().includes(query) ||
                        item.brief.toLowerCase().includes(query);
             });
         }
+
+        // Apply type filter
+        if ($scope.filterType) {
+            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
+                return parseInt(item.type) === parseInt($scope.filterType);
+            });
+        }
+
+        // Apply status filter
+        if ($scope.filterStatus !== '') {
+            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
+                return parseInt(item.status) === parseInt($scope.filterStatus);
+            });
+        }
+
+        // Update active filters display
+        $scope.updateActiveFilters();
     };
-    
-    // Clear search
+
+    // Update active filters display
+    $scope.updateActiveFilters = function() {
+        $scope.activeFilters = [];
+
+        if ($scope.searchQuery) {
+            $scope.activeFilters.push({
+                label: 'Search: "' + $scope.searchQuery + '"',
+                type: 'search'
+            });
+        }
+
+        if ($scope.filterType) {
+            $scope.activeFilters.push({
+                label: 'Type: ' + $scope.getTypeLabel($scope.filterType),
+                type: 'type'
+            });
+        }
+
+        if ($scope.filterStatus !== '') {
+            $scope.activeFilters.push({
+                label: 'Status: ' + $scope.getStatusLabel($scope.filterStatus),
+                type: 'status'
+            });
+        }
+    };
+
+    // Clear search (kept for backwards compatibility)
     $scope.clearSearch = function() {
         $scope.searchQuery = '';
-        $scope.filteredCatalog = $scope.catalog;
+        $scope.applyFilters();
     };
     
     // Clear all filters
     $scope.clearAllFilters = function() {
         $scope.activeFilters = [];
         $scope.searchQuery = '';
-        $scope.filteredCatalog = $scope.catalog;
+        $scope.filterType = '';
+        $scope.filterStatus = '';
+        $scope.applyFilters();
     };
-    
+
     // Remove filter
     $scope.removeFilter = function(filter) {
-        var index = $scope.activeFilters.indexOf(filter);
-        if (index > -1) {
-            $scope.activeFilters.splice(index, 1);
+        if (filter.type === 'search') {
+            $scope.searchQuery = '';
+        } else if (filter.type === 'type') {
+            $scope.filterType = '';
+        } else if (filter.type === 'status') {
+            $scope.filterStatus = '';
         }
+        $scope.applyFilters();
     };
     
     // Get type label

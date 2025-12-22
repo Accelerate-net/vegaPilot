@@ -173,6 +173,31 @@
             border-bottom: 2px solid #e9ecef;
          }
 
+         .students-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+         }
+
+         .students-table th.sortable:hover {
+            background: #e9ecef;
+         }
+
+         .students-table th.sortable .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 12px;
+         }
+
+         .students-table th.sortable.active .sort-icon {
+            opacity: 1;
+            color: #006073;
+         }
+
          .students-table td {
             padding: 15px;
             border-bottom: 1px solid #f1f3f5;
@@ -564,12 +589,30 @@
                               <table class="students-table">
                                  <thead>
                                     <tr>
-                                       <th>Student</th>
-                                       <th>Email</th>
-                                       <th>Mobile</th>
-                                       <th>Enrolled Courses</th>
-                                       <th>Enrollment Date</th>
-                                       <th>Status</th>
+                                       <th class="sortable" ng-click="sortByColumn('name')" ng-class="{active: sortColumn === 'name'}">
+                                          Student
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
+                                       <th class="sortable" ng-click="sortByColumn('email')" ng-class="{active: sortColumn === 'email'}">
+                                          Email
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'email' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
+                                       <th class="sortable" ng-click="sortByColumn('mobile')" ng-class="{active: sortColumn === 'mobile'}">
+                                          Mobile
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'mobile' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
+                                       <th class="sortable" ng-click="sortByColumn('coursesCount')" ng-class="{active: sortColumn === 'coursesCount'}">
+                                          Enrolled Courses
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'coursesCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
+                                       <th class="sortable" ng-click="sortByColumn('enrollmentDate')" ng-class="{active: sortColumn === 'enrollmentDate'}">
+                                          Enrollment Date
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'enrollmentDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
+                                       <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                          Status
+                                          <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       </th>
                                     </tr>
                                  </thead>
                                  <tbody>

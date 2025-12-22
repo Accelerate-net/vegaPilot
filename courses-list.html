@@ -75,10 +75,10 @@
             font-size: 24px;
             color: white;
          }
-         .stat-icon.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-         .stat-icon.teal { background: linear-gradient(135deg, #006073 0%, #004d5c 100%); }
-         .stat-icon.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-         .stat-icon.green { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+         .stat-icon.teal { background: #006073; }
+         .stat-icon.green { background: #28a745; }
+         .stat-icon.orange { background: #fd7e14; }
+         .stat-icon.blue { background: #007bff; }
          .stat-info h3 {
             margin: 0;
             font-size: 28px;
@@ -110,6 +110,31 @@
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+         }
+
+         .courses-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 35px;
+         }
+
+         .courses-table th.sortable:hover {
+            background: #e9ecef;
+         }
+
+         .courses-table th.sortable .sort-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 12px;
+         }
+
+         .courses-table th.sortable.active .sort-icon {
+            opacity: 1;
+            color: #006073;
          }
          .courses-table tbody tr {
             border-bottom: 1px solid #e9ecef;
@@ -217,12 +242,40 @@
             font-weight: 600;
          }
 
-         /* Search Box */
-         .search-box {
-            margin-bottom: 20px;
+         /* Filter Bar */
+         .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
          }
-         .search-box .input-group {
-            max-width: 500px;
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
          }
       </style>
    </head>
@@ -302,7 +355,7 @@
                      <!-- Page Header -->
                      <div class="page-header-section">
                         <div>
-                           <h2><i class="ti ti-list"></i> Courses List</h2>
+                           <h2><i class="ti ti-book"></i> Courses List</h2>
                            <p>View and manage all courses. Click on any course to view its content and chapters.</p>
                         </div>
                         <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 600;" onclick="window.location.href='course-management.html'">
@@ -313,14 +366,14 @@
                      <!-- Statistics Cards -->
                      <div class="stats-row">
                         <div class="stat-card">
-                           <div class="stat-icon blue"><i class="ti ti-layers"></i></div>
+                           <div class="stat-icon teal"><i class="ti ti-layers"></i></div>
                            <div class="stat-info">
                               <h3>{{stats.totalCourses}}</h3>
                               <p>Total Courses</p>
                            </div>
                         </div>
                         <div class="stat-card">
-                           <div class="stat-icon teal"><i class="ti ti-bookmark"></i></div>
+                           <div class="stat-icon green"><i class="ti ti-bookmark"></i></div>
                            <div class="stat-info">
                               <h3>{{stats.totalModules}}</h3>
                               <p>Total Modules</p>
@@ -334,7 +387,7 @@
                            </div>
                         </div>
                         <div class="stat-card">
-                           <div class="stat-icon green"><i class="ti ti-check"></i></div>
+                           <div class="stat-icon blue"><i class="ti ti-check"></i></div>
                            <div class="stat-info">
                               <h3>{{stats.activeCourses}}</h3>
                               <p>Active Courses</p>
@@ -342,16 +395,11 @@
                         </div>
                      </div>
 
-                     <!-- Search Box -->
-                     <div class="search-box">
-                        <div class="input-group">
-                           <span class="input-group-btn">
-                              <button class="btn btn-default" type="button"><i class="ti ti-search"></i></button>
-                           </span>
-                           <input type="text" class="form-control" placeholder="Search courses by name, ID, or category..." ng-model="searchQuery">
-                           <span class="input-group-btn">
-                              <button class="btn btn-default" type="button" ng-click="searchQuery = ''"><i class="ti ti-close"></i></button>
-                           </span>
+                     <!-- Filter Bar -->
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti ti-search"></i>
+                           <input type="text" class="search-input" placeholder="Search courses by name, ID, or category..." ng-model="searchQuery">
                         </div>
                      </div>
 
@@ -359,13 +407,28 @@
                      <table class="courses-table">
                         <thead>
                            <tr>
-                              <th>Course ID</th>
-                              <th>Course Name</th>
+                              <th class="sortable" ng-click="sortByColumn('code')" ng-class="{active: sortColumn === 'code'}">
+                                 Course ID
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'code' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
+                              <th class="sortable" ng-click="sortByColumn('title')" ng-class="{active: sortColumn === 'title'}">
+                                 Course Name
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'title' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
                               <th>Modules</th>
-                              <th style="text-align: center;">Chapters</th>
+                              <th class="sortable" style="text-align: center;" ng-click="sortByColumn('totalChapters')" ng-class="{active: sortColumn === 'totalChapters'}">
+                                 Chapters
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'totalChapters' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
                               <th>Total Duration</th>
-                              <th>Status</th>
-                              <th style="text-align: center;">Students</th>
+                              <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                 Status
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
+                              <th class="sortable" style="text-align: center;" ng-click="sortByColumn('totalStudents')" ng-class="{active: sortColumn === 'totalStudents'}">
+                                 Students
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'totalStudents' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
                            </tr>
                         </thead>
                         <tbody>

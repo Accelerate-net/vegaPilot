@@ -110,6 +110,29 @@
             border-bottom: none;
          }
 
+         /* Sortable Columns */
+         .quiz-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+         }
+         .quiz-table th.sortable:hover {
+            background: #e9ecef;
+         }
+         .quiz-table th.sortable .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 12px;
+         }
+         .quiz-table th.sortable.active .sort-icon {
+            opacity: 1;
+            color: #006073;
+         }
+
          /* Badges */
          .badge-status {
             display: inline-block;
@@ -533,14 +556,35 @@
                            <table>
                               <thead>
                                  <tr>
-                                    <th>Quiz Title</th>
-                                    <th>Status</th>
-                                    <th>Questions</th>
-                                    <th>Duration</th>
-                                    <th>Max Marks</th>
+                                    <th class="sortable" ng-click="sortByColumn('title')" ng-class="{active: sortColumn === 'title'}">
+                                       Quiz Title
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'title' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                       Status
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('totalQuestions')" ng-class="{active: sortColumn === 'totalQuestions'}">
+                                       Questions
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'totalQuestions' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('duration')" ng-class="{active: sortColumn === 'duration'}">
+                                       Duration
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'duration' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('maximumMarks')" ng-class="{active: sortColumn === 'maximumMarks'}">
+                                       Max Marks
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'maximumMarks' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
                                     <th>Schedule</th>
-                                    <th>Attempts</th>
-                                    <th>Created</th>
+                                    <th class="sortable" ng-click="sortByColumn('attemptCount')" ng-class="{active: sortColumn === 'attemptCount'}">
+                                       Attempts
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'attemptCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('createdAt')" ng-class="{active: sortColumn === 'createdAt'}">
+                                       Created
+                                       <i class="sort-icon ti" ng-class="sortColumn === 'createdAt' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
                                     <th>Actions</th>
                                  </tr>
                               </thead>

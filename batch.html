@@ -47,34 +47,6 @@
             font-size: 14px;
          }
 
-         /* Stats Cards */
-         .stats-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease;
-         }
-
-         .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-         }
-
-         .stats-card h3 {
-            margin: 0 0 5px 0;
-            font-size: 32px;
-            font-weight: bold;
-            color: #006073;
-         }
-
-         .stats-card p {
-            margin: 0;
-            color: #666;
-            font-size: 14px;
-         }
-
          /* Batches Table */
          .batches-table {
             width: 100%;
@@ -96,6 +68,30 @@
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+         }
+
+         .batches-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+         }
+
+         .batches-table th.sortable:hover {
+            background: rgba(255, 255, 255, 0.1);
+         }
+
+         .batches-table th.sortable .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+            font-size: 12px;
+         }
+
+         .batches-table th.sortable.active .sort-icon {
+            opacity: 1;
          }
 
          .batches-table tbody tr {
@@ -158,6 +154,42 @@
          .course-info {
             font-size: 13px;
             color: #6c757d;
+         }
+
+         /* Filter Bar */
+         .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+         }
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
          }
 
          .action-buttons {
@@ -353,42 +385,15 @@
                            </button>
                         </div>
 
-                        <!-- Stats Cards -->
-                        <div class="row">
-                           <div class="col-md-3">
-                              <div class="stats-card">
-                                 <h3>{{getTotalBatches()}}</h3>
-                                 <p><i class="ti ti-user"></i> Total Batches</p>
-                              </div>
-                           </div>
-                           <div class="col-md-3">
-                              <div class="stats-card">
-                                 <h3>{{getActiveBatches()}}</h3>
-                                 <p><i class="ti ti-check-box"></i> Active Batches</p>
-                              </div>
-                           </div>
-                           <div class="col-md-3">
-                              <div class="stats-card">
-                                 <h3>{{getTotalStudents()}}</h3>
-                                 <p><i class="ti ti-id-badge"></i> Total Students</p>
-                              </div>
-                           </div>
-                           <div class="col-md-3">
-                              <div class="stats-card">
-                                 <h3>{{getUnenrolledCount()}}</h3>
-                                 <p><i class="ti ti-alert"></i> Unenrolled Students</p>
-                              </div>
+                        <!-- Filter Bar -->
+                        <div class="filter-bar">
+                           <div class="search-wrapper">
+                              <i class="ti ti-search"></i>
+                              <input type="text" class="search-input" placeholder="Search batches by name, course, or status..." ng-model="searchQuery">
                            </div>
                         </div>
 
                         <!-- Batch Listing -->
-                        <div class="panel panel-default">
-                           <div class="panel-heading">
-                              <h3 class="panel-title">
-                                 <i class="ti ti-list"></i> Active Batches
-                              </h3>
-                           </div>
-                           <div class="panel-body">
                               <!-- Empty State -->
                               <div ng-if="batches.length === 0" class="empty-state">
                                  <i class="ti ti-user"></i>
@@ -404,16 +409,28 @@
                                  <table class="batches-table">
                                     <thead>
                                        <tr>
-                                          <th>Batch Name</th>
-                                          <th style="text-align: center;">Students</th>
+                                          <th class="sortable" ng-click="sortByColumn('batchName')" ng-class="{active: sortColumn === 'batchName'}">
+                                             Batch Name
+                                             <i class="sort-icon ti" ng-class="sortColumn === 'batchName' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          </th>
+                                          <th style="text-align: center;" class="sortable" ng-click="sortByColumn('studentCount')" ng-class="{active: sortColumn === 'studentCount'}">
+                                             Students
+                                             <i class="sort-icon ti" ng-class="sortColumn === 'studentCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          </th>
                                           <th>Course</th>
-                                          <th>Duration</th>
-                                          <th style="text-align: center;">Status</th>
+                                          <th class="sortable" ng-click="sortByColumn('startDate')" ng-class="{active: sortColumn === 'startDate'}">
+                                             Duration
+                                             <i class="sort-icon ti" ng-class="sortColumn === 'startDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          </th>
+                                          <th style="text-align: center;" class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                             Status
+                                             <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          </th>
                                           <th style="text-align: center;">Actions</th>
                                        </tr>
                                     </thead>
                                     <tbody>
-                                       <tr ng-repeat="batch in batches">
+                                       <tr ng-repeat="batch in batches | filter:searchQuery">
                                           <td>
                                              <div class="batch-name">{{batch.batchName}}</div>
                                              <div class="batch-description" ng-if="batch.description">{{batch.description}}</div>
@@ -472,8 +489,6 @@
                                     </tbody>
                                  </table>
                               </div>
-                           </div>
-                        </div>
                      </div>
                   </div>
                </div>

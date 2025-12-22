@@ -145,6 +145,28 @@
             color: #6c757d;
             font-size: 13px;
          }
+
+         /* Sortable Columns */
+         .exams-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 35px;
+         }
+         .exams-table th.sortable:hover {
+            background: rgba(255, 255, 255, 0.1);
+         }
+         .exams-table th.sortable .sort-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+            font-size: 12px;
+         }
+         .exams-table th.sortable.active .sort-icon {
+            opacity: 1;
+         }
          
          /* Stats Cards */
          .stats-row {
@@ -221,45 +243,40 @@
          .section-name { font-weight: bold; color: #333; margin: 0; }
          .section-details { font-size: 11px; color: #666; margin: 0; }
          
-         /* Search Box */
-         .search-box {
-            margin-bottom: 30px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-         }
-         .search-box .input-group {
+         /* Filter Bar */
+         .filter-bar {
             display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
          }
-         .search-box .form-control {
-            border: 2px solid #e1e8ed;
-            border-radius: 8px 0 0 8px;
-            padding: 12px 15px;
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 14px;
-            transition: all 0.2s;
          }
-         .search-box .form-control:focus {
+
+         .search-input:focus {
+            outline: none;
             border-color: #006073;
             box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-         }
-         .search-box .input-group-btn .btn {
-            border: 2px solid #e1e8ed;
-            padding: 12px 20px;
-            background: #f8f9fa;
-            transition: all 0.2s;
-         }
-         .search-box .input-group-btn:first-child .btn {
-            border-radius: 8px 0 0 8px;
-            border-right: none;
-         }
-         .search-box .input-group-btn:last-child .btn {
-            border-radius: 0 8px 8px 0;
-            border-left: none;
-         }
-         .search-box .input-group-btn .btn:hover {
-            background: #006073;
-            color: white;
          }
          
          .filter-tags { margin: 15px 0; }
@@ -408,25 +425,11 @@
                         </div>
                      </div>
 
-                     <!-- Search and Filters -->
-                     <div class="row">
-                        <div class="col-md-8">
-                           <div class="search-box">
-                              <div class="input-group">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button"><i class="ti ti-search"></i></button>
-                                 </span>
-                                 <input type="text" class="form-control" placeholder="Search exams by title, description, or sections..." ng-model="searchQuery" ng-change="applySearch()">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button" ng-click="clearSearch()"><i class="ti ti-close"></i></button>
-                                 </span>
-                              </div>
-                           </div>
-                        </div>
-                        <div class="col-md-4 text-right">
-                           <a href="exam-creation-wizard.html" class="btn btn-primary">
-                              <i class="ti ti-plus"></i> Create New Exam
-                           </a>
+                     <!-- Filter Bar -->
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti ti-search"></i>
+                           <input type="text" class="search-input" placeholder="Search exams by title, description, or sections..." ng-model="searchQuery" ng-change="applySearch()">
                         </div>
                      </div>
 
@@ -443,12 +446,27 @@
                      <table class="exams-table" ng-show="filteredExams.length > 0">
                         <thead>
                            <tr>
-                              <th>Exam ID</th>
-                              <th>Exam Name</th>
+                              <th class="sortable" ng-click="sortByColumn('displayKey')" ng-class="{active: sortColumn === 'displayKey'}">
+                                 Exam ID
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'displayKey' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
+                              <th class="sortable" ng-click="sortByColumn('title')" ng-class="{active: sortColumn === 'title'}">
+                                 Exam Name
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'title' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
                               <th>Sections</th>
-                              <th style="text-align: center;">Questions</th>
-                              <th>Duration</th>
-                              <th>Status</th>
+                              <th class="sortable" style="text-align: center;" ng-click="sortByColumn('totalQuestions')" ng-class="{active: sortColumn === 'totalQuestions'}">
+                                 Questions
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'totalQuestions' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
+                              <th class="sortable" ng-click="sortByColumn('duration')" ng-class="{active: sortColumn === 'duration'}">
+                                 Duration
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'duration' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
+                              <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                 Status
+                                 <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                              </th>
                               <th style="text-align: center;">Actions</th>
                            </tr>
                         </thead>

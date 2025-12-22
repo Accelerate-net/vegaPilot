@@ -28,6 +28,10 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
 
+    // Sorting state
+    $scope.sortColumn = 'name';
+    $scope.sortReverse = false;
+
     // ===== Initialize App =====
     $scope.init = function() {
         $scope.showLoading('Loading data...');
@@ -383,6 +387,41 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         $timeout(function() {
             $scope.isLoading = false;
         }, 300);
+    };
+
+    // ===== Sortable Column Functionality =====
+    $scope.sortByColumn = function(column) {
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        $scope.testSeriesList.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'name':
+                    aVal = a.name.toLowerCase();
+                    bVal = b.name.toLowerCase();
+                    break;
+                case 'examCount':
+                    aVal = a.exams.length;
+                    bVal = b.exams.length;
+                    break;
+                case 'status':
+                    aVal = a.status.toLowerCase();
+                    bVal = b.status.toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return $scope.sortReverse ? 1 : -1;
+            if (aVal > bVal) return $scope.sortReverse ? -1 : 1;
+            return 0;
+        });
     };
 
     // ===== Initialize on Load =====

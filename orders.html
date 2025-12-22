@@ -364,9 +364,58 @@
             color: #666;
          }
 
-         .search-box .form-control {
-            border-radius: 20px;
-            padding-left: 15px;
+         /* Filter Bar */
+         .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+         }
+
+         .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         }
+
+         .filter-select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+            transition: all 0.3s ease;
+         }
+
+         .filter-select:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
          }
 
          .filter-tags {
@@ -567,38 +616,25 @@
                      </div>
 
                      <!-- Filter Bar -->
-                     <div class="row">
-                        <div class="col-md-6">
-                           <div class="search-box">
-                              <div class="input-group">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button"><i class="ti ti-search"></i></button>
-                                 </span>
-                                 <input type="text" class="form-control" placeholder="Search by order ID, customer name, email, or phone..." ng-model="searchQuery" ng-change="applySearch()">
-                                 <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button" ng-click="clearSearch()"><i class="ti ti-close"></i></button>
-                                 </span>
-                              </div>
-                           </div>
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti ti-search"></i>
+                           <input type="text" class="search-input" placeholder="Search by order ID, customer name, email, or phone..." ng-model="searchQuery" ng-change="applyFilters()">
                         </div>
-                        <div class="col-md-3">
-                           <select class="form-control" ng-model="filterStatus" ng-change="applyFilters()" style="border-radius: 20px;">
-                              <option value="">All Status</option>
-                              <option value="completed">Completed</option>
-                              <option value="pending">Pending</option>
-                              <option value="failed">Failed</option>
-                              <option value="refunded">Refunded</option>
-                           </select>
-                        </div>
-                        <div class="col-md-3">
-                           <select class="form-control" ng-model="filterPaymentMethod" ng-change="applyFilters()" style="border-radius: 20px;">
-                              <option value="">All Payment Methods</option>
-                              <option value="card">Card</option>
-                              <option value="upi">UPI</option>
-                              <option value="netbanking">Net Banking</option>
-                              <option value="wallet">Wallet</option>
-                           </select>
-                        </div>
+                        <select class="filter-select" ng-model="filterStatus" ng-change="applyFilters()">
+                           <option value="">All Status</option>
+                           <option value="completed">Completed</option>
+                           <option value="pending">Pending</option>
+                           <option value="failed">Failed</option>
+                           <option value="refunded">Refunded</option>
+                        </select>
+                        <select class="filter-select" ng-model="filterPaymentMethod" ng-change="applyFilters()">
+                           <option value="">All Payment Methods</option>
+                           <option value="card">Card</option>
+                           <option value="upi">UPI</option>
+                           <option value="netbanking">Net Banking</option>
+                           <option value="wallet">Wallet</option>
+                        </select>
                      </div>
 
                      <!-- Orders Listing -->

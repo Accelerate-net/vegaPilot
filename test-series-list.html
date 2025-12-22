@@ -72,6 +72,30 @@
             letter-spacing: 0.5px;
         }
 
+        .test-series-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+        }
+
+        .test-series-table th.sortable:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .test-series-table th.sortable .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+            font-size: 12px;
+        }
+
+        .test-series-table th.sortable.active .sort-icon {
+            opacity: 1;
+        }
+
         .test-series-table tbody tr {
             border-bottom: 1px solid #e9ecef;
             transition: all 0.2s ease;
@@ -361,6 +385,42 @@
             margin: 0;
         }
 
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+        }
+
         .search-box {
             margin-bottom: 20px;
             background: white;
@@ -493,20 +553,37 @@
                                 </button>
                             </div>
 
+                            <!-- Filter Bar -->
+                            <div class="filter-bar">
+                                <div class="search-wrapper">
+                                    <i class="ti ti-search"></i>
+                                    <input type="text" class="search-input" placeholder="Search test series by name or description..." ng-model="searchQuery">
+                                </div>
+                            </div>
+
                             <!-- Test Series Table -->
                             <div ng-show="testSeriesList.length > 0">
                                 <table class="test-series-table">
                                     <thead>
                                         <tr>
-                                            <th>Test Series Name</th>
-                                            <th style="text-align: center;">Total Exams</th>
+                                            <th class="sortable" ng-click="sortByColumn('name')" ng-class="{active: sortColumn === 'name'}">
+                                                Test Series Name
+                                                <i class="sort-icon ti" ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                            </th>
+                                            <th style="text-align: center;" class="sortable" ng-click="sortByColumn('examCount')" ng-class="{active: sortColumn === 'examCount'}">
+                                                Total Exams
+                                                <i class="sort-icon ti" ng-class="sortColumn === 'examCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                            </th>
                                             <th style="text-align: center;">Access Type</th>
-                                            <th style="text-align: center;">Status</th>
+                                            <th style="text-align: center;" class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                                Status
+                                                <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                            </th>
                                             <th style="text-align: center;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr ng-repeat="series in testSeriesList" ng-click="viewSeriesDetails(series)">
+                                        <tr ng-repeat="series in testSeriesList | filter:searchQuery" ng-click="viewSeriesDetails(series)">
                                             <td>
                                                 <div class="series-name">{{series.name}}</div>
                                                 <div class="series-description" ng-if="series.description">{{series.description}}</div>

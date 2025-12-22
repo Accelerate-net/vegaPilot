@@ -16,6 +16,10 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.filterStatus = '';
     $scope.sortBy = 'name';
 
+    // ===== Sorting Variables =====
+    $scope.sortColumn = 'name';
+    $scope.sortReverse = false;
+
     // ===== Pagination =====
     $scope.currentPage = 1;
     $scope.itemsPerPage = 10;
@@ -502,6 +506,55 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         $timeout(function() {
             $scope.isLoading = false;
         }, 300);
+    };
+
+    // ===== Sortable Column Functionality =====
+    $scope.sortByColumn = function(column) {
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        $scope.filteredStudents.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'name':
+                    aVal = a.name.toLowerCase();
+                    bVal = b.name.toLowerCase();
+                    break;
+                case 'email':
+                    aVal = a.email.toLowerCase();
+                    bVal = b.email.toLowerCase();
+                    break;
+                case 'mobile':
+                    aVal = a.mobile;
+                    bVal = b.mobile;
+                    break;
+                case 'coursesCount':
+                    aVal = a.enrolledCourses.length;
+                    bVal = b.enrolledCourses.length;
+                    break;
+                case 'enrollmentDate':
+                    aVal = new Date(a.enrollmentDate);
+                    bVal = new Date(b.enrollmentDate);
+                    break;
+                case 'status':
+                    aVal = a.status.toLowerCase();
+                    bVal = b.status.toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return $scope.sortReverse ? 1 : -1;
+            if (aVal > bVal) return $scope.sortReverse ? -1 : 1;
+            return 0;
+        });
+
+        $scope.updatePagination();
     };
 
     // ===== Available Courses Data =====

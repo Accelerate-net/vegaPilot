@@ -8,6 +8,8 @@ coursesListApp.controller('coursesListController', ['$scope', '$timeout', functi
     $scope.searchQuery = '';
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading courses...';
+    $scope.sortColumn = '';
+    $scope.sortReverse = false;
     $scope.stats = {
         totalCourses: 0,
         totalModules: 0,
@@ -281,6 +283,54 @@ coursesListApp.controller('coursesListController', ['$scope', '$timeout', functi
         var date = new Date(timestamp);
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+    };
+
+    // ===== Sort by Column =====
+    $scope.sortByColumn = function(column) {
+        // If clicking the same column, toggle sort direction
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        // Sort the courses
+        $scope.courses.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'code':
+                    aVal = a.code ? a.code.toLowerCase() : '';
+                    bVal = b.code ? b.code.toLowerCase() : '';
+                    break;
+                case 'title':
+                    aVal = a.title ? a.title.toLowerCase() : '';
+                    bVal = b.title ? b.title.toLowerCase() : '';
+                    break;
+                case 'totalChapters':
+                    aVal = a.totalChapters || 0;
+                    bVal = b.totalChapters || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'status':
+                    aVal = a.status ? a.status.toLowerCase() : '';
+                    bVal = b.status ? b.status.toLowerCase() : '';
+                    break;
+                case 'totalStudents':
+                    aVal = a.totalStudents || 0;
+                    bVal = b.totalStudents || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                default:
+                    return 0;
+            }
+
+            // For string values
+            var comparison = 0;
+            if (aVal < bVal) comparison = -1;
+            if (aVal > bVal) comparison = 1;
+
+            return $scope.sortReverse ? -comparison : comparison;
+        });
     };
 
     // ===== Initialize on Load =====

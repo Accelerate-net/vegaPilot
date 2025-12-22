@@ -7,16 +7,20 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
         name: 'Admin User',
         email: 'admin@vegapilot.com'
     };
-    
+
     // Pagination
     $scope.currentPage = 1;
     $scope.pageSize = 10;
     $scope.totalPages = 1;
-    
+
     // Search and filters
     $scope.searchQuery = '';
     $scope.examFilterApplied = '';
     $scope.activeFilters = [];
+
+    // Sorting variables
+    $scope.sortColumn = '';
+    $scope.sortReverse = false;
     
     // Summary data for tiles
     $scope.summaryTileData = {
@@ -600,7 +604,55 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
         $cookies.remove('userToken');
         window.location.href = 'login.html';
     };
-    
+
+    // Sort By Column
+    $scope.sortByColumn = function(column) {
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        $scope.filteredExams.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'displayKey':
+                    aVal = a.displayKey ? a.displayKey.toLowerCase() : '';
+                    bVal = b.displayKey ? b.displayKey.toLowerCase() : '';
+                    break;
+                case 'title':
+                    aVal = a.title ? a.title.toLowerCase() : '';
+                    bVal = b.title ? b.title.toLowerCase() : '';
+                    break;
+                case 'totalQuestions':
+                    aVal = parseInt(a.totalQuestions) || 0;
+                    bVal = parseInt(b.totalQuestions) || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'duration':
+                    aVal = parseInt(a.duration) || 0;
+                    bVal = parseInt(b.duration) || 0;
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                case 'status':
+                    aVal = parseInt(a.status);
+                    bVal = parseInt(b.status);
+                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
+                default:
+                    return 0;
+            }
+
+            // String comparison
+            if (aVal < bVal) {
+                return $scope.sortReverse ? 1 : -1;
+            }
+            if (aVal > bVal) {
+                return $scope.sortReverse ? -1 : 1;
+            }
+            return 0;
+        });
+    };
+
     // Initialize controller
     $scope.init();
 });

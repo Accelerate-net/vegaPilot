@@ -28,6 +28,10 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     $scope.filteredAvailableStudents = [];
     $scope.selectedStudentsToAdd = {}; // Map of student IDs to be added
 
+    // Sorting state
+    $scope.sortColumn = 'batchName';
+    $scope.sortReverse = false;
+
     // Dummy data for available courses
     $scope.availableCourses = [
         { id: 'COURSE-001', title: 'IAT 2026 – Exclusive 1 Year Course' },
@@ -531,6 +535,45 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         return $scope.batches.reduce(function(sum, batch) {
             return sum + $scope.getUnenrolledStudentsInBatch(batch);
         }, 0);
+    };
+
+    // ===== Sortable Column Functionality =====
+    $scope.sortByColumn = function(column) {
+        if ($scope.sortColumn === column) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortColumn = column;
+            $scope.sortReverse = false;
+        }
+
+        $scope.batches.sort(function(a, b) {
+            var aVal, bVal;
+
+            switch(column) {
+                case 'batchName':
+                    aVal = a.batchName.toLowerCase();
+                    bVal = b.batchName.toLowerCase();
+                    break;
+                case 'studentCount':
+                    aVal = a.students.length;
+                    bVal = b.students.length;
+                    break;
+                case 'startDate':
+                    aVal = a.startDate ? new Date(a.startDate) : new Date(0);
+                    bVal = b.startDate ? new Date(b.startDate) : new Date(0);
+                    break;
+                case 'status':
+                    aVal = $scope.getBatchStatus(a).toLowerCase();
+                    bVal = $scope.getBatchStatus(b).toLowerCase();
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aVal < bVal) return $scope.sortReverse ? 1 : -1;
+            if (aVal > bVal) return $scope.sortReverse ? -1 : 1;
+            return 0;
+        });
     };
 
 });
