@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Verification - VegaPilot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #006073;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #006073;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #006073;
+            font-size: 18px;
+        }
+        button {
+            background: #006073;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #005060;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        .output {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Token Verification Tool</h1>
+        <p class="subtitle">Verify and test your API authentication token</p>
+
+        <div class="section">
+            <h2>Step 1: Set Token</h2>
+            <p>Click the button below to set the authentication token in localStorage:</p>
+            <button onclick="setToken()">Set Token in localStorage</button>
+            <div id="setTokenOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 2: Verify Token</h2>
+            <p>Check if the token is correctly stored:</p>
+            <button onclick="verifyToken()">Verify Token in localStorage</button>
+            <div id="verifyOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 3: Test API Call</h2>
+            <p>Make a test API call to verify the token works:</p>
+            <button onclick="testAPI()">Test API Call</button>
+            <button class="secondary" onclick="clearToken()">Clear Token</button>
+            <div id="apiOutput" class="output" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // The exact token from your CURL command
+        const EXPECTED_TOKEN = '0oR3KPgsC4DbHPT1JvO6tGpkEwSp40qVPViVAEYBFxluNZI+m6B0KxFHcrhG6tSWMK/x2nTVWnbBqXF3zeSxQPyDC+F6BeyIVlY7/2a9wmjpHDBB4/XmguOxICUP+Vgb82pSboxV3KpJJA4N77yk+xv9IVzejx6pyfNgQcsHS9Q=';
+
+        function setToken() {
+            const output = document.getElementById('setTokenOutput');
+            output.style.display = 'block';
+
+            try {
+                localStorage.setItem('X-Access-Token', EXPECTED_TOKEN);
+
+                output.innerHTML = `<span class="success">✓ Token set successfully!</span>\n\n` +
+                    `Token length: ${EXPECTED_TOKEN.length} characters\n` +
+                    `Token preview: ${EXPECTED_TOKEN.substring(0, 50)}...\n\n` +
+                    `<span class="info">Token stored in localStorage</span>`;
+            } catch (error) {
+                output.innerHTML = `<span class="error">✗ Error setting token:</span>\n${error.message}`;
+            }
+        }
+
+        function verifyToken() {
+            const output = document.getElementById('verifyOutput');
+            output.style.display = 'block';
+
+            const savedToken = localStorage.getItem('X-Access-Token');
+
+            if (!savedToken) {
+                output.innerHTML = `<span class="error">✗ No token found in localStorage</span>\n\n` +
+                    `Please click "Set Token in localStorage" first.`;
+                return;
+            }
+
+            const matches = savedToken === EXPECTED_TOKEN;
+
+            let result = '';
+            if (matches) {
+                result += `<span class="success">✓ Token verified successfully!</span>\n\n`;
+            } else {
+                result += `<span class="error">✗ Token mismatch!</span>\n\n`;
+            }
+
+            result += `Expected length: ${EXPECTED_TOKEN.length}\n`;
+            result += `Saved length: ${savedToken.length}\n`;
+            result += `Matches: ${matches ? 'YES' : 'NO'}\n\n`;
+
+            result += `Expected (first 80 chars): ${EXPECTED_TOKEN.substring(0, 80)}...\n`;
+            result += `Saved (first 80 chars): ${savedToken.substring(0, 80)}...\n\n`;
+
+            if (!matches) {
+                // Find where they differ
+                for (let i = 0; i < Math.min(EXPECTED_TOKEN.length, savedToken.length); i++) {
+                    if (EXPECTED_TOKEN[i] !== savedToken[i]) {
+                        result += `<span class="warning">First difference at position ${i}:</span>\n`;
+                        result += `Expected: "${EXPECTED_TOKEN[i]}" (char code: ${EXPECTED_TOKEN.charCodeAt(i)})\n`;
+                        result += `Saved: "${savedToken[i]}" (char code: ${savedToken.charCodeAt(i)})\n`;
+                        break;
+                    }
+                }
+            }
+
+            output.innerHTML = result;
+        }
+
+        function testAPI() {
+            const output = document.getElementById('apiOutput');
+            output.style.display = 'block';
+            output.innerHTML = '<span class="info">⏳ Making API request...</span>';
+
+            const token = localStorage.getItem('X-Access-Token');
+
+            if (!token) {
+                output.innerHTML = `<span class="error">✗ No token found</span>\n\n` +
+                    `Please set the token first.`;
+                return;
+            }
+
+            const url = 'http://localhost:3000/restricted/people/list-candidates.php?page=1&size=5&sortBy=name';
+
+            output.innerHTML += `\n\n<span class="info">Request URL:</span> ${url}\n`;
+            output.innerHTML += `<span class="info">Token length:</span> ${token.length}\n`;
+            output.innerHTML += `<span class="info">Token preview:</span> ${token.substring(0, 50)}...\n\n`;
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Access-Token': token
+                }
+            })
+            .then(response => {
+                output.innerHTML += `<span class="info">Response status:</span> ${response.status} ${response.statusText}\n\n`;
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    output.innerHTML += `<span class="success">✓ API call successful!</span>\n\n`;
+                    output.innerHTML += `Total students: ${data.meta.total}\n`;
+                    output.innerHTML += `Page: ${data.meta.page}\n`;
+                    output.innerHTML += `Records returned: ${data.data.length}\n\n`;
+                    output.innerHTML += `<span class="info">Response preview:</span>\n${JSON.stringify(data, null, 2).substring(0, 500)}...`;
+                } else {
+                    output.innerHTML += `<span class="error">✗ API returned error:</span>\n\n`;
+                    output.innerHTML += `Status: ${data.status}\n`;
+                    output.innerHTML += `Error: ${data.error}\n\n`;
+                    output.innerHTML += `Full response:\n${JSON.stringify(data, null, 2)}`;
+                }
+            })
+            .catch(error => {
+                output.innerHTML += `<span class="error">✗ Network error:</span>\n${error.message}\n\n`;
+                output.innerHTML += `Make sure:\n`;
+                output.innerHTML += `1. Backend API is running on localhost:3000\n`;
+                output.innerHTML += `2. CORS is enabled on the backend\n`;
+                output.innerHTML += `3. The token is correct`;
+            });
+        }
+
+        function clearToken() {
+            localStorage.removeItem('X-Access-Token');
+            alert('Token cleared from localStorage');
+            document.getElementById('verifyOutput').innerHTML = '<span class="warning">Token has been cleared</span>';
+            document.getElementById('verifyOutput').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

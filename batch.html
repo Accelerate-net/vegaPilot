@@ -300,6 +300,107 @@
             color: #333;
             font-weight: 500;
          }
+
+         /* Kebab Menu Styles */
+         .kebab-menu-container {
+            position: relative;
+            display: inline-block;
+         }
+
+         .kebab-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+         }
+
+         .kebab-button:hover {
+            background: #f0f0f0;
+         }
+
+         .kebab-button i {
+            font-size: 20px;
+            color: #495057;
+         }
+
+         .kebab-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 220px;
+            z-index: 1000;
+            margin-top: 5px;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.2s ease;
+         }
+
+         .kebab-dropdown.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+         }
+
+         .kebab-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            color: #333;
+            text-decoration: none;
+         }
+
+         .kebab-dropdown-item:last-child {
+            border-bottom: none;
+         }
+
+         .kebab-dropdown-item:hover {
+            background: #f8f9fa;
+         }
+
+         .kebab-dropdown-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+         }
+
+         .kebab-dropdown-item.manage-courses i {
+            color: #28a745;
+         }
+
+         .kebab-dropdown-item.manage-students i {
+            color: #17a2b8;
+         }
+
+         .kebab-dropdown-item.modify-batch i {
+            color: #ffc107;
+         }
+
+         .kebab-dropdown-item.freeze-batch i {
+            color: #dc3545;
+         }
+
+         .kebab-dropdown-item.unfreeze-batch i {
+            color: #28a745;
+         }
+
+         .kebab-dropdown-item .item-label {
+            font-size: 14px;
+            font-weight: 500;
+         }
       </style>
    </head>
 
@@ -419,14 +520,18 @@
                                           </th>
                                           <th>Course</th>
                                           <th class="sortable" ng-click="sortByColumn('startDate')" ng-class="{active: sortColumn === 'startDate'}">
-                                             Duration
+                                             Commence
                                              <i class="sort-icon ti" ng-class="sortColumn === 'startDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          </th>
+                                          <th class="sortable" ng-click="sortByColumn('endDate')" ng-class="{active: sortColumn === 'endDate'}">
+                                             Conclude
+                                             <i class="sort-icon ti" ng-class="sortColumn === 'endDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                           </th>
                                           <th style="text-align: center;" class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
                                              Status
                                              <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                           </th>
-                                          <th style="text-align: center;">Actions</th>
+                                          <th style="text-align: center; width: 60px;"></th>
                                        </tr>
                                     </thead>
                                     <tbody>
@@ -457,8 +562,16 @@
                                              <div class="course-info" ng-if="batch.startDate">
                                                 <i class="ti ti-calendar"></i> {{formatDate(batch.startDate)}}
                                              </div>
+                                             <div class="course-info" ng-if="!batch.startDate" style="color: #adb5bd;">
+                                                Not set
+                                             </div>
+                                          </td>
+                                          <td>
                                              <div class="course-info" ng-if="batch.endDate">
                                                 <i class="ti ti-flag"></i> {{formatDate(batch.endDate)}}
+                                             </div>
+                                             <div class="course-info" ng-if="!batch.endDate" style="color: #adb5bd;">
+                                                Not set
                                              </div>
                                           </td>
                                           <td style="text-align: center;">
@@ -466,23 +579,29 @@
                                                 {{getBatchStatus(batch)}}
                                              </span>
                                           </td>
-                                          <td style="text-align: center;">
-                                             <div class="action-buttons">
-                                                <button class="btn btn-xs btn-primary" ng-click="viewBatchDetails(batch)" title="View Details">
-                                                   <i class="ti ti-eye"></i>
+                                          <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                             <div class="kebab-menu-container">
+                                                <button class="kebab-button" ng-click="toggleKebabMenu(batch, $event)">
+                                                   <i class="ti ti-more-alt"></i>
                                                 </button>
-                                                <button class="btn btn-xs btn-success" ng-click="openEnrollCourseModal(batch)" title="Manage Courses">
-                                                   <i class="ti ti-book"></i>
-                                                </button>
-                                                <button class="btn btn-xs btn-info" ng-click="addStudentsToBatch(batch)" title="Add Students">
-                                                   <i class="ti ti-plus"></i>
-                                                </button>
-                                                <button class="btn btn-xs btn-default" ng-click="editBatch(batch)" title="Edit">
-                                                   <i class="ti ti-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-xs btn-danger" ng-click="deleteBatch(batch)" title="Delete">
-                                                   <i class="ti ti-trash"></i>
-                                                </button>
+                                                <div class="kebab-dropdown" ng-class="{active: batch.showKebabMenu}">
+                                                   <div class="kebab-dropdown-item manage-courses" ng-click="openEnrollCourseModal(batch)">
+                                                      <i class="ti ti-book"></i>
+                                                      <span class="item-label">Manage Courses</span>
+                                                   </div>
+                                                   <div class="kebab-dropdown-item manage-students" ng-click="addStudentsToBatch(batch)">
+                                                      <i class="ti ti-user"></i>
+                                                      <span class="item-label">Manage Students</span>
+                                                   </div>
+                                                   <div class="kebab-dropdown-item modify-batch" ng-click="editBatch(batch)">
+                                                      <i class="ti ti-pencil"></i>
+                                                      <span class="item-label">Modify Batch Details</span>
+                                                   </div>
+                                                   <div class="kebab-dropdown-item" ng-class="batch.isFrozen ? 'unfreeze-batch' : 'freeze-batch'" ng-click="toggleFreezeBatch(batch)">
+                                                      <i class="ti" ng-class="batch.isFrozen ? 'ti-unlock' : 'ti-lock'"></i>
+                                                      <span class="item-label">{{batch.isFrozen ? 'Unfreeze' : 'Freeze'}} Batch</span>
+                                                   </div>
+                                                </div>
                                              </div>
                                           </td>
                                        </tr>
@@ -672,6 +791,12 @@
                <table class="table table-hover" style="width: 100%; background: white;">
                   <thead style="background: #f8f9fa; position: sticky; top: 0; z-index: 10;">
                      <tr>
+                        <th style="padding: 12px 15px; text-align: center; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e1e8ed; width: 50px;">
+                           <input type="checkbox"
+                                  ng-click="toggleSelectAllBatchStudents($event)"
+                                  ng-checked="isAllBatchStudentsSelected()"
+                                  style="cursor: pointer; width: 18px; height: 18px;">
+                        </th>
                         <th style="padding: 12px 15px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e1e8ed;">#</th>
                         <th style="padding: 12px 15px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e1e8ed;">Name</th>
                         <th style="padding: 12px 15px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e1e8ed;">Email</th>
@@ -681,20 +806,26 @@
                   </thead>
                   <tbody>
                      <tr ng-repeat="student in getFilteredStudents() | filter:studentSearchQuery track by student.id"
-                         ng-click="navigateToStudentProfile(student)"
-                         style="border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: all 0.2s;"
-                         ng-style="{'background': !student.enrolledToCourse ? '#fffbf0' : 'white'}"
-                         onmouseover="this.style.background='#f0f7f8'; this.style.transform='translateX(2px)'"
-                         onmouseout="this.style.background=this.getAttribute('data-enrolled') === 'false' ? '#fffbf0' : 'white'; this.style.transform='translateX(0)'"
+                         style="border-bottom: 1px solid #f0f0f0; transition: all 0.2s;"
+                         ng-class="{'selected-row': isBatchStudentSelected(student)}"
+                         ng-style="{'background': !student.enrolledToCourse && !isBatchStudentSelected(student) ? '#fffbf0' : (isBatchStudentSelected(student) ? '#e7f5f7' : 'white')}"
+                         onmouseover="if(!this.classList.contains('selected-row')) this.style.background=this.getAttribute('data-enrolled') === 'false' ? '#fff8e1' : '#f0f7f8'"
+                         onmouseout="if(!this.classList.contains('selected-row')) this.style.background=this.getAttribute('data-enrolled') === 'false' ? '#fffbf0' : 'white'"
                          data-enrolled="{{student.enrolledToCourse}}">
-                        <td style="padding: 12px 15px; font-weight: 500; color: #666;">{{$index + 1}}</td>
-                        <td style="padding: 12px 15px;">
+                        <td style="padding: 12px 15px; text-align: center;" ng-click="$event.stopPropagation()">
+                           <input type="checkbox"
+                                  ng-checked="isBatchStudentSelected(student)"
+                                  ng-click="toggleBatchStudentSelection(student)"
+                                  style="cursor: pointer; width: 18px; height: 18px;">
+                        </td>
+                        <td style="padding: 12px 15px; font-weight: 500; color: #666;" ng-click="navigateToStudentProfile(student)">{{$index + 1}}</td>
+                        <td style="padding: 12px 15px; cursor: pointer;" ng-click="navigateToStudentProfile(student)">
                            <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">{{student.name}}</div>
                         </td>
-                        <td style="padding: 12px 15px;">
+                        <td style="padding: 12px 15px; cursor: pointer;" ng-click="navigateToStudentProfile(student)">
                            <div style="color: #666; font-size: 13px;">{{student.email}}</div>
                         </td>
-                        <td style="padding: 12px 15px; text-align: center;">
+                        <td style="padding: 12px 15px; text-align: center; cursor: pointer;" ng-click="navigateToStudentProfile(student)">
                            <span ng-if="student.enrolledToCourse" style="background: #e8f5e9; color: #4caf50; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
                               <i class="ti ti-check"></i> Enrolled
                            </span>
@@ -702,12 +833,12 @@
                               <i class="ti ti-alert"></i> Not Enrolled
                            </span>
                         </td>
-                        <td style="padding: 12px 15px; text-align: center; color: #666; font-size: 12px;">
+                        <td style="padding: 12px 15px; text-align: center; color: #666; font-size: 12px; cursor: pointer;" ng-click="navigateToStudentProfile(student)">
                            {{formatDate(student.addedOn)}}
                         </td>
                      </tr>
                      <tr ng-if="(getFilteredStudents() | filter:studentSearchQuery).length === 0">
-                        <td colspan="5" style="padding: 40px; text-align: center; color: #999;">
+                        <td colspan="6" style="padding: 40px; text-align: center; color: #999;">
                            <i class="ti ti-info-alt" style="font-size: 36px; opacity: 0.5;"></i>
                            <div style="margin-top: 10px; font-size: 14px;">No students found matching your criteria.</div>
                         </td>
@@ -715,10 +846,25 @@
                   </tbody>
                </table>
             </div>
-            <div class="modal-footer" style="padding: 15px 25px; background: #f8f9fa; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; gap: 10px;">
-               <button type="button" class="btn btn-default" ng-click="closeStudentsModal()" style="padding: 8px 20px; border-radius: 6px;">
-                  <i class="ti ti-close"></i> Close
-               </button>
+            <div class="modal-footer" style="padding: 15px 25px; background: #f8f9fa; border-radius: 0 0 12px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+               <div ng-if="getSelectedBatchStudentsCount() > 0" style="background: #fff3cd; padding: 10px 15px; border-radius: 6px; border-left: 3px solid #ffc107;">
+                  <span style="font-weight: 600; color: #856404; font-size: 13px;">
+                     <i class="ti ti-check"></i> {{getSelectedBatchStudentsCount()}} student(s) selected
+                  </span>
+               </div>
+               <div ng-if="getSelectedBatchStudentsCount() === 0"></div>
+               <div style="display: flex; gap: 10px;">
+                  <button type="button"
+                          class="btn btn-danger"
+                          ng-if="getSelectedBatchStudentsCount() > 0"
+                          ng-click="removeStudentsFromBatch()"
+                          style="padding: 8px 20px; border-radius: 6px;">
+                     <i class="ti ti-trash"></i> Remove {{getSelectedBatchStudentsCount()}} Student(s) from Batch
+                  </button>
+                  <button type="button" class="btn btn-default" ng-click="closeStudentsModal()" style="padding: 8px 20px; border-radius: 6px;">
+                     <i class="ti ti-close"></i> Close
+                  </button>
+               </div>
             </div>
          </div>
       </div>

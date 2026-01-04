@@ -48,64 +48,18 @@
             font-size: 14px;
          }
 
-         /* Stats Cards */
-         .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-         }
-
-         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-         }
-
-         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-         }
-
-         .stat-icon.teal { background: #006073; }
-         .stat-icon.green { background: #28a745; }
-         .stat-icon.orange { background: #fd7e14; }
-         .stat-icon.blue { background: #007bff; }
-
-         .stat-info h3 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-            color: #2c3e50;
-         }
-
-         .stat-info p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: #6c757d;
-         }
-
          /* Search and Filter Bar */
          .filter-bar {
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
+            align-items: center;
          }
 
          .search-wrapper {
             flex: 1;
-            min-width: 250px;
+            min-width: 300px;
             position: relative;
          }
 
@@ -329,10 +283,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
             z-index: 9999;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.2s ease;
+         }
+
+         @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
          }
 
          .modal-backdrop.active {
@@ -341,93 +302,157 @@
 
          .modal-dialog {
             background: white;
-            border-radius: 8px;
-            max-width: 700px;
+            border-radius: 16px;
+            max-width: 720px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: modalSlideDown 0.3s ease;
+            max-height: 92vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
          }
 
-         @keyframes modalSlideDown {
+         @keyframes modalSlideUp {
             from {
-               transform: translateY(-50px);
+               transform: translateY(30px) scale(0.95);
                opacity: 0;
             }
             to {
-               transform: translateY(0);
+               transform: translateY(0) scale(1);
                opacity: 1;
             }
          }
 
          .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 28px 32px;
+            border-bottom: none;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            background: linear-gradient(135deg, #006073 0%, #00455a 100%);
             color: white;
-            border-radius: 8px 8px 0 0;
+            position: relative;
+            overflow: hidden;
+         }
+
+         .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(40%, -40%);
          }
 
          .modal-header h3 {
             margin: 0;
-            font-size: 20px;
+            font-size: 22px;
+            font-weight: 600;
             color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+         }
+
+         .modal-header h3 i {
+            font-size: 24px;
+            opacity: 0.9;
          }
 
          .modal-close {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
          }
 
          .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg);
          }
 
          .modal-body {
-            padding: 25px;
+            padding: 32px;
+            overflow-y: auto;
+            flex: 1;
+         }
+
+         .modal-body::-webkit-scrollbar {
+            width: 8px;
+         }
+
+         .modal-body::-webkit-scrollbar-track {
+            background: #f8f9fa;
+         }
+
+         .modal-body::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+         }
+
+         .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
          }
 
          .modal-footer {
-            padding: 15px 25px;
+            padding: 20px 32px;
             border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 12px;
          }
 
          .form-section {
-            margin-bottom: 25px;
+            margin-bottom: 32px;
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
          }
 
          .form-section-title {
             font-size: 16px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #cbd5e0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+         }
+
+         .form-section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #006073 0%, #00a8cc 100%);
+            border-radius: 2px;
          }
 
          .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
          }
 
          .form-row.full {
@@ -438,28 +463,42 @@
             margin-bottom: 20px;
          }
 
+         .form-group:last-child {
+            margin-bottom: 0;
+         }
+
          .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #495057;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #334155;
             font-size: 14px;
+            letter-spacing: 0.2px;
          }
 
          .form-group label .required {
-            color: #dc3545;
-            margin-left: 3px;
+            color: #ef4444;
+            margin-left: 4px;
+            font-size: 16px;
          }
 
          .form-input,
          .form-textarea,
          .form-select {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
+            background: white;
+            transition: all 0.2s ease;
+         }
+
+         .form-input:hover,
+         .form-textarea:hover,
+         .form-select:hover {
+            border-color: #cbd5e0;
          }
 
          .form-input:focus,
@@ -467,43 +506,63 @@
          .form-select:focus {
             outline: none;
             border-color: #006073;
-            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 96, 115, 0.08);
+            background: #ffffff;
          }
 
          .form-textarea {
             resize: vertical;
             min-height: 80px;
+            line-height: 1.6;
          }
 
          .photo-upload-section {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e0;
          }
 
          .photo-preview {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #e9ecef;
+            border: 4px solid #006073;
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.15);
          }
 
          .photo-preview-placeholder {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: #adb5bd;
-            border: 3px dashed #dee2e6;
+            font-size: 44px;
+            color: #94a3b8;
+            border: 4px dashed #cbd5e0;
+            transition: all 0.3s ease;
+         }
+
+         .photo-upload-section:hover .photo-preview-placeholder {
+            border-color: #006073;
+            background: linear-gradient(135deg, #e0f2f7 0%, #b2ebf2 100%);
+            color: #006073;
          }
 
          .photo-upload-controls {
             flex: 1;
+         }
+
+         .photo-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
          }
 
          .file-input-wrapper {
@@ -512,29 +571,184 @@
          }
 
          .file-input {
-            display: none;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+            opacity: 0;
          }
 
          .file-input-label {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #007bff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            background: linear-gradient(135deg, #006073 0%, #00a8cc 100%);
             color: white;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.2s ease;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
+            border: none;
          }
 
          .file-input-label:hover {
-            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.3);
+         }
+
+         .file-input-label i {
+            font-size: 16px;
+         }
+
+         .btn-remove-photo {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+         }
+
+         .btn-remove-photo:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+         }
+
+         .btn-remove-photo i {
+            font-size: 16px;
+         }
+
+         .photo-info {
+            margin-top: 12px;
          }
 
          .file-name {
-            display: block;
-            margin-top: 8px;
-            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+         }
+
+         /* Profile Info Card Styles */
+         .profile-info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+         }
+
+         .profile-info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e0;
+         }
+
+         .profile-info-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+         }
+
+         .profile-info-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+         }
+
+         .profile-info-value {
+            font-size: 16px;
+            color: #1e293b;
+            font-weight: 600;
+         }
+
+         /* Pagination Styles */
+         .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+         }
+
+         .pagination-info {
+            font-size: 14px;
             color: #6c757d;
+            font-weight: 500;
+         }
+
+         .pagination-controls {
+            display: flex;
+            gap: 6px;
+         }
+
+         .pagination-btn {
+            padding: 8px 14px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+         }
+
+         .pagination-btn:hover:not(:disabled) {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
+         }
+
+         .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8f9fa;
+         }
+
+         .pagination-btn.active {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
          }
 
          /* Loading Overlay */
@@ -582,10 +796,6 @@
 
          /* Responsive */
          @media (max-width: 768px) {
-            .stats-row {
-               grid-template-columns: 1fr;
-            }
-
             .filter-bar {
                flex-direction: column;
             }
@@ -694,52 +904,12 @@
                            <!-- Page Header -->
                            <div class="page-header-section">
                               <div>
-                                 <h2><i class="ti ti-id-badge"></i> Instructor Portfolio</h2>
-                                 <p>Manage instructor profiles and their teaching assignments</p>
+                                 <h2>Instructor Portfolio</h2>
+                                 <p>Teacher's profile may be visible to any registered user</p>
                               </div>
-                              <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 600;" ng-click="openCreateModal()">
-                                 <i class="ti ti-plus"></i> Add New Instructor
+                              <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 400;" ng-click="openCreateModal()">
+                                 <i class="ti ti-plus"></i> New Portfolio
                               </button>
-                           </div>
-
-                           <!-- Statistics Cards -->
-                           <div class="stats-row">
-                              <div class="stat-card">
-                                 <div class="stat-icon teal">
-                                    <i class="ti ti-user"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{instructors.length}}</h3>
-                                    <p>Total Instructors</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon green">
-                                    <i class="ti ti-check-box"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{getActiveInstructors()}}</h3>
-                                    <p>Active Instructors</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon orange">
-                                    <i class="ti ti-book"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{getTotalSubjects()}}</h3>
-                                    <p>Subjects Covered</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon blue">
-                                    <i class="ti ti-briefcase"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{getAverageExperience()}}</h3>
-                                    <p>Avg. Experience</p>
-                                 </div>
-                              </div>
                            </div>
 
                            <!-- Filter Bar -->
@@ -754,12 +924,7 @@
                               </div>
                               <select class="filter-select" ng-model="filterSubject" ng-change="filterInstructors()">
                                  <option value="">All Subjects</option>
-                                 <option ng-repeat="subject in getUniqueSubjects()" value="{{subject}}">{{subject}}</option>
-                              </select>
-                              <select class="filter-select" ng-model="sortBy" ng-change="sortInstructors()">
-                                 <option value="name">Sort by Name</option>
-                                 <option value="subject">Sort by Subject</option>
-                                 <option value="experience">Sort by Experience</option>
+                                 <option ng-repeat="subject in subjectList" value="{{subject}}">{{subject}}</option>
                               </select>
                            </div>
 
@@ -790,7 +955,7 @@
                                     </tr>
                                  </thead>
                                  <tbody>
-                                    <tr ng-repeat="instructor in filteredInstructors" ng-click="viewInstructor(instructor)">
+                                    <tr ng-repeat="instructor in paginatedInstructors" ng-click="viewInstructor(instructor)">
                                        <td>
                                           <div class="instructor-name-cell">
                                              <img ng-if="instructor.photo"
@@ -842,17 +1007,34 @@
                                     </tr>
                                  </tbody>
                               </table>
+
+                              <!-- Pagination -->
+                              <div class="pagination-container">
+                                 <div class="pagination-info">
+                                    Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{totalInstructors}} instructors
+                                 </div>
+                                 <div class="pagination-controls">
+                                    <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
+                                       <i class="ti ti-angle-left"></i> Previous
+                                    </button>
+                                    <button class="pagination-btn"
+                                            ng-repeat="page in getPageNumbers()"
+                                            ng-class="{active: page === currentPage}"
+                                            ng-click="goToPage(page)">
+                                       {{page}}
+                                    </button>
+                                    <button class="pagination-btn" ng-click="nextPage()" ng-disabled="currentPage === getTotalPages()">
+                                       Next <i class="ti ti-angle-right"></i>
+                                    </button>
+                                 </div>
+                              </div>
                            </div>
 
                            <!-- Empty State -->
                            <div class="instructors-table-container" ng-if="filteredInstructors.length === 0">
                               <div class="empty-state">
-                                 <i class="ti ti-id-badge"></i>
-                                 <h3>No Instructors Found</h3>
-                                 <p>{{searchQuery || filterSubject ? 'No instructors match your search criteria.' : 'Get started by adding your first instructor.'}}</p>
-                                 <button class="btn btn-success" ng-click="openCreateModal()" ng-if="!searchQuery && !filterSubject">
-                                    <i class="ti ti-plus"></i> Add Your First Instructor
-                                 </button>
+                                 <h4 style="opacity: .4; font-weight: 400;">No Portfolios Found</h4>
+                                 <p>{{searchQuery || filterSubject ? 'No Portfolios match your search criteria.' : 'No Portfolios added yet'}}</p>
                               </div>
                            </div>
 
@@ -896,7 +1078,7 @@
                   </div>
 
                   <div class="form-group">
-                     <label>Profile Photo</label>
+                     <label>Profile Photo <span style="color: #999; font-weight: normal;">(Optional)</span></label>
                      <div class="photo-upload-section">
                         <img ng-if="currentInstructor.photo && !currentInstructor.photoPreview"
                              ng-src="{{currentInstructor.photo}}"
@@ -911,18 +1093,35 @@
                            <i class="ti ti-camera"></i>
                         </div>
                         <div class="photo-upload-controls">
-                           <div class="file-input-wrapper">
-                              <input type="file"
-                                     id="photoInput"
-                                     class="file-input"
-                                     accept="image/*"
-                                     onchange="angular.element(this).scope().handlePhotoSelect(this.files[0])">
-                              <label for="photoInput" class="file-input-label">
-                                 <i class="ti ti-upload"></i> Choose Photo
-                              </label>
+                           <div class="photo-buttons">
+                              <div class="file-input-wrapper">
+                                 <input type="file"
+                                        id="photoInput"
+                                        class="file-input"
+                                        accept="image/*"
+                                        onchange="angular.element(this).scope().handlePhotoSelect(this.files[0])">
+                                 <label for="photoInput" class="file-input-label">
+                                    <i class="ti ti-upload"></i> Choose Photo
+                                 </label>
+                              </div>
+                              <button type="button"
+                                      class="btn-remove-photo"
+                                      ng-if="currentInstructor.photo || currentInstructor.photoPreview"
+                                      ng-click="removePhoto()">
+                                 <i class="ti ti-trash"></i> Remove
+                              </button>
                            </div>
-                           <span class="file-name" ng-if="currentInstructor.photoFile">{{currentInstructor.photoFile.name}}</span>
-                           <span class="file-name" ng-if="!currentInstructor.photoFile" style="color: #adb5bd;">JPG, PNG (Max 2MB)</span>
+                           <div class="photo-info">
+                              <span class="file-name" ng-if="currentInstructor.photoFile">
+                                 <i class="ti ti-check" style="color: #28a745;"></i> {{currentInstructor.photoFile.name}}
+                              </span>
+                              <span class="file-name" ng-if="!currentInstructor.photoFile && !currentInstructor.photo" style="color: #adb5bd;">
+                                 <i class="ti ti-info-alt"></i> JPG, PNG (Max 2MB)
+                              </span>
+                              <span class="file-name" ng-if="!currentInstructor.photoFile && currentInstructor.photo" style="color: #64748b;">
+                                 <i class="ti ti-check" style="color: #28a745;"></i> Current photo uploaded
+                              </span>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -945,7 +1144,7 @@
                         <label>Years of Experience <span class="required">*</span></label>
                         <input type="number"
                                class="form-input"
-                               ng-model="currentInstructor.experience"
+                               ng-model="currentInstructor.experienceYears"
                                placeholder="e.g., 10"
                                min="0">
                      </div>
@@ -962,7 +1161,7 @@
 
                <!-- Additional Information -->
                <div class="form-section">
-                  <div class="form-section-title">Additional Information</div>
+                  <div class="form-section-title">Additional Information <span style="color: #999; font-weight: normal; font-size: 13px;">(Optional)</span></div>
 
                   <div class="form-group">
                      <label>Email</label>
@@ -979,21 +1178,13 @@
                             ng-model="currentInstructor.phone"
                             placeholder="+1 (555) 123-4567">
                   </div>
-
-                  <div class="form-group">
-                     <label>Bio / About</label>
-                     <textarea class="form-textarea"
-                               ng-model="currentInstructor.bio"
-                               placeholder="Detailed biography, teaching philosophy, and achievements..."
-                               rows="4"></textarea>
-                  </div>
                </div>
             </div>
             <div class="modal-footer">
                <button class="btn btn-default" ng-click="closeEditModal()">Cancel</button>
                <button class="btn btn-success"
                       ng-click="saveInstructor()"
-                      ng-disabled="!currentInstructor.name || !currentInstructor.brief || !currentInstructor.expertSubject || !currentInstructor.qualifications || !currentInstructor.experience">
+                      ng-disabled="!currentInstructor.name || !currentInstructor.brief || !currentInstructor.expertSubject || !currentInstructor.qualifications || (!currentInstructor.experienceYears && !currentInstructor.experience)">
                   <i class="ti ti-check"></i> {{editMode ? 'Update' : 'Create'}} Instructor
                </button>
             </div>
@@ -1028,60 +1219,107 @@
 
       <!-- Instructor Profile View Modal -->
       <div class="modal-backdrop" ng-class="{active: viewModalOpen}">
-         <div class="modal-dialog" style="max-width: 800px;">
-            <div class="modal-header" style="background-color: #006073; color: white;">
+         <div class="modal-dialog" style="max-width: 850px;">
+            <div class="modal-header">
                <h3><i class="ti ti-user"></i> Instructor Profile</h3>
-               <button class="modal-close" ng-click="closeViewModal()" style="color: white; opacity: 0.8;">
+               <button class="modal-close" ng-click="closeViewModal()">
                   <i class="ti ti-close"></i>
                </button>
             </div>
-            <div class="modal-body">
-               <div class="row" ng-if="selectedInstructor">
-                  <div class="col-md-4 text-center">
-                     <img ng-src="{{selectedInstructor.photo || 'assets/img/default_user.png'}}" alt="{{selectedInstructor.name}}"
-                          style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #006073; margin-bottom: 15px;">
-                     <div class="star-rating" style="font-size: 20px; margin-bottom: 10px;">
-                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 0)"></i>
-                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 1)"></i>
-                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 2)"></i>
-                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 3)"></i>
-                        <i class="fa" ng-class="getStarClass(selectedInstructor.rating, 4)"></i>
+            <div class="modal-body" style="padding: 0;">
+               <div ng-if="selectedInstructor">
+                  <!-- Profile Header Section -->
+                  <div style="background: linear-gradient(135deg, #e0f2f7 0%, #b2ebf2 100%); padding: 40px 32px; border-bottom: 1px solid #e2e8f0;">
+                     <div style="display: flex; align-items: center; gap: 28px;">
+                        <div style="position: relative;">
+                           <img ng-if="selectedInstructor.photo"
+                                ng-src="{{selectedInstructor.photo}}"
+                                alt="{{selectedInstructor.name}}"
+                                style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 8px 20px rgba(0, 96, 115, 0.2);">
+                           <div ng-if="!selectedInstructor.photo"
+                                style="width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #006073 0%, #00a8cc 100%); border: 5px solid white; box-shadow: 0 8px 20px rgba(0, 96, 115, 0.2); display: flex; align-items: center; justify-content: center; font-size: 52px; color: white; font-weight: 700;">
+                              {{getInitials(selectedInstructor.name)}}
+                           </div>
+                           <div ng-if="selectedInstructor.active" style="position: absolute; bottom: 8px; right: 8px; width: 24px; height: 24px; background: #10b981; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);"></div>
+                        </div>
+                        <div style="flex: 1;">
+                           <h2 style="margin: 0 0 8px 0; font-size: 28px; color: #1e293b; font-weight: 700;">{{selectedInstructor.name}}</h2>
+                           <p style="margin: 0 0 16px 0; font-size: 16px; color: #64748b; font-style: italic;">{{selectedInstructor.brief}}</p>
+                           <div ng-if="selectedInstructor.rating" style="display: flex; align-items: center; gap: 12px;">
+                              <div style="display: flex; align-items: center; gap: 6px;">
+                                 <i class="fa fa-star" style="color: #fbbf24; font-size: 18px;"></i>
+                                 <span style="font-size: 18px; font-weight: 700; color: #1e293b;">{{selectedInstructor.rating}}</span>
+                                 <span style="font-size: 14px; color: #94a3b8;">/5.0</span>
+                              </div>
+                              <div style="height: 20px; width: 1px; background: #cbd5e0;"></div>
+                              <div style="font-size: 14px; color: #64748b;">
+                                 <i class="ti ti-users" style="font-size: 16px;"></i> {{selectedInstructor.totalStudents}} Students
+                              </div>
+                           </div>
+                        </div>
                      </div>
-                     <p style="font-size: 18px; font-weight: bold; color: #666;">{{selectedInstructor.rating || 0}}/5.0</p>
-                     <p style="color: #999; font-size: 14px;">{{selectedInstructor.studentsCount || 0}} Students</p>
                   </div>
-                  <div class="col-md-8">
-                     <h3 style="color: #006073; margin-top: 0;">{{selectedInstructor.name}}</h3>
-                     <p style="color: #666; font-size: 16px; margin-bottom: 20px;"><em>{{selectedInstructor.brief}}</em></p>
 
-                     <div style="margin-bottom: 15px;">
-                        <strong style="color: #006073;"><i class="ti ti-bookmark"></i> Expert Subject:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.expertSubject}}</p>
+                  <!-- Profile Details Section -->
+                  <div style="padding: 32px;">
+                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="profile-info-card">
+                           <div class="profile-info-icon" style="background: #dbeafe; color: #2563eb;">
+                              <i class="ti ti-bookmark"></i>
+                           </div>
+                           <div style="flex: 1; min-width: 0;">
+                              <div class="profile-info-label">Expert Subject</div>
+                              <div class="profile-info-value">{{selectedInstructor.expertSubject}}</div>
+                           </div>
+                        </div>
+
+                        <div class="profile-info-card">
+                           <div class="profile-info-icon" style="background: #fef3c7; color: #d97706;">
+                              <i class="ti ti-briefcase"></i>
+                           </div>
+                           <div style="flex: 1; min-width: 0;">
+                              <div class="profile-info-label">Experience</div>
+                              <div class="profile-info-value">{{selectedInstructor.experience}} years</div>
+                           </div>
+                        </div>
+
+                        <div class="profile-info-card" ng-if="selectedInstructor.qualifications" style="grid-column: span 2;">
+                           <div class="profile-info-icon" style="background: #fef3c7; color: #f59e0b;">
+                              <i class="ti ti-medal"></i>
+                           </div>
+                           <div style="flex: 1; min-width: 0;">
+                              <div class="profile-info-label">Qualifications</div>
+                              <div class="profile-info-value" style="font-size: 14px; line-height: 1.6; white-space: normal; word-break: break-word;">{{selectedInstructor.qualifications}}</div>
+                           </div>
+                        </div>
+
+                        <div class="profile-info-card" ng-if="selectedInstructor.email">
+                           <div class="profile-info-icon" style="background: #e0e7ff; color: #6366f1;">
+                              <i class="ti ti-email"></i>
+                           </div>
+                           <div style="flex: 1; min-width: 0; overflow: hidden;">
+                              <div class="profile-info-label">Email Address</div>
+                              <div class="profile-info-value" style="font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{selectedInstructor.email}}">{{selectedInstructor.email}}</div>
+                           </div>
+                        </div>
+
+                        <div class="profile-info-card" ng-if="selectedInstructor.mobile">
+                           <div class="profile-info-icon" style="background: #dcfce7; color: #16a34a;">
+                              <i class="ti ti-mobile"></i>
+                           </div>
+                           <div style="flex: 1; min-width: 0;">
+                              <div class="profile-info-label">Mobile Number</div>
+                              <div class="profile-info-value" style="font-size: 14px;">{{selectedInstructor.mobile}}</div>
+                           </div>
+                        </div>
                      </div>
 
-                     <div style="margin-bottom: 15px;">
-                        <strong style="color: #006073;"><i class="ti ti-briefcase"></i> Experience:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.experience}} years</p>
-                     </div>
-
-                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.qualifications">
-                        <strong style="color: #006073;"><i class="ti ti-medall"></i> Qualifications:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.qualifications}}</p>
-                     </div>
-
-                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.email">
-                        <strong style="color: #006073;"><i class="ti ti-email"></i> Email:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.email}}</p>
-                     </div>
-
-                     <div style="margin-bottom: 15px;" ng-if="selectedInstructor.phone">
-                        <strong style="color: #006073;"><i class="ti ti-mobile"></i> Phone:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.phone}}</p>
-                     </div>
-
-                     <div ng-if="selectedInstructor.bio">
-                        <strong style="color: #006073;"><i class="ti ti-info-alt"></i> About:</strong>
-                        <p style="margin-left: 25px; color: #666;">{{selectedInstructor.bio}}</p>
+                     <div ng-if="selectedInstructor.bio" style="margin-top: 24px; padding: 24px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #00a8cc;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                           <i class="ti ti-info-alt" style="font-size: 20px; color: #00a8cc;"></i>
+                           <strong style="font-size: 15px; color: #1e293b;">About</strong>
+                        </div>
+                        <p style="margin: 0; color: #475569; line-height: 1.7;">{{selectedInstructor.bio}}</p>
                      </div>
                   </div>
                </div>
@@ -1166,6 +1404,7 @@
       <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
       <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
       <script type="text/javascript" src="assets/js/angular.min.js"></script>
+      <script type="text/javascript" src="assets/js/angular-cookies.min.js"></script>
       <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="assets/js/enquire.min.js"></script>
       <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>

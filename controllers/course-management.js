@@ -200,7 +200,7 @@ app.controller('courseManagementController', function($scope, $http, $cookies, $
             displayKey: 'db2350e0-e4c3-4928-a4d7-60081092235c',
             title: 'Complete Science Course Bundle',
             modulesIncluded: [
-                { moduleKey: '1', title: 'Biology', chapterIds: [100, 101], disabledCourseIds: [] },
+                { moduleKey: '1', title: 'Biology', chapterIds: [100], disabledCourseIds: [101] },
                 { moduleKey: '2', title: 'Chemistry', chapterIds: [102, 103], disabledCourseIds: [] },
                 { moduleKey: '3', title: 'Mathematics', chapterIds: [106], disabledCourseIds: [] },
                 { moduleKey: '4', title: 'Physics', chapterIds: [104, 105], disabledCourseIds: [] }

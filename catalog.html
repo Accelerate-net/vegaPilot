@@ -255,10 +255,10 @@
 
          .catalog-actions .btn-edit { background: #2196F3; color: white; }
          .catalog-actions .btn-edit:hover { background: #1976D2; }
-         .catalog-actions .btn-delete { background: #f44336; color: white; }
-         .catalog-actions .btn-delete:hover { background: #d32f2f; }
-         .catalog-actions .btn-view { background: #4CAF50; color: white; }
-         .catalog-actions .btn-view:hover { background: #388E3C; }
+         .catalog-actions .btn-active { background: #9E9E9E; color: white; }
+         .catalog-actions .btn-active:hover { background: #757575; }
+         .catalog-actions .btn-inactive { background: #f44336; color: white; }
+         .catalog-actions .btn-inactive:hover { background: #d32f2f; }
 
          /* Meta Info */
          .catalog-meta {
@@ -636,14 +636,15 @@
                            <!-- Admin Actions Section -->
                            <div class="catalog-admin-actions">
                               <div class="catalog-actions">
-                                 <button class="btn btn-view" ng-click="viewCatalog(item)" title="View Details" onclick="event.stopPropagation();">
-                                    <i class="ti ti-eye"></i>
+                                 <button class="btn"
+                                         ng-class="{'btn-inactive': item.status == 0, 'btn-active': item.status == 1}"
+                                         ng-click="toggleCatalogStatus(item)"
+                                         title="{{item.status == 1 ? 'Disable' : 'Enable'}}"
+                                         onclick="event.stopPropagation();">
+                                    <i class="ti" ng-class="{'ti-eye-off': item.status == 0, 'ti-eye': item.status == 1}"></i>
                                  </button>
                                  <button class="btn btn-edit" ng-click="editCatalog(item)" title="Edit" onclick="event.stopPropagation();">
                                     <i class="ti ti-pencil"></i>
-                                 </button>
-                                 <button class="btn btn-delete" ng-click="deleteCatalog(item)" title="Delete" onclick="event.stopPropagation();">
-                                    <i class="ti ti-trash"></i>
                                  </button>
                               </div>
                            </div>
@@ -732,7 +733,7 @@
                               <div class="col-md-8">
                                  <div class="form-group">
                                     <label><strong>Page URL</strong> <span style="color: red;">*</span></label>
-                                    <input type="url" class="form-control" ng-model="newCatalog.pageUrl"
+                                    <input type="text" class="form-control" ng-model="newCatalog.pageUrl"
                                            placeholder="https://crisprlearning.com/courses/iiser-exclusive-1-year-course-for-iat/"
                                            style="border-radius: 8px; border: 2px solid #e5e8ef;">
                                     <small class="text-muted">Full URL to the course/exam page</small>
@@ -996,7 +997,66 @@
          </div>
       </div>
 
-      <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
+      <div ng-show="toasterVisible" class="appToaster alert" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible, 'alert-success': toasterType === 'success', 'alert-danger': toasterType === 'error', 'alert-warning': toasterType === 'warning', 'alert-info': toasterType === 'info'}">
+         {{toasterMessage}}
+      </div>
+
+      <!-- Status Toggle Confirmation Modal -->
+      <div class="modal fade" id="statusToggleModal" tabindex="-1" role="dialog">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header" style="background: linear-gradient(135deg, #006073 0%, #004d5c 100%); color: white;">
+                  <h4 class="modal-title" style="margin: 0;">
+                     <i class="ti ti-alert"></i> Confirm Status Change
+                  </h4>
+                  <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">&times;</button>
+               </div>
+               <div class="modal-body" style="padding: 30px; text-align: center;">
+                  <div style="font-size: 48px; color: #ff9800; margin-bottom: 20px;">
+                     <i class="ti ti-alert"></i>
+                  </div>
+                  <h4 style="margin-bottom: 15px; color: #333;">
+                     {{selectedItemForToggle && selectedItemForToggle.status == 1 ? 'Disable Catalog Item?' : 'Enable Catalog Item?'}}
+                  </h4>
+                  <p style="color: #666; margin-bottom: 20px;">
+                     Are you sure you want to {{selectedItemForToggle && selectedItemForToggle.status == 1 ? 'disable' : 'enable'}}
+                     <strong>"{{selectedItemForToggle.title}}"</strong>?
+                  </p>
+                  <p style="color: #999; font-size: 13px;">
+                     {{selectedItemForToggle && selectedItemForToggle.status == 1
+                        ? 'This item will no longer be visible to users.'
+                        : 'This item will become visible to users.'}}
+                  </p>
+               </div>
+               <div class="modal-footer" style="border-top: 1px solid #e5e5e5; padding: 15px 20px;">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                  <button type="button" class="btn"
+                          ng-class="{'btn-danger': selectedItemForToggle.status == 1, 'btn-success': selectedItemForToggle.status == 0}"
+                          ng-click="confirmToggleStatus()">
+                     {{selectedItemForToggle && selectedItemForToggle.status == 1 ? 'Yes, Disable' : 'Yes, Enable'}}
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" ng-class="{active: isLoading}" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 99999; align-items: center; justify-content: center;">
+         <div class="loading-content" style="text-align: center; color: white;">
+            <div class="spinner" style="border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+            <div class="loading-text" style="font-size: 16px; font-weight: 500;">{{loadingMessage}}</div>
+         </div>
+      </div>
+
+      <style>
+         @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+         }
+         .loading-overlay.active {
+            display: flex !important;
+         }
+      </style>
 
       <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
       <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
@@ -1024,6 +1084,7 @@
       <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
       <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
       <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
+      <script type="text/javascript" src="controllers/catalog.js"></script>
 
    </body>
 </html>

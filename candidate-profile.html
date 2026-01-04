@@ -171,6 +171,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 2px solid #e9ecef;
+            position: relative;
          }
 
          .students-table th.sortable {
@@ -178,6 +179,28 @@
             user-select: none;
             position: relative;
             padding-right: 30px;
+         }
+
+         /* Resizable Column Styles */
+         .students-table th .resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            cursor: col-resize;
+            user-select: none;
+            height: 100%;
+            z-index: 1;
+         }
+
+         .students-table th .resizer:hover {
+            background: #006073;
+            opacity: 0.5;
+         }
+
+         .students-table th .resizer.resizing {
+            background: #006073;
+            opacity: 0.8;
          }
 
          .students-table th.sortable:hover {
@@ -513,49 +536,6 @@
                                  <h2><i class="ti ti-user"></i> Student Management</h2>
                                  <p>View and manage all student profiles, enrollments, and performance</p>
                               </div>
-                              <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 600;" ng-click="addNewStudent()">
-                                 <i class="ti ti-plus"></i> Add New Student
-                              </button>
-                           </div>
-
-                           <!-- Statistics Cards -->
-                           <div class="stats-row">
-                              <div class="stat-card">
-                                 <div class="stat-icon teal">
-                                    <i class="ti ti-user"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{students.length}}</h3>
-                                    <p>Total Students</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon green">
-                                    <i class="ti ti-check-box"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{getActiveStudents()}}</h3>
-                                    <p>Active Students</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon orange">
-                                    <i class="ti ti-book"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>{{getTotalEnrollments()}}</h3>
-                                    <p>Total Enrollments</p>
-                                 </div>
-                              </div>
-                              <div class="stat-card">
-                                 <div class="stat-icon purple">
-                                    <i class="ti ti-money"></i>
-                                 </div>
-                                 <div class="stat-info">
-                                    <h3>${{getTotalRevenue()}}</h3>
-                                    <p>Total Revenue</p>
-                                 </div>
-                              </div>
                            </div>
 
                            <!-- Filter Bar -->
@@ -568,19 +548,10 @@
                                         ng-model="searchQuery"
                                         ng-change="filterStudents()">
                               </div>
-                              <select class="filter-select" ng-model="filterCourse" ng-change="filterStudents()">
-                                 <option value="">All Courses</option>
-                                 <option ng-repeat="course in getAllCourses()" value="{{course}}">{{course}}</option>
-                              </select>
                               <select class="filter-select" ng-model="filterStatus" ng-change="filterStudents()">
                                  <option value="">All Status</option>
                                  <option value="active">Active</option>
                                  <option value="inactive">Inactive</option>
-                              </select>
-                              <select class="filter-select" ng-model="sortBy" ng-change="sortStudents()">
-                                 <option value="name">Sort by Name</option>
-                                 <option value="enrollmentDate">Sort by Enrollment Date</option>
-                                 <option value="courses">Sort by Courses</option>
                               </select>
                            </div>
 
@@ -592,22 +563,27 @@
                                        <th class="sortable" ng-click="sortByColumn('name')" ng-class="{active: sortColumn === 'name'}">
                                           Student
                                           <i class="sort-icon ti" ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          <div class="resizer" onmousedown="initResize(event)"></div>
                                        </th>
                                        <th class="sortable" ng-click="sortByColumn('email')" ng-class="{active: sortColumn === 'email'}">
                                           Email
                                           <i class="sort-icon ti" ng-class="sortColumn === 'email' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          <div class="resizer" onmousedown="initResize(event)"></div>
                                        </th>
                                        <th class="sortable" ng-click="sortByColumn('mobile')" ng-class="{active: sortColumn === 'mobile'}">
                                           Mobile
                                           <i class="sort-icon ti" ng-class="sortColumn === 'mobile' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          <div class="resizer" onmousedown="initResize(event)"></div>
                                        </th>
                                        <th class="sortable" ng-click="sortByColumn('coursesCount')" ng-class="{active: sortColumn === 'coursesCount'}">
                                           Enrolled Courses
                                           <i class="sort-icon ti" ng-class="sortColumn === 'coursesCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          <div class="resizer" onmousedown="initResize(event)"></div>
                                        </th>
                                        <th class="sortable" ng-click="sortByColumn('enrollmentDate')" ng-class="{active: sortColumn === 'enrollmentDate'}">
                                           Enrollment Date
                                           <i class="sort-icon ti" ng-class="sortColumn === 'enrollmentDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                          <div class="resizer" onmousedown="initResize(event)"></div>
                                        </th>
                                        <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
                                           Status
@@ -644,7 +620,7 @@
                                        </td>
                                        <td>
                                           <span class="courses-badge clickable" ng-click="viewEnrolledCourses(student); $event.stopPropagation()" title="Click to view courses">
-                                             {{student.enrolledCourses.length}} Course{{student.enrolledCourses.length !== 1 ? 's' : ''}}
+                                             {{student.totalCourseEnrollments || 0}} Course{{student.totalCourseEnrollments !== 1 ? 's' : ''}}
                                           </span>
                                        </td>
                                        <td>
@@ -662,7 +638,7 @@
                               <!-- Pagination -->
                               <div class="pagination-container">
                                  <div class="pagination-info">
-                                    Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{filteredStudents.length}} students
+                                    Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalStudents}} students
                                  </div>
                                  <div class="pagination-controls">
                                     <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
@@ -710,7 +686,23 @@
                </button>
             </div>
             <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
-               <div ng-if="selectedStudentForCourses && selectedStudentForCourses.enrolledCourses.length > 0">
+               <!-- Candidate Info Header -->
+               <div ng-if="selectedStudentForCourses" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; gap: 15px;">
+                  <img ng-if="selectedStudentForCourses.avatar" ng-src="{{selectedStudentForCourses.avatar}}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #006073;">
+                  <div ng-if="!selectedStudentForCourses.avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; border: 2px solid #006073;">
+                     {{getInitials(selectedStudentForCourses.name)}}
+                  </div>
+                  <div style="flex: 1;">
+                     <div style="font-weight: 600; font-size: 16px; color: #333;">{{selectedStudentForCourses.name}}</div>
+                     <div style="font-size: 13px; color: #6c757d;">{{selectedStudentForCourses.email}}</div>
+                  </div>
+                  <div style="text-align: right;">
+                     <div style="font-size: 24px; font-weight: 700; color: #006073;">{{selectedStudentForCourses.totalCourseEnrollments || 0}}</div>
+                     <div style="font-size: 12px; color: #6c757d; text-transform: uppercase;">Total Enrollments</div>
+                  </div>
+               </div>
+
+               <div ng-if="selectedStudentForCourses && selectedStudentForCourses.enrolledCourses && selectedStudentForCourses.enrolledCourses.length > 0">
                   <table style="width: 100%; border-collapse: collapse;">
                      <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
@@ -730,23 +722,26 @@
                            <td style="padding: 15px;">
                               <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}</div>
                               <div style="font-size: 12px; color: #6c757d;">{{course.courseCode}}</div>
+                              <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                                 Enrolled: {{course.enrollmentDate * 1000 | date:'MMM d, y'}}
+                              </div>
                            </td>
                            <td style="padding: 15px;">
-                              <div style="color: #333; font-size: 14px;">{{formatDate(course.validUntil)}}</div>
+                              <div style="color: #333; font-size: 14px;">{{course.validUntil * 1000 | date:'MMM d, y'}}</div>
                               <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">
-                                 {{getDaysRemaining(course.validUntil)}} days remaining
+                                 {{getDaysRemaining(course.validUntil)}} days {{getValidityStatus(course.validUntil) === 'EXPIRED' ? 'expired' : 'remaining'}}
                               </div>
                            </td>
                            <td style="padding: 15px; text-align: center;">
                               <span class="validity-badge" ng-class="getValidityClass(course.validUntil)" style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                                 {{getValidityStatus(course.validUntil)}}
+                                 {{course.enrollmentStatusText || getValidityStatus(course.validUntil)}}
                               </span>
                            </td>
                         </tr>
                      </tbody>
                   </table>
                </div>
-               <div ng-if="!selectedStudentForCourses || selectedStudentForCourses.enrolledCourses.length === 0" style="text-align: center; padding: 40px; color: #6c757d;">
+               <div ng-if="selectedStudentForCourses && (!selectedStudentForCourses.enrolledCourses || selectedStudentForCourses.enrolledCourses.length === 0)" style="text-align: center; padding: 40px; color: #6c757d;">
                   <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
                   <p style="font-size: 16px; margin: 0;">No courses enrolled</p>
                </div>
@@ -949,5 +944,51 @@
       <script type="text/javascript" src="assets/js/application.js"></script>
       <script type="text/javascript" src="assets/demo/demo.js"></script>
       <script src="controllers/candidate-profile.js"></script>
+
+      <!-- Column Resize Script -->
+      <script>
+         // Column resize functionality
+         var currentResizer;
+         var currentTh;
+         var startX;
+         var startWidth;
+
+         function initResize(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent triggering sort when clicking on resizer
+
+            currentResizer = e.target;
+            currentTh = currentResizer.parentElement;
+            startX = e.pageX;
+            startWidth = currentTh.offsetWidth;
+
+            currentResizer.classList.add('resizing');
+
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('mouseup', stopResize);
+         }
+
+         function doResize(e) {
+            if (currentTh) {
+               var width = startWidth + (e.pageX - startX);
+               if (width > 50) { // Minimum width of 50px
+                  currentTh.style.width = width + 'px';
+                  currentTh.style.minWidth = width + 'px';
+                  currentTh.style.maxWidth = width + 'px';
+               }
+            }
+         }
+
+         function stopResize() {
+            if (currentResizer) {
+               currentResizer.classList.remove('resizing');
+            }
+            currentResizer = null;
+            currentTh = null;
+
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+         }
+      </script>
    </body>
 </html>

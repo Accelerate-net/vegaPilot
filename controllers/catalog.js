@@ -1,13 +1,45 @@
 var app = angular.module('catalogApp', ['ngCookies']);
 
 app.controller('catalogController', function($scope, $http, $cookies, $timeout) {
-    
+
+    // API Configuration
+    $scope.apiBaseUrl = 'http://localhost:3000/restricted/catalog';
+
+    // Get token from localStorage (same pattern as other controllers)
+    $scope.getAuthToken = function() {
+        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+        if (!token) {
+            console.warn('No auth token found. Using default token for development.');
+            localStorage.setItem('authToken', token);
+        }
+        return token;
+    };
+
+    // Loading state
+    $scope.isLoading = false;
+    $scope.loadingMessage = 'Loading...';
+
+    $scope.showLoading = function(message) {
+        $scope.isLoading = true;
+        $scope.loadingMessage = message || 'Loading...';
+    };
+
+    $scope.hideLoading = function() {
+        $scope.isLoading = false;
+    };
+
     // Initialize scope variables
     $scope.profileData = {
         name: 'Admin User',
         email: 'admin@vegapilot.com'
     };
-    
+
+    // Pagination
+    $scope.currentPage = 1;
+    $scope.itemsPerPage = 15;
+    $scope.totalItems = 0;
+    $scope.totalPages = 0;
+
     // Search and filters
     $scope.searchQuery = '';
     $scope.filterType = '';
@@ -197,17 +229,105 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     
     // Initialize the controller
     $scope.init = function() {
+        console.log('Catalog Controller Initialized');
         $scope.loadCatalog();
         $scope.loadSummaryData();
     };
     
-    // Load catalog from database (using dummy data for now)
+    // Load catalog from API
     $scope.loadCatalog = function() {
-        // Simulate API call delay
-        $timeout(function() {
-            $scope.catalog = $scope.dummyCatalog;
-            $scope.filteredCatalog = $scope.catalog;
-        }, 500);
+        $scope.showLoading('Loading catalog...');
+
+        var url = $scope.apiBaseUrl + '/list-catalog.php';
+        var params = {
+            page: $scope.currentPage,
+            size: $scope.itemsPerPage,
+            sortBy: 'createdOn'
+        };
+
+        if ($scope.searchQuery && $scope.searchQuery.trim().length > 0) {
+            params.searchKey = $scope.searchQuery.trim();
+        }
+
+        if ($scope.filterType && $scope.filterType !== '') {
+            params.filterBy = 'type';
+            params.filterValue = $scope.filterType;
+        }
+
+        console.log('Loading catalog from API:', url, params);
+
+        $http({
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function(response) {
+            console.log('Catalog API response:', response.data);
+
+            if (response.data && response.data.status === 'success') {
+                var catalogData = response.data.data || [];
+
+                // Map API response to local data structure
+                $scope.catalog = catalogData.map(function(item) {
+                    return {
+                        id: item.id,
+                        code: item.code,
+                        type: item.type,
+                        typeText: item.typeText,
+                        fk_id_exam_series: item.fk_id_exam_series,
+                        fk_id_course_bundle: item.fk_id_course_bundle,
+                        originalPrice: item.originalPrice,
+                        sellingPrice: item.sellingPrice,
+                        displayImage: item.displayImage || '',
+                        taxDetails: item.taxDetails,
+                        otherDetails: item.otherDetails,
+                        title: item.title,
+                        brief: item.brief,
+                        coursePage: item.coursePage,
+                        isDiscountApplicable: item.isDiscountApplicable,
+                        createdBy: item.createdBy,
+                        createdOn: item.createdOn,
+                        status: item.status,
+                        statusText: item.statusText
+                    };
+                });
+
+                $scope.filteredCatalog = $scope.catalog;
+
+                // Update pagination metadata
+                $scope.currentPage = response.data.page;
+                $scope.itemsPerPage = response.data.size;
+                $scope.totalItems = response.data.total;
+                $scope.totalPages = response.data.totalPages;
+
+                $scope.loadSummaryData();
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                $scope.catalog = [];
+                $scope.filteredCatalog = [];
+            }
+
+            $scope.hideLoading();
+        }, function(error) {
+            console.error('Error loading catalog:', error);
+            console.error('Error details:', error.data, error.status, error.statusText);
+            $scope.catalog = [];
+            $scope.filteredCatalog = [];
+            $scope.hideLoading();
+
+            var errorMsg = 'Failed to load catalog. ';
+            if (error.status === 0) {
+                errorMsg += 'Cannot connect to server. Please check if the API server is running.';
+            } else if (error.data && error.data.message) {
+                errorMsg += error.data.message;
+            } else {
+                errorMsg += 'Please try again.';
+            }
+            $scope.showToaster(errorMsg, 'error');
+        });
     };
     
     // Load summary data for tiles
@@ -233,34 +353,14 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     
     // Apply filters (combining search, type, and status)
     $scope.applyFilters = function() {
-        $scope.filteredCatalog = $scope.catalog;
-
-        // Apply search filter
-        if ($scope.searchQuery) {
-            var query = $scope.searchQuery.toLowerCase();
-            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
-                return item.title.toLowerCase().includes(query) ||
-                       item.code.toLowerCase().includes(query) ||
-                       item.brief.toLowerCase().includes(query);
-            });
-        }
-
-        // Apply type filter
-        if ($scope.filterType) {
-            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
-                return parseInt(item.type) === parseInt($scope.filterType);
-            });
-        }
-
-        // Apply status filter
-        if ($scope.filterStatus !== '') {
-            $scope.filteredCatalog = $scope.filteredCatalog.filter(function(item) {
-                return parseInt(item.status) === parseInt($scope.filterStatus);
-            });
-        }
+        // Reset to page 1 when filters change
+        $scope.currentPage = 1;
 
         // Update active filters display
         $scope.updateActiveFilters();
+
+        // Reload catalog with new filters
+        $scope.loadCatalog();
     };
 
     // Update active filters display
@@ -402,60 +502,159 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     
     // Add new catalog
     $scope.addNewCatalog = function() {
+        console.log('Add New Catalog button clicked');
         $scope.isEditing = false;
         $scope.editingId = null;
         $scope.resetNewCatalog();
-        $('#catalogModal').modal('show');
+
+        // Use timeout to ensure modal opens after Angular digest
+        $timeout(function() {
+            console.log('Opening catalog modal');
+            $('#catalogModal').modal('show');
+        }, 0);
     };
     
     // Edit catalog
     $scope.editCatalog = function(item) {
+        console.log('Editing catalog item:', item);
         $scope.isEditing = true;
         $scope.editingId = item.id;
-        $scope.newCatalog = angular.copy(item);
 
-        // Parse tax items if taxDetails exists
+        // Map API fields to form fields
+        $scope.newCatalog = {
+            title: item.title || '',
+            subtitle: item.subtitle || '',
+            code: item.code || '',
+            type: (item.type || 1).toString(), // Convert to string for select dropdown
+            fk_id_exam_series: item.fk_id_exam_series || 0,
+            fk_id_course_bundle: item.fk_id_course_bundle || 0,
+            originalPrice: item.originalPrice || 0,
+            sellingPrice: item.sellingPrice || 0,
+            specialPrice: item.specialPrice || 0,
+            displayImage: item.displayImage || '',
+            brief: item.brief || '',
+            isDiscountApplicable: item.isDiscountApplicable || 0,
+            badgeType: item.badgeType || 'admission',
+            status: (item.status !== undefined ? item.status : 1).toString(), // Convert to string for select dropdown
+            pageUrl: item.coursePage || item.pageUrl || '', // Map coursePage to pageUrl
+            tagline: item.tagline || 'Enroll Now',
+            otherDetails: item.otherDetails || '',
+            taxItems: []
+        };
+
+        // Parse and transform tax items from API format to form format
         if (item.taxDetails) {
             try {
-                var taxData = JSON.parse(item.taxDetails);
-                $scope.newCatalog.taxItems = taxData;
+                var taxData = Array.isArray(item.taxDetails) ? item.taxDetails : JSON.parse(item.taxDetails);
+                $scope.newCatalog.taxItems = taxData.map(function(tax) {
+                    return {
+                        type: tax.code || tax.type || 'SGST',
+                        customName: tax.type === 'EXTRA' ? tax.label : '',
+                        valueType: tax.mode === 'PERCENTAGE' ? 'percentage' : 'fixed',
+                        value: parseFloat(tax.value) || 0
+                    };
+                });
             } catch (e) {
+                console.error('Error parsing tax details:', e);
                 $scope.newCatalog.taxItems = [];
             }
-        } else {
-            $scope.newCatalog.taxItems = [];
         }
 
-        $('#catalogModal').modal('show');
+        console.log('Mapped newCatalog for editing:', $scope.newCatalog);
+
+        $timeout(function() {
+            $('#catalogModal').modal('show');
+        }, 0);
     };
     
-    // View catalog
-    $scope.viewCatalog = function(item) {
-        console.log('Viewing catalog item:', item);
-        $scope.showToaster('Catalog viewer coming soon!', 'info');
+    // Toggle catalog status
+    $scope.selectedItemForToggle = null;
+
+    $scope.toggleCatalogStatus = function(item) {
+        console.log('Toggle status for:', item);
+        $scope.selectedItemForToggle = item;
+        $('#statusToggleModal').modal('show');
     };
-    
-    // Delete catalog
-    $scope.deleteCatalog = function(item) {
-        if (confirm('Are you sure you want to delete the catalog item "' + item.title + '"? This action cannot be undone.')) {
-            var index = $scope.catalog.findIndex(function(c) {
-                return c.id === item.id;
-            });
-            
-            if (index !== -1) {
-                $scope.catalog.splice(index, 1);
-                $scope.filteredCatalog = $scope.filteredCatalog.filter(function(c) {
-                    return c.id !== item.id;
-                });
-                
-                $scope.showToaster('Catalog item "' + item.title + '" deleted successfully!', 'success');
-                $scope.loadSummaryData();
-            }
+
+    $scope.confirmToggleStatus = function() {
+        if (!$scope.selectedItemForToggle) return;
+
+        var item = $scope.selectedItemForToggle;
+        var newStatus = item.status == 1 ? 0 : 1;
+
+        console.log('Updating status from', item.status, 'to', newStatus);
+        $scope.showLoading('Updating catalog status...');
+
+        // Prepare form data
+        var formData = new FormData();
+        formData.append('code', item.code);
+        formData.append('type', item.type === 1 || item.type === '1' ? 'COURSE' : 'TEST');
+        formData.append('originalPrice', item.originalPrice);
+        formData.append('sellingPrice', item.sellingPrice);
+        formData.append('title', item.title);
+        formData.append('brief', item.brief || '');
+        formData.append('coursePage', item.coursePage || item.pageUrl || '');
+        formData.append('isDiscountApplicable', item.isDiscountApplicable ? 'true' : 'false');
+
+        // Add tax details if available
+        if (item.taxDetails) {
+            var taxDetailsString = Array.isArray(item.taxDetails)
+                ? JSON.stringify(item.taxDetails)
+                : (typeof item.taxDetails === 'string' ? item.taxDetails : JSON.stringify(item.taxDetails));
+            formData.append('taxDetails', taxDetailsString);
         }
+
+        // Add other details if available
+        if (item.otherDetails) {
+            var otherDetailsString = typeof item.otherDetails === 'string'
+                ? item.otherDetails
+                : JSON.stringify(item.otherDetails);
+            formData.append('otherDetails', otherDetailsString);
+        }
+
+        var url = $scope.apiBaseUrl + '/update-catalog-item.php?id=' + item.id;
+
+        $http({
+            method: 'POST',
+            url: url,
+            data: formData,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined
+            },
+            transformRequest: angular.identity
+        }).then(function(response) {
+            console.log('Status toggle API response:', response.data);
+
+            if (response.data && response.data.status === 'success') {
+                // Update the item status in the local array
+                item.status = newStatus;
+                item.statusText = newStatus == 1 ? 'Active' : 'Inactive';
+
+                var message = newStatus == 1
+                    ? 'Catalog item "' + item.title + '" enabled successfully!'
+                    : 'Catalog item "' + item.title + '" disabled successfully!';
+
+                $scope.showToaster(message, 'success');
+                $('#statusToggleModal').modal('hide');
+                $scope.selectedItemForToggle = null;
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                $scope.showToaster(response.data.message || 'Failed to update status. Please try again.', 'error');
+            }
+
+            $scope.hideLoading();
+        }, function(error) {
+            console.error('Error updating status:', error);
+            $scope.hideLoading();
+            $scope.showToaster('Failed to update status. Please try again.', 'error');
+        });
     };
     
     // Save catalog
     $scope.saveCatalog = function() {
+        console.log('saveCatalog called, newCatalog:', $scope.newCatalog);
+
         // Validation
         if (!$scope.newCatalog.title || !$scope.newCatalog.code) {
             $scope.showToaster('Please fill in required fields: Title and Code', 'error');
@@ -467,46 +666,89 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             return;
         }
 
-        if (!$scope.newCatalog.pageUrl) {
-            $scope.showToaster('Please enter the Page URL', 'error');
+        console.log('Checking pageUrl:', $scope.newCatalog.pageUrl);
+        if (!$scope.newCatalog.pageUrl || $scope.newCatalog.pageUrl.trim() === '') {
+            $scope.showToaster('Please enter the Course Page URL', 'error');
             return;
         }
 
-        // Convert tax items to JSON string
+        $scope.showLoading($scope.isEditing ? 'Updating catalog...' : 'Creating catalog...');
+
+        // Prepare form data
+        var formData = new FormData();
+        formData.append('code', $scope.newCatalog.code);
+        formData.append('type', $scope.newCatalog.type === 1 || $scope.newCatalog.type === '1' ? 'COURSE' : 'TEST');
+        formData.append('originalPrice', $scope.newCatalog.originalPrice);
+        formData.append('sellingPrice', $scope.newCatalog.sellingPrice);
+        formData.append('title', $scope.newCatalog.title);
+        formData.append('brief', $scope.newCatalog.brief || '');
+        formData.append('coursePage', $scope.newCatalog.pageUrl || '');
+        formData.append('isDiscountApplicable', $scope.newCatalog.isDiscountApplicable ? 'true' : 'false');
+
+        // Add tax details - transform to API format
         if ($scope.newCatalog.taxItems && $scope.newCatalog.taxItems.length > 0) {
-            $scope.newCatalog.taxDetails = JSON.stringify($scope.newCatalog.taxItems);
-        } else {
-            $scope.newCatalog.taxDetails = null;
-        }
-
-        if ($scope.isEditing) {
-            // Update existing catalog
-            var index = $scope.catalog.findIndex(function(c) {
-                return c.id === $scope.editingId;
+            var transformedTaxItems = $scope.newCatalog.taxItems.map(function(item) {
+                return {
+                    type: item.customName ? 'EXTRA' : 'TAX',
+                    mode: item.valueType === 'percentage' ? 'PERCENTAGE' : 'FIXED',
+                    code: item.type || item.customName || 'TAX',
+                    label: item.customName || (item.type + ' Tax'),
+                    value: item.value.toString()
+                };
             });
-
-            if (index !== -1) {
-                var updatedItem = angular.copy($scope.newCatalog);
-                updatedItem.id = $scope.editingId;
-                updatedItem.lastUpdatedOn = Math.floor(Date.now() / 1000);
-                $scope.catalog[index] = updatedItem;
-
-                $scope.showToaster('Catalog item "' + updatedItem.title + '" updated successfully!', 'success');
-            }
-        } else {
-            // Create new catalog
-            var newItem = angular.copy($scope.newCatalog);
-            newItem.id = $scope.catalog.length > 0 ? Math.max(...$scope.catalog.map(c => c.id)) + 1 : 1;
-            newItem.createdOn = Math.floor(Date.now() / 1000);
-            newItem.createdBy = '66599dd1-c984-4cd0-944d-72b3a1492552';
-
-            $scope.catalog.unshift(newItem);
-            $scope.showToaster('Catalog item "' + newItem.title + '" created successfully!', 'success');
+            formData.append('taxDetails', JSON.stringify(transformedTaxItems));
         }
 
-        $scope.filteredCatalog = $scope.catalog;
-        $scope.loadSummaryData();
-        $('#catalogModal').modal('hide');
+        // Add other details
+        if ($scope.newCatalog.otherDetails) {
+            formData.append('otherDetails', typeof $scope.newCatalog.otherDetails === 'string'
+                ? $scope.newCatalog.otherDetails
+                : JSON.stringify($scope.newCatalog.otherDetails));
+        }
+
+        // Add display image if available
+        if ($scope.newCatalog.displayImageFile) {
+            formData.append('displayImage', $scope.newCatalog.displayImageFile);
+        }
+
+        var url = $scope.apiBaseUrl + ($scope.isEditing
+            ? '/update-catalog-item.php?id=' + $scope.editingId
+            : '/add-new-catalog-item.php');
+
+        console.log('Saving catalog to API:', url, $scope.newCatalog);
+
+        $http({
+            method: 'POST',
+            url: url,
+            data: formData,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined
+            },
+            transformRequest: angular.identity
+        }).then(function(response) {
+            console.log('Save catalog API response:', response.data);
+
+            if (response.data && response.data.status === 'success') {
+                var message = $scope.isEditing
+                    ? 'Catalog item "' + $scope.newCatalog.title + '" updated successfully!'
+                    : 'Catalog item "' + $scope.newCatalog.title + '" created successfully!';
+
+                $scope.showToaster(message, 'success');
+                $('#catalogModal').modal('hide');
+                $scope.resetNewCatalog();
+                $scope.loadCatalog(); // Reload the catalog
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                $scope.showToaster(response.data.message || 'Failed to save catalog item. Please try again.', 'error');
+            }
+
+            $scope.hideLoading();
+        }, function(error) {
+            console.error('Error saving catalog:', error);
+            $scope.hideLoading();
+            $scope.showToaster('Failed to save catalog item. Please try again.', 'error');
+        });
     };
     
     // Reset new catalog form
@@ -606,7 +848,10 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             return;
         }
 
-        // Read file and convert to base64
+        // Store the file object for FormData upload
+        $scope.newCatalog.displayImageFile = file;
+
+        // Read file and convert to base64 for preview
         var reader = new FileReader();
         reader.onload = function(e) {
             $scope.$apply(function() {
@@ -619,11 +864,14 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     // Toaster notification system
     $scope.toasterVisible = false;
     $scope.toasterMessage = '';
-    
+    $scope.toasterType = 'info';
+
     $scope.showToaster = function(message, type) {
-        $scope.toasterMessage = '<div class="alert alert-' + type + '">' + message + '</div>';
+        console.log('Toaster:', type, message);
+        $scope.toasterMessage = message;
+        $scope.toasterType = type || 'info';
         $scope.toasterVisible = true;
-        
+
         $timeout(function() {
             $scope.toasterVisible = false;
         }, 3000);
@@ -636,5 +884,38 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
     
     // Initialize controller
+    // Pagination functions
+    $scope.previousPage = function() {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+            $scope.loadCatalog();
+        }
+    };
+
+    $scope.nextPage = function() {
+        if ($scope.currentPage < $scope.totalPages) {
+            $scope.currentPage++;
+            $scope.loadCatalog();
+        }
+    };
+
+    $scope.goToPage = function(page) {
+        if (page >= 1 && page <= $scope.totalPages && page !== $scope.currentPage) {
+            $scope.currentPage = page;
+            $scope.loadCatalog();
+        }
+    };
+
+    $scope.getPageNumbers = function() {
+        var pages = [];
+        var startPage = Math.max(1, $scope.currentPage - 2);
+        var endPage = Math.min($scope.totalPages, $scope.currentPage + 2);
+
+        for (var i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
     $scope.init();
 });

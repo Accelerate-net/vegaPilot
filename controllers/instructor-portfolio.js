@@ -3,18 +3,65 @@
  * Angular 1.x Controller for managing instructor profiles
  */
 
-var app = angular.module('InstructorPortfolioApp', []);
+var app = angular.module('InstructorPortfolioApp', ['ngCookies']);
 
-app.controller('InstructorPortfolioController', ['$scope', '$timeout', function($scope, $timeout) {
+app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+
+    // ===== API Configuration =====
+    $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
+
+    // Get token from localStorage or cookies
+    $scope.getAuthToken = function() {
+        // Try localStorage first
+        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+        // Fallback to cookies
+        if (!token) {
+            token = $cookies.get('authToken') || $cookies.get('X-Access-Token');
+        }
+        // If still no token, use the default token
+        if (!token) {
+        }
+        return token;
+    };
+
+    // HTTP Config with auth header
+    $scope.getHttpConfig = function() {
+        return {
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        };
+    };
+
+    // HTTP Config for FormData
+    $scope.getFormDataConfig = function() {
+        return {
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined // Let browser set it for FormData
+            },
+            transformRequest: angular.identity
+        };
+    };
 
     // ===== Initialize Data =====
     $scope.instructors = [];
     $scope.filteredInstructors = [];
+    $scope.paginatedInstructors = [];
+    $scope.subjectList = [];
     $scope.searchQuery = '';
     $scope.filterSubject = '';
     $scope.sortBy = 'name';
     $scope.sortColumn = '';
     $scope.sortReverse = false;
+
+    // ===== Pagination =====
+    $scope.currentPage = 1;
+    $scope.pageSize = 10;
+    $scope.itemsPerPage = 10;
+    $scope.totalInstructors = 0;
+    $scope.totalPages = 0;
 
     // ===== Modal States =====
     $scope.editModalOpen = false;
@@ -33,16 +80,178 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
 
+    // ===== Pagination Functions (Server-Side) =====
+    $scope.getTotalPages = function() {
+        // Use server-provided totalPages or calculate from totalInstructors
+        return $scope.totalPages || Math.ceil($scope.totalInstructors / $scope.itemsPerPage);
+    };
+
+    $scope.getPageNumbers = function() {
+        var total = $scope.getTotalPages();
+        var pages = [];
+        var maxVisible = 5;
+        var start = Math.max(1, $scope.currentPage - Math.floor(maxVisible / 2));
+        var end = Math.min(total, start + maxVisible - 1);
+
+        if (end - start < maxVisible - 1) {
+            start = Math.max(1, end - maxVisible + 1);
+        }
+
+        for (var i = start; i <= end; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.goToPage = function(page) {
+        if (page !== $scope.currentPage && page >= 1 && page <= $scope.getTotalPages()) {
+            $scope.currentPage = page;
+            $scope.loadInstructors(); // Reload from API with new page
+        }
+    };
+
+    $scope.previousPage = function() {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+            $scope.loadInstructors(); // Reload from API
+        }
+    };
+
+    $scope.nextPage = function() {
+        if ($scope.currentPage < $scope.getTotalPages()) {
+            $scope.currentPage++;
+            $scope.loadInstructors(); // Reload from API
+        }
+    };
+
+    $scope.getStartIndex = function() {
+        return ($scope.currentPage - 1) * $scope.itemsPerPage;
+    };
+
+    $scope.getEndIndex = function() {
+        return Math.min($scope.getStartIndex() + $scope.itemsPerPage, $scope.totalInstructors);
+    };
+
     // ===== Initialize App =====
     $scope.init = function() {
+        // Check if token exists, if not set default for development
+        var token = $scope.getAuthToken();
+        if (!token) {
+            console.warn('No auth token found. Setting default token for development.');
+            // Set default token for development
+            localStorage.setItem('authToken', defaultToken);
+        }
+
         $scope.showLoading('Loading instructors...');
         $scope.loadInstructors();
     };
 
     // ===== Load Instructors =====
     $scope.loadInstructors = function() {
-        // In a real application, this would be an API call
-        // For now, we'll use mock data
+        $scope.showLoading('Loading instructors...');
+
+        // Build query parameters
+        var params = {
+            page: $scope.currentPage,
+            size: $scope.pageSize
+        };
+
+        if ($scope.sortBy) {
+            params.sortBy = $scope.sortBy;
+        }
+
+        if ($scope.filterSubject) {
+            params.filterBy = $scope.filterSubject;
+        }
+
+        if ($scope.searchQuery) {
+            params.searchKey = $scope.searchQuery;
+        }
+
+        // Build query string
+        var queryString = Object.keys(params)
+            .map(function(key) {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+            })
+            .join('&');
+
+        $http.get($scope.apiBaseUrl + '/list-instructors.php?' + queryString, $scope.getHttpConfig())
+            .then(function(response) {
+                // Handle both response formats: success: true or status: 'success'
+                var isSuccess = (response.data && (response.data.success === true || response.data.status === 'success'));
+
+                if (isSuccess) {
+                    // Check if data is directly in response.data or in response.data.data
+                    if (Array.isArray(response.data.data)) {
+                        $scope.instructors = response.data.data;
+                    } else if (response.data.data && response.data.data.instructors) {
+                        $scope.instructors = response.data.data.instructors;
+                    } else {
+                        $scope.instructors = [];
+                    }
+
+                    // Map API fields to display fields
+                    $scope.instructors = $scope.instructors.map(function(instructor) {
+                        // Map experienceYears to experience for display
+                        if (instructor.experienceYears && !instructor.experience) {
+                            instructor.experience = instructor.experienceYears;
+                        }
+                        // Ensure photo field is available (null or URL)
+                        if (!instructor.photo) {
+                            instructor.photo = null;
+                        }
+                        // Map status field (1 = active, 0 = inactive)
+                        instructor.active = instructor.status === 1;
+
+                        return instructor;
+                    });
+
+                    // Get total count and pagination info from API meta
+                    if (response.data.meta && typeof response.data.meta.total !== 'undefined') {
+                        $scope.totalInstructors = response.data.meta.total;
+                    } else {
+                        $scope.totalInstructors = $scope.instructors.length;
+                    }
+
+                    if (response.data.meta && typeof response.data.meta.totalPages !== 'undefined') {
+                        $scope.totalPages = response.data.meta.totalPages;
+                    } else {
+                        $scope.totalPages = 1;
+                    }
+
+                    // Get subject list from API meta
+                    if (response.data.meta && response.data.meta.subjectList) {
+                        $scope.subjectList = response.data.meta.subjectList;
+                    }
+
+                    // API already returns paginated data, use it directly
+                    $scope.filteredInstructors = $scope.instructors.slice();
+                    $scope.paginatedInstructors = $scope.instructors.slice();
+
+                    console.log('Loaded ' + $scope.instructors.length + ' instructors (Page ' + $scope.currentPage + ' of ' + $scope.totalPages + ')');
+                } else {
+                    console.error('Failed to load instructors:', response.data);
+                    $scope.instructors = [];
+                    $scope.filteredInstructors = [];
+                    $scope.paginatedInstructors = [];
+                    $scope.totalInstructors = 0;
+                    $scope.totalPages = 0;
+                }
+                $scope.hideLoading();
+            })
+            .catch(function(error) {
+                console.error('Error loading instructors:', error);
+                $scope.instructors = [];
+                $scope.filteredInstructors = [];
+                $scope.paginatedInstructors = [];
+                $scope.hideLoading();
+                // Fallback to mock data for development
+                $scope.loadMockData();
+            });
+    };
+
+    // ===== Fallback Mock Data (for development) =====
+    $scope.loadMockData = function() {
         $timeout(function() {
             $scope.instructors = [
                 {
@@ -179,7 +388,15 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
                 }
             ];
 
+            // For mock data, use client-side pagination
+            $scope.totalInstructors = $scope.instructors.length;
+            $scope.totalPages = Math.ceil($scope.totalInstructors / $scope.itemsPerPage);
+
+            var start = ($scope.currentPage - 1) * $scope.itemsPerPage;
+            var end = start + $scope.itemsPerPage;
             $scope.filteredInstructors = $scope.instructors.slice();
+            $scope.paginatedInstructors = $scope.instructors.slice(start, end);
+
             $scope.hideLoading();
         }, 500);
     };
@@ -219,10 +436,43 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
         $scope.currentInstructor = {};
     };
 
+    // ===== Load Single Instructor Profile =====
+    $scope.loadInstructorProfile = function(instructorId) {
+        $scope.showLoading('Loading instructor profile...');
+
+        var url = $scope.apiBaseUrl + '/get-instructor-profile.php?id=' + instructorId;
+
+        $http.get(url, $scope.getHttpConfig())
+            .then(function(response) {
+                if (response.data && response.data.data) {
+                    // API returns nested structure with profile and ratings
+                    if (response.data.data.profile) {
+                        $scope.selectedInstructor = response.data.data.profile;
+                        // Add ratings data if available
+                        if (response.data.data.ratings) {
+                            $scope.selectedInstructor.rating = response.data.data.ratings.rating;
+                            $scope.selectedInstructor.totalStudents = response.data.data.ratings.totalStudents;
+                        }
+                    } else {
+                        // Fallback for flat structure
+                        $scope.selectedInstructor = response.data.data;
+                    }
+                    $scope.selectedInstructor.active = $scope.selectedInstructor.status === 1;
+                    $scope.viewModalOpen = true;
+                }
+                $scope.hideLoading();
+            })
+            .catch(function(error) {
+                console.error('Error loading instructor profile:', error);
+                alert('Failed to load instructor profile. Please try again.');
+                $scope.hideLoading();
+            });
+    };
+
     // ===== View Instructor Profile =====
     $scope.viewInstructor = function(instructor) {
-        $scope.selectedInstructor = angular.copy(instructor);
-        $scope.viewModalOpen = true;
+        // Load full profile from API
+        $scope.loadInstructorProfile(instructor.id);
     };
 
     $scope.closeViewModal = function() {
@@ -254,42 +504,74 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
             !$scope.currentInstructor.brief ||
             !$scope.currentInstructor.expertSubject ||
             !$scope.currentInstructor.qualifications ||
-            !$scope.currentInstructor.experience) {
+            (!$scope.currentInstructor.experienceYears && !$scope.currentInstructor.experience)) {
+            alert('Please fill in all required fields');
             return;
         }
 
         $scope.showLoading($scope.editMode ? 'Updating instructor...' : 'Creating instructor...');
 
-        $timeout(function() {
-            if ($scope.editMode) {
-                // Update existing instructor
-                var index = $scope.instructors.findIndex(function(i) {
-                    return i.id === $scope.currentInstructor.id;
-                });
-                if (index !== -1) {
-                    // If there's a new photo file, simulate upload
-                    if ($scope.currentInstructor.photoFile) {
-                        $scope.currentInstructor.photo = $scope.currentInstructor.photoPreview;
-                    }
-                    $scope.instructors[index] = angular.copy($scope.currentInstructor);
-                }
-            } else {
-                // Create new instructor
-                var newInstructor = angular.copy($scope.currentInstructor);
-                newInstructor.id = $scope.generateId();
-                // If there's a photo file, use the preview as the photo
-                if (newInstructor.photoFile) {
-                    newInstructor.photo = newInstructor.photoPreview;
-                }
-                delete newInstructor.photoPreview;
-                delete newInstructor.photoFile;
-                $scope.instructors.push(newInstructor);
-            }
+        // Prepare FormData
+        var formData = new FormData();
+        formData.append('name', $scope.currentInstructor.name);
+        formData.append('brief', $scope.currentInstructor.brief);
+        formData.append('expertSubject', $scope.currentInstructor.expertSubject);
+        formData.append('qualifications', $scope.currentInstructor.qualifications);
+        formData.append('experienceYears', $scope.currentInstructor.experienceYears || $scope.currentInstructor.experience);
 
-            $scope.filterInstructors();
+        if ($scope.currentInstructor.email) {
+            formData.append('email', $scope.currentInstructor.email);
+        }
+        if ($scope.currentInstructor.mobile || $scope.currentInstructor.phone) {
+            formData.append('mobile', $scope.currentInstructor.mobile || $scope.currentInstructor.phone);
+        }
+
+        // Add photo if exists
+        if ($scope.currentInstructor.photoFile) {
+            formData.append('photo', $scope.currentInstructor.photoFile);
+        }
+
+        var url, method;
+        if ($scope.editMode) {
+            // Update existing instructor
+            url = $scope.apiBaseUrl + '/update-instructor.php?id=' + $scope.currentInstructor.id;
+            method = 'POST';
+        } else {
+            // Create new instructor
+            url = $scope.apiBaseUrl + '/add-new-instructor.php';
+            method = 'POST';
+        }
+
+        $http({
+            method: method,
+            url: url,
+            data: formData,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined
+            },
+            transformRequest: angular.identity
+        })
+        .then(function(response) {
+            // Handle both response formats: success: true or status: 'success'
+            var isSuccess = (response.data && (response.data.success === true || response.data.status === 'success'));
+
+            if (isSuccess) {
+                // Reload instructors list
+                $scope.loadInstructors();
+                $scope.closeEditModal();
+                alert($scope.editMode ? 'Instructor updated successfully!' : 'Instructor created successfully!');
+            } else {
+                console.error('Failed to save instructor:', response.data);
+                alert('Failed to save instructor: ' + (response.data.message || response.data.error || 'Unknown error'));
+            }
             $scope.hideLoading();
-            $scope.closeEditModal();
-        }, 500);
+        })
+        .catch(function(error) {
+            console.error('Error saving instructor:', error);
+            alert('Error saving instructor. Please try again.');
+            $scope.hideLoading();
+        });
     };
 
     // ===== Delete Instructor =====
@@ -350,60 +632,37 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
         });
     };
 
-    // ===== Filter & Sort =====
+    // ===== Remove Photo =====
+    $scope.removePhoto = function() {
+        $scope.currentInstructor.photo = null;
+        $scope.currentInstructor.photoPreview = null;
+        $scope.currentInstructor.photoFile = null;
+        // Reset the file input
+        var fileInput = document.getElementById('photoInput');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    // ===== Filter & Sort (Server-Side) =====
+    var filterTimeout;
     $scope.filterInstructors = function() {
-        var query = ($scope.searchQuery || '').toLowerCase();
-        var subject = $scope.filterSubject;
+        // Cancel previous timeout if exists
+        if (filterTimeout) {
+            $timeout.cancel(filterTimeout);
+        }
 
-        $scope.filteredInstructors = $scope.instructors.filter(function(instructor) {
-            var matchesSearch = true;
-            var matchesSubject = true;
-
-            if (query) {
-                matchesSearch =
-                    instructor.name.toLowerCase().indexOf(query) !== -1 ||
-                    instructor.brief.toLowerCase().indexOf(query) !== -1 ||
-                    instructor.expertSubject.toLowerCase().indexOf(query) !== -1 ||
-                    instructor.qualifications.toLowerCase().indexOf(query) !== -1;
-            }
-
-            if (subject) {
-                matchesSubject = instructor.expertSubject === subject;
-            }
-
-            return matchesSearch && matchesSubject;
-        });
-
-        $scope.sortInstructors();
+        // Set new timeout for debounce (500ms delay)
+        filterTimeout = $timeout(function() {
+            // Reset to page 1 and reload from API with filters
+            $scope.currentPage = 1;
+            $scope.loadInstructors();
+        }, 500);
     };
 
     $scope.sortInstructors = function() {
-        var sortBy = $scope.sortBy;
-
-        $scope.filteredInstructors.sort(function(a, b) {
-            var aVal, bVal;
-
-            switch(sortBy) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'subject':
-                    aVal = a.expertSubject.toLowerCase();
-                    bVal = b.expertSubject.toLowerCase();
-                    break;
-                case 'experience':
-                    aVal = a.experience || 0;
-                    bVal = b.experience || 0;
-                    return bVal - aVal; // Descending for experience
-                default:
-                    return 0;
-            }
-
-            if (aVal < bVal) return -1;
-            if (aVal > bVal) return 1;
-            return 0;
-        });
+        // Reload from API with new sort order
+        $scope.loadInstructors();
     };
 
     // ===== Sort by Column =====
@@ -416,78 +675,17 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', function(
             $scope.sortReverse = false;
         }
 
-        // Sort the filtered instructors
-        $scope.filteredInstructors.sort(function(a, b) {
-            var aVal, bVal;
+        // Map column names to API sortBy values
+        var sortByMap = {
+            'name': 'name',
+            'expertSubject': 'expertSubject',
+            'experience': 'experienceYears'
+        };
 
-            switch(column) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'expertSubject':
-                    aVal = a.expertSubject ? a.expertSubject.toLowerCase() : '';
-                    bVal = b.expertSubject ? b.expertSubject.toLowerCase() : '';
-                    break;
-                case 'experience':
-                    aVal = a.experience || 0;
-                    bVal = b.experience || 0;
-                    // For numeric values, return directly
-                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
-                case 'lessonCount':
-                    aVal = a.lessons ? a.lessons.length : 0;
-                    bVal = b.lessons ? b.lessons.length : 0;
-                    // For numeric values, return directly
-                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
-                default:
-                    return 0;
-            }
+        $scope.sortBy = sortByMap[column] || column;
 
-            // For string values
-            var comparison = 0;
-            if (aVal < bVal) comparison = -1;
-            if (aVal > bVal) comparison = 1;
-
-            return $scope.sortReverse ? -comparison : comparison;
-        });
-    };
-
-    // ===== Statistics =====
-    $scope.getActiveInstructors = function() {
-        return $scope.instructors.filter(function(i) {
-            return i.active;
-        }).length;
-    };
-
-    $scope.getTotalSubjects = function() {
-        var subjects = new Set();
-        $scope.instructors.forEach(function(i) {
-            if (i.expertSubject) {
-                subjects.add(i.expertSubject);
-            }
-        });
-        return subjects.size;
-    };
-
-    $scope.getAverageExperience = function() {
-        if ($scope.instructors.length === 0) return '0';
-
-        var total = $scope.instructors.reduce(function(sum, i) {
-            return sum + (i.experience || 0);
-        }, 0);
-
-        var avg = total / $scope.instructors.length;
-        return avg.toFixed(1) + ' yrs';
-    };
-
-    $scope.getUniqueSubjects = function() {
-        var subjects = new Set();
-        $scope.instructors.forEach(function(i) {
-            if (i.expertSubject) {
-                subjects.add(i.expertSubject);
-            }
-        });
-        return Array.from(subjects).sort();
+        // Reload from API with new sort order
+        $scope.loadInstructors();
     };
 
     // ===== Helper Functions =====

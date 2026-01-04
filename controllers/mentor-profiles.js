@@ -3,15 +3,60 @@
  * Angular 1.x Controller for managing mentor profiles
  */
 
-var app = angular.module('MentorProfilesApp', []);
+var app = angular.module('MentorProfilesApp', ['ngCookies']);
 
-app.controller('MentorProfilesController', ['$scope', '$timeout', function($scope, $timeout) {
+app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+
+    // ===== API Configuration =====
+    $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
+
+    // Get token from localStorage or cookies
+    $scope.getAuthToken = function() {
+        // Try localStorage first
+        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+        // Fallback to cookies
+        if (!token) {
+            token = $cookies.get('authToken') || $cookies.get('X-Access-Token');
+        }
+        // If still no token, use the default token
+        if (!token) {
+        }
+        return token;
+    };
+
+    // HTTP Config with auth header
+    $scope.getHttpConfig = function() {
+        return {
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        };
+    };
+
+    // HTTP Config for FormData
+    $scope.getFormDataConfig = function() {
+        return {
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined // Let browser set it for FormData
+            },
+            transformRequest: angular.identity
+        };
+    };
 
     // ===== Initialize Data =====
     $scope.mentors = [];
     $scope.filteredMentors = [];
+    $scope.paginatedMentors = [];
+    $scope.specializationList = [];
     $scope.searchQuery = '';
-    $scope.filterSubject = '';
+    $scope.filterSpecialization = '';
+    $scope.currentPage = 1;
+    $scope.pageSize = 10;
+    $scope.itemsPerPage = 10;
+    $scope.totalMentors = 0;
+    $scope.totalPages = 0;
     $scope.sortBy = 'name';
     $scope.sortColumn = '';
     $scope.sortReverse = false;
@@ -39,115 +84,174 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
         $scope.loadMentors();
     };
 
-    // ===== Load Mentors =====
-    $scope.loadMentors = function() {
-        // In a real application, this would be an API call
-        // For now, we'll use mock data
-        $timeout(function() {
-            $scope.mentors = [
-                {
-                    id: 1,
-                    name: 'Arjun Mehta',
-                    brief: 'IISER Pune Alumni specializing in Mathematics and Data Science',
-                    photo: null,
-                    institution: 'IISER Pune',
-                    graduationYear: 2020,
-                    specialization: 'Mathematics & Data Science',
-                    qualifications: 'BS-MS in Mathematics, Currently pursuing Ph.D. at MIT',
-                    email: 'arjun.mehta@example.com',
-                    phone: '+91 98765 43210',
-                    bio: 'Arjun graduated from IISER Pune with distinction in Mathematics. He is passionate about guiding aspiring scientists and helping them navigate the challenging IISER entrance exams.',
-                    rating: 4.9,
-                    active: true,
-                    mentoringStudents: [
-                        {id: 'CAND-001', name: 'Rahul Sharma', email: 'rahul.sharma@example.com', phone: '+91 98765 43210', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-002', name: 'Priya Patel', email: 'priya.patel@example.com', phone: '+91 98765 43211', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-003', name: 'Amit Kumar', email: 'amit.kumar@example.com', phone: '+91 98765 43212', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-004', name: 'Sneha Reddy', email: 'sneha.reddy@example.com', phone: '+91 98765 43213', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-005', name: 'Karthik Iyer', email: 'karthik.iyer@example.com', phone: '+91 98765 43214', enrolledCourses: 2, status: 'active'}
-                    ]
-                },
-                {
-                    id: 2,
-                    name: 'Divya Krishnan',
-                    brief: 'IISER Kolkata Alumni with expertise in Physics and Astrophysics',
-                    photo: null,
-                    institution: 'IISER Kolkata',
-                    graduationYear: 2019,
-                    specialization: 'Physics & Astrophysics',
-                    qualifications: 'BS-MS in Physics, Research Fellow at TIFR',
-                    email: 'divya.krishnan@example.com',
-                    phone: '+91 98765 43220',
-                    bio: 'Divya is an IISER Kolkata alumna currently working as a Research Fellow at TIFR. She loves mentoring students and sharing her journey through competitive science exams.',
-                    rating: 4.8,
-                    active: true,
-                    mentoringStudents: [
-                        {id: 'CAND-006', name: 'Ananya Singh', email: 'ananya.singh@example.com', phone: '+91 98765 43215', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-007', name: 'Rohan Gupta', email: 'rohan.gupta@example.com', phone: '+91 98765 43216', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-008', name: 'Meera Joshi', email: 'meera.joshi@example.com', phone: '+91 98765 43217', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-009', name: 'Vikram Rao', email: 'vikram.rao@example.com', phone: '+91 98765 43218', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-010', name: 'Nisha Desai', email: 'nisha.desai@example.com', phone: '+91 98765 43219', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-011', name: 'Aditya Nair', email: 'aditya.nair@example.com', phone: '+91 98765 43220', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-012', name: 'Pooja Menon', email: 'pooja.menon@example.com', phone: '+91 98765 43221', enrolledCourses: 2, status: 'active'}
-                    ]
-                },
-                {
-                    id: 3,
-                    name: 'Siddharth Bose',
-                    brief: 'IISER Bhopal Alumni passionate about Chemistry and Materials Science',
-                    photo: null,
-                    institution: 'IISER Bhopal',
-                    graduationYear: 2021,
-                    specialization: 'Chemistry',
-                    qualifications: 'BS-MS in Chemistry, Published 3 research papers',
-                    email: 'siddharth.bose@example.com',
-                    phone: '+91 98765 43230',
-                    bio: 'Siddharth completed his BS-MS from IISER Bhopal and has published multiple research papers in materials science. He enjoys guiding students through the IAT preparation journey.',
-                    rating: 4.7,
-                    active: true,
-                    mentoringStudents: [
-                        {id: 'CAND-013', name: 'Kavya Pillai', email: 'kavya.pillai@example.com', phone: '+91 98765 43222', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-014', name: 'Harsh Agarwal', email: 'harsh.agarwal@example.com', phone: '+91 98765 43223', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-015', name: 'Tanvi Shah', email: 'tanvi.shah@example.com', phone: '+91 98765 43224', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-016', name: 'Rajesh Kapoor', email: 'rajesh.kapoor@example.com', phone: '+91 98765 43225', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-017', name: 'Anjali Verma', email: 'anjali.verma@example.com', phone: '+91 98765 43226', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-018', name: 'Nikhil Chopra', email: 'nikhil.chopra@example.com', phone: '+91 98765 43227', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-019', name: 'Sakshi Malhotra', email: 'sakshi.malhotra@example.com', phone: '+91 98765 43228', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-020', name: 'Varun Khanna', email: 'varun.khanna@example.com', phone: '+91 98765 43229', enrolledCourses: 1, status: 'active'}
-                    ]
-                },
-                {
-                    id: 4,
-                    name: 'Riya Chatterjee',
-                    brief: 'IISER Mohali Alumni with focus on Biology and Biotechnology',
-                    photo: null,
-                    institution: 'IISER Mohali',
-                    graduationYear: 2020,
-                    specialization: 'Biology & Biotechnology',
-                    qualifications: 'BS-MS in Biology, Currently at IISc Bangalore',
-                    email: 'riya.chatterjee@example.com',
-                    phone: '+91 98765 43240',
-                    bio: 'Riya is an IISER Mohali alumna currently pursuing her Ph.D. at IISc Bangalore. She has a deep understanding of the IISER system and loves mentoring aspiring students.',
-                    rating: 4.9,
-                    active: true,
-                    mentoringStudents: [
-                        {id: 'CAND-021', name: 'Ishaan Bhatt', email: 'ishaan.bhatt@example.com', phone: '+91 98765 43230', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-022', name: 'Shreya Pandey', email: 'shreya.pandey@example.com', phone: '+91 98765 43231', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-023', name: 'Aryan Saxena', email: 'aryan.saxena@example.com', phone: '+91 98765 43232', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-024', name: 'Diya Banerjee', email: 'diya.banerjee@example.com', phone: '+91 98765 43233', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-025', name: 'Kabir Jain', email: 'kabir.jain@example.com', phone: '+91 98765 43234', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-026', name: 'Aarohi Sinha', email: 'aarohi.sinha@example.com', phone: '+91 98765 43235', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-027', name: 'Yash Tiwari', email: 'yash.tiwari@example.com', phone: '+91 98765 43236', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-028', name: 'Kriti Dubey', email: 'kriti.dubey@example.com', phone: '+91 98765 43237', enrolledCourses: 1, status: 'active'},
-                        {id: 'CAND-029', name: 'Ayush Mishra', email: 'ayush.mishra@example.com', phone: '+91 98765 43238', enrolledCourses: 2, status: 'active'},
-                        {id: 'CAND-030', name: 'Zara Khan', email: 'zara.khan@example.com', phone: '+91 98765 43239', enrolledCourses: 1, status: 'active'}
-                    ]
-                }
-            ];
+    // ===== Pagination Functions =====
+    $scope.getTotalPages = function() {
+        return $scope.totalPages || Math.ceil($scope.totalMentors / $scope.itemsPerPage);
+    };
 
-            $scope.filteredMentors = $scope.mentors.slice();
-            $scope.hideLoading();
-        }, 500);
+    $scope.getPageNumbers = function() {
+        var totalPages = $scope.getTotalPages();
+        var currentPage = $scope.currentPage;
+        var pages = [];
+        var maxPagesToShow = 5;
+
+        if (totalPages <= maxPagesToShow) {
+            for (var i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+            if (endPage - startPage < maxPagesToShow - 1) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+
+            for (var i = startPage; i <= endPage; i++) {
+                pages.push(i);
+            }
+        }
+
+        return pages;
+    };
+
+    $scope.goToPage = function(page) {
+        if (page !== $scope.currentPage && page >= 1 && page <= $scope.getTotalPages()) {
+            $scope.currentPage = page;
+            $scope.loadMentors();
+        }
+    };
+
+    $scope.previousPage = function() {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+            $scope.loadMentors();
+        }
+    };
+
+    $scope.nextPage = function() {
+        if ($scope.currentPage < $scope.getTotalPages()) {
+            $scope.currentPage++;
+            $scope.loadMentors();
+        }
+    };
+
+    $scope.getStartIndex = function() {
+        return ($scope.currentPage - 1) * $scope.itemsPerPage;
+    };
+
+    $scope.getEndIndex = function() {
+        var end = $scope.currentPage * $scope.itemsPerPage;
+        return Math.min(end, $scope.totalMentors);
+    };
+
+    // ===== Load Mentors from API =====
+    $scope.loadMentors = function() {
+        $scope.showLoading('Loading mentors...');
+
+        // Build API URL with pagination, sorting, and search parameters
+        var url = $scope.apiBaseUrl + '/list-mentors.php';
+        url += '?page=' + $scope.currentPage;
+        url += '&size=' + $scope.pageSize;
+
+        if ($scope.sortBy) {
+            url += '&sortBy=' + $scope.sortBy;
+        }
+
+        if ($scope.searchQuery) {
+            url += '&searchKey=' + encodeURIComponent($scope.searchQuery);
+        }
+
+        if ($scope.filterSpecialization) {
+            url += '&filterBy=' + encodeURIComponent($scope.filterSpecialization);
+        }
+
+        $http.get(url, $scope.getHttpConfig())
+            .then(function(response) {
+                console.log('API Response:', response.data);
+
+                if (response.data && response.data.data) {
+                    $scope.mentors = response.data.data;
+
+                    // Map API fields to display fields
+                    $scope.mentors = $scope.mentors.map(function(mentor) {
+                        if (!mentor.photo) {
+                            mentor.photo = null;
+                        }
+                        mentor.active = mentor.status === 1;
+                        // Map numberOfMappedStudents to mentoringStudents count
+                        mentor.studentCount = mentor.numberOfMappedStudents || 0;
+                        return mentor;
+                    });
+
+                    // Get total count and pagination info from API meta
+                    if (response.data.meta && typeof response.data.meta.total !== 'undefined') {
+                        $scope.totalMentors = response.data.meta.total;
+                        $scope.totalPages = response.data.meta.totalPages || Math.ceil($scope.totalMentors / $scope.pageSize);
+                    } else {
+                        $scope.totalMentors = $scope.mentors.length;
+                    }
+
+                    // Get specialization list from API meta
+                    if (response.data.meta && response.data.meta.specializationList) {
+                        $scope.specializationList = response.data.meta.specializationList;
+                    }
+
+                    // API already returns paginated data, use it directly
+                    $scope.paginatedMentors = $scope.mentors.slice();
+                    $scope.filteredMentors = $scope.mentors.slice();
+
+                    console.log('Loaded ' + $scope.mentors.length + ' mentors, Total: ' + $scope.totalMentors);
+                } else {
+                    console.error('Invalid API response format');
+                    $scope.mentors = [];
+                    $scope.paginatedMentors = [];
+                    $scope.filteredMentors = [];
+                }
+
+                $scope.hideLoading();
+            })
+            .catch(function(error) {
+                console.error('Error loading mentors:', error);
+                alert('Failed to load mentors. Please try again.');
+                $scope.mentors = [];
+                $scope.paginatedMentors = [];
+                $scope.filteredMentors = [];
+                $scope.hideLoading();
+            });
+    };
+
+    // ===== Load Single Mentor Profile =====
+    $scope.loadMentorProfile = function(mentorId) {
+        $scope.showLoading('Loading mentor profile...');
+
+        var url = $scope.apiBaseUrl + '/get-mentor-profile.php?id=' + mentorId;
+
+        $http.get(url, $scope.getHttpConfig())
+            .then(function(response) {
+                if (response.data && response.data.data) {
+                    // API returns nested structure with profile and ratings
+                    if (response.data.data.profile) {
+                        $scope.selectedMentor = response.data.data.profile;
+                        // Add ratings data if available
+                        if (response.data.data.ratings) {
+                            $scope.selectedMentor.rating = response.data.data.ratings.rating;
+                            $scope.selectedMentor.totalStudents = response.data.data.ratings.totalStudents;
+                        }
+                    } else {
+                        // Fallback for flat structure
+                        $scope.selectedMentor = response.data.data;
+                    }
+                    $scope.selectedMentor.active = $scope.selectedMentor.status === 1;
+                    $scope.viewModalOpen = true;
+                }
+                $scope.hideLoading();
+            })
+            .catch(function(error) {
+                console.error('Error loading mentor profile:', error);
+                alert('Failed to load mentor profile. Please try again.');
+                $scope.hideLoading();
+            });
     };
 
     // ===== Create New Mentor =====
@@ -159,12 +263,11 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
             photo: null,
             photoPreview: null,
             photoFile: null,
-            expertSubject: '',
-            qualifications: '',
-            experience: 0,
+            specialisation: '',
+            almaMater: '',
+            graduationYear: '',
             email: '',
-            phone: '',
-            bio: '',
+            mobile: '',
             active: true
         };
         $scope.editModalOpen = true;
@@ -187,8 +290,8 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
 
     // ===== View Mentor Profile =====
     $scope.viewMentor = function(mentor) {
-        $scope.selectedMentor = angular.copy(mentor);
-        $scope.viewModalOpen = true;
+        // Load full profile from API
+        $scope.loadMentorProfile(mentor.id);
     };
 
     $scope.closeViewModal = function() {
@@ -218,44 +321,70 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
     $scope.saveMentor = function() {
         if (!$scope.currentMentor.name ||
             !$scope.currentMentor.brief ||
-            !$scope.currentMentor.expertSubject ||
-            !$scope.currentMentor.qualifications ||
-            !$scope.currentMentor.experience) {
+            !$scope.currentMentor.specialisation ||
+            !$scope.currentMentor.almaMater ||
+            !$scope.currentMentor.graduationYear) {
             return;
         }
 
         $scope.showLoading($scope.editMode ? 'Updating mentor...' : 'Creating mentor...');
 
-        $timeout(function() {
-            if ($scope.editMode) {
-                // Update existing mentor
-                var index = $scope.mentors.findIndex(function(i) {
-                    return i.id === $scope.currentMentor.id;
-                });
-                if (index !== -1) {
-                    // If there's a new photo file, simulate upload
-                    if ($scope.currentMentor.photoFile) {
-                        $scope.currentMentor.photo = $scope.currentMentor.photoPreview;
-                    }
-                    $scope.mentors[index] = angular.copy($scope.currentMentor);
-                }
-            } else {
-                // Create new mentor
-                var newMentor = angular.copy($scope.currentMentor);
-                newMentor.id = $scope.generateId();
-                // If there's a photo file, use the preview as the photo
-                if (newMentor.photoFile) {
-                    newMentor.photo = newMentor.photoPreview;
-                }
-                delete newMentor.photoPreview;
-                delete newMentor.photoFile;
-                $scope.mentors.push(newMentor);
-            }
+        // Prepare FormData for file upload
+        var formData = new FormData();
+        formData.append('name', $scope.currentMentor.name);
+        formData.append('brief', $scope.currentMentor.brief);
+        formData.append('specialisation', $scope.currentMentor.specialisation);
+        formData.append('almaMater', $scope.currentMentor.almaMater);
+        formData.append('graduationYear', $scope.currentMentor.graduationYear);
 
-            $scope.filterMentors();
+        if ($scope.currentMentor.email) {
+            formData.append('email', $scope.currentMentor.email);
+        }
+        if ($scope.currentMentor.mobile) {
+            formData.append('mobile', $scope.currentMentor.mobile);
+        }
+
+        // Add photo if there's a new file
+        if ($scope.currentMentor.photoFile) {
+            formData.append('photo', $scope.currentMentor.photoFile);
+        }
+
+        var url, method;
+        if ($scope.editMode) {
+            url = $scope.apiBaseUrl + '/update-mentor.php?id=' + $scope.currentMentor.id;
+            method = 'POST';
+        } else {
+            url = $scope.apiBaseUrl + '/add-new-mentor.php';
+            method = 'POST';
+        }
+
+        $http({
+            method: method,
+            url: url,
+            data: formData,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': undefined
+            },
+            transformRequest: angular.identity
+        })
+        .then(function(response) {
+            console.log('Save response:', response.data);
+
+            if (response.data.status) {
+                // Reload mentors list
+                $scope.loadMentors();
+                $scope.closeEditModal();
+            } else {
+                alert('Error: ' + (response.data.error || 'Failed to save mentor'));
+                $scope.hideLoading();
+            }
+        })
+        .catch(function(error) {
+            console.error('Error saving mentor:', error);
+            alert('Failed to save mentor. Please try again.');
             $scope.hideLoading();
-            $scope.closeEditModal();
-        }, 500);
+        });
     };
 
     // ===== Delete Mentor =====
@@ -272,18 +401,24 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
     $scope.deleteMentor = function() {
         $scope.showLoading('Deleting mentor...');
 
-        $timeout(function() {
-            var index = $scope.mentors.findIndex(function(i) {
-                return i.id === $scope.mentorToDelete.id;
-            });
-            if (index !== -1) {
-                $scope.mentors.splice(index, 1);
-            }
+        // Note: You'll need to add delete API endpoint
+        var url = $scope.apiBaseUrl + '/delete-mentor.php?id=' + $scope.mentorToDelete.id;
 
-            $scope.filterMentors();
-            $scope.hideLoading();
-            $scope.closeDeleteModal();
-        }, 500);
+        $http.post(url, {}, $scope.getHttpConfig())
+            .then(function(response) {
+                if (response.data.status) {
+                    $scope.loadMentors();
+                    $scope.closeDeleteModal();
+                } else {
+                    alert('Error: ' + (response.data.error || 'Failed to delete mentor'));
+                    $scope.hideLoading();
+                }
+            })
+            .catch(function(error) {
+                console.error('Error deleting mentor:', error);
+                alert('Failed to delete mentor. Please try again.');
+                $scope.hideLoading();
+            });
     };
 
     // ===== Photo Upload =====
@@ -316,60 +451,37 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
         });
     };
 
-    // ===== Filter & Sort =====
+    // ===== Remove Photo =====
+    $scope.removePhoto = function() {
+        $scope.currentMentor.photo = null;
+        $scope.currentMentor.photoPreview = null;
+        $scope.currentMentor.photoFile = null;
+        // Reset the file input
+        var fileInput = document.getElementById('photoInput');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    // ===== Filter & Sort (Server-Side) =====
+    var filterTimeout;
     $scope.filterMentors = function() {
-        var query = ($scope.searchQuery || '').toLowerCase();
-        var subject = $scope.filterSubject;
+        // Cancel previous timeout if exists
+        if (filterTimeout) {
+            $timeout.cancel(filterTimeout);
+        }
 
-        $scope.filteredMentors = $scope.mentors.filter(function(mentor) {
-            var matchesSearch = true;
-            var matchesSubject = true;
-
-            if (query) {
-                matchesSearch =
-                    mentor.name.toLowerCase().indexOf(query) !== -1 ||
-                    mentor.brief.toLowerCase().indexOf(query) !== -1 ||
-                    mentor.expertSubject.toLowerCase().indexOf(query) !== -1 ||
-                    mentor.qualifications.toLowerCase().indexOf(query) !== -1;
-            }
-
-            if (subject) {
-                matchesSubject = mentor.expertSubject === subject;
-            }
-
-            return matchesSearch && matchesSubject;
-        });
-
-        $scope.sortMentors();
+        // Set new timeout for debounce (500ms delay)
+        filterTimeout = $timeout(function() {
+            // Reset to page 1 and reload from API with filters
+            $scope.currentPage = 1;
+            $scope.loadMentors();
+        }, 500);
     };
 
     $scope.sortMentors = function() {
-        var sortBy = $scope.sortBy;
-
-        $scope.filteredMentors.sort(function(a, b) {
-            var aVal, bVal;
-
-            switch(sortBy) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'subject':
-                    aVal = a.expertSubject.toLowerCase();
-                    bVal = b.expertSubject.toLowerCase();
-                    break;
-                case 'experience':
-                    aVal = a.experience || 0;
-                    bVal = b.experience || 0;
-                    return bVal - aVal; // Descending for experience
-                default:
-                    return 0;
-            }
-
-            if (aVal < bVal) return -1;
-            if (aVal > bVal) return 1;
-            return 0;
-        });
+        // Reload from API with new sort order
+        $scope.loadMentors();
     };
 
     // ===== Sort by Column =====
@@ -382,77 +494,15 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
             $scope.sortReverse = false;
         }
 
-        // Sort the filtered mentors
-        $scope.filteredMentors.sort(function(a, b) {
-            var aVal, bVal;
+        // Map display column names to API field names
+        var sortByMap = {
+            'name': 'name',
+            'institution': 'almaMater',
+            'specialization': 'specialisation'
+        };
 
-            switch(column) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'institution':
-                    aVal = a.institution ? a.institution.toLowerCase() : '';
-                    bVal = b.institution ? b.institution.toLowerCase() : '';
-                    break;
-                case 'specialization':
-                    aVal = a.specialization ? a.specialization.toLowerCase() : '';
-                    bVal = b.specialization ? b.specialization.toLowerCase() : '';
-                    break;
-                case 'studentCount':
-                    aVal = a.mentoringStudents ? a.mentoringStudents.length : 0;
-                    bVal = b.mentoringStudents ? b.mentoringStudents.length : 0;
-                    // For numeric values, return directly
-                    return $scope.sortReverse ? (aVal - bVal) : (bVal - aVal);
-                default:
-                    return 0;
-            }
-
-            // For string values
-            var comparison = 0;
-            if (aVal < bVal) comparison = -1;
-            if (aVal > bVal) comparison = 1;
-
-            return $scope.sortReverse ? -comparison : comparison;
-        });
-    };
-
-    // ===== Statistics =====
-    $scope.getActiveMentors = function() {
-        return $scope.mentors.filter(function(i) {
-            return i.active;
-        }).length;
-    };
-
-    $scope.getTotalSubjects = function() {
-        var subjects = new Set();
-        $scope.mentors.forEach(function(i) {
-            if (i.expertSubject) {
-                subjects.add(i.expertSubject);
-            }
-        });
-        return subjects.size;
-    };
-
-    $scope.getAverageExperience = function() {
-        if ($scope.mentors.length === 0) return '0';
-
-        var total = $scope.mentors.reduce(function(sum, i) {
-            return sum + (i.experience || 0);
-        }, 0);
-
-        var avg = total / $scope.mentors.length;
-        return avg.toFixed(1) + ' yrs';
-    };
-
-    $scope.getUniqueSubjects = function() {
-        var subjects = new Set();
-        $scope.mentors.forEach(function(i) {
-            if (i.expertSubject) {
-                subjects.add(i.expertSubject);
-            }
-        });
-        return Array.from(subjects).sort();
+        $scope.sortBy = sortByMap[column] || column;
+        $scope.loadMentors();
     };
 
     // ===== Helper Functions =====
@@ -476,14 +526,130 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', function($scop
         }, 300);
     };
 
-    $scope.generateId = function() {
-        return Date.now() + Math.random().toString(36).substr(2, 9);
-    };
-
     // ===== View Mentoring Students Modal =====
+    $scope.studentsCurrentPage = 1;
+    $scope.studentsPageSize = 5;
+    $scope.studentsTotalCount = 0;
+    $scope.studentsTotalPages = 0;
+    $scope.studentsSearch = {
+        key: ''
+    };
+    var studentsSearchTimeout;
+
     $scope.viewMentoringStudents = function(mentor) {
         $scope.selectedMentorForStudents = mentor;
+        $scope.selectedMentorForStudents.mentoringStudents = []; // Initialize empty array
+        $scope.studentsCurrentPage = 1;
+        $scope.studentsSearch.key = '';
         $scope.studentsModalOpen = true;
+
+        // Load first page of students
+        $scope.loadMappedStudents();
+    };
+
+    $scope.loadMappedStudents = function() {
+        if (!$scope.selectedMentorForStudents) return;
+
+        // Fetch mapped students from API with pagination and search
+        $scope.showLoading('Loading students...');
+        var url = $scope.apiBaseUrl + '/get-candidates-mapped-to-mentor-profile.php';
+        url += '?id=' + $scope.selectedMentorForStudents.id;
+        url += '&page=' + $scope.studentsCurrentPage;
+        url += '&size=' + $scope.studentsPageSize;
+
+        // Add search key if it exists and is not empty
+        var searchKey = ($scope.studentsSearch.key || '').trim();
+        if (searchKey && searchKey.length > 0) {
+            url += '&searchKey=' + encodeURIComponent(searchKey);
+        }
+
+        console.log('Loading students with URL:', url);
+        console.log('Search key:', searchKey);
+
+        $http.get(url, $scope.getHttpConfig())
+            .then(function(response) {
+                if (response.data && response.data.data) {
+                    $scope.selectedMentorForStudents.mentoringStudents = response.data.data;
+
+                    // Get pagination info from meta
+                    if (response.data.meta) {
+                        $scope.studentsTotalCount = response.data.meta.total || 0;
+                        $scope.studentsTotalPages = response.data.meta.totalPages || Math.ceil($scope.studentsTotalCount / $scope.studentsPageSize);
+                    } else {
+                        $scope.studentsTotalCount = $scope.selectedMentorForStudents.mentoringStudents.length;
+                        $scope.studentsTotalPages = 1;
+                    }
+                } else {
+                    $scope.selectedMentorForStudents.mentoringStudents = [];
+                    $scope.studentsTotalCount = 0;
+                    $scope.studentsTotalPages = 0;
+                }
+                $scope.hideLoading();
+            })
+            .catch(function(error) {
+                console.error('Error loading mapped students:', error);
+                $scope.selectedMentorForStudents.mentoringStudents = [];
+                $scope.studentsTotalCount = 0;
+                $scope.studentsTotalPages = 0;
+                $scope.hideLoading();
+                alert('Failed to load students. Please try again.');
+            });
+    };
+
+    $scope.filterStudents = function() {
+        if (studentsSearchTimeout) {
+            $timeout.cancel(studentsSearchTimeout);
+        }
+        studentsSearchTimeout = $timeout(function() {
+            $scope.studentsCurrentPage = 1;
+            $scope.loadMappedStudents();
+        }, 500);
+    };
+
+    $scope.studentsGoToPage = function(page) {
+        if (page >= 1 && page <= $scope.studentsTotalPages) {
+            $scope.studentsCurrentPage = page;
+            $scope.loadMappedStudents();
+        }
+    };
+
+    $scope.studentsPreviousPage = function() {
+        if ($scope.studentsCurrentPage > 1) {
+            $scope.studentsCurrentPage--;
+            $scope.loadMappedStudents();
+        }
+    };
+
+    $scope.studentsNextPage = function() {
+        if ($scope.studentsCurrentPage < $scope.studentsTotalPages) {
+            $scope.studentsCurrentPage++;
+            $scope.loadMappedStudents();
+        }
+    };
+
+    $scope.getStudentsStartIndex = function() {
+        return ($scope.studentsCurrentPage - 1) * $scope.studentsPageSize;
+    };
+
+    $scope.getStudentsEndIndex = function() {
+        var end = $scope.studentsCurrentPage * $scope.studentsPageSize;
+        return Math.min(end, $scope.studentsTotalCount);
+    };
+
+    $scope.getStudentsPageNumbers = function() {
+        var pages = [];
+        var maxPagesToShow = 5;
+        var startPage = Math.max(1, $scope.studentsCurrentPage - Math.floor(maxPagesToShow / 2));
+        var endPage = Math.min($scope.studentsTotalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        return pages;
     };
 
     $scope.closeStudentsModal = function() {

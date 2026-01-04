@@ -1,10 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let courses = [];
+    let coursesPagination = {
+        currentPage: 1,
+        totalPages: 1,
+        total: 0,
+        itemsPerPage: 8  // 8 courses per page in modal
+    };
+    let modalSearchQuery = '';
     let config = {
         autoEnroll: { courses: [] }, // courses is now array of objects: { code, validity }
         discounts: []
     };
+    let initialAutoEnrollConfig = null; // Store initial state for comparison
     let tempSelectedCourses = []; // Array of codes for modal selection
 
     // DOM Elements
@@ -20,12 +28,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const courseSearchInput = document.getElementById('courseSearchInput');
     const closeModalBtns = document.querySelectorAll('.close-modal');
     const discountForm = document.getElementById('discountForm');
+    const modalEmptyState = document.getElementById('modalEmptyState');
+    const modalPageInfo = document.getElementById('modalPageInfo');
+    const modalPrevPage = document.getElementById('modalPrevPage');
+    const modalNextPage = document.getElementById('modalNextPage');
+    const modalPageNumbers = document.getElementById('modalPageNumbers');
+    const modalPaginationContainer = document.getElementById('modalPaginationContainer');
+
+    // Helper Functions
+    function formatDuration(seconds) {
+        if (!seconds || seconds === 0) return '0h 0m';
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${hours}h ${minutes}m`;
+    }
+
+    // Check if auto-enrollment config has changed
+    function hasAutoEnrollChanges() {
+        if (!initialAutoEnrollConfig) return false;
+
+        const current = JSON.stringify(config.autoEnroll.courses);
+        const initial = JSON.stringify(initialAutoEnrollConfig);
+
+        return current !== initial;
+    }
+
+    // Update Save Button Visibility
+    function updateSaveButtonVisibility() {
+        if (hasAutoEnrollChanges()) {
+            saveAutoEnrollBtn.style.display = 'inline-flex';
+        } else {
+            saveAutoEnrollBtn.style.display = 'none';
+        }
+    }
 
     // Initialization
     init();
 
     async function init() {
-        await Promise.all([fetchCourses(), fetchConfig()]);
+        // Fetch courses and config
+        const [coursesResult] = await Promise.all([fetchCourses(), fetchConfig()]);
+
+        // Handle courses result
+        if (coursesResult) {
+            courses = coursesResult.courses;
+            coursesPagination.total = coursesResult.total;
+            coursesPagination.totalPages = coursesResult.totalPages;
+            coursesPagination.currentPage = coursesResult.currentPage;
+        }
+
         // Migrate old data if necessary
         if (config.autoEnroll.courses.length > 0 && typeof config.autoEnroll.courses[0] === 'string') {
             console.log('Migrating old config format...');
@@ -34,21 +85,68 @@ document.addEventListener('DOMContentLoaded', () => {
                 validity: { type: 'duration', value: 365, unit: 'days' }
             }));
         }
+        // Save initial state for comparison
+        initialAutoEnrollConfig = JSON.parse(JSON.stringify(config.autoEnroll.courses));
         renderSelectedCourses();
         renderDiscounts();
+        updateSaveButtonVisibility();
     }
 
     // API Calls
-    async function fetchCourses() {
+    async function fetchCourses(page = 1, size = 100, searchKey = '', sortBy = 'name') {
         try {
-            const res = await fetch('/api/courses');
+            // Get auth token from localStorage
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+
+            // Build query params
+            let url = `http://localhost:3000/restricted/catalog/list-catalog.php?page=${page}&size=${size}&sortBy=${sortBy}`;
+            if (searchKey) {
+                url += `&searchKey=${encodeURIComponent(searchKey)}`;
+            }
+            // Filter by type to only show courses
+            url += `&filterBy=type&filterValue=Course`;
+
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Access-Token': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Catalog API response:', res);
+
             if (res.ok) {
-                courses = await res.json();
+                const result = await res.json();
+                console.log('Catalog data:', result);
+
+                if (result.status === 'success' && result.data) {
+                    // Transform API data to match expected format
+                    const catalogCourses = result.data.map(item => ({
+                        code: item.code,
+                        title: item.title,
+                        category: item.typeText || 'Course',
+                        description: item.brief || '',
+                        status: item.statusText || 'Active',
+                        price: item.sellingPrice,
+                        originalPrice: item.originalPrice,
+                        displayImage: item.displayImage
+                    }));
+
+                    return {
+                        courses: catalogCourses,
+                        total: result.total || 0,
+                        totalPages: result.totalPages || 0,
+                        currentPage: result.page || 1
+                    };
+                } else {
+                    throw new Error('API returned unsuccessful response');
+                }
             } else {
                 throw new Error('API request failed');
             }
         } catch (err) {
-            console.warn('Error fetching courses, using sample data:', err);
+            console.warn('Error fetching courses from catalog API, using sample data:', err);
             // Fallback sample data from courses-list.js
             courses = [
                 {
@@ -150,30 +248,172 @@ document.addEventListener('DOMContentLoaded', () => {
                     rating: '4.8'
                 }
             ];
+
+            return {
+                courses: courses,
+                total: courses.length,
+                totalPages: 1,
+                currentPage: 1
+            };
         }
     }
 
     async function fetchConfig() {
         try {
-            const res = await fetch('/api/web-content/config');
-            config = await res.json();
+            // Get auth token from localStorage
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+
+            const res = await fetch('http://localhost:3000/restricted/config/get-auto-enrollment-mapping.php', {
+                method: 'GET',
+                headers: {
+                    'X-Access-Token': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Auto-enrollment API response:', res);
+
+            if (res.ok) {
+                const result = await res.json();
+                console.log('Auto-enrollment data:', result);
+
+                if (result.status === 'success' && result.data) {
+                    // Transform API data to internal format and deduplicate by course code
+                    const coursesMap = new Map();
+
+                    result.data.forEach(item => {
+                        let validity = {};
+
+                        if (item.validityType === 'COUNTER') {
+                            // Parse duration like "24 M" into value and unit
+                            const parts = item.validityDuration.trim().split(' ');
+                            const value = parseInt(parts[0]);
+                            const unitChar = parts[1];
+
+                            let unit = 'months';
+                            if (unitChar === 'D') unit = 'days';
+                            else if (unitChar === 'M') unit = 'months';
+                            else if (unitChar === 'Y') unit = 'years';
+
+                            validity = {
+                                type: 'duration',
+                                value: value,
+                                unit: unit
+                            };
+                        } else if (item.validityType === 'FIXED_DATE') {
+                            // Convert DD-MM-YYYY to YYYY-MM-DD for HTML date input
+                            const dateParts = item.validityDuration.split('-');
+                            const convertedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+                            validity = {
+                                type: 'fixed',
+                                value: convertedDate // Format: "2026-12-31"
+                            };
+                        }
+
+                        const courseData = {
+                            id: item.id,
+                            code: item.course,
+                            validity: validity,
+                            status: item.status,
+                            lastUpdatedOn: item.lastUpdatedOn,
+                            lastUpdatedBy: item.lastUpdatedBy
+                        };
+
+                        // Only keep the most recent entry for each course code
+                        if (!coursesMap.has(item.course) ||
+                            coursesMap.get(item.course).lastUpdatedOn < item.lastUpdatedOn) {
+                            coursesMap.set(item.course, courseData);
+                        }
+                    });
+
+                    // Convert Map to array
+                    config.autoEnroll.courses = Array.from(coursesMap.values());
+
+                    console.log('Transformed config:', config);
+                } else {
+                    console.error('API returned unsuccessful response:', result);
+                }
+            } else {
+                throw new Error('API request failed');
+            }
         } catch (err) {
             console.error('Error fetching config:', err);
+            // Keep empty courses array on error
+            config.autoEnroll.courses = [];
         }
     }
 
     async function saveAutoEnroll(data) {
         try {
-            const res = await fetch('/api/web-content/auto-enroll', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            // Get auth token from localStorage
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+
+            // Find courses that were removed (in initial but not in current)
+            const currentCodes = data.courses.map(c => c.code);
+            const removedCourses = initialAutoEnrollConfig
+                .filter(initial => !currentCodes.includes(initial.code))
+                .map(removed => ({
+                    id: removed.id || -1,
+                    course: removed.code,
+                    type: removed.validity.type === 'fixed' ? 'fixed-date' : 'duration',
+                    value: removed.validity.type === 'fixed' ?
+                           removed.validity.value.split('-').reverse().join('-') : // Convert to DD-MM-YYYY
+                           `${removed.validity.value} ${removed.validity.unit === 'days' ? 'D' : removed.validity.unit === 'months' ? 'M' : 'Y'}`,
+                    status: 0  // Mark as removed
+                }));
+
+            // Transform current courses to API format
+            const apiPayload = data.courses.map(item => {
+                const enrollment = {
+                    id: item.id || -1,  // Use -1 for new courses
+                    course: item.code,
+                    status: 1  // Active status
+                };
+
+                if (item.validity.type === 'fixed') {
+                    // Convert YYYY-MM-DD to DD-MM-YYYY
+                    const dateParts = item.validity.value.split('-');
+                    enrollment.type = 'fixed-date';
+                    enrollment.value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                } else {
+                    // Duration type
+                    enrollment.type = 'duration';
+                    const unitChar = item.validity.unit === 'days' ? 'D' :
+                                     item.validity.unit === 'months' ? 'M' : 'Y';
+                    enrollment.value = `${item.validity.value} ${unitChar}`;
+                }
+
+                return enrollment;
             });
+
+            // Combine current and removed courses
+            const finalPayload = [...apiPayload, ...removedCourses];
+
+            console.log('Saving auto-enrollment:', finalPayload);
+
+            const res = await fetch('http://localhost:3000/restricted/config/save-auto-enrollment-mapping.php', {
+                method: 'POST',
+                headers: {
+                    'X-Access-Token': token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(finalPayload)
+            });
+
             const result = await res.json();
-            if (result.success) {
+            console.log('Save response:', result);
+
+            if (result.status === 'success') {
                 alert('Auto-enrollment settings saved successfully!');
+                // Reload config to get updated IDs from server
+                await fetchConfig();
+                // Update initial state after successful save
+                initialAutoEnrollConfig = JSON.parse(JSON.stringify(config.autoEnroll.courses));
+                renderSelectedCourses();
+                updateSaveButtonVisibility();
             } else {
-                alert('Failed to save settings.');
+                alert('Failed to save settings: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error saving auto-enroll:', err);
@@ -203,10 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Rendering
     function renderSelectedCourses() {
-        const selectedCodes = config.autoEnroll.courses.map(c => c.code);
-        const selectedCourseObjects = courses.filter(c => selectedCodes.includes(c.code));
+        console.log('renderSelectedCourses called');
+        console.log('config.autoEnroll.courses:', config.autoEnroll.courses);
+        console.log('courses:', courses);
 
-        if (selectedCourseObjects.length === 0) {
+        if (config.autoEnroll.courses.length === 0) {
             selectedCoursesList.innerHTML = `
                 <div class="text-center" style="padding: 30px; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; color: #6b7280; grid-column: 1 / -1;">
                     <i class="ti ti-book" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
@@ -216,8 +457,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        selectedCoursesList.innerHTML = selectedCourseObjects.map(course => {
-            const settings = config.autoEnroll.courses.find(c => c.code === course.code).validity || { type: 'duration', value: 365, unit: 'days' };
+        // Map each auto-enrollment course, finding its details or using a placeholder
+        selectedCoursesList.innerHTML = config.autoEnroll.courses.map(enrollmentCourse => {
+            // Try to find the course details
+            const course = courses.find(c => c.code === enrollmentCourse.code) || {
+                code: enrollmentCourse.code,
+                title: `Course ${enrollmentCourse.code}`,
+                category: 'Unknown'
+            };
+
+            const settings = enrollmentCourse.validity || { type: 'duration', value: 365, unit: 'days' };
             const isFixed = settings.type === 'fixed';
 
             return `
@@ -265,21 +514,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    function renderModalCourses(filter = '') {
-        const filtered = courses.filter(c =>
-            c.status === 'Active' &&
-            (c.title.toLowerCase().includes(filter.toLowerCase()) ||
-                c.code.toLowerCase().includes(filter.toLowerCase()))
+    async function renderModalCourses() {
+        const result = await fetchCourses(
+            coursesPagination.currentPage,
+            coursesPagination.itemsPerPage,
+            modalSearchQuery,
+            'name'
         );
 
-        if (filtered.length === 0) {
-            modalCourseList.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No active courses found.</div>';
-            return;
+        if (result) {
+            courses = result.courses;
+            coursesPagination.total = result.total;
+            coursesPagination.totalPages = result.totalPages;
+            coursesPagination.currentPage = result.currentPage;
         }
 
-        modalCourseList.innerHTML = filtered.map(course => `
+        // Show/hide empty state
+        if (courses.length === 0) {
+            modalCourseList.style.display = 'none';
+            modalEmptyState.style.display = 'block';
+            modalPaginationContainer.style.display = 'none';
+            return;
+        } else {
+            modalCourseList.style.display = 'grid';
+            modalEmptyState.style.display = 'none';
+            modalPaginationContainer.style.display = 'flex';
+        }
+
+        // Render courses
+        modalCourseList.innerHTML = courses.map(course => `
             <label style="margin: 0;">
-                <input type="checkbox" class="course-checkbox" value="${course.code}" 
+                <input type="checkbox" class="course-checkbox" value="${course.code}"
                     ${tempSelectedCourses.includes(course.code) ? 'checked' : ''}>
                 <div class="course-card">
                     <div class="course-icon">
@@ -309,6 +574,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Update pagination info
+        const startItem = (coursesPagination.currentPage - 1) * coursesPagination.itemsPerPage + 1;
+        const endItem = Math.min(coursesPagination.currentPage * coursesPagination.itemsPerPage, coursesPagination.total);
+        modalPageInfo.textContent = `${startItem}-${endItem} of ${coursesPagination.total}`;
+
+        // Update pagination buttons
+        modalPrevPage.disabled = coursesPagination.currentPage === 1;
+        modalNextPage.disabled = coursesPagination.currentPage === coursesPagination.totalPages;
+
+        // Render page numbers
+        renderModalPageNumbers();
+
         // Add style for check indicator visibility
         if (!document.getElementById('checkboxStyle')) {
             const style = document.createElement('style');
@@ -317,6 +594,36 @@ document.addEventListener('DOMContentLoaded', () => {
             document.head.appendChild(style);
         }
     }
+
+    function renderModalPageNumbers() {
+        const maxPagesToShow = 5;
+        const pages = [];
+        let startPage = Math.max(1, coursesPagination.currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(coursesPagination.totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        modalPageNumbers.innerHTML = pages.map(page => `
+            <button type="button" class="btn btn-sm ${page === coursesPagination.currentPage ? 'btn-primary' : 'btn-default'}"
+                    onclick="goToModalPage(${page})"
+                    style="padding: 5px 12px; min-width: 35px;">
+                ${page}
+            </button>
+        `).join('');
+    }
+
+    window.goToModalPage = function(page) {
+        if (page >= 1 && page <= coursesPagination.totalPages) {
+            coursesPagination.currentPage = page;
+            renderModalCourses();
+        }
+    };
 
     function renderDiscounts() {
         if (config.discounts.length === 0) {
@@ -357,6 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Course Selection Modal
     openCourseSelectModalBtn.addEventListener('click', () => {
         tempSelectedCourses = config.autoEnroll.courses.map(c => c.code);
+        coursesPagination.currentPage = 1;
+        modalSearchQuery = '';
+        courseSearchInput.value = '';
         renderModalCourses();
         courseSelectModal.classList.add('active');
     });
@@ -373,17 +683,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
         config.autoEnroll.courses = newSelection;
         renderSelectedCourses();
+        updateSaveButtonVisibility();
         courseSelectModal.classList.remove('active');
     });
 
+    // Search input - debounced search
+    let searchTimeout;
     courseSearchInput.addEventListener('input', (e) => {
-        renderModalCourses(e.target.value);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            modalSearchQuery = e.target.value;
+            coursesPagination.currentPage = 1; // Reset to first page on search
+            renderModalCourses();
+        }, 300); // 300ms debounce
+    });
+
+    // Pagination button event listeners
+    modalPrevPage.addEventListener('click', () => {
+        if (coursesPagination.currentPage > 1) {
+            coursesPagination.currentPage--;
+            renderModalCourses();
+        }
+    });
+
+    modalNextPage.addEventListener('click', () => {
+        if (coursesPagination.currentPage < coursesPagination.totalPages) {
+            coursesPagination.currentPage++;
+            renderModalCourses();
+        }
     });
 
     // Global functions
     window.removeCourse = (code) => {
         config.autoEnroll.courses = config.autoEnroll.courses.filter(c => c.code !== code);
         renderSelectedCourses();
+        updateSaveButtonVisibility();
     };
 
     window.updateValidityType = (code, type) => {
@@ -399,6 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 course.validity.unit = 'days';
             }
             renderSelectedCourses(); // Re-render to show correct inputs
+            updateSaveButtonVisibility();
         }
     };
 
@@ -406,12 +741,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const course = config.autoEnroll.courses.find(c => c.code === code);
         if (course) {
             course.validity[field] = value;
+            updateSaveButtonVisibility();
         }
     };
 
     // Discount Modal
+    const discountTypeSelect = document.getElementById('discountType');
+    const percentageFields = document.getElementById('percentageFields');
+    const fixedFields = document.getElementById('fixedFields');
+
+    // Toggle conditional fields based on discount type
+    function toggleDiscountFields() {
+        const discountType = discountTypeSelect.value;
+        if (discountType === 'percentage') {
+            percentageFields.style.display = 'flex';
+            fixedFields.style.display = 'none';
+        } else {
+            percentageFields.style.display = 'none';
+            fixedFields.style.display = 'flex';
+        }
+    }
+
+    // Initialize on page load
+    toggleDiscountFields();
+
+    discountTypeSelect.addEventListener('change', toggleDiscountFields);
+
     addDiscountBtn.addEventListener('click', () => {
         discountModal.classList.add('active');
+        toggleDiscountFields(); // Reset fields when opening modal
     });
 
     closeModalBtns.forEach(btn => {
@@ -424,18 +782,35 @@ document.addEventListener('DOMContentLoaded', () => {
     discountForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(discountForm);
+        const discountType = formData.get('type');
+
         const newDiscount = {
             code: formData.get('code').toUpperCase(),
-            type: formData.get('type'),
+            type: discountType,
             value: formData.get('value'),
             validUntil: formData.get('validUntil'),
             usageLimit: formData.get('usageLimit') || null
         };
 
+        // Add conditional fields based on discount type
+        if (discountType === 'percentage') {
+            if (formData.get('minOrderValue')) {
+                newDiscount.minOrderValue = formData.get('minOrderValue');
+            }
+            if (formData.get('maxDiscount')) {
+                newDiscount.maxDiscount = formData.get('maxDiscount');
+            }
+        } else if (discountType === 'fixed') {
+            if (formData.get('minOrderValueFixed')) {
+                newDiscount.minOrderValue = formData.get('minOrderValueFixed');
+            }
+        }
+
         const updatedDiscounts = [...config.discounts, newDiscount];
         saveDiscounts(updatedDiscounts);
         discountModal.classList.remove('active');
         discountForm.reset();
+        toggleDiscountFields(); // Reset field visibility
     });
 
     window.deleteDiscount = (index) => {

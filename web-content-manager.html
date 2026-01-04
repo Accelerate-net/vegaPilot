@@ -393,7 +393,7 @@
                                     </div>
 
                                     <div class="course-grid" id="selectedCoursesList"
-                                        style="grid-template-columns: 1fr;">
+                                        style="grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));">
                                         <!-- Selected courses will be populated here -->
                                         <div class="text-center"
                                             style="padding: 30px; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; color: #6b7280;">
@@ -459,7 +459,32 @@
                     <div class="course-grid" id="modalCourseList">
                         <!-- All courses will be populated here -->
                     </div>
+
+                    <!-- Empty State -->
+                    <div id="modalEmptyState" style="display: none; text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="ti ti-search" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                        <p style="margin: 0;">No courses found</p>
+                    </div>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div id="modalPaginationContainer" style="padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                    <div style="font-size: 13px; color: #6c757d;">
+                        Showing <span id="modalPageInfo">1-8 of 0</span> courses
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="btn btn-sm btn-default" id="modalPrevPage" style="padding: 5px 12px;">
+                            <i class="ti ti-angle-left"></i> Previous
+                        </button>
+                        <div id="modalPageNumbers" style="display: flex; gap: 5px;">
+                            <!-- Page numbers will be inserted here -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-default" id="modalNextPage" style="padding: 5px 12px;">
+                            Next <i class="ti ti-angle-right"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div
                     style="padding: 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #f9fafb;">
                     <button type="button" class="btn btn-default close-modal">Cancel</button>
@@ -489,7 +514,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Discount Type</label>
-                                <select class="form-control" name="type">
+                                <select class="form-control" name="type" id="discountType">
                                     <option value="percentage">Percentage (%)</option>
                                     <option value="fixed">Fixed Amount ($)</option>
                                 </select>
@@ -502,6 +527,32 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Conditional Fields Based on Discount Type -->
+                    <div class="row" id="percentageFields" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Min Order Value (Optional)</label>
+                                <input type="number" class="form-control" name="minOrderValue" min="0" placeholder="Minimum order amount">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Max Discount (Optional)</label>
+                                <input type="number" class="form-control" name="maxDiscount" min="0" placeholder="Maximum discount amount">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" id="fixedFields" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Min Order Value (Optional)</label>
+                                <input type="number" class="form-control" name="minOrderValueFixed" min="0" placeholder="Minimum order amount">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>Valid Until</label>
                         <input type="date" class="form-control" name="validUntil" required>

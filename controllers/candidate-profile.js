@@ -5,7 +5,22 @@
 
 var app = angular.module('StudentManagementApp', []);
 
-app.controller('StudentManagementController', ['$scope', '$timeout', '$window', function($scope, $timeout, $window) {
+app.controller('StudentManagementController', ['$scope', '$timeout', '$window', '$http', function($scope, $timeout, $window, $http) {
+
+    // ===== API Configuration =====
+    $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
+
+    // Get token from localStorage (same pattern as instructor-portfolio.js)
+    $scope.getAuthToken = function() {
+        // Try localStorage first
+        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+        // If still no token, use the default token
+        if (!token) {
+            console.warn('No auth token found. Using default token for development.');
+            localStorage.setItem('authToken', token);
+        }
+        return token;
+    };
 
     // ===== Initialize Data =====
     $scope.students = [];
@@ -20,9 +35,11 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.sortColumn = 'name';
     $scope.sortReverse = false;
 
-    // ===== Pagination =====
+    // ===== Pagination from API =====
     $scope.currentPage = 1;
     $scope.itemsPerPage = 10;
+    $scope.totalStudents = 0;
+    $scope.totalPages = 0;
 
     // ===== Loading State =====
     $scope.isLoading = false;
@@ -34,284 +51,124 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         $scope.loadStudents();
     };
 
-    // ===== Load Students with Sample Data =====
+    // ===== Load Students from API =====
     $scope.loadStudents = function() {
-        $timeout(function() {
-            $scope.students = [
-                {
-                    id: 'STU001',
-                    name: 'Emma Thompson',
-                    email: 'emma.thompson@email.com',
-                    mobile: '+1 (555) 123-4567',
-                    avatar: null,
-                    status: 'active',
-                    enrollmentDate: new Date('2024-01-15'),
-                    address: '123 Main St, New York, NY 10001',
-                    dob: new Date('2000-05-20'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C001',
-                            courseName: 'Advanced Mathematics',
-                            enrollmentDate: new Date('2024-01-15'),
-                            progress: 75,
-                            videosWatched: 15,
-                            totalVideos: 20,
-                            completedChapters: 6,
-                            totalChapters: 8,
-                            timeSpent: 24,
-                            lastAccessed: new Date('2024-12-05'),
-                            payment: {
-                                amount: 299,
-                                date: new Date('2024-01-15'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-001'
-                            },
-                            exams: [
-                                { examName: 'Midterm Exam', date: new Date('2024-10-15'), score: 85, status: 'Passed' },
-                                { examName: 'Quiz 1', date: new Date('2024-09-20'), score: 92, status: 'Passed' }
-                            ]
-                        },
-                        {
-                            courseId: 'C002',
-                            courseName: 'Physics Fundamentals',
-                            enrollmentDate: new Date('2024-02-01'),
-                            progress: 45,
-                            videosWatched: 8,
-                            totalVideos: 18,
-                            completedChapters: 3,
-                            totalChapters: 10,
-                            timeSpent: 16,
-                            lastAccessed: new Date('2024-12-03'),
-                            payment: {
-                                amount: 349,
-                                date: new Date('2024-02-01'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-015'
-                            },
-                            exams: [
-                                { examName: 'Unit Test 1', date: new Date('2024-11-10'), score: 78, status: 'Passed' }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 'STU002',
-                    name: 'Michael Chen',
-                    email: 'michael.chen@email.com',
-                    mobile: '+1 (555) 234-5678',
-                    avatar: null,
-                    status: 'active',
-                    enrollmentDate: new Date('2024-02-10'),
-                    address: '456 Oak Ave, Los Angeles, CA 90001',
-                    dob: new Date('1999-11-12'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C003',
-                            courseName: 'Computer Science Basics',
-                            enrollmentDate: new Date('2024-02-10'),
-                            progress: 90,
-                            videosWatched: 27,
-                            totalVideos: 30,
-                            completedChapters: 9,
-                            totalChapters: 10,
-                            timeSpent: 45,
-                            lastAccessed: new Date('2024-12-06'),
-                            payment: {
-                                amount: 399,
-                                date: new Date('2024-02-10'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-022'
-                            },
-                            exams: [
-                                { examName: 'Final Exam', date: new Date('2024-11-25'), score: 94, status: 'Passed' },
-                                { examName: 'Midterm Exam', date: new Date('2024-10-15'), score: 88, status: 'Passed' },
-                                { examName: 'Quiz 2', date: new Date('2024-09-30'), score: 91, status: 'Passed' }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 'STU003',
-                    name: 'Sarah Johnson',
-                    email: 'sarah.johnson@email.com',
-                    mobile: '+1 (555) 345-6789',
-                    avatar: null,
-                    status: 'active',
-                    enrollmentDate: new Date('2024-03-05'),
-                    address: '789 Pine Rd, Chicago, IL 60601',
-                    dob: new Date('2001-03-15'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C004',
-                            courseName: 'Chemistry 101',
-                            enrollmentDate: new Date('2024-03-05'),
-                            progress: 60,
-                            videosWatched: 12,
-                            totalVideos: 20,
-                            completedChapters: 5,
-                            totalChapters: 12,
-                            timeSpent: 28,
-                            lastAccessed: new Date('2024-12-04'),
-                            payment: {
-                                amount: 329,
-                                date: new Date('2024-03-05'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-045'
-                            },
-                            exams: [
-                                { examName: 'Lab Test 1', date: new Date('2024-11-05'), score: 82, status: 'Passed' },
-                                { examName: 'Quiz 1', date: new Date('2024-10-10'), score: 75, status: 'Passed' }
-                            ]
-                        },
-                        {
-                            courseId: 'C005',
-                            courseName: 'Biology Essentials',
-                            enrollmentDate: new Date('2024-03-20'),
-                            progress: 35,
-                            videosWatched: 7,
-                            totalVideos: 25,
-                            completedChapters: 3,
-                            totalChapters: 15,
-                            timeSpent: 18,
-                            lastAccessed: new Date('2024-11-30'),
-                            payment: {
-                                amount: 359,
-                                date: new Date('2024-03-20'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-056'
-                            },
-                            exams: []
-                        }
-                    ]
-                },
-                {
-                    id: 'STU004',
-                    name: 'David Martinez',
-                    email: 'david.martinez@email.com',
-                    mobile: '+1 (555) 456-7890',
-                    avatar: null,
-                    status: 'active',
-                    enrollmentDate: new Date('2024-04-12'),
-                    address: '321 Elm St, Houston, TX 77001',
-                    dob: new Date('2000-08-22'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C001',
-                            courseName: 'Advanced Mathematics',
-                            enrollmentDate: new Date('2024-04-12'),
-                            progress: 50,
-                            videosWatched: 10,
-                            totalVideos: 20,
-                            completedChapters: 4,
-                            totalChapters: 8,
-                            timeSpent: 20,
-                            lastAccessed: new Date('2024-12-02'),
-                            payment: {
-                                amount: 299,
-                                date: new Date('2024-04-12'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-078'
-                            },
-                            exams: [
-                                { examName: 'Quiz 1', date: new Date('2024-11-15'), score: 68, status: 'Passed' }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 'STU005',
-                    name: 'Lisa Anderson',
-                    email: 'lisa.anderson@email.com',
-                    mobile: '+1 (555) 567-8901',
-                    avatar: null,
-                    status: 'inactive',
-                    enrollmentDate: new Date('2024-05-20'),
-                    address: '654 Maple Dr, Phoenix, AZ 85001',
-                    dob: new Date('1998-12-30'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C006',
-                            courseName: 'English Literature',
-                            enrollmentDate: new Date('2024-05-20'),
-                            progress: 25,
-                            videosWatched: 5,
-                            totalVideos: 22,
-                            completedChapters: 2,
-                            totalChapters: 12,
-                            timeSpent: 12,
-                            lastAccessed: new Date('2024-10-15'),
-                            payment: {
-                                amount: 279,
-                                date: new Date('2024-05-20'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-102'
-                            },
-                            exams: []
-                        }
-                    ]
-                },
-                {
-                    id: 'STU006',
-                    name: 'James Wilson',
-                    email: 'james.wilson@email.com',
-                    mobile: '+1 (555) 678-9012',
-                    avatar: null,
-                    status: 'active',
-                    enrollmentDate: new Date('2024-06-15'),
-                    address: '987 Cedar Ln, Philadelphia, PA 19101',
-                    dob: new Date('2001-07-18'),
-                    enrolledCourses: [
-                        {
-                            courseId: 'C002',
-                            courseName: 'Physics Fundamentals',
-                            enrollmentDate: new Date('2024-06-15'),
-                            progress: 80,
-                            videosWatched: 14,
-                            totalVideos: 18,
-                            completedChapters: 8,
-                            totalChapters: 10,
-                            timeSpent: 32,
-                            lastAccessed: new Date('2024-12-05'),
-                            payment: {
-                                amount: 349,
-                                date: new Date('2024-06-15'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-125'
-                            },
-                            exams: [
-                                { examName: 'Unit Test 2', date: new Date('2024-11-28'), score: 89, status: 'Passed' },
-                                { examName: 'Unit Test 1', date: new Date('2024-10-25'), score: 84, status: 'Passed' }
-                            ]
-                        },
-                        {
-                            courseId: 'C003',
-                            courseName: 'Computer Science Basics',
-                            enrollmentDate: new Date('2024-07-01'),
-                            progress: 55,
-                            videosWatched: 16,
-                            totalVideos: 30,
-                            completedChapters: 5,
-                            totalChapters: 10,
-                            timeSpent: 24,
-                            lastAccessed: new Date('2024-12-01'),
-                            payment: {
-                                amount: 399,
-                                date: new Date('2024-07-01'),
-                                status: 'Paid',
-                                invoiceId: 'INV-2024-138'
-                            },
-                            exams: [
-                                { examName: 'Midterm Exam', date: new Date('2024-11-20'), score: 76, status: 'Passed' }
-                            ]
-                        }
-                    ]
-                }
-            ];
+        // Build API URL with parameters
+        var url = $scope.apiBaseUrl + '/list-candidates.php';
+        var params = {
+            page: $scope.currentPage,
+            size: $scope.itemsPerPage
+        };
 
-            $scope.filteredStudents = $scope.students.slice();
-            $scope.updatePagination();
+        // Add sorting parameter
+        if ($scope.sortColumn) {
+            params.sortBy = $scope.sortColumn;
+        }
+
+        // Add search parameter
+        var searchKey = ($scope.searchQuery || '').trim();
+        if (searchKey && searchKey.length > 0) {
+            params.searchKey = searchKey;
+        }
+
+        // Add status filter if present
+        if ($scope.filterStatus) {
+            params.status = $scope.filterStatus;
+        }
+
+        console.log('Loading students from API:', url, params);
+
+        // Make API request
+        $http({
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function(response) {
+            console.log('API Response:', response.data);
+
+            if (response.data && response.data.status === 'success') {
+                var apiData = response.data.data;
+                var meta = response.data.meta;
+
+                // Update pagination metadata
+                $scope.currentPage = meta.page;
+                $scope.itemsPerPage = meta.size;
+                $scope.totalStudents = meta.total;
+                $scope.totalPages = meta.totalPages;
+
+                // Map API response to local data structure
+                $scope.students = apiData.map(function(candidate) {
+                    return {
+                        id: candidate.candidateKey || candidate.id,
+                        candidateKey: candidate.candidateKey,
+                        name: candidate.name || 'Unknown',
+                        email: candidate.email || '',
+                        mobile: candidate.mobile || candidate.registeredMobile || candidate.communicationMobile || '',
+                        registeredMobile: candidate.registeredMobile,
+                        communicationMobile: candidate.communicationMobile,
+                        avatar: candidate.photo || null, // Photo is already in data URL format
+                        status: candidate.blocked ? 'blocked' : (candidate.status || 'active').toLowerCase(),
+                        statusCode: candidate.statusCode,
+                        blocked: candidate.blocked,
+                        enrollmentDate: candidate.joinedDate ? new Date(candidate.joinedDate) : null, // joinedDate is already a date string
+                        joinedDate: candidate.joinedDate,
+                        lastUpdated: candidate.lastUpdated,
+                        dob: candidate.dob,
+                        gender: candidate.gender,
+                        place: candidate.place,
+                        fatherName: candidate.fatherName,
+                        motherName: candidate.motherName,
+                        aspiration: candidate.aspiration,
+                        classOfStudy: candidate.classOfStudy,
+                        board: candidate.board,
+                        yearOfPassing: candidate.yearOfPassing,
+                        lastInstitution: candidate.lastInstitution,
+                        totalCourseEnrollments: candidate.totalCourseEnrollments || 0,
+                        totalTestSeriesEnrollments: candidate.totalTestSeriesEnrollments || 0,
+                        enrolledCourses: [] // Will be populated when viewing details or from separate API
+                    };
+                });
+
+                // For client-side compatibility, maintain filteredStudents and paginatedStudents
+                $scope.filteredStudents = $scope.students.slice();
+                $scope.paginatedStudents = $scope.students.slice();
+
+                $scope.hideLoading();
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                $scope.students = [];
+                $scope.filteredStudents = [];
+                $scope.paginatedStudents = [];
+                $scope.hideLoading();
+
+                var errorMsg = 'Failed to load students';
+                if (response.data && response.data.message) {
+                    errorMsg += ': ' + response.data.message;
+                } else if (response.data && response.data.error) {
+                    errorMsg += ': ' + response.data.error;
+                } else {
+                    errorMsg += '. Please check console for details.';
+                }
+
+                alert(errorMsg);
+            }
+        }).catch(function(error) {
+            console.error('Error loading students:', error);
+            $scope.students = [];
+            $scope.filteredStudents = [];
+            $scope.paginatedStudents = [];
             $scope.hideLoading();
-        }, 500);
+
+            if (error.status === 401) {
+                alert('Authentication failed. Please login again.');
+            } else {
+                alert('Error loading students: ' + (error.statusText || 'Network error'));
+            }
+        });
     };
 
     // ===== View Student Detail =====
@@ -327,87 +184,28 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         alert('Add new student functionality would be implemented here.');
     };
 
-    // ===== Filter & Sort =====
+    // ===== Filter & Sort (triggers API call) =====
     $scope.filterStudents = function() {
-        var query = ($scope.searchQuery || '').toLowerCase();
-        var course = $scope.filterCourse;
-        var status = $scope.filterStatus;
-
-        $scope.filteredStudents = $scope.students.filter(function(student) {
-            var matchesSearch = true;
-            var matchesCourse = true;
-            var matchesStatus = true;
-
-            if (query) {
-                var courseNames = student.enrolledCourses.map(function(e) {
-                    return e.courseName.toLowerCase();
-                }).join(' ');
-
-                matchesSearch =
-                    student.name.toLowerCase().indexOf(query) !== -1 ||
-                    student.email.toLowerCase().indexOf(query) !== -1 ||
-                    student.mobile.indexOf(query) !== -1 ||
-                    courseNames.indexOf(query) !== -1;
-            }
-
-            if (course) {
-                matchesCourse = student.enrolledCourses.some(function(e) {
-                    return e.courseName === course;
-                });
-            }
-
-            if (status) {
-                matchesStatus = student.status === status;
-            }
-
-            return matchesSearch && matchesCourse && matchesStatus;
-        });
-
-        $scope.sortStudents();
+        // Reset to first page and reload from API
         $scope.currentPage = 1;
-        $scope.updatePagination();
+        $scope.showLoading('Filtering students...');
+        $scope.loadStudents();
     };
 
     $scope.sortStudents = function() {
-        var sortBy = $scope.sortBy;
-
-        $scope.filteredStudents.sort(function(a, b) {
-            var aVal, bVal;
-
-            switch(sortBy) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'enrollmentDate':
-                    aVal = new Date(a.enrollmentDate);
-                    bVal = new Date(b.enrollmentDate);
-                    return bVal - aVal; // Descending
-                case 'courses':
-                    aVal = a.enrolledCourses.length;
-                    bVal = b.enrolledCourses.length;
-                    return bVal - aVal; // Descending
-                default:
-                    return 0;
-            }
-
-            if (aVal < bVal) return -1;
-            if (aVal > bVal) return 1;
-            return 0;
-        });
-
-        $scope.updatePagination();
+        // Reload from API with new sort
+        $scope.showLoading('Sorting students...');
+        $scope.loadStudents();
     };
 
-    // ===== Pagination =====
+    // ===== Pagination (API-driven) =====
     $scope.updatePagination = function() {
-        var start = ($scope.currentPage - 1) * $scope.itemsPerPage;
-        var end = start + $scope.itemsPerPage;
-        $scope.paginatedStudents = $scope.filteredStudents.slice(start, end);
+        // No longer needed for client-side pagination, kept for compatibility
+        // API handles pagination server-side
     };
 
     $scope.getTotalPages = function() {
-        return Math.ceil($scope.filteredStudents.length / $scope.itemsPerPage);
+        return $scope.totalPages || 1;
     };
 
     $scope.getPageNumbers = function() {
@@ -428,53 +226,54 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     };
 
     $scope.goToPage = function(page) {
-        $scope.currentPage = page;
-        $scope.updatePagination();
+        if (page !== $scope.currentPage) {
+            $scope.currentPage = page;
+            $scope.showLoading('Loading page ' + page + '...');
+            $scope.loadStudents();
+        }
     };
 
     $scope.previousPage = function() {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
-            $scope.updatePagination();
+            $scope.showLoading('Loading previous page...');
+            $scope.loadStudents();
         }
     };
 
     $scope.nextPage = function() {
         if ($scope.currentPage < $scope.getTotalPages()) {
             $scope.currentPage++;
-            $scope.updatePagination();
+            $scope.showLoading('Loading next page...');
+            $scope.loadStudents();
         }
     };
 
     $scope.getStartIndex = function() {
-        return ($scope.currentPage - 1) * $scope.itemsPerPage;
+        return ($scope.currentPage - 1) * $scope.itemsPerPage + 1;
     };
 
     $scope.getEndIndex = function() {
-        return Math.min($scope.getStartIndex() + $scope.itemsPerPage, $scope.filteredStudents.length);
+        return Math.min($scope.currentPage * $scope.itemsPerPage, $scope.totalStudents);
     };
 
-    // ===== Statistics =====
+    // ===== Statistics (using totalCourseEnrollments from API) =====
     $scope.getActiveStudents = function() {
         return $scope.students.filter(function(s) {
-            return s.status === 'active';
+            return s.status === 'active' && !s.blocked;
         }).length;
     };
 
     $scope.getTotalEnrollments = function() {
         return $scope.students.reduce(function(sum, s) {
-            return sum + s.enrolledCourses.length;
+            return sum + (s.totalCourseEnrollments || 0);
         }, 0);
     };
 
     $scope.getTotalRevenue = function() {
-        var total = $scope.students.reduce(function(sum, s) {
-            var studentTotal = s.enrolledCourses.reduce(function(courseSum, e) {
-                return courseSum + (e.payment.amount || 0);
-            }, 0);
-            return sum + studentTotal;
-        }, 0);
-        return total.toLocaleString();
+        // Revenue calculation would need a separate API endpoint
+        // For now, return placeholder
+        return '0';
     };
 
     $scope.getAllCourses = function() {
@@ -508,7 +307,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         }, 300);
     };
 
-    // ===== Sortable Column Functionality =====
+    // ===== Sortable Column Functionality (API-driven) =====
     $scope.sortByColumn = function(column) {
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
@@ -517,44 +316,21 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             $scope.sortReverse = false;
         }
 
-        $scope.filteredStudents.sort(function(a, b) {
-            var aVal, bVal;
+        // Map column names to API sortBy parameter
+        var sortByMap = {
+            'name': 'name',
+            'email': 'email',
+            'mobile': 'mobile',
+            'coursesCount': 'totalCourseEnrollments',
+            'enrollmentDate': 'joinedDate',
+            'status': 'status'
+        };
 
-            switch(column) {
-                case 'name':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
-                    break;
-                case 'email':
-                    aVal = a.email.toLowerCase();
-                    bVal = b.email.toLowerCase();
-                    break;
-                case 'mobile':
-                    aVal = a.mobile;
-                    bVal = b.mobile;
-                    break;
-                case 'coursesCount':
-                    aVal = a.enrolledCourses.length;
-                    bVal = b.enrolledCourses.length;
-                    break;
-                case 'enrollmentDate':
-                    aVal = new Date(a.enrollmentDate);
-                    bVal = new Date(b.enrollmentDate);
-                    break;
-                case 'status':
-                    aVal = a.status.toLowerCase();
-                    bVal = b.status.toLowerCase();
-                    break;
-                default:
-                    return 0;
-            }
+        $scope.sortColumn = sortByMap[column] || column;
 
-            if (aVal < bVal) return $scope.sortReverse ? 1 : -1;
-            if (aVal > bVal) return $scope.sortReverse ? -1 : 1;
-            return 0;
-        });
-
-        $scope.updatePagination();
+        // Reload from API with new sort
+        $scope.showLoading('Sorting by ' + column + '...');
+        $scope.loadStudents();
     };
 
     // ===== Available Courses Data =====
@@ -640,6 +416,62 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.viewEnrolledCourses = function(student) {
         $scope.selectedStudentForCourses = student;
         $scope.coursesModalOpen = true;
+
+        // Fetch course enrollments from API
+        $scope.showLoading('Loading course enrollments...');
+
+        var url = $scope.apiBaseUrl.replace('/people', '/enrollment') + '/get-course-enrollments-for-given-candidate.php';
+        var params = {
+            candidateId: student.id
+        };
+
+        console.log('Fetching course enrollments for candidate:', student.id, url, params);
+
+        $http({
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function(response) {
+            console.log('Course enrollments API response:', response.data);
+
+            if (response.data && response.data.status === 'success') {
+                var enrollmentsData = response.data.data || [];
+
+                // Map API response to local data structure
+                $scope.selectedStudentForCourses.enrolledCourses = enrollmentsData.map(function(enrollment) {
+                    return {
+                        courseId: enrollment.courseId,
+                        courseName: enrollment.courseTitle,
+                        courseCode: enrollment.courseCode,
+                        courseType: enrollment.courseType,
+                        catalogType: enrollment.catalogType,
+                        accessLevel: enrollment.accessLevel,
+                        validUntil: enrollment.expiry, // Unix timestamp
+                        enrollmentDate: enrollment.enrollmentDate, // Unix timestamp
+                        enrollmentStatus: enrollment.enrollmentStatus,
+                        enrollmentStatusText: enrollment.enrollmentStatusText
+                    };
+                });
+
+                // Update the total count
+                $scope.selectedStudentForCourses.totalCourseEnrollments = response.data.totalEnrollments || enrollmentsData.length;
+
+                console.log('Mapped enrollments:', $scope.selectedStudentForCourses.enrolledCourses);
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                $scope.selectedStudentForCourses.enrolledCourses = [];
+            }
+
+            $scope.hideLoading();
+        }, function(error) {
+            console.error('Error fetching course enrollments:', error);
+            $scope.selectedStudentForCourses.enrolledCourses = [];
+            $scope.hideLoading();
+        });
     };
 
     $scope.closeCoursesModal = function() {
@@ -769,7 +601,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         if (!validUntil) return 0;
         var now = Date.now() / 1000;
         var daysRemaining = Math.ceil((validUntil - now) / 86400);
-        return daysRemaining > 0 ? daysRemaining : 0;
+        return Math.abs(daysRemaining); // Return absolute value for display
     };
 
     $scope.getValidityStatus = function(validUntil) {

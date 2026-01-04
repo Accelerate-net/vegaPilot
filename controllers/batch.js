@@ -17,6 +17,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     $scope.selectedBatchForStudents = null;
     $scope.studentSearchQuery = '';
     $scope.studentFilter = 'all'; // 'all', 'enrolled', 'not-enrolled'
+    $scope.selectedBatchStudents = {}; // Map of selected student IDs in batch modal
     $scope.detailsModalOpen = false;
     $scope.selectedBatchForDetails = null;
     $scope.deleteModalOpen = false;
@@ -126,6 +127,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
     // Edit batch
     $scope.editBatch = function(batch) {
+        // Close kebab menu
+        batch.showKebabMenu = false;
+
         $scope.editingBatch = true;
         $scope.newBatch = angular.copy(batch);
         $('#batchModal').modal('show');
@@ -198,6 +202,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
     // Open manage courses modal
     $scope.openEnrollCourseModal = function(batch) {
+        // Close kebab menu
+        batch.showKebabMenu = false;
+
         $scope.selectedBatch = batch;
         $scope.selectedCourse = null;
         // Initialize enrolledCourses array if it doesn't exist
@@ -283,6 +290,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
     // Add students to batch - Open modal
     $scope.addStudentsToBatch = function(batch) {
+        // Close kebab menu
+        batch.showKebabMenu = false;
+
         $scope.batchForAddingStudents = batch;
         $scope.selectedStudentsToAdd = {};
         $scope.studentSearchQuery = '';
@@ -432,6 +442,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.selectedBatchForStudents = batch;
         $scope.studentSearchQuery = '';
         $scope.studentFilter = 'all'; // Reset filter to 'all'
+        $scope.selectedBatchStudents = {}; // Clear selection
         $scope.studentsModalOpen = true;
     };
 
@@ -441,6 +452,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.selectedBatchForStudents = null;
         $scope.studentSearchQuery = '';
         $scope.studentFilter = 'all';
+        $scope.selectedBatchStudents = {}; // Clear selection
     };
 
     // Set student filter
@@ -470,6 +482,100 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     $scope.navigateToStudentProfile = function(student) {
         // Navigate to candidate profile page with student ID
         window.location.href = 'candidate-profile.html?studentId=' + student.id;
+    };
+
+    // ===== Batch Student Selection Functions =====
+
+    // Toggle individual student selection in batch modal
+    $scope.toggleBatchStudentSelection = function(student) {
+        if ($scope.selectedBatchStudents[student.id]) {
+            delete $scope.selectedBatchStudents[student.id];
+        } else {
+            $scope.selectedBatchStudents[student.id] = student;
+        }
+    };
+
+    // Check if student is selected
+    $scope.isBatchStudentSelected = function(student) {
+        return !!$scope.selectedBatchStudents[student.id];
+    };
+
+    // Get count of selected students
+    $scope.getSelectedBatchStudentsCount = function() {
+        return Object.keys($scope.selectedBatchStudents).length;
+    };
+
+    // Check if all students are selected
+    $scope.isAllBatchStudentsSelected = function() {
+        if (!$scope.selectedBatchForStudents || !$scope.selectedBatchForStudents.students) {
+            return false;
+        }
+        var filteredStudents = $scope.getFilteredStudents();
+        if (filteredStudents.length === 0) {
+            return false;
+        }
+        var allSelected = true;
+        filteredStudents.forEach(function(student) {
+            if (!$scope.selectedBatchStudents[student.id]) {
+                allSelected = false;
+            }
+        });
+        return allSelected;
+    };
+
+    // Toggle select all students
+    $scope.toggleSelectAllBatchStudents = function($event) {
+        $event.stopPropagation();
+        var checkbox = $event.target;
+
+        var filteredStudents = $scope.getFilteredStudents();
+
+        if (checkbox.checked) {
+            // Select all filtered students
+            filteredStudents.forEach(function(student) {
+                $scope.selectedBatchStudents[student.id] = student;
+            });
+        } else {
+            // Deselect all
+            $scope.selectedBatchStudents = {};
+        }
+    };
+
+    // Remove selected students from batch
+    $scope.removeStudentsFromBatch = function() {
+        var selectedCount = $scope.getSelectedBatchStudentsCount();
+
+        if (selectedCount === 0) {
+            alert('Please select at least one student to remove.');
+            return;
+        }
+
+        var confirmMsg = 'Are you sure you want to remove ' + selectedCount + ' student(s) from "' +
+                        $scope.selectedBatchForStudents.batchName + '"?\n\n' +
+                        'This action cannot be undone.';
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        $scope.isLoading = true;
+        $scope.loadingMessage = 'Removing ' + selectedCount + ' student(s) from batch...';
+
+        $timeout(function() {
+            // Get list of student IDs to remove
+            var studentIdsToRemove = Object.keys($scope.selectedBatchStudents);
+
+            // Remove students from the batch
+            $scope.selectedBatchForStudents.students = $scope.selectedBatchForStudents.students.filter(function(student) {
+                return studentIdsToRemove.indexOf(student.id) === -1;
+            });
+
+            // Clear selection
+            $scope.selectedBatchStudents = {};
+
+            $scope.isLoading = false;
+            alert(selectedCount + ' student(s) removed from batch successfully!');
+        }, 800);
     };
 
     // Get batch status
@@ -562,6 +668,10 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
                     aVal = a.startDate ? new Date(a.startDate) : new Date(0);
                     bVal = b.startDate ? new Date(b.startDate) : new Date(0);
                     break;
+                case 'endDate':
+                    aVal = a.endDate ? new Date(a.endDate) : new Date(0);
+                    bVal = b.endDate ? new Date(b.endDate) : new Date(0);
+                    break;
                 case 'status':
                     aVal = $scope.getBatchStatus(a).toLowerCase();
                     bVal = $scope.getBatchStatus(b).toLowerCase();
@@ -574,6 +684,59 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
             if (aVal > bVal) return $scope.sortReverse ? -1 : 1;
             return 0;
         });
+    };
+
+    // ===== Kebab Menu Functionality =====
+    $scope.toggleKebabMenu = function(batch, $event) {
+        $event.stopPropagation();
+
+        // Close all other kebab menus
+        $scope.batches.forEach(function(b) {
+            if (b !== batch) {
+                b.showKebabMenu = false;
+            }
+        });
+
+        // Toggle the current menu
+        batch.showKebabMenu = !batch.showKebabMenu;
+    };
+
+    // Close kebab menu when clicking outside
+    angular.element(document).on('click', function(event) {
+        $scope.$apply(function() {
+            $scope.batches.forEach(function(batch) {
+                batch.showKebabMenu = false;
+            });
+        });
+    });
+
+    // ===== Freeze/Unfreeze Batch Functionality =====
+    $scope.toggleFreezeBatch = function(batch) {
+        var action = batch.isFrozen ? 'unfreeze' : 'freeze';
+        var confirmMsg = batch.isFrozen
+            ? 'Are you sure you want to unfreeze "' + batch.batchName + '"? Students will be able to access the batch again.'
+            : 'Are you sure you want to freeze "' + batch.batchName + '"? Students will not be able to access this batch while it is frozen.';
+
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        $scope.isLoading = true;
+        $scope.loadingMessage = (batch.isFrozen ? 'Unfreezing' : 'Freezing') + ' batch...';
+
+        // Close the kebab menu
+        batch.showKebabMenu = false;
+
+        $timeout(function() {
+            batch.isFrozen = !batch.isFrozen;
+            $scope.isLoading = false;
+
+            var successMsg = batch.isFrozen
+                ? 'Batch "' + batch.batchName + '" has been frozen successfully.'
+                : 'Batch "' + batch.batchName + '" has been unfrozen successfully.';
+
+            alert(successMsg);
+        }, 500);
     };
 
 });

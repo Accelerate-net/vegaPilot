@@ -1,7 +1,47 @@
 // Course View Controller - Handles course content navigation and display
 var courseViewApp = angular.module('courseViewApp', []);
 
-courseViewApp.controller('courseViewController', ['$scope', '$timeout', function($scope, $timeout) {
+courseViewApp.controller('courseViewController', ['$scope', '$timeout', '$http', function($scope, $timeout, $http) {
+
+    // ===== API Configuration =====
+    $scope.apiBaseUrl = 'http://localhost:3000/restricted/course';
+
+    // Get token from localStorage
+    $scope.getAuthToken = function() {
+        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+        if (!token) {
+            console.warn('No auth token found. Using default token for development.');
+            localStorage.setItem('authToken', token);
+        }
+        return token;
+    };
+
+    // Loading state
+    $scope.isLoading = false;
+    $scope.loadingMessage = 'Loading...';
+
+    $scope.showLoading = function(message) {
+        $scope.isLoading = true;
+        $scope.loadingMessage = message || 'Loading...';
+    };
+
+    $scope.hideLoading = function() {
+        $scope.isLoading = false;
+    };
+
+    // Format duration from seconds to MM:SS or HH:MM:SS
+    $scope.formatDuration = function(seconds) {
+        if (!seconds || seconds === 0) return '0:00';
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var secs = seconds % 60;
+
+        if (hours > 0) {
+            return hours + ':' + (minutes < 10 ? '0' : '') + minutes + ':' + (secs < 10 ? '0' : '') + secs;
+        } else {
+            return minutes + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+    };
 
     // ===== Initialize Scope Variables =====
     $scope.courseData = {};
@@ -12,8 +52,13 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', function
     $scope.profileData = {};
     $scope.availableModules = [];
     $scope.availableChapters = [];
+    $scope.availableSegments = [];
     $scope.selectedModuleId = '1';
     $scope.selectedChapterId = '1';
+    $scope.selectedSegmentId = '1';
+    $scope.bundleId = null;
+    $scope.segmentId = null;
+    $scope.courseBundleMetadata = null; // Store full metadata from API
 
     // ===== Course Database =====
     $scope.coursesDatabase = {
@@ -164,17 +209,148 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', function
     // ===== Initialize Controller =====
     $scope.init = function() {
         const params = getUrlParams();
+        const urlParams = new URLSearchParams(window.location.search);
+        $scope.bundleId = urlParams.get('bundleId') || urlParams.get('id') || 70005;
+        $scope.segmentId = urlParams.get('segment') || 1;
+
         $scope.selectedPartId = parseInt(params.partId);
         $scope.currentParams = params;
         $scope.selectedModuleId = params.moduleId;
         $scope.selectedChapterId = params.chapterId;
+        $scope.selectedSegmentId = $scope.segmentId.toString();
 
-        $scope.loadCourseData(params.courseCode);
-        $scope.loadAvailableModules(params.courseCode);
-        $scope.loadModuleData(params.courseCode, params.moduleId);
-        $scope.loadAvailableChapters(params.courseCode, params.moduleId);
-        $scope.loadChapterData(params.courseCode, params.moduleId, params.chapterId);
-        $scope.loadProfileData();
+        // Load metadata first, then use it to populate dropdowns
+        $scope.loadCourseBundleMetadata();
+    };
+
+    // ===== Load Course Bundle Metadata from API =====
+    $scope.loadCourseBundleMetadata = function() {
+        $scope.showLoading('Loading course structure...');
+
+        var url = $scope.apiBaseUrl + '/get-course-bundle-content.php';
+        var params = { id: $scope.bundleId };
+
+        console.log('Loading course bundle metadata from API:', url, params);
+
+        $http({
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function(response) {
+            console.log('Course bundle metadata API response:', response.data);
+
+            if (response.data && response.data.status === 'success' && response.data.data) {
+                var metadata = response.data.data;
+                $scope.courseBundleMetadata = metadata;
+
+                // Set course data
+                $scope.courseData = {
+                    bundleId: metadata.bundleId,
+                    displayKey: metadata.displayKey,
+                    title: metadata.title,
+                    syllabus: metadata.syllabus
+                };
+
+                // Build available segments
+                $scope.availableSegments = metadata.content.map(function(segment) {
+                    return {
+                        id: segment.segment.toString(),
+                        name: segment.name
+                    };
+                });
+
+                // Load modules and chapters based on current segment
+                $scope.updateModulesFromMetadata();
+                $scope.updateChaptersFromMetadata();
+
+                // Now load the chapter data
+                $scope.loadChapterData($scope.currentParams.courseCode, $scope.selectedModuleId, $scope.selectedChapterId);
+                $scope.loadProfileData();
+
+                $scope.hideLoading();
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                // Fallback to old methods
+                $scope.loadCourseData($scope.currentParams.courseCode);
+                $scope.loadAvailableModules($scope.currentParams.courseCode);
+                $scope.loadAvailableChapters($scope.currentParams.courseCode, $scope.selectedModuleId);
+                $scope.loadChapterData($scope.currentParams.courseCode, $scope.selectedModuleId, $scope.selectedChapterId);
+                $scope.loadProfileData();
+                $scope.hideLoading();
+            }
+        }, function(error) {
+            console.error('Error loading course bundle metadata:', error);
+            // Fallback to old methods
+            $scope.loadCourseData($scope.currentParams.courseCode);
+            $scope.loadAvailableModules($scope.currentParams.courseCode);
+            $scope.loadAvailableChapters($scope.currentParams.courseCode, $scope.selectedModuleId);
+            $scope.loadChapterData($scope.currentParams.courseCode, $scope.selectedModuleId, $scope.selectedChapterId);
+            $scope.loadProfileData();
+            $scope.hideLoading();
+        });
+    };
+
+    // ===== Update Modules from Metadata =====
+    $scope.updateModulesFromMetadata = function() {
+        if (!$scope.courseBundleMetadata || !$scope.courseBundleMetadata.content) {
+            $scope.availableModules = [];
+            return;
+        }
+
+        // Find the selected segment
+        var selectedSegment = $scope.courseBundleMetadata.content.find(function(seg) {
+            return seg.segment.toString() === $scope.selectedSegmentId;
+        });
+
+        if (selectedSegment && selectedSegment.modules) {
+            $scope.availableModules = selectedSegment.modules.map(function(module) {
+                return {
+                    id: module.moduleId.toString(),
+                    name: module.moduleName
+                };
+            });
+        } else {
+            $scope.availableModules = [];
+        }
+    };
+
+    // ===== Update Chapters from Metadata =====
+    $scope.updateChaptersFromMetadata = function() {
+        if (!$scope.courseBundleMetadata || !$scope.courseBundleMetadata.content) {
+            $scope.availableChapters = [];
+            return;
+        }
+
+        // Find the selected segment
+        var selectedSegment = $scope.courseBundleMetadata.content.find(function(seg) {
+            return seg.segment.toString() === $scope.selectedSegmentId;
+        });
+
+        if (!selectedSegment) {
+            $scope.availableChapters = [];
+            return;
+        }
+
+        // Find the selected module
+        var selectedModule = selectedSegment.modules.find(function(mod) {
+            return mod.moduleId.toString() === $scope.selectedModuleId;
+        });
+
+        if (selectedModule && selectedModule.chapters) {
+            $scope.availableChapters = selectedModule.chapters.map(function(chapter) {
+                return {
+                    id: chapter.chapterId.toString(),
+                    name: chapter.title,
+                    enabled: chapter.enabled
+                };
+            });
+        } else {
+            $scope.availableChapters = [];
+        }
     };
 
     // ===== Load Course Data =====
@@ -262,8 +438,130 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', function
         }, 600);
     };
 
-    // ===== Load Chapter Data with Parts =====
+    // ===== Load Chapter Data with Parts from API =====
     $scope.loadChapterData = function(courseCode, moduleId, chapterId) {
+        // Get bundleId from URL or use default mapping
+        const urlParams = new URLSearchParams(window.location.search);
+        const bundleId = urlParams.get('bundleId') || $scope.bundleId || 70000;
+        const segment = urlParams.get('segment') || $scope.segmentId || 1;
+
+        $scope.showLoading('Loading chapter content...');
+
+        var url = $scope.apiBaseUrl + '/get-course-bundle-content.php';
+        var params = {
+            id: bundleId,
+            segment: segment,
+            module: moduleId,
+            chapter: chapterId
+        };
+
+        console.log('Loading chapter data from API:', url, params);
+
+        $http({
+            method: 'GET',
+            url: url,
+            params: params,
+            headers: {
+                'X-Access-Token': $scope.getAuthToken(),
+                'Content-Type': 'application/json'
+            }
+        }).then(function(response) {
+            console.log('Chapter data API response:', response.data);
+
+            if (response.data && response.data.status === 'success' && response.data.data) {
+                var apiData = response.data.data;
+
+                // Map partsIncluded to parts array
+                var parts = [];
+                if (apiData.partsIncluded) {
+                    Object.keys(apiData.partsIncluded).forEach(function(key) {
+                        var part = apiData.partsIncluded[key];
+                        parts.push({
+                            id: parseInt(key),
+                            title: part.title || 'Part ' + key,
+                            type: part.type,
+                            description: part.type === 'VIDEO' ? 'Video Lecture' : (part.type === 'QUIZ' ? 'Quiz Assessment' : 'Lesson Content'),
+                            fullDescription: part.title || '',
+                            duration: part.duration ? $scope.formatDuration(part.duration) : '0:00',
+                            durationSeconds: part.duration || 0,
+                            views: 0,
+                            downloads: 0,
+                            rating: 4.8,
+                            progressStatus: 'not-started',
+                            progressText: 'Not Started',
+                            videoUrl: null,
+                            libraryId: part.libraryId || null,
+                            videoId: part.videoId || null,
+                            quizId: part.quizId || null,
+                            skipToNext: part.skipToNext !== undefined ? part.skipToNext : true,
+                            sourceDirectory: part.sourceDirectory || null,
+                            sourceKey: part.sourceKey || null
+                        });
+                    });
+                }
+
+                // Sort parts by id
+                parts.sort(function(a, b) { return a.id - b.id; });
+
+                // Get chapter name from availableChapters if available
+                var chapterName = apiData.title || 'Chapter Content';
+                if ($scope.availableChapters && $scope.availableChapters.length > 0) {
+                    var currentChapter = $scope.availableChapters.find(function(ch) {
+                        return ch.id === chapterId.toString();
+                    });
+                    if (currentChapter) {
+                        chapterName = currentChapter.name;
+                    }
+                }
+
+                $scope.chapterData = {
+                    id: apiData.chapter || chapterId,
+                    chapterNumber: apiData.chapterNumber || apiData.chapter,
+                    code: apiData.code || '',
+                    name: chapterName,
+                    label: apiData.label || '',
+                    description: apiData.segmentName + ' - ' + apiData.moduleName || 'Chapter description',
+                    moduleName: apiData.moduleName || '',
+                    segmentName: apiData.segmentName || '',
+                    parts: parts,
+                    partsSummary: apiData.partsSummary || '',
+                    totalVideos: apiData.totalVideos || 0,
+                    totalAttachments: apiData.totalAttachments || 0,
+                    totalQuizzes: apiData.totalQuizzes || 0,
+                    totalHours: apiData.totalHours || 0,
+                    totalSeconds: apiData.totalSeconds || 0,
+                    teacher: apiData.teacher || {},
+                    enabled: apiData.enabled !== undefined ? apiData.enabled : true
+                };
+
+                // Store teacher data
+                if (apiData.teacher) {
+                    $scope.teacherData = apiData.teacher;
+                }
+
+                // Select the first part by default or the specified part
+                if ($scope.chapterData.parts && $scope.chapterData.parts.length > 0) {
+                    const partIndex = Math.min($scope.selectedPartId, $scope.chapterData.parts.length - 1);
+                    $scope.selectPart($scope.chapterData.parts[partIndex]);
+                }
+
+                $scope.hideLoading();
+            } else {
+                console.error('API returned unsuccessful response:', response.data);
+                // Fallback to dummy data
+                $scope.loadChapterDataFallback(courseCode, moduleId, chapterId);
+                $scope.hideLoading();
+            }
+        }, function(error) {
+            console.error('Error loading chapter data:', error);
+            // Fallback to dummy data
+            $scope.loadChapterDataFallback(courseCode, moduleId, chapterId);
+            $scope.hideLoading();
+        });
+    };
+
+    // Fallback function with dummy data
+    $scope.loadChapterDataFallback = function(courseCode, moduleId, chapterId) {
         $timeout(function() {
             const course = $scope.coursesDatabase[courseCode];
             let chapterName = 'Chapter Content';
@@ -505,10 +803,39 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', function
         return currentIndex < $scope.chapterData.parts.length - 1;
     };
 
+    // ===== Segment Change Handler =====
+    $scope.onSegmentChange = function() {
+        // Update available modules for the selected segment
+        if ($scope.courseBundleMetadata) {
+            $scope.updateModulesFromMetadata();
+        }
+
+        // Select the first module of the new segment
+        if ($scope.availableModules.length > 0) {
+            $scope.selectedModuleId = $scope.availableModules[0].id;
+            // Update chapters for the first module
+            $scope.updateChaptersFromMetadata();
+        }
+
+        // Select the first chapter
+        if ($scope.availableChapters.length > 0) {
+            $scope.selectedChapterId = $scope.availableChapters[0].id;
+        }
+
+        // Navigate to the new segment/module/chapter
+        $scope.navigateToModuleAndChapter();
+    };
+
     // ===== Module Change Handler =====
     $scope.onModuleChange = function() {
         // Update available chapters for the selected module
-        $scope.loadAvailableChapters($scope.currentParams.courseCode, $scope.selectedModuleId);
+        if ($scope.courseBundleMetadata) {
+            // Use API metadata
+            $scope.updateChaptersFromMetadata();
+        } else {
+            // Fallback to old method
+            $scope.loadAvailableChapters($scope.currentParams.courseCode, $scope.selectedModuleId);
+        }
 
         // Select the first chapter of the new module
         if ($scope.availableChapters.length > 0) {
@@ -528,6 +855,8 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', function
     // ===== Navigate to Module and Chapter =====
     $scope.navigateToModuleAndChapter = function() {
         var url = 'course-view.html?courseCode=' + $scope.currentParams.courseCode +
+                  '&bundleId=' + $scope.bundleId +
+                  '&segment=' + $scope.selectedSegmentId +
                   '&module=' + $scope.selectedModuleId +
                   '&chapter=' + $scope.selectedChapterId +
                   '&part=0';

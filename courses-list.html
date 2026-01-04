@@ -363,43 +363,11 @@
                         </button>
                      </div>
 
-                     <!-- Statistics Cards -->
-                     <div class="stats-row">
-                        <div class="stat-card">
-                           <div class="stat-icon teal"><i class="ti ti-layers"></i></div>
-                           <div class="stat-info">
-                              <h3>{{stats.totalCourses}}</h3>
-                              <p>Total Courses</p>
-                           </div>
-                        </div>
-                        <div class="stat-card">
-                           <div class="stat-icon green"><i class="ti ti-bookmark"></i></div>
-                           <div class="stat-info">
-                              <h3>{{stats.totalModules}}</h3>
-                              <p>Total Modules</p>
-                           </div>
-                        </div>
-                        <div class="stat-card">
-                           <div class="stat-icon orange"><i class="ti ti-book"></i></div>
-                           <div class="stat-info">
-                              <h3>{{stats.totalChapters}}</h3>
-                              <p>Total Chapters</p>
-                           </div>
-                        </div>
-                        <div class="stat-card">
-                           <div class="stat-icon blue"><i class="ti ti-check"></i></div>
-                           <div class="stat-info">
-                              <h3>{{stats.activeCourses}}</h3>
-                              <p>Active Courses</p>
-                           </div>
-                        </div>
-                     </div>
-
                      <!-- Filter Bar -->
                      <div class="filter-bar">
                         <div class="search-wrapper">
                            <i class="ti ti-search"></i>
-                           <input type="text" class="search-input" placeholder="Search courses by name, ID, or category..." ng-model="searchQuery">
+                           <input type="text" class="search-input" placeholder="Search courses by name, ID, or category..." ng-model="searchQuery" ng-change="searchCourses()">
                         </div>
                      </div>
 
@@ -407,32 +375,32 @@
                      <table class="courses-table">
                         <thead>
                            <tr>
-                              <th class="sortable" ng-click="sortByColumn('code')" ng-class="{active: sortColumn === 'code'}">
+                              <th class="sortable" ng-click="changeSortBy('code')" ng-class="{active: sortBy === 'code'}">
                                  Course ID
-                                 <i class="sort-icon ti" ng-class="sortColumn === 'code' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 <i class="sort-icon ti" ng-class="sortBy === 'code' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                               </th>
-                              <th class="sortable" ng-click="sortByColumn('title')" ng-class="{active: sortColumn === 'title'}">
+                              <th class="sortable" ng-click="changeSortBy('name')" ng-class="{active: sortBy === 'name'}">
                                  Course Name
-                                 <i class="sort-icon ti" ng-class="sortColumn === 'title' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 <i class="sort-icon ti" ng-class="sortBy === 'name' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                               </th>
                               <th>Modules</th>
-                              <th class="sortable" style="text-align: center;" ng-click="sortByColumn('totalChapters')" ng-class="{active: sortColumn === 'totalChapters'}">
+                              <th class="sortable" style="text-align: center;" ng-click="changeSortBy('chapters')" ng-class="{active: sortBy === 'chapters'}">
                                  Chapters
-                                 <i class="sort-icon ti" ng-class="sortColumn === 'totalChapters' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 <i class="sort-icon ti" ng-class="sortBy === 'chapters' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                               </th>
                               <th>Total Duration</th>
-                              <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                              <th class="sortable" ng-click="changeSortBy('status')" ng-class="{active: sortBy === 'status'}">
                                  Status
-                                 <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 <i class="sort-icon ti" ng-class="sortBy === 'status' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                               </th>
-                              <th class="sortable" style="text-align: center;" ng-click="sortByColumn('totalStudents')" ng-class="{active: sortColumn === 'totalStudents'}">
+                              <th class="sortable" style="text-align: center;" ng-click="changeSortBy('students')" ng-class="{active: sortBy === 'students'}">
                                  Students
-                                 <i class="sort-icon ti" ng-class="sortColumn === 'totalStudents' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 <i class="sort-icon ti" ng-class="sortBy === 'students' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                               </th>
                            </tr>
                         </thead>
                         <tbody>
-                           <tr ng-repeat="course in courses | filter:searchQuery" ng-click="openCourse(course)">
+                           <tr ng-repeat="course in courses" ng-click="openCourse(course)">
                               <td>
                                  <div class="course-id">{{course.code}}</div>
                               </td>
@@ -474,10 +442,29 @@
                         </tbody>
                      </table>
 
-                     <div ng-if="(courses | filter:searchQuery).length === 0" style="text-align: center; padding: 60px 20px; background: white; margin-top: 20px; border-radius: 8px;">
+                     <!-- No Results Message -->
+                     <div ng-if="courses.length === 0 && !isLoading" style="text-align: center; padding: 60px 20px; background: white; margin-top: 20px; border-radius: 8px;">
                         <i class="ti ti-search" style="font-size: 64px; color: #dee2e6; margin-bottom: 20px;"></i>
                         <h3 style="color: #6c757d; margin: 0 0 10px 0;">No courses found</h3>
                         <p style="color: #adb5bd;">Try adjusting your search criteria</p>
+                     </div>
+
+                     <!-- Pagination Controls -->
+                     <div ng-if="courses.length > 0" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px 20px; background: white; border-radius: 8px;">
+                        <div style="color: #6c757d; font-size: 14px;">
+                           Showing {{(currentPage - 1) * itemsPerPage + 1}} to {{Math.min(currentPage * itemsPerPage, totalItems)}} of {{totalItems}} courses
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                           <button class="btn btn-sm" ng-click="previousPage()" ng-disabled="currentPage === 1" style="padding: 6px 12px;">
+                              <i class="ti ti-chevron-left"></i> Previous
+                           </button>
+                           <button class="btn btn-sm" ng-repeat="page in getPageNumbers()" ng-click="goToPage(page)" ng-class="{active: page === currentPage}" style="padding: 6px 12px; min-width: 40px;">
+                              {{page}}
+                           </button>
+                           <button class="btn btn-sm" ng-click="nextPage()" ng-disabled="currentPage === totalPages" style="padding: 6px 12px;">
+                              Next <i class="ti ti-chevron-right"></i>
+                           </button>
+                        </div>
                      </div>
 
                      </div>
@@ -506,123 +493,105 @@
                   <i class="ti ti-close"></i>
                </button>
             </div>
-            <div class="modal-body" style="padding: 25px;">
+            <div class="modal-body" style="padding: 24px;">
                <!-- Search Bar -->
                <div style="margin-bottom: 20px;">
-                  <div class="input-group">
-                     <span class="input-group-addon" style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
-                        <i class="ti ti-search"></i>
-                     </span>
+                  <div class="search-wrapper">
+                     <i class="ti ti-search"></i>
                      <input type="text"
-                            class="form-control"
-                            placeholder="Search by name, email, or phone..."
+                            class="search-input"
+                            placeholder="Search students by name or email..."
                             ng-model="studentSearchQuery"
-                            style="border-left: none;">
-                     <span class="input-group-btn" ng-if="studentSearchQuery">
-                        <button class="btn btn-default"
-                                ng-click="studentSearchQuery = ''"
-                                style="border: 1px solid #dee2e6; border-left: none;">
-                           <i class="ti ti-close"></i>
+                            ng-change="searchStudents()">
+                  </div>
+               </div>
+
+               <!-- Students Table -->
+               <div ng-if="selectedCourseForStudents && paginatedStudentsList.length > 0">
+                  <table class="mentors-table" style="margin-bottom: 0;">
+                     <thead>
+                        <tr>
+                           <th ng-click="changeStudentsSort('name')" style="cursor: pointer;">
+                              Student Name
+                              <i class="ti" ng-class="{'ti-sort-ascending': studentsSortBy === 'name' && studentsSortOrder === 'ASC', 'ti-sort-descending': studentsSortBy === 'name' && studentsSortOrder === 'DESC'}" style="margin-left: 5px; font-size: 14px;"></i>
+                           </th>
+                           <th ng-click="changeStudentsSort('email')" style="cursor: pointer;">
+                              Email
+                              <i class="ti" ng-class="{'ti-sort-ascending': studentsSortBy === 'email' && studentsSortOrder === 'ASC', 'ti-sort-descending': studentsSortBy === 'email' && studentsSortOrder === 'DESC'}" style="margin-left: 5px; font-size: 14px;"></i>
+                           </th>
+                           <th>Phone</th>
+                           <th ng-click="changeStudentsSort('enrollmentDate')" style="cursor: pointer;">
+                              Enrollment Date
+                              <i class="ti" ng-class="{'ti-sort-ascending': studentsSortBy === 'enrollmentDate' && studentsSortOrder === 'ASC', 'ti-sort-descending': studentsSortBy === 'enrollmentDate' && studentsSortOrder === 'DESC'}" style="margin-left: 5px; font-size: 14px;"></i>
+                           </th>
+                           <th ng-click="changeStudentsSort('enrollmentStatus')" style="cursor: pointer;">
+                              Status
+                              <i class="ti" ng-class="{'ti-sort-ascending': studentsSortBy === 'enrollmentStatus' && studentsSortOrder === 'ASC', 'ti-sort-descending': studentsSortBy === 'enrollmentStatus' && studentsSortOrder === 'DESC'}" style="margin-left: 5px; font-size: 14px;"></i>
+                           </th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr ng-repeat="student in paginatedStudentsList"
+                            ng-click="viewStudentProfile(student)"
+                            style="cursor: pointer;">
+                           <td>
+                              <div style="font-weight: 500; color: #333;">{{student.name}}</div>
+                              <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">ID: {{student.id}}</div>
+                           </td>
+                           <td>
+                              <div style="font-size: 13px; color: #495057;">{{student.email}}</div>
+                           </td>
+                           <td>
+                              <div style="font-size: 13px; color: #495057;">{{student.phone || 'N/A'}}</div>
+                           </td>
+                           <td>
+                              <div style="font-size: 13px; color: #495057;">{{formatDate(student.enrollmentDate)}}</div>
+                           </td>
+                           <td>
+                              <span class="status-badge"
+                                    ng-class="{'status-active': student.enrollmentStatusText === 'Active' || student.status === 'active', 'status-inactive': student.enrollmentStatusText !== 'Active' && student.status !== 'active'}">
+                                 {{student.enrollmentStatusText || student.status || 'Active'}}
+                              </span>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+
+                  <!-- Pagination -->
+                  <div class="pagination-container" style="margin-top: 0;">
+                     <div class="pagination-info">
+                        Showing {{(studentsCurrentPage - 1) * studentsItemsPerPage + 1}} to {{Math.min(studentsCurrentPage * studentsItemsPerPage, studentsTotalItems)}} of {{studentsTotalItems}} students
+                     </div>
+                     <div class="pagination-controls">
+                        <button class="pagination-btn" ng-click="studentsPreviousPage()" ng-disabled="studentsCurrentPage === 1">
+                           <i class="ti ti-angle-left"></i> Previous
                         </button>
-                     </span>
+                        <button class="pagination-btn"
+                                ng-repeat="page in getStudentsPageNumbers()"
+                                ng-class="{active: page === studentsCurrentPage}"
+                                ng-click="studentsGoToPage(page)">
+                           {{page}}
+                        </button>
+                        <button class="pagination-btn" ng-click="studentsNextPage()" ng-disabled="studentsCurrentPage === studentsTotalPages">
+                           Next <i class="ti ti-angle-right"></i>
+                        </button>
+                     </div>
                   </div>
                </div>
 
-               <div ng-if="selectedCourseForStudents && filteredStudentsList.length > 0">
-                  <p style="color: #6c757d; margin-bottom: 20px;">
-                     Showing <strong>{{filteredStudentsList.length}}</strong> of <strong>{{selectedCourseForStudents.enrolledStudents.length}}</strong> student(s) enrolled in this course.
-                  </p>
-
-                  <div style="max-height: 500px; overflow-y: auto;">
-                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                           <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 10;">
-                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Student
-                              </th>
-                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Email
-                              </th>
-                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Phone
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Enrollment Date
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Status
-                              </th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                           <tr ng-repeat="student in filteredStudentsList"
-                               style="border-bottom: 1px solid #e9ecef; cursor: pointer; transition: background 0.2s ease;"
-                               onmouseover="this.style.background='#f8f9fa'"
-                               onmouseout="this.style.background='white'"
-                               ng-click="viewStudentProfile(student)">
-                              <td style="padding: 15px;">
-                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <img ng-if="student.avatar"
-                                         ng-src="{{student.avatar}}"
-                                         alt="{{student.name}}"
-                                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #006073;">
-                                    <div ng-if="!student.avatar"
-                                         style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #006073 0%, #008ba3 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
-                                       {{getInitials(student.name)}}
-                                    </div>
-                                    <div>
-                                       <div style="font-weight: 600; color: #333; margin-bottom: 2px;">{{student.name}}</div>
-                                       <div style="font-size: 11px; color: #6c757d;">ID: {{student.id}}</div>
-                                    </div>
-                                 </div>
-                              </td>
-                              <td style="padding: 15px;">
-                                 <div style="color: #333; font-size: 13px;">
-                                    <i class="ti ti-email" style="margin-right: 5px; color: #6c757d;"></i>{{student.email}}
-                                 </div>
-                              </td>
-                              <td style="padding: 15px;">
-                                 <div style="color: #333; font-size: 13px;">
-                                    <i class="ti ti-mobile" style="margin-right: 5px; color: #6c757d;"></i>{{student.phone}}
-                                 </div>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <div style="color: #333; font-size: 13px;">{{formatDate(student.enrollmentDate)}}</div>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <span ng-if="student.status === 'active'"
-                                       style="display: inline-block; padding: 4px 10px; background: #d4edda; color: #155724; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
-                                    Active
-                                 </span>
-                                 <span ng-if="student.status === 'inactive'"
-                                       style="display: inline-block; padding: 4px 10px; background: #f8d7da; color: #721c24; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
-                                    Inactive
-                                 </span>
-                              </td>
-                           </tr>
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-
-               <div ng-if="!selectedCourseForStudents || selectedCourseForStudents.enrolledStudents.length === 0"
+               <div ng-if="selectedCourseForStudents && studentsTotalItems === 0 && !studentSearchQuery"
                     style="text-align: center; padding: 60px 20px;">
                   <i class="ti ti-user" style="font-size: 64px; color: #dee2e6; margin-bottom: 20px;"></i>
                   <h4 style="color: #495057; margin-bottom: 8px;">No Students Enrolled</h4>
                   <p style="color: #6c757d;">This course doesn't have any enrolled students yet.</p>
                </div>
 
-               <div ng-if="selectedCourseForStudents && selectedCourseForStudents.enrolledStudents.length > 0 && filteredStudentsList.length === 0"
+               <div ng-if="selectedCourseForStudents && studentsTotalItems === 0 && studentSearchQuery"
                     style="text-align: center; padding: 60px 20px;">
                   <i class="ti ti-search" style="font-size: 64px; color: #dee2e6; margin-bottom: 20px;"></i>
                   <h4 style="color: #495057; margin-bottom: 8px;">No Students Found</h4>
                   <p style="color: #6c757d;">No students match your search criteria. Try adjusting your search.</p>
                </div>
-            </div>
-            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px; background: #f8f9fa; border-radius: 0 0 8px 8px;">
-               <button class="btn btn-default" ng-click="closeStudentsModal()" style="padding: 8px 20px;">
-                  <i class="ti ti-close"></i> Close
-               </button>
             </div>
          </div>
       </div>
@@ -645,6 +614,185 @@
 
          .modal-close:hover {
             background: rgba(255, 255, 255, 0.2) !important;
+         }
+
+         /* Pagination styles */
+         .btn-sm {
+            background: white;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+         }
+
+         .btn-sm:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+         }
+
+         .btn-sm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+         }
+
+         .btn-sm.active {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+         }
+
+         .btn-primary {
+            background: #006073;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+         }
+
+         .btn-primary:hover {
+            background: #004a59;
+         }
+
+         /* Mentors/Students Table Styles */
+         .mentors-table {
+            width: 100%;
+            border-collapse: collapse;
+         }
+
+         .mentors-table thead {
+            background: #f8f9fa;
+         }
+
+         .mentors-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e9ecef;
+         }
+
+         .mentors-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+         }
+
+         .mentors-table tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+
+         .mentors-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+         }
+
+         .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+         }
+
+         .status-active {
+            background: #d1fae5;
+            color: #065f46;
+         }
+
+         .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+         }
+
+         /* Pagination Styles */
+         .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+         }
+
+         .pagination-info {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+         }
+
+         .pagination-controls {
+            display: flex;
+            gap: 8px;
+         }
+
+         .pagination-btn {
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 38px;
+         }
+
+         .pagination-btn:hover:not(:disabled) {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 96, 115, 0.2);
+         }
+
+         .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8f9fa;
+         }
+
+         .pagination-btn.active {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            font-weight: 600;
+         }
+
+         .search-wrapper {
+            position: relative;
+            width: 100%;
+         }
+
+         .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 16px;
+         }
+
+         .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+         }
+
+         .search-input:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
          }
       </style>
 
