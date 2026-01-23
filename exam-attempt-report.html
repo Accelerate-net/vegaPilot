@@ -2,12 +2,12 @@
 <html lang="en">
    <head>
       <meta charset="utf-8">
-      <title>Quiz Report - VegaPilot</title>
+      <title>Exam Report - VegaPilot</title>
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-touch-fullscreen" content="yes">
-      <meta name="description" content="VegaPilot Quiz Report">
+      <meta name="description" content="VegaPilot Exam Report">
       <meta name="author" content="VegaPilot">
 
       <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
@@ -16,15 +16,15 @@
       <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
 
       <style>
-         /* Combined Quiz Header Card */
-         .quiz-header-card {
+         /* Combined Exam Header Card */
+         .exam-header-card {
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
             overflow: hidden;
          }
-         .quiz-header-top {
+         .exam-header-top {
             background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
             padding: 25px;
             color: white;
@@ -32,25 +32,25 @@
             justify-content: space-between;
             align-items: flex-start;
          }
-         .quiz-header-top h2 {
+         .exam-header-top h2 {
             margin: 0 0 8px 0;
             font-size: 24px;
             font-weight: 600;
          }
-         .quiz-header-top h2 i {
+         .exam-header-top h2 i {
             margin-right: 10px;
             opacity: 0.9;
          }
-         .quiz-header-top .quiz-description {
+         .exam-header-top .exam-description {
             margin: 0;
             opacity: 0.9;
             font-size: 14px;
          }
-         .quiz-header-body {
+         .exam-header-body {
             padding: 25px;
             background: #f8f9fa;
          }
-         .quiz-info-grid {
+         .exam-info-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
@@ -528,9 +528,21 @@
          .filter-badge i:hover {
             opacity: 1;
          }
+
+         /* Section Badge */
+         .section-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            margin: 2px;
+            background: #e7f5f7;
+            color: #006073;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+         }
       </style>
    </head>
-   <body class="animated-content" ng-app="quizReportApp" ng-controller="quizReportController" ng-init="init()" ng-cloak ng-click="closeBatchDropdown()">
+   <body class="animated-content" ng-app="examReportApp" ng-controller="examReportController" ng-init="init()" ng-cloak ng-click="closeBatchDropdown()">
       <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
          <div class="logo-area">
             <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
@@ -573,8 +585,8 @@
                                <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
                                <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                               <li><a href="quiz-listing.html" class="active"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                               <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+                               <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
+                               <li><a href="exam-listing.html" class="active"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
 
                                <li class="nav-separator"><span>Content Library</span></li>
                                <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
@@ -602,42 +614,41 @@
                   <div class="page-content">
                      <div class="container-fluid" style="padding-top: 4%;">
 
-                        <!-- Combined Quiz Header Card -->
-                        <div class="quiz-header-card">
-                           <div class="quiz-header-top">
+                        <!-- Combined Exam Header Card -->
+                        <div class="exam-header-card">
+                           <div class="exam-header-top">
                               <div>
-                                 <h2><i class="ti ti-bar-chart"></i> {{quiz.title}}</h2>
-                                 <p class="quiz-description">{{quiz.description}}</p>
-                                 <!-- Course Context (if applicable) -->
-                                 <div ng-if="courseInfo" style="margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.9;">
-                                    <i class="ti ti-book"></i>
-                                    <span>{{courseInfo.name}}</span>
-                                    <span ng-if="courseInfo.module"> · {{courseInfo.module}}</span>
-                                    <span ng-if="courseInfo.chapter"> · {{courseInfo.chapter}}</span>
+                                 <h2><i class="ti ti-bar-chart"></i> {{exam.title}}</h2>
+                                 <p class="exam-description">{{exam.brief}}</p>
+                                 <!-- Sections Info -->
+                                 <div ng-if="exam.sectionsData" style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;">
+                                    <span ng-repeat="section in exam.sectionsData" class="section-badge" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                                       {{section.name}}
+                                    </span>
                                  </div>
                               </div>
-                              <a href="quiz-listing.html" class="btn btn-light" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                                 <i class="ti ti-arrow-left"></i> Back to Quizzes
+                              <a href="exam-listing.html" class="btn btn-light" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                                 <i class="ti ti-arrow-left"></i> Back to Exams
                               </a>
                            </div>
-                           <div class="quiz-header-body">
-                              <!-- Quiz Info Row -->
-                              <div class="quiz-info-grid" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;">
+                           <div class="exam-header-body">
+                              <!-- Exam Info Row -->
+                              <div class="exam-info-grid" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;">
                                  <div class="info-item">
                                     <div class="info-label">Questions</div>
-                                    <div class="info-value">{{quiz.totalQuestions}}</div>
+                                    <div class="info-value">{{exam.totalQuestions}}</div>
                                  </div>
                                  <div class="info-item">
                                     <div class="info-label">Duration</div>
-                                    <div class="info-value">{{quiz.duration}} min</div>
+                                    <div class="info-value">{{exam.duration}} min</div>
                                  </div>
                                  <div class="info-item">
-                                    <div class="info-label">Max Marks</div>
-                                    <div class="info-value">{{quiz.maximumMarks}}</div>
+                                    <div class="info-label">Sections</div>
+                                    <div class="info-value">{{exam.numberOfSections}}</div>
                                  </div>
                                  <div class="info-item">
                                     <div class="info-label">Status</div>
-                                    <div class="info-value" style="text-transform: capitalize;">{{quiz.status}}</div>
+                                    <div class="info-value" style="text-transform: capitalize;">{{getStatusLabel(exam.status)}}</div>
                                  </div>
                               </div>
                               <!-- Statistics Row -->
@@ -692,7 +703,7 @@
                                  <input type="text"
                                         class="form-control"
                                         ng-model="searchQuery"
-                                        placeholder="Search by student name or email..."
+                                        placeholder="Search by student name or roll number..."
                                         style="height: 38px;">
                               </div>
                               <div>
@@ -879,7 +890,7 @@
                                     </td>
                                     <td>
                                        <span class="score-badge" ng-class="getScoreClass(ranking.percentage)" ng-if="ranking.status === 'completed'">
-                                          {{ranking.score}}/{{quiz.maximumMarks}}
+                                          {{ranking.score}}/{{exam.maximumMarks}}
                                        </span>
                                        <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
                                     </td>
@@ -928,7 +939,7 @@
                            <i class="ti ti-search"></i>
                            <h4>No Results Found</h4>
                            <p ng-if="searchQuery || statusFilter !== 'all'">Try adjusting your search or filters.</p>
-                           <p ng-if="!searchQuery && statusFilter === 'all'">No students have attempted this quiz yet.</p>
+                           <p ng-if="!searchQuery && statusFilter === 'all'">No students have attempted this exam yet.</p>
                         </div>
 
                      </div>
@@ -1108,6 +1119,6 @@
       <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
       <script type="text/javascript" src="assets/js/application.js"></script>
       <script type="text/javascript" src="assets/demo/demo.js"></script>
-      <script src="controllers/quiz-attempt-report.js"></script>
+      <script src="controllers/exam-attempt-report.js"></script>
    </body>
 </html>

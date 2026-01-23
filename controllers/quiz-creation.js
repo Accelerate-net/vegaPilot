@@ -24,7 +24,8 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
         startDate: '',
         startTime: '09:00',
         endDate: '',
-        endTime: '18:00'
+        endTime: '18:00',
+        allowMultipleAttempts: false
     };
 
     // ===== Initialize Controller =====
@@ -90,32 +91,47 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
         console.log('Batch IDs:', $scope.availableBatches.map(function(b) { return b.id; }));
     };
 
-    // ===== Check for Preselected Batches from Practice Questions Page =====
+    // ===== Check for Preselected Batches from Practice Questions Page or URL =====
     $scope.checkForPreselectedBatches = function() {
-        var quizCreationData = localStorage.getItem('quizCreationData');
-        if (quizCreationData) {
+        var preselectedBatchIds = [];
+
+        // First, check URL parameters (e.g., ?bundlesSelected=[00001,00002])
+        var urlParams = new URLSearchParams(window.location.search);
+        var bundlesParam = urlParams.get('bundlesSelected');
+        if (bundlesParam) {
             try {
-                var data = JSON.parse(quizCreationData);
-                var preselectedBatchIds = data.batches || [];
-
-                // Mark batches as selected
-                $scope.availableBatches.forEach(function(batch) {
-                    if (preselectedBatchIds.indexOf(batch.id) !== -1) {
-                        batch.selected = true;
-                    }
+                // Parse the array from URL (format: [00001,00002] or 00001,00002)
+                var cleanParam = bundlesParam.replace(/[\[\]]/g, '');
+                preselectedBatchIds = cleanParam.split(',').map(function(id) {
+                    return id.trim();
+                }).filter(function(id) {
+                    return id.length > 0;
                 });
-
-                // Load questions from selected batches
-                if (preselectedBatchIds.length > 0) {
-                    $scope.loadQuestionsFromBatches();
-                }
-
-                // Clear the data after loading
-                localStorage.removeItem('quizCreationData');
+                console.log('Loaded bundles from URL:', preselectedBatchIds);
             } catch (e) {
-                console.error('Error loading quiz creation data:', e);
+                console.error('Error parsing bundlesSelected from URL:', e);
             }
         }
+
+        // If no URL params (bundlesSelected not provided), redirect to practice-questions.html
+        if (preselectedBatchIds.length === 0) {
+            console.log('No bundlesSelected parameter found, redirecting to practice-questions.html');
+            window.location.href = 'practice-questions.html';
+            return;
+        }
+
+        // Filter availableBatches to show only pre-selected ones
+        $scope.availableBatches = $scope.availableBatches.filter(function(batch) {
+            return preselectedBatchIds.indexOf(batch.id) !== -1;
+        });
+
+        // Mark all filtered batches as selected by default
+        $scope.availableBatches.forEach(function(batch) {
+            batch.selected = true;
+        });
+
+        // Load questions from selected batches
+        $scope.loadQuestionsFromBatches();
     };
 
     // ===== Toggle Batch Selection =====
@@ -125,6 +141,8 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
         });
         if (batch) {
             batch.selected = !batch.selected;
+            // Reload questions based on updated selection
+            $scope.loadQuestionsFromBatches();
         }
     };
 
@@ -358,10 +376,41 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
     };
 
     // ===== Format Date Time =====
-    $scope.formatDateTime = function(dateStr, timeStr) {
-        if (!dateStr || !timeStr) return 'Not set';
+    $scope.formatDateTime = function(dateVal, timeVal) {
+        if (!dateVal || !timeVal) return 'Not set';
 
-        var date = new Date(dateStr + 'T' + timeStr);
+        var date;
+
+        // Handle Date object (from AngularJS date input) or string
+        if (dateVal instanceof Date) {
+            // dateVal is already a Date object, extract date parts
+            var year = dateVal.getFullYear();
+            var month = String(dateVal.getMonth() + 1).padStart(2, '0');
+            var day = String(dateVal.getDate()).padStart(2, '0');
+            var dateStr = year + '-' + month + '-' + day;
+
+            // Handle time - could be Date object or string
+            var timeStr;
+            if (timeVal instanceof Date) {
+                var hours = String(timeVal.getHours()).padStart(2, '0');
+                var mins = String(timeVal.getMinutes()).padStart(2, '0');
+                timeStr = hours + ':' + mins;
+            } else {
+                timeStr = timeVal;
+            }
+
+            date = new Date(dateStr + 'T' + timeStr);
+        } else {
+            // Both are strings
+            var timeStr = (timeVal instanceof Date)
+                ? String(timeVal.getHours()).padStart(2, '0') + ':' + String(timeVal.getMinutes()).padStart(2, '0')
+                : timeVal;
+            date = new Date(dateVal + 'T' + timeStr);
+        }
+
+        // Check if date is valid
+        if (isNaN(date.getTime())) return 'Invalid date';
+
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         var formattedDate = months[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();

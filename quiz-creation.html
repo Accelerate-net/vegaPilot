@@ -460,19 +460,21 @@
 
                         <div ng-if="availableBatches.length > 0">
                            <p style="margin-bottom: 20px; color: #6c757d;">
-                              Select one or more batches to include questions in your quiz
+                              Click on a bundle to select or deselect it for this quiz
                            </p>
 
                            <div class="batch-grid">
                               <div ng-repeat="batch in availableBatches"
                                    class="batch-card"
                                    ng-class="{selected: batch.selected}"
-                                   ng-click="toggleBatch(batch.id)">
+                                   ng-click="toggleBatch(batch.id)"
+                                   style="cursor: pointer;">
                                  <div style="display: flex; align-items: center; margin-bottom: 10px;">
                                     <input type="checkbox"
                                            class="batch-checkbox"
-                                           ng-model="batch.selected"
-                                           ng-click="$event.stopPropagation()">
+                                           ng-checked="batch.selected"
+                                           ng-click="toggleBatch(batch.id); $event.stopPropagation()"
+                                           style="width: 18px; height: 18px; cursor: pointer; margin-right: 10px;">
                                     <strong style="font-size: 15px;">{{batch.id}}</strong>
                                  </div>
                                  <div style="font-size: 13px; color: #6c757d;">
@@ -482,11 +484,16 @@
                               </div>
                            </div>
 
-                           <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
-                              <strong>Selected: </strong>
-                              <span ng-if="getSelectedBatches().length === 0" style="color: #6c757d;">None</span>
-                              <span ng-if="getSelectedBatches().length > 0">
-                                 {{getSelectedBatches().length}} batch(es), {{getTotalQuestionsFromBatches()}} question(s)
+                           <div ng-if="getSelectedBatches().length > 0" style="margin-top: 20px; padding: 15px; background: #e3f2f5; border-radius: 6px; border-left: 4px solid #006073;">
+                              <strong style="color: #006073;"><i class="ti ti-check"></i> Selected: </strong>
+                              <span>
+                                 {{getSelectedBatches().length}} bundle(s), {{getTotalQuestionsFromBatches()}} question(s) ready
+                              </span>
+                           </div>
+                           <div ng-if="getSelectedBatches().length === 0" style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+                              <strong style="color: #856404;"><i class="ti ti-alert-triangle"></i> No bundles selected: </strong>
+                              <span style="color: #856404;">
+                                 Please select at least one bundle to continue
                               </span>
                            </div>
                         </div>
@@ -740,7 +747,8 @@
                            </div>
                         </div>
 
-                        <div style="padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-top: 15px;">
+                        <div ng-if="quizConfig.startDate && quizConfig.startTime && quizConfig.endDate && quizConfig.endTime"
+                             style="padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; margin-top: 15px;">
                            <strong style="color: #856404;">
                               <i class="ti ti-info-alt"></i> Schedule Window
                            </strong>
@@ -749,6 +757,21 @@
                               <strong>{{formatDateTime(quizConfig.startDate, quizConfig.startTime)}}</strong> and
                               <strong>{{formatDateTime(quizConfig.endDate, quizConfig.endTime)}}</strong>
                            </p>
+                        </div>
+
+                        <!-- Multiple Attempts Option -->
+                        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+                           <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+                              <input type="checkbox"
+                                     ng-model="quizConfig.allowMultipleAttempts"
+                                     style="width: 18px; height: 18px; cursor: pointer;">
+                              <span style="font-size: 14px; color: #333;">
+                                 <strong>Allow Multiple Attempts for given Candidate</strong>
+                                 <span style="display: block; font-size: 12px; color: #6c757d; margin-top: 3px;">
+                                    When enabled, candidates can retake this quiz multiple times within the schedule window
+                                 </span>
+                              </span>
+                           </label>
                         </div>
                      </div>
 

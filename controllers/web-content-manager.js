@@ -12,8 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
         autoEnroll: { courses: [] }, // courses is now array of objects: { code, validity }
         discounts: []
     };
+    let discountsPagination = {
+        currentPage: 1,
+        totalPages: 1,
+        total: 0,
+        pageSize: 10
+    };
     let initialAutoEnrollConfig = null; // Store initial state for comparison
     let tempSelectedCourses = []; // Array of codes for modal selection
+    let selectedUsers = []; // Array of selected user objects for discount
+    let userSearchTimeout = null; // Debounce timer for user search
+    let voucherUsersPagination = {
+        currentPage: 1,
+        totalPages: 1,
+        total: 0,
+        pageSize: 5
+    };
+    let currentVoucherId = null;
+    let currentVoucherCode = '';
+    let voucherUsersSearchQuery = '';
+    let currentStatusFilter = 'all'; // 'all' or 'active'
 
     // DOM Elements
     const selectedCoursesList = document.getElementById('selectedCoursesList');
@@ -28,14 +46,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const courseSearchInput = document.getElementById('courseSearchInput');
     const closeModalBtns = document.querySelectorAll('.close-modal');
     const discountForm = document.getElementById('discountForm');
+    const voucherDetailsModal = document.getElementById('voucherDetailsModal');
+    const voucherDetailsContent = document.getElementById('voucherDetailsContent');
+    const statusFilter = document.getElementById('statusFilter');
+
+    console.log('DOM Elements Check:');
+    console.log('addDiscountBtn:', addDiscountBtn);
+    console.log('discountModal:', discountModal);
+    console.log('discountForm:', discountForm);
     const modalEmptyState = document.getElementById('modalEmptyState');
     const modalPageInfo = document.getElementById('modalPageInfo');
     const modalPrevPage = document.getElementById('modalPrevPage');
     const modalNextPage = document.getElementById('modalNextPage');
     const modalPageNumbers = document.getElementById('modalPageNumbers');
     const modalPaginationContainer = document.getElementById('modalPaginationContainer');
+    const limitedUsersCheckbox = document.getElementById('limitedUsersCheckbox');
+    const userSelectionContainer = document.getElementById('userSelectionContainer');
+    const userSearchInput = document.getElementById('userSearchInput');
+    const userSearchResults = document.getElementById('userSearchResults');
+    const selectedUsersContainer = document.getElementById('selectedUsersContainer');
+    const viewUsersModal = document.getElementById('viewUsersModal');
+    const viewUsersModalTitle = document.getElementById('viewUsersModalTitle');
+    const voucherUsersTableBody = document.querySelector('#voucherUsersTable tbody');
+    const voucherUserSearchInput = document.getElementById('voucherUserSearchInput');
+    const voucherUsersPageInfo = document.getElementById('voucherUsersPageInfo');
+    const voucherUsersPrevPage = document.getElementById('voucherUsersPrevPage');
+    const voucherUsersNextPage = document.getElementById('voucherUsersNextPage');
+    const voucherUsersPageNumbers = document.getElementById('voucherUsersPageNumbers');
+
+    // Discounts Pagination Elements
+    const discountsPaginationContainer = document.getElementById('discountsPaginationContainer');
+    const discountsPageInfo = document.getElementById('discountsPageInfo');
+    const discountsPrevPage = document.getElementById('discountsPrevPage');
+    const discountsNextPage = document.getElementById('discountsNextPage');
+    const discountsPageNumbers = document.getElementById('discountsPageNumbers');
+
+    // Revoke Confirmation Modal Elements
+    const revokeConfirmModal = document.getElementById('revokeConfirmModal');
+    const revokeVoucherCode = document.getElementById('revokeVoucherCode');
+    const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
+    let pendingRevokeId = null;
 
     // Helper Functions
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     function formatDuration(seconds) {
         if (!seconds || seconds === 0) return '0h 0m';
         const hours = Math.floor(seconds / 3600);
@@ -66,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     async function init() {
-        // Fetch courses and config
-        const [coursesResult] = await Promise.all([fetchCourses(), fetchConfig()]);
+        // Fetch courses, config, and discounts
+        const [coursesResult] = await Promise.all([fetchCourses(), fetchConfig(), fetchDiscounts()]);
 
         // Handle courses result
         if (coursesResult) {
@@ -88,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save initial state for comparison
         initialAutoEnrollConfig = JSON.parse(JSON.stringify(config.autoEnroll.courses));
         renderSelectedCourses();
-        renderDiscounts();
+        // renderDiscounts() is called inside fetchDiscounts() after data loads
         updateSaveButtonVisibility();
     }
 
@@ -358,8 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     course: removed.code,
                     type: removed.validity.type === 'fixed' ? 'fixed-date' : 'duration',
                     value: removed.validity.type === 'fixed' ?
-                           removed.validity.value.split('-').reverse().join('-') : // Convert to DD-MM-YYYY
-                           `${removed.validity.value} ${removed.validity.unit === 'days' ? 'D' : removed.validity.unit === 'months' ? 'M' : 'Y'}`,
+                        removed.validity.value.split('-').reverse().join('-') : // Convert to DD-MM-YYYY
+                        `${removed.validity.value} ${removed.validity.unit === 'days' ? 'D' : removed.validity.unit === 'months' ? 'M' : 'Y'}`,
                     status: 0  // Mark as removed
                 }));
 
@@ -380,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Duration type
                     enrollment.type = 'duration';
                     const unitChar = item.validity.unit === 'days' ? 'D' :
-                                     item.validity.unit === 'months' ? 'M' : 'Y';
+                        item.validity.unit === 'months' ? 'M' : 'Y';
                     enrollment.value = `${item.validity.value} ${unitChar}`;
                 }
 
@@ -421,23 +485,398 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function saveDiscounts(discounts) {
+    async function saveDiscount(discountData) {
         try {
-            const res = await fetch('/api/web-content/discounts', {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+
+            const url = 'http://localhost:3000/restricted/config/add-new-voucher-code.php';
+
+            console.log('Saving discount:', discountData);
+
+            // Send as text/plain to avoid CORS preflight
+            // The server should read from php://input and json_decode it
+            const res = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(discounts)
+                headers: {
+                    'X-Access-Token': token,
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify(discountData)
             });
+
             const result = await res.json();
-            if (result.success) {
-                config.discounts = discounts;
-                renderDiscounts();
+            console.log('Save discount API response:', result);
+
+            if (result.status === 'success') {
+                alert('Discount code created successfully!');
+                // Refresh the discounts list
+                await fetchDiscounts();
             } else {
-                alert('Failed to save discount code.');
+                alert('Failed to save discount code: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
-            console.error('Error saving discounts:', err);
+            console.error('Error saving discount:', err);
             alert('Error saving discount code.');
+        }
+    }
+
+    async function performRevoke(voucherId) {
+        try {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+            const url = `http://localhost:3000/restricted/config/revoke-voucher-code.php?id=${voucherId}`;
+
+            console.log('Revoking voucher:', voucherId);
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Access-Token': token
+                }
+            });
+
+            const result = await res.json();
+            console.log('Revoke voucher API response:', result);
+
+            if (result.status === 'success') {
+                alert('Voucher code revoked successfully!');
+                // Refresh the discounts list
+                await fetchDiscounts();
+            } else {
+                alert('Failed to revoke voucher code: ' + (result.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Error revoking voucher:', err);
+            alert('Error revoking voucher code.');
+        }
+    }
+
+    async function searchUsers(searchKey) {
+        try {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+
+            let url = `http://localhost:3000/restricted/people/list-candidates.php?page=1&size=20&sortBy=name`;
+            if (searchKey && searchKey.trim()) {
+                url += `&searchKey=${encodeURIComponent(searchKey.trim())}`;
+            }
+
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Access-Token': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                console.log('User search API response:', result);
+                if (result.status === 'success' && result.data) {
+                    return result.data.map(user => ({
+                        id: user.id,
+                        candidateKey: user.candidateKey,
+                        name: user.name,
+                        email: user.email,
+                        mobile: user.mobile || user.registeredMobile,
+                        photo: user.photo
+                    }));
+                }
+            }
+            return [];
+        } catch (err) {
+            console.error('Error searching users:', err);
+            return [];
+        }
+    }
+
+    async function fetchVoucherUsers(voucherId, page = 1, size = 5, searchKey = '', sortBy = 'name') {
+        try {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+
+            let url = `http://localhost:3000/restricted/config/get-users-associated-to-voucher-code.php?id=${voucherId}&page=${page}&size=${size}&sortBy=${sortBy}&searchKey=${encodeURIComponent(searchKey)}`;
+
+            console.log('Fetching voucher users from:', url);
+
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Access-Token': token
+                }
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                console.log('Voucher users API response:', result);
+
+                if (result.status === 'success') {
+                    // Update pagination
+                    if (result.pagination) {
+                        voucherUsersPagination.currentPage = result.pagination.currentPage;
+                        voucherUsersPagination.totalPages = result.pagination.totalPages;
+                        voucherUsersPagination.total = result.pagination.totalRecords;
+                        voucherUsersPagination.pageSize = result.pagination.pageSize;
+                    }
+
+                    // Update modal title with voucher info
+                    if (result.voucherInfo) {
+                        viewUsersModalTitle.textContent = `Users Associated with "${result.voucherInfo.code}" (${result.voucherInfo.totalAssociatedUsers} total)`;
+                    }
+
+                    renderVoucherUsers(result.data || []);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching voucher users:', err);
+        }
+    }
+
+    function renderVoucherUsers(users) {
+        if (!users || users.length === 0) {
+            voucherUsersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+                        No users found
+                    </td>
+                </tr>
+            `;
+            renderVoucherUsersPageNumbers();
+            return;
+        }
+
+        voucherUsersTableBody.innerHTML = users.map(user => {
+            let statusColumn = '';
+
+            if (user.hasClaimed) {
+                // User has claimed - show check icon and timestamp
+                statusColumn = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="ti ti-check" style="color: #10b981; font-size: 18px;" title="Claimed"></i>
+                        <span style="font-size: 12px; color: #6b7280;">
+                            ${user.claimedAt || 'N/A'}
+                        </span>
+                    </div>
+                `;
+            } else {
+                // User has not claimed yet
+                statusColumn = `
+                    <span style="color: #9ca3af; font-size: 12px;">Not claimed</span>
+                `;
+            }
+
+            return `
+                <tr>
+                    <td>${user.name || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.mobile || 'N/A'}</td>
+                    <td>${statusColumn}</td>
+                </tr>
+            `;
+        }).join('');
+
+        renderVoucherUsersPageNumbers();
+    }
+
+    function renderVoucherUsersPageNumbers() {
+        const { currentPage, totalPages } = voucherUsersPagination;
+
+        voucherUsersPageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        voucherUsersPrevPage.disabled = currentPage === 1;
+        voucherUsersNextPage.disabled = currentPage === totalPages;
+
+        let pageButtons = '';
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageButtons += `
+                <button
+                    onclick="changeVoucherUsersPage(${i})"
+                    style="padding: 5px 10px; margin: 0 2px; border: 1px solid #ddd;
+                           background: ${i === currentPage ? '#006073' : 'white'};
+                           color: ${i === currentPage ? 'white' : '#333'};
+                           cursor: pointer; border-radius: 4px;"
+                    ${i === currentPage ? 'disabled' : ''}
+                >
+                    ${i}
+                </button>
+            `;
+        }
+
+        voucherUsersPageNumbers.innerHTML = pageButtons;
+    }
+
+    window.viewVoucherUsers = function (voucherId, voucherCode) {
+        currentVoucherId = voucherId;
+        currentVoucherCode = voucherCode;
+        voucherUsersSearchQuery = '';
+        voucherUserSearchInput.value = '';
+        fetchVoucherUsers(voucherId, 1, 5, '', 'name');
+        viewUsersModal.classList.add('active');
+    };
+
+    window.viewVoucherDetails = function (index) {
+        const discount = config.discounts[index];
+        if (!discount) return;
+
+        // Visual helper for rows
+        const renderDetailRow = (label, value, iconClass) => `
+            <div style="display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #f1f5f9; align-items: center; last-child:border-bottom:none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="${iconClass}" style="color: #94a3b8; font-size: 14px; width: 20px; text-align: center;"></i>
+                    <span style="color: #64748b; font-weight: 500; font-size: 13px;">${label}</span>
+                </div>
+                <span style="color: #334155; font-weight: 600; font-size: 14px;">${value}</span>
+            </div>
+        `;
+
+        // Format dates
+        let validUntilDisplay = 'N/A';
+        if (discount.validUntil) {
+            const parts = discount.validUntil.split('-');
+            if (parts.length === 3) {
+                validUntilDisplay = `${parts[0]}-${parts[1]}-${parts[2]}`;
+            } else {
+                validUntilDisplay = discount.validUntil;
+            }
+        }
+
+        let valueDisplay = discount.type === 'percentage' ? (discount.value / 1000) + '%' : '₹' + discount.value;
+        const statusBadge = discount.status === 1
+            ? '<span style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">Active</span>'
+            : '<span style="background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">Expired</span>';
+
+        voucherDetailsContent.innerHTML = `
+            <div style="padding: 10px;">
+                <!-- Header with Code and Status -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <span style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 5px;">Voucher Code</span>
+                        <div style="font-size: 28px; font-weight: 700; color: #006073; font-family: monospace; letter-spacing: 1px; line-height: 1;">
+                            ${discount.code}
+                        </div>
+                    </div>
+                    <div>${statusBadge}</div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                         <div style="font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 5px;">Discount Type</div>
+                         <div style="font-size: 15px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px; text-transform: capitalize;">
+                            <i class="ti ti-${discount.type === 'percentage' ? 'pie-chart' : 'wallet'}" style="color: #006073;"></i> 
+                            ${discount.type}
+                         </div>
+                    </div>
+                    <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                         <div style="font-size: 11px; text-transform: uppercase; color: #166534; margin-bottom: 5px;">Value</div>
+                         <div style="font-size: 18px; font-weight: 700; color: #15803d;">${valueDisplay}</div>
+                    </div>
+                </div>
+
+                <!-- Rules Section -->
+                <div style="margin-bottom: 20px;">
+                    <h5 style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">Configuration & Rules</h5>
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        ${renderDetailRow('Valid Until', validUntilDisplay, 'ti-calendar')}
+                        ${renderDetailRow('Min. Order Value', '₹' + (discount.minOrderValue || 0), 'ti-shopping-cart')}
+                        ${discount.type === 'percentage' ? renderDetailRow('Max Discount Cap', '₹' + (discount.maxDiscount || 0), 'ti-arrow-up') : ''}
+                        ${renderDetailRow('Usage Limit', discount.usageLimit ? discount.usageLimit + ' uses' : 'Unlimited', 'ti-infinite')}
+                        ${renderDetailRow('Audience', discount.userSpecific ? 'Specific Users Only' : 'All Users', 'ti-user')}
+                    </div>
+                </div>
+
+                <!-- Footer Meta -->
+                <div style="text-align: right; font-size: 11px; color: #9ca3af; padding-top: 10px;">
+                    Created on ${discount.createdOn || 'N/A'} • By ${discount.createdBy || 'System'}
+                </div>
+            </div>
+        `;
+
+        voucherDetailsModal.classList.add('active');
+    };
+
+    window.changeVoucherUsersPage = function (page) {
+        if (currentVoucherId) {
+            fetchVoucherUsers(currentVoucherId, page, 5, voucherUsersSearchQuery, 'name');
+        }
+    };
+
+    async function fetchDiscounts(page = 1, size = 10) {
+        try {
+            // Use the same token retrieval as searchUsers
+            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+
+            let url = `http://localhost:3000/restricted/config/list-vouchers.php?page=${page}&size=${size}`;
+
+            // Add filterActive parameter if 'Active Only' is selected
+            if (currentStatusFilter === 'active') {
+                url += '&filterActive=true';
+            }
+
+            console.log('Fetching discounts from:', url);
+            console.log('Using token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Access-Token': token
+                }
+            });
+
+            console.log('Discounts API response status:', res.status);
+
+            if (res.ok) {
+                const result = await res.json();
+                console.log('Discounts API response:', result);
+                if (result.status === 'success' && result.data) {
+                    // Transform API data to internal format
+                    config.discounts = result.data.map(discount => ({
+                        id: discount.id,
+                        code: discount.code,
+                        type: discount.discountType,
+                        value: discount.value,
+                        minOrderValue: discount.minOrderValue,
+                        maxDiscount: discount.maxDiscount,
+                        validUntil: discount.validityUntil,
+                        usageLimit: discount.limitedOn ? discount.limitedOn.length : null,
+                        userSpecific: discount.userSpecific === 1,
+                        limitedToUsers: discount.userSpecific === 1 ? discount.limitedOn : null,
+                        status: discount.status,
+                        createdOn: discount.createdOn,
+                        createdBy: discount.createdBy
+                    }));
+
+                    console.log('Transformed discounts:', config.discounts);
+
+                    // Update pagination
+                    if (result.pagination) {
+                        discountsPagination.currentPage = result.pagination.currentPage;
+                        discountsPagination.totalPages = result.pagination.totalPages;
+                        discountsPagination.total = result.pagination.totalRecords;
+                        discountsPagination.pageSize = result.pagination.pageSize;
+                    }
+
+                    console.log('About to render discounts. Table body element:', discountTableBody);
+                    renderDiscounts();
+                    renderDiscountsPagination();
+                } else {
+                    console.error('API response missing data or status not success');
+                    renderDiscounts(); // Render empty state
+                    renderDiscountsPagination();
+                }
+            } else {
+                console.error('API response not OK. Status:', res.status);
+                renderDiscounts(); // Render empty state
+                renderDiscountsPagination();
+            }
+        } catch (err) {
+            console.error('Error fetching discounts:', err);
+            console.error('Error details:', err.message);
+            renderDiscounts(); // Render empty state even on error
         }
     }
 
@@ -542,24 +981,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Render courses
-        modalCourseList.innerHTML = courses.map(course => `
-            <label style="margin: 0;">
-                <input type="checkbox" class="course-checkbox" value="${course.code}"
-                    ${tempSelectedCourses.includes(course.code) ? 'checked' : ''}>
-                <div class="course-card">
-                    <div class="course-icon">
-                        <i class="ti ti-book"></i>
+        console.log('Rendering modal courses. Total courses:', courses.length);
+        console.log('First 3 course codes:', courses.slice(0, 3).map(c => c.code));
+        console.log('tempSelectedCourses for comparison:', tempSelectedCourses);
+
+        modalCourseList.innerHTML = courses.map(course => {
+            const isSelected = tempSelectedCourses.includes(course.code);
+            console.log(`Course ${course.code}: ${isSelected ? 'SELECTED' : 'not selected'}`);
+            return `
+                <label style="margin: 0;">
+                    <input type="checkbox" class="course-checkbox" value="${course.code}"
+                        ${isSelected ? 'checked' : ''}>
+                    <div class="course-card">
+                        <div class="course-icon">
+                            <i class="ti ti-book"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${course.title}</div>
+                            <div style="font-size: 0.85rem; color: #6b7280;">${course.category} • ${course.code}</div>
+                        </div>
+                        <div class="check-indicator" style="color: #006073; opacity: 0; transition: opacity 0.2s;">
+                            <i class="ti ti-check"></i>
+                        </div>
                     </div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${course.title}</div>
-                        <div style="font-size: 0.85rem; color: #6b7280;">${course.category} • ${course.code}</div>
-                    </div>
-                    <div class="check-indicator" style="color: #006073; opacity: 0; transition: opacity 0.2s;">
-                        <i class="ti ti-check"></i>
-                    </div>
-                </div>
-            </label>
-        `).join('');
+                </label>
+            `;
+        }).join('');
 
         // Re-attach event listeners for checkboxes in modal
         document.querySelectorAll('#modalCourseList .course-checkbox').forEach(cb => {
@@ -618,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    window.goToModalPage = function(page) {
+    window.goToModalPage = function (page) {
         if (page >= 1 && page <= coursesPagination.totalPages) {
             coursesPagination.currentPage = page;
             renderModalCourses();
@@ -626,32 +1073,184 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderDiscounts() {
-        if (config.discounts.length === 0) {
-            discountTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #718096; padding: 30px;">No discount codes active</td></tr>';
+        console.log('renderDiscounts called. Discounts count:', config.discounts.length);
+        console.log('Discounts data:', config.discounts);
+        console.log('Table body element:', discountTableBody);
+
+        if (!discountTableBody) {
+            console.error('discountTableBody element not found!');
             return;
         }
 
+        if (config.discounts.length === 0) {
+            console.log('No discounts to display');
+            discountTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #718096; padding: 30px;">No discount codes found</td></tr>';
+            return;
+        }
+
+        console.log('Rendering', config.discounts.length, 'discounts');
+
         discountTableBody.innerHTML = config.discounts.map((discount, index) => {
-            const isExpired = new Date(discount.validUntil) < new Date();
-            const statusClass = isExpired ? 'status-expired' : 'status-active';
-            const statusText = isExpired ? 'Expired' : 'Active';
+            // Parse date if it's in DD-MM-YYYY format
+            let validUntilDate = null;
+            if (discount.validUntil) {
+                const parts = discount.validUntil.split('-');
+                if (parts.length === 3) {
+                    // Assuming DD-MM-YYYY format from API
+                    validUntilDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                } else {
+                    validUntilDate = new Date(discount.validUntil);
+                }
+            }
+
+            const isExpired = validUntilDate && validUntilDate < new Date();
+
+            // Determine status: Revoked (status=0) > Expired > Active
+            let statusClass, statusText;
+            if (discount.status === 0) {
+                statusClass = 'status-revoked';
+                statusText = 'Revoked';
+            } else if (isExpired) {
+                statusClass = 'status-expired';
+                statusText = 'Expired';
+            } else {
+                statusClass = 'status-active';
+                statusText = 'Active';
+            }
+
+            // Format value display
+            let valueDisplay = '';
+            if (discount.type === 'percentage') {
+                valueDisplay = (discount.value / 1000) + '%';
+            } else {
+                valueDisplay = '₹' + discount.value;
+            }
+
+            // User specific indicator - clickable badge
+            const userSpecificBadge = discount.userSpecific
+                ? `<span onclick="event.stopPropagation(); viewVoucherUsers(${discount.id}, '${discount.code}')" style="display: inline-block; background: #e0f2f1; color: #006073; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 5px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#b2dfdb'" onmouseout="this.style.background='#e0f2f1'">User Specific</span>`
+                : '';
+
+            // Revoke button - only shown for active vouchers (status = 1)
+            const revokeButton = discount.status === 1
+                ? `<button class="btn btn-danger" onclick="event.stopPropagation(); revokeDiscount(${discount.id}, '${discount.code}')" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; background: #fee2e2; color: #991b1b; border: none; cursor: pointer; transition: all 0.2s;">
+                    <i class="ti ti-ban"></i> Revoke
+                </button>`
+                : '';
 
             return `
-                <tr>
-                    <td style="font-weight: 600; font-family: monospace; color: #006073;">${discount.code}</td>
+                <tr onclick="viewVoucherDetails(${index})" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor=''">
+                    <td style="font-weight: 600; font-family: monospace; color: #006073;">${discount.code}${userSpecificBadge}</td>
                     <td>${discount.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</td>
-                    <td>${discount.type === 'percentage' ? discount.value + '%' : '$' + discount.value}</td>
-                    <td>${new Date(discount.validUntil).toLocaleDateString()}</td>
+                    <td>${valueDisplay}</td>
+                    <td>${validUntilDate ? validUntilDate.toLocaleDateString() : 'N/A'}</td>
                     <td>${discount.usageLimit || 'Unlimited'}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td style="text-align: right;">
-                        <button class="btn btn-danger" onclick="deleteDiscount(${index})" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; background: #fee2e2; color: #991b1b; border: none; cursor: pointer; transition: all 0.2s;">
-                            <i class="ti ti-trash"></i> Delete
-                        </button>
+                        ${revokeButton}
                     </td>
                 </tr>
             `;
         }).join('');
+    }
+
+    function renderDiscountsPagination() {
+        if (!config.discounts.length || discountsPagination.total === 0) {
+            discountsPaginationContainer.style.display = 'none';
+            return;
+        }
+
+        discountsPaginationContainer.style.display = 'flex';
+
+        const { currentPage, totalPages, total, pageSize } = discountsPagination;
+        const startItem = (currentPage - 1) * pageSize + 1;
+        const endItem = Math.min(currentPage * pageSize, total);
+
+        discountsPageInfo.textContent = `${startItem}-${endItem} of ${total}`;
+
+        discountsPrevPage.disabled = currentPage === 1;
+        discountsNextPage.disabled = currentPage === totalPages;
+
+        // Render page number buttons
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        let pagesHtml = '';
+        for (let i = startPage; i <= endPage; i++) {
+            pagesHtml += `
+                <button type="button" 
+                    class="pagination-btn ${i === currentPage ? 'active' : ''}"
+                    onclick="changeDiscountPage(${i})">
+                    ${i}
+                </button>
+            `;
+        }
+        discountsPageNumbers.innerHTML = pagesHtml;
+    }
+
+    window.changeDiscountPage = function (page) {
+        if (page < 1 || page > discountsPagination.totalPages || page === discountsPagination.currentPage) return;
+        fetchDiscounts(page);
+    };
+
+    function renderSelectedUsers() {
+        console.log('Rendering selected users:', selectedUsers);
+        if (selectedUsers.length === 0) {
+            selectedUsersContainer.innerHTML = '<div style="color: #9ca3af; font-size: 13px; padding: 6px 0;">No users selected</div>';
+            return;
+        }
+
+        selectedUsersContainer.innerHTML = selectedUsers.map(user => `
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px 4px 4px; background: #e0f2f1; border-radius: 16px; font-size: 13px; margin: 2px;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">
+                    ${user.name.charAt(0).toUpperCase()}
+                </div>
+                <span style="color: #006073; font-weight: 500;">${user.name}</span>
+                <button type="button" onclick="removeSelectedUser(${user.id})" style="background: none; border: none; color: #006073; cursor: pointer; padding: 2px 4px; margin-left: 4px; line-height: 1; display: flex; align-items: center; justify-content: center;">
+                    ✕
+                </button>
+            </div>
+        `).join('');
+        console.log('Selected users rendered successfully');
+    }
+
+    function renderUserSearchResults(users) {
+        if (users.length === 0) {
+            userSearchResults.innerHTML = '<div style="padding: 12px; text-align: center; color: #9ca3af; font-size: 13px;">No users found</div>';
+            userSearchResults.style.display = 'block';
+            return;
+        }
+
+        // Filter out already selected users
+        const selectedUserIds = selectedUsers.map(u => u.id);
+        const availableUsers = users.filter(u => !selectedUserIds.includes(u.id));
+
+        if (availableUsers.length === 0) {
+            userSearchResults.innerHTML = '<div style="padding: 12px; text-align: center; color: #9ca3af; font-size: 13px;">All matching users already selected</div>';
+            userSearchResults.style.display = 'block';
+            return;
+        }
+
+        userSearchResults.innerHTML = availableUsers.map(user => `
+            <div onclick="selectUser(${user.id}, '${user.name.replace(/'/g, "\\'")}', '${user.email}', '${user.mobile || ''}')"
+                 style="padding: 10px 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s;"
+                 onmouseover="this.style.background='#f9fafb'"
+                 onmouseout="this.style.background='white'">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">
+                    ${user.name.charAt(0).toUpperCase()}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: #1f2937; font-size: 14px;">${user.name}</div>
+                    <div style="font-size: 12px; color: #6b7280;">${user.email} ${user.mobile ? '• ' + user.mobile : ''}</div>
+                </div>
+            </div>
+        `).join('');
+        userSearchResults.style.display = 'block';
     }
 
     // Event Handlers
@@ -663,7 +1262,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Course Selection Modal
     openCourseSelectModalBtn.addEventListener('click', () => {
-        tempSelectedCourses = config.autoEnroll.courses.map(c => c.code);
+        // Pre-select courses that are already in auto-enrollment config
+        tempSelectedCourses = config.autoEnroll.courses
+            .filter(c => c.status !== 0)  // Only include active courses
+            .map(c => c.code);
+        console.log('Pre-selected courses:', tempSelectedCourses);
+        console.log('Auto-enroll config courses:', config.autoEnroll.courses);
+
         coursesPagination.currentPage = 1;
         modalSearchQuery = '';
         courseSearchInput.value = '';
@@ -770,48 +1375,230 @@ document.addEventListener('DOMContentLoaded', () => {
     addDiscountBtn.addEventListener('click', () => {
         discountModal.classList.add('active');
         toggleDiscountFields(); // Reset fields when opening modal
+
+        // Reset user selection state
+        selectedUsers = [];
+        limitedUsersCheckbox.checked = false;
+        userSelectionContainer.style.display = 'none';
+        userSearchInput.value = '';
+        userSearchResults.style.display = 'none';
     });
 
     closeModalBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             discountModal.classList.remove('active');
             courseSelectModal.classList.remove('active');
+            voucherDetailsModal.classList.remove('active');
+            revokeConfirmModal.classList.remove('active');
         });
     });
 
-    discountForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(discountForm);
-        const discountType = formData.get('type');
+    // User selection for discount modal
+    limitedUsersCheckbox.addEventListener('change', () => {
+        if (limitedUsersCheckbox.checked) {
+            userSelectionContainer.style.display = 'block';
+            renderSelectedUsers();
+        } else {
+            userSelectionContainer.style.display = 'none';
+            selectedUsers = [];
+            userSearchResults.style.display = 'none';
+            userSearchInput.value = '';
+        }
+    });
 
-        const newDiscount = {
-            code: formData.get('code').toUpperCase(),
-            type: discountType,
-            value: formData.get('value'),
-            validUntil: formData.get('validUntil'),
-            usageLimit: formData.get('usageLimit') || null
-        };
+    userSearchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.trim();
 
-        // Add conditional fields based on discount type
-        if (discountType === 'percentage') {
-            if (formData.get('minOrderValue')) {
-                newDiscount.minOrderValue = formData.get('minOrderValue');
-            }
-            if (formData.get('maxDiscount')) {
-                newDiscount.maxDiscount = formData.get('maxDiscount');
-            }
-        } else if (discountType === 'fixed') {
-            if (formData.get('minOrderValueFixed')) {
-                newDiscount.minOrderValue = formData.get('minOrderValueFixed');
-            }
+        // Clear previous timeout
+        if (userSearchTimeout) {
+            clearTimeout(userSearchTimeout);
         }
 
-        const updatedDiscounts = [...config.discounts, newDiscount];
-        saveDiscounts(updatedDiscounts);
-        discountModal.classList.remove('active');
-        discountForm.reset();
-        toggleDiscountFields(); // Reset field visibility
+        // Hide results if search is empty
+        if (!searchTerm) {
+            userSearchResults.style.display = 'none';
+            return;
+        }
+
+        // Debounce search (300ms delay)
+        userSearchTimeout = setTimeout(async () => {
+            const users = await searchUsers(searchTerm);
+            renderUserSearchResults(users);
+        }, 300);
     });
+
+    // Close user search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!userSearchResults.contains(e.target) && e.target !== userSearchInput) {
+            userSearchResults.style.display = 'none';
+        }
+    });
+
+    // Status filter change handler
+    statusFilter.addEventListener('change', (e) => {
+        currentStatusFilter = e.target.value;
+        // Reset to page 1 and fetch with filter
+        fetchDiscounts(1);
+    });
+
+    // Voucher users modal event listeners
+    voucherUserSearchInput.addEventListener('input', debounce(() => {
+        voucherUsersSearchQuery = voucherUserSearchInput.value.trim();
+        if (currentVoucherId) {
+            fetchVoucherUsers(currentVoucherId, 1, 5, voucherUsersSearchQuery, 'name');
+        }
+    }, 300));
+
+    voucherUsersPrevPage.addEventListener('click', () => {
+        const { currentPage } = voucherUsersPagination;
+        if (currentPage > 1 && currentVoucherId) {
+            fetchVoucherUsers(currentVoucherId, currentPage - 1, 5, voucherUsersSearchQuery, 'name');
+        }
+    });
+
+    voucherUsersNextPage.addEventListener('click', () => {
+        const { currentPage, totalPages } = voucherUsersPagination;
+        if (currentPage < totalPages && currentVoucherId) {
+            fetchVoucherUsers(currentVoucherId, currentPage + 1, 5, voucherUsersSearchQuery, 'name');
+        }
+    });
+
+    // Close voucher users modal
+    viewUsersModal.querySelector('.close-modal').addEventListener('click', () => {
+        viewUsersModal.classList.remove('active');
+        currentVoucherId = null;
+        currentVoucherCode = '';
+        voucherUsersSearchQuery = '';
+    });
+
+    // Discount pagination listeners
+    if (discountsPrevPage) {
+        discountsPrevPage.addEventListener('click', () => {
+            const { currentPage } = discountsPagination;
+            if (currentPage > 1) {
+                fetchDiscounts(currentPage - 1);
+            }
+        });
+    }
+
+    if (discountsNextPage) {
+        discountsNextPage.addEventListener('click', () => {
+            const { currentPage, totalPages } = discountsPagination;
+            if (currentPage < totalPages) {
+                fetchDiscounts(currentPage + 1);
+            }
+        });
+    }
+
+    // Global functions for user selection (accessible from onclick handlers)
+    window.selectUser = (id, name, email, mobile) => {
+        // Check if user already selected
+        if (selectedUsers.some(u => u.id === id)) {
+            return;
+        }
+
+        selectedUsers.push({ id, name, email, mobile });
+        renderSelectedUsers();
+        userSearchInput.value = '';
+        userSearchResults.style.display = 'none';
+    };
+
+    window.removeSelectedUser = (id) => {
+        selectedUsers = selectedUsers.filter(u => u.id !== parseInt(id));
+        renderSelectedUsers();
+    };
+
+    window.revokeDiscount = function (voucherId, voucherCode) {
+        pendingRevokeId = voucherId;
+        revokeVoucherCode.textContent = voucherCode;
+        revokeConfirmModal.classList.add('active');
+    };
+
+    // Confirm revoke button
+    confirmRevokeBtn.addEventListener('click', async () => {
+        if (pendingRevokeId) {
+            revokeConfirmModal.classList.remove('active');
+            await performRevoke(pendingRevokeId);
+            pendingRevokeId = null;
+        }
+    });
+
+    // Form submit handler
+    async function handleDiscountFormSubmit(e) {
+        console.log('Form submit triggered!');
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Default prevented');
+
+        try {
+            const formData = new FormData(discountForm);
+            const discountType = formData.get('type');
+
+            // Build API payload according to specification
+            const apiPayload = {
+                code: formData.get('code').toUpperCase(),
+                discountType: discountType,
+                value: parseInt(formData.get('value')),
+                minOrderValue: 0,
+                maxDiscount: 0,
+                validityUntil: '',
+                usageLimit: 0,
+                userSpecific: 0,
+                limitedOn: []
+            };
+
+            // Add conditional fields based on discount type
+            if (discountType === 'percentage') {
+                apiPayload.minOrderValue = formData.get('minOrderValue') ? parseInt(formData.get('minOrderValue')) : 0;
+                apiPayload.maxDiscount = formData.get('maxDiscount') ? parseInt(formData.get('maxDiscount')) : 0;
+            } else if (discountType === 'fixed') {
+                apiPayload.minOrderValue = formData.get('minOrderValueFixed') ? parseInt(formData.get('minOrderValueFixed')) : 0;
+                apiPayload.maxDiscount = parseInt(formData.get('value')); // For fixed, maxDiscount = value
+            }
+
+            // Convert validUntil from YYYY-MM-DD to DD-MM-YYYY
+            const validUntilDate = formData.get('validUntil');
+            if (validUntilDate) {
+                const parts = validUntilDate.split('-');
+                apiPayload.validityUntil = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+
+            // Usage limit
+            apiPayload.usageLimit = formData.get('usageLimit') ? parseInt(formData.get('usageLimit')) : 0;
+
+            // Add limited users if checkbox is checked and users are selected
+            if (limitedUsersCheckbox.checked && selectedUsers.length > 0) {
+                apiPayload.userSpecific = 1;
+                apiPayload.limitedOn = selectedUsers.map(u => u.id);
+            }
+
+            console.log('Submitting discount form with payload:', apiPayload);
+
+            await saveDiscount(apiPayload);
+
+            discountModal.classList.remove('active');
+            discountForm.reset();
+            toggleDiscountFields(); // Reset field visibility
+
+            // Reset user selection
+            selectedUsers = [];
+            limitedUsersCheckbox.checked = false;
+            userSelectionContainer.style.display = 'none';
+            userSearchResults.style.display = 'none';
+        } catch (error) {
+            console.error('Error in form submit handler:', error);
+        }
+
+        return false;
+    }
+
+    if (discountForm) {
+        console.log('Adding submit event listener to discountForm');
+        discountForm.addEventListener('submit', handleDiscountFormSubmit, true);
+        discountForm.onsubmit = handleDiscountFormSubmit;
+    } else {
+        console.error('discountForm element not found!');
+    }
 
     window.deleteDiscount = (index) => {
         if (confirm('Are you sure you want to delete this discount code?')) {

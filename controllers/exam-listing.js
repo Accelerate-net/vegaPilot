@@ -21,6 +21,37 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     // Sorting variables
     $scope.sortColumn = '';
     $scope.sortReverse = false;
+
+    // Toggle Kebab Menu
+    $scope.toggleKebabMenu = function(exam, $event) {
+        $event.stopPropagation();
+
+        // Close all other kebab menus first
+        $scope.filteredExams.forEach(function(e) {
+            if (e !== exam) {
+                e.showKebabMenu = false;
+            }
+        });
+
+        // Toggle the clicked exam's menu
+        exam.showKebabMenu = !exam.showKebabMenu;
+    };
+
+    // Close kebab menus when clicking outside
+    angular.element(document).on('click', function(e) {
+        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
+            var hasOpenMenu = $scope.filteredExams && $scope.filteredExams.some(function(exam) {
+                return exam.showKebabMenu;
+            });
+            if (hasOpenMenu) {
+                $scope.$applyAsync(function() {
+                    $scope.filteredExams.forEach(function(exam) {
+                        exam.showKebabMenu = false;
+                    });
+                });
+            }
+        }
+    });
     
     // Summary data for tiles
     $scope.summaryTileData = {
@@ -504,6 +535,13 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     $scope.viewExam = function(exam) {
         $scope.selectedExam = angular.copy(exam);
         $('#viewExamModal').modal('show');
+    };
+
+    // View exam attempts (rank list / report)
+    $scope.viewAttempts = function(exam) {
+        // Store exam data for the report page
+        localStorage.setItem('reportExamData', JSON.stringify(exam));
+        window.location.href = 'exam-attempt-report.html?exam=' + exam.id;
     };
 
     // Edit exam from view modal

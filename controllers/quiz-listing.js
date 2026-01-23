@@ -22,6 +22,37 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     $scope.sortColumn = '';
     $scope.sortReverse = false;
 
+    // ===== Toggle Kebab Menu =====
+    $scope.toggleKebabMenu = function(quiz, $event) {
+        $event.stopPropagation();
+
+        // Close all other kebab menus first
+        $scope.allQuizzes.forEach(function(q) {
+            if (q !== quiz) {
+                q.showKebabMenu = false;
+            }
+        });
+
+        // Toggle the clicked quiz's menu
+        quiz.showKebabMenu = !quiz.showKebabMenu;
+    };
+
+    // Close kebab menus when clicking outside
+    angular.element(document).on('click', function(e) {
+        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
+            var hasOpenMenu = $scope.allQuizzes.some(function(quiz) {
+                return quiz.showKebabMenu;
+            });
+            if (hasOpenMenu) {
+                $scope.$applyAsync(function() {
+                    $scope.allQuizzes.forEach(function(quiz) {
+                        quiz.showKebabMenu = false;
+                    });
+                });
+            }
+        }
+    });
+
     // ===== Initialize Controller =====
     $scope.init = function() {
         $scope.loadQuizzes();

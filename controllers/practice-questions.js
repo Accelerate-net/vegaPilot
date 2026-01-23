@@ -20,9 +20,15 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
     $scope.selectedBatchFilter = '';
     $scope.batches = {};
     $scope.batchesList = []; // Cached batches list
+    $scope.filteredBatchesList = []; // Cached filtered batches list (after search)
     $scope.selectedBatchesCount = 0; // Cached selected batches count
     $scope.filteredQuestions = []; // Cached filtered questions
     $scope.nextBatchNumber = '00001'; // Cache for next batch number
+    $scope.currentQuestionIndex = 0; // Current question index for single question view
+    $scope.batchSearchQuery = ''; // Search query for batches
+    $scope.batchCurrentPage = 1; // Current page for batch pagination
+    $scope.batchesPerPage = 6; // Number of batches per page
+    $scope.verificationFilter = 'all'; // Filter: 'all', 'verified', 'unverified'
 
     // ===== Initialize PDF.js =====
     var pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -49,11 +55,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
         $scope.updateFilteredQuestions();
     });
 
-    // ===== Watch filters and update filtered questions =====
-    $scope.$watch('selectedBatchFilter', function() {
-        $scope.updateFilteredQuestions();
-    });
-
+    // ===== Watch search query and update filtered questions =====
     $scope.$watch('searchQuery', function() {
         $scope.updateFilteredQuestions();
     });
@@ -337,7 +339,8 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                                 batchId: generatedBatchId,
                                 ocrText: '',
                                 isProcessingOCR: false,
-                                ocrProgress: 0
+                                ocrProgress: 0,
+                                verified: false
                             };
 
                             newQuestions.push(question);
@@ -560,6 +563,11 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                 $scope.questions.splice(index, 1);
                 $scope.saveQuestions();
                 $scope.updateNextBatchNumber(); // Update cached batch number
+
+                // Adjust current question index if needed
+                if ($scope.currentQuestionIndex >= $scope.filteredQuestions.length - 1 && $scope.currentQuestionIndex > 0) {
+                    $scope.currentQuestionIndex--;
+                }
             }
         }
     };
@@ -568,10 +576,12 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
     $scope.getFilteredQuestions = function() {
         var filtered = $scope.questions;
 
-        // Filter by batch
-        if ($scope.selectedBatchFilter) {
+        // Filter by selected batches (from Batch Management section)
+        var selectedBatches = $scope.getSelectedBatches();
+        if (selectedBatches.length > 0) {
+            var selectedBatchIds = selectedBatches.map(function(b) { return b.id; });
             filtered = filtered.filter(function(question) {
-                return question.batchId === $scope.selectedBatchFilter;
+                return selectedBatchIds.indexOf(question.batchId) !== -1;
             });
         }
 
@@ -589,18 +599,132 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
             });
         }
 
+        // Filter by verification status
+        if ($scope.verificationFilter === 'verified') {
+            filtered = filtered.filter(function(question) {
+                return question.verified === true;
+            });
+        } else if ($scope.verificationFilter === 'unverified') {
+            filtered = filtered.filter(function(question) {
+                return !question.verified;
+            });
+        }
+
         return filtered;
+    };
+
+    // ===== Handle Verification Filter Change =====
+    $scope.onVerificationFilterChange = function() {
+        $scope.currentQuestionIndex = 0;
+        $scope.updateFilteredQuestions();
     };
 
     // ===== Update Filtered Questions (Cache) =====
     $scope.updateFilteredQuestions = function() {
         $scope.filteredQuestions = $scope.getFilteredQuestions();
+        // Reset to first question when filter changes
+        if ($scope.currentQuestionIndex >= $scope.filteredQuestions.length) {
+            $scope.currentQuestionIndex = 0;
+        }
+        // Update verification status
+        if ($scope.updateVerificationStatus) {
+            $scope.updateVerificationStatus();
+        }
+    };
+
+    // ===== Question Navigation Functions =====
+    $scope.previousQuestion = function() {
+        if ($scope.currentQuestionIndex > 0) {
+            $scope.currentQuestionIndex--;
+        }
+    };
+
+    $scope.nextQuestion = function() {
+        if ($scope.currentQuestionIndex < $scope.filteredQuestions.length - 1) {
+            $scope.currentQuestionIndex++;
+        }
+    };
+
+    $scope.goToQuestion = function(index) {
+        if (index >= 0 && index < $scope.filteredQuestions.length) {
+            $scope.currentQuestionIndex = index;
+        }
+    };
+
+    // ===== Toggle Question Verified Status =====
+    $scope.toggleVerified = function(question) {
+        if (question) {
+            question.verified = !question.verified;
+            $scope.saveQuestions();
+            $scope.updateVerificationStatus();
+        }
+    };
+
+    // ===== Update Verification Status =====
+    $scope.unverifiedCount = 0;
+    $scope.allQuestionsVerified = false;
+
+    $scope.updateVerificationStatus = function() {
+        var unverified = $scope.filteredQuestions.filter(function(q) {
+            return !q.verified;
+        });
+        $scope.unverifiedCount = unverified.length;
+        $scope.allQuestionsVerified = $scope.filteredQuestions.length > 0 && unverified.length === 0;
     };
 
     // ===== Update Batches List (Cache) =====
     $scope.updateBatchesList = function() {
         $scope.batchesList = $scope.getBatches();
         $scope.selectedBatchesCount = $scope.batchesList.filter(function(b) { return b.selected; }).length;
+        $scope.updateFilteredBatchesList();
+    };
+
+    // ===== Update Filtered Batches List (after search) =====
+    $scope.updateFilteredBatchesList = function() {
+        if (!$scope.batchSearchQuery) {
+            $scope.filteredBatchesList = $scope.batchesList;
+        } else {
+            var query = $scope.batchSearchQuery.toLowerCase();
+            $scope.filteredBatchesList = $scope.batchesList.filter(function(batch) {
+                return batch.id.toLowerCase().indexOf(query) !== -1;
+            });
+        }
+        // Reset to page 1 when search changes
+        if ($scope.batchCurrentPage > $scope.getBatchTotalPages()) {
+            $scope.batchCurrentPage = 1;
+        }
+    };
+
+    // ===== Batch Search Change Handler =====
+    $scope.onBatchSearchChange = function() {
+        $scope.batchCurrentPage = 1;
+        $scope.updateFilteredBatchesList();
+    };
+
+    // ===== Get Paginated Batches =====
+    $scope.getPaginatedBatches = function() {
+        var startIndex = ($scope.batchCurrentPage - 1) * $scope.batchesPerPage;
+        var endIndex = startIndex + $scope.batchesPerPage;
+        return $scope.filteredBatchesList.slice(startIndex, endIndex);
+    };
+
+    // ===== Get Total Batch Pages =====
+    $scope.getBatchTotalPages = function() {
+        return Math.ceil($scope.filteredBatchesList.length / $scope.batchesPerPage);
+    };
+
+    // ===== Previous Batch Page =====
+    $scope.prevBatchPage = function() {
+        if ($scope.batchCurrentPage > 1) {
+            $scope.batchCurrentPage--;
+        }
+    };
+
+    // ===== Next Batch Page =====
+    $scope.nextBatchPage = function() {
+        if ($scope.batchCurrentPage < $scope.getBatchTotalPages()) {
+            $scope.batchCurrentPage++;
+        }
     };
 
     // ===== Get Batches =====
@@ -639,6 +763,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
         }
         $scope.batches[batchId].selected = !$scope.batches[batchId].selected;
         $scope.updateBatchesList(); // Update cached list to reflect selection change
+        $scope.updateFilteredQuestions(); // Update questions list based on selection
     };
 
     // ===== Get Selected Batches =====
@@ -691,15 +816,12 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
         console.log('Creating quiz from batches:', selectedBatches.map(function(b) { return b.id; }));
         console.log('Total questions:', quizQuestions.length);
 
-        // Store in localStorage for quiz creation page
-        localStorage.setItem('quizCreationData', JSON.stringify({
-            batches: selectedBatches.map(function(b) { return b.id; }),
-            questions: quizQuestions,
-            timestamp: new Date().getTime()
-        }));
+        // Build URL with selected bundle IDs
+        var bundleIds = selectedBatches.map(function(b) { return b.id; });
+        var bundlesParam = encodeURIComponent('[' + bundleIds.join(',') + ']');
 
-        // Navigate to quiz creation page
-        window.location.href = 'quiz-creation.html';
+        // Navigate to quiz creation page with URL parameters
+        window.location.href = 'quiz-creation.html?bundlesSelected=' + bundlesParam;
     };
 
     // ===== Format Date =====

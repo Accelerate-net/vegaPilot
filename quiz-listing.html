@@ -103,8 +103,14 @@
             font-size: 13px;
             color: #333;
          }
+         .quiz-table tbody tr {
+            position: relative;
+         }
          .quiz-table tbody tr:hover {
             background: #f8f9fa;
+         }
+         .quiz-table tbody tr:has(.kebab-dropdown.active) {
+            z-index: 100;
          }
          .quiz-table tbody tr:last-child td {
             border-bottom: none;
@@ -443,6 +449,87 @@
             cursor: pointer;
             transition: all 0.2s;
          }
+
+         /* Kebab Menu Styles */
+         .kebab-menu-container {
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+         }
+         .kebab-menu-container:has(.kebab-dropdown.active) {
+            z-index: 100;
+         }
+         .kebab-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            color: #495057;
+         }
+         .kebab-button:hover {
+            background: #f0f0f0;
+            color: #006073;
+         }
+         .kebab-button i {
+            font-size: 18px;
+         }
+         .kebab-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 180px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.2s ease;
+         }
+         .kebab-dropdown.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+         }
+         .kebab-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            color: #333;
+         }
+         .kebab-dropdown-item:last-child {
+            border-bottom: none;
+         }
+         .kebab-dropdown-item:hover {
+            background: #f8f9fa;
+         }
+         .kebab-dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+         }
+         .kebab-dropdown-item:last-child {
+            border-radius: 0 0 8px 8px;
+         }
+         .kebab-dropdown-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+         }
+         .kebab-dropdown-item.view-action i { color: #495057; }
+         .kebab-dropdown-item.report-action i { color: #006073; }
+         .kebab-dropdown-item.publish-action i { color: #28a745; }
+         .kebab-dropdown-item.delete-action i { color: #dc3545; }
+         .kebab-dropdown-item.delete-action:hover {
+            background: #fff5f5;
+         }
       </style>
    </head>
    <body class="animated-content" ng-app="quizListingApp" ng-controller="quizListingController" ng-init="init()" ng-cloak>
@@ -621,18 +708,29 @@
                                        <span style="color: #6c757d;">by {{quiz.createdBy}}</span>
                                     </td>
                                     <td>
-                                       <button class="btn-action btn-view" ng-click="viewQuiz(quiz)" title="View Details">
-                                          <i class="ti ti-eye"></i>
-                                       </button>
-                                       <button class="btn-action btn-report" ng-click="viewReport(quiz)" title="View Report" ng-if="quiz.attempts && quiz.attempts.length > 0">
-                                          <i class="ti ti-bar-chart"></i>
-                                       </button>
-                                       <button class="btn-action btn-publish" ng-if="quiz.status === 'draft'" ng-click="publishQuiz(quiz)" title="Publish">
-                                          <i class="ti ti-check"></i>
-                                       </button>
-                                       <button class="btn-action btn-delete" ng-click="deleteQuiz(quiz)" title="Delete">
-                                          <i class="ti ti-trash"></i>
-                                       </button>
+                                       <div class="kebab-menu-container">
+                                          <button class="kebab-button" ng-click="toggleKebabMenu(quiz, $event)">
+                                             <i class="ti ti-more-alt"></i>
+                                          </button>
+                                          <div class="kebab-dropdown" ng-class="{active: quiz.showKebabMenu}">
+                                             <div class="kebab-dropdown-item view-action" ng-click="viewQuiz(quiz)">
+                                                <i class="ti ti-eye"></i>
+                                                <span>View Details</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item report-action" ng-click="viewReport(quiz)" ng-if="quiz.attempts && quiz.attempts.length > 0">
+                                                <i class="ti ti-bar-chart"></i>
+                                                <span>View Report</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item publish-action" ng-if="quiz.status === 'draft'" ng-click="publishQuiz(quiz)">
+                                                <i class="ti ti-check"></i>
+                                                <span>Publish Quiz</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item delete-action" ng-click="deleteQuiz(quiz)">
+                                                <i class="ti ti-trash"></i>
+                                                <span>Delete Quiz</span>
+                                             </div>
+                                          </div>
+                                       </div>
                                     </td>
                                  </tr>
                               </tbody>

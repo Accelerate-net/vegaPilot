@@ -279,6 +279,80 @@
             color: #6c757d;
          }
 
+         /* Question Navigation */
+         .question-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+         }
+         .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+         .nav-btn-prev {
+            background: #e9ecef;
+            color: #495057;
+         }
+         .nav-btn-prev:hover:not(:disabled) {
+            background: #dee2e6;
+         }
+         .nav-btn-next {
+            background: #006073;
+            color: white;
+         }
+         .nav-btn-next:hover:not(:disabled) {
+            background: #004d5c;
+         }
+         .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+         }
+         .question-indicator {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+         }
+         .question-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+         }
+         .question-dots {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            max-width: 300px;
+            justify-content: center;
+         }
+         .question-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+         }
+         .question-dot:hover {
+            background: #adb5bd;
+         }
+         .question-dot.active {
+            background: #006073;
+            transform: scale(1.2);
+         }
+
          /* Edit Modal */
          .modal-backdrop {
             display: none;
@@ -483,80 +557,92 @@
                         </div>
                      </div>
 
-                     <!-- Upload Section -->
-                     <div class="upload-section">
-                        <h4 style="margin-top: 0; margin-bottom: 20px; color: #333;">
-                           <i class="ti ti-upload"></i> Upload PDF
-                        </h4>
-
-                        <!-- Batch Label Input -->
+                     <!-- Batch Management Section (Combined with Upload) -->
+                     <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <!-- Section Header -->
                         <div style="margin-bottom: 20px;">
-                           <label style="display: block; font-size: 13px; font-weight: 600; color: #495057; margin-bottom: 8px;">
-                              <i class="ti ti-tag"></i> Batch Label (Optional)
-                           </label>
-                           <input type="text"
-                                  ng-model="currentBatchLabel"
-                                  class="form-control"
-                                  placeholder="e.g., ChapterOne, BiologySet1, MockTest (leave empty to use filename)"
-                                  style="font-size: 14px; padding: 10px 15px;">
-                           <small style="display: block; margin-top: 5px; color: #6c757d;">
-                              Next Batch ID: <strong>{{nextBatchNumber}}</strong>
-                              <span ng-if="currentBatchLabel"> - Will be saved as: <strong style="color: #006073;">{{nextBatchNumber}}-{{sanitizedLabel}}</strong></span>
-                           </small>
+                           <h4 style="margin: 0; color: #333;">
+                              <i class="ti ti-package"></i> Quiz Question Bundles
+                              <span ng-if="batchesList.length > 0" style="font-size: 12px; font-weight: normal; color: #6c757d; margin-left: 10px;">
+                                 ({{filteredBatchesList.length}} of {{batchesList.length}} bundles)
+                              </span>
+                           </h4>
                         </div>
 
-                        <div class="upload-area"
-                             ng-click="triggerFileInput()"
-                             ng-class="{dragover: isDragover}"
-                             ng-drop="handleDrop($event)"
-                             ng-dragover="handleDragover($event)"
-                             ng-dragleave="handleDragleave($event)">
-                           <div class="upload-icon">
-                              <i class="ti ti-file"></i>
+                        <!-- Prominent Upload Section -->
+                        <div style="background: linear-gradient(135deg, #006073 0%, #008a9e 100%); border-radius: 10px; padding: 20px 25px; margin-bottom: 20px; color: white;">
+                           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                              <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 300px;">
+                                 <div style="background: rgba(255,255,255,0.15); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="ti ti-cloud-up" style="font-size: 24px;"></i>
+                                 </div>
+                                 <div>
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Upload New Questions Bundle</div>
+                                    <div style="font-size: 13px; opacity: 0.9;">Each page in the PDF becomes a question</div>
+                                 </div>
+                              </div>
+                              <!-- Combined Batch Label + Upload Button Unit -->
+                              <div style="display: flex; align-items: center; gap: 0; background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;">
+                                 <!-- Batch Label Input Area -->
+                                 <div style="display: flex; align-items: center; gap: 8px; padding: 10px 15px;">
+                                    <i class="ti ti-file" style="font-size: 16px; opacity: 0.9;"></i>
+                                    <input type="text"
+                                           ng-model="currentBatchLabel"
+                                           placeholder="Enter bundle name..."
+                                           style="font-size: 14px; padding: 4px 0; border: none; border-bottom: 2px dotted rgba(255,255,255,0.5); background: transparent; color: white; width: 160px; outline: none;"
+                                           onfocus="this.style.borderBottomColor='rgba(255,255,255,0.9)'"
+                                           onblur="this.style.borderBottomColor='rgba(255,255,255,0.5)'">
+                                 </div>
+                                 <!-- Upload Button (disabled until name entered) -->
+                                 <button ng-click="triggerFileInput()"
+                                         ng-disabled="!currentBatchLabel || currentBatchLabel.trim() === ''"
+                                         style="display: flex; align-items: center; gap: 8px; padding: 14px 25px; font-size: 14px; font-weight: 600; background: white; color: #006073; border: none; cursor: pointer; transition: all 0.2s;"
+                                         ng-style="{'opacity': (!currentBatchLabel || currentBatchLabel.trim() === '') ? '0.5' : '1', 'cursor': (!currentBatchLabel || currentBatchLabel.trim() === '') ? 'not-allowed' : 'pointer'}">
+                                    <i class="ti ti-upload" style="font-size: 18px;"></i> Upload PDF
+                                 </button>
+                              </div>
+                              <input type="file"
+                                     id="pdfFileInput"
+                                     accept="application/pdf"
+                                     onchange="angular.element(this).scope().handleFileSelect(event)"
+                                     style="display: none;">
                            </div>
-                           <div class="upload-text">
-                              Click to upload or drag and drop
-                           </div>
-                           <div class="upload-hint">
-                              PDF files only • Maximum 50MB
-                           </div>
-                        </div>
-                        <input type="file"
-                               id="pdfFileInput"
-                               accept="application/pdf"
-                               onchange="angular.element(this).scope().handleFileSelect(event)"
-                               style="display: none;">
 
-                        <!-- Processing Status -->
-                        <div class="processing-status" ng-class="{active: isProcessing}">
-                           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                              <i class="ti ti-reload" style="font-size: 18px; color: #856404;"></i>
-                              <strong style="color: #856404;">{{processingMessage}}</strong>
-                           </div>
-                           <div class="progress-bar-container">
-                              <div class="progress-bar" ng-style="{width: processingProgress + '%'}">
-                                 {{processingProgress}}%
+                           <!-- Processing Status -->
+                           <div class="processing-status" ng-class="{active: isProcessing}" style="margin-top: 15px; background: rgba(255,255,255,0.1); border-radius: 6px; padding: 15px;">
+                              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                 <i class="ti ti-reload" style="font-size: 18px;"></i>
+                                 <strong>{{processingMessage}}</strong>
+                              </div>
+                              <div class="progress-bar-container" style="background: rgba(255,255,255,0.2);">
+                                 <div class="progress-bar" ng-style="{width: processingProgress + '%'}" style="background: white; color: #006073;">
+                                    {{processingProgress}}%
+                                 </div>
                               </div>
                            </div>
                         </div>
-                     </div>
 
-                     <!-- Batch Management Section -->
-                     <div ng-if="batchesList.length > 0" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                           <h4 style="margin: 0; color: #333;">
-                              <i class="ti ti-package"></i> Batch Management
-                           </h4>
-                           <button ng-click="createQuizFromSelectedBatches()"
-                                   ng-disabled="selectedBatchesCount === 0"
-                                   class="btn btn-primary btn-sm"
-                                   style="padding: 8px 16px;">
-                              <i class="ti ti-plus"></i> Create Quiz from Selected Batches
-                           </button>
+                        <!-- Search Bar (only if batches exist) -->
+                        <div ng-if="batchesList.length > 0" style="margin-bottom: 15px;">
+                           <div style="display: flex; align-items: center; gap: 10px;">
+                              <div style="position: relative; flex: 1; max-width: 300px;">
+                                 <i class="ti ti-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                                 <input type="text"
+                                        ng-model="batchSearchQuery"
+                                        ng-change="onBatchSearchChange()"
+                                        class="form-control"
+                                        placeholder="Search Bundles..."
+                                        style="font-size: 13px; padding: 8px 12px 8px 35px;">
+                              </div>
+                              <span ng-if="batchSearchQuery" style="font-size: 12px; color: #6c757d;">
+                                 Found {{filteredBatchesList.length}} batch<span ng-if="filteredBatchesList.length !== 1">es</span>
+                              </span>
+                           </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-                           <div ng-repeat="batch in batchesList"
+                        <!-- Batches Grid -->
+                        <div ng-if="batchesList.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                           <div ng-repeat="batch in getPaginatedBatches()"
                                 style="border: 2px solid; border-color: {{batch.selected ? '#006073' : '#e9ecef'}}; border-radius: 6px; padding: 15px; background: {{batch.selected ? '#f0f8fa' : 'white'}}; cursor: pointer; transition: all 0.2s;"
                                 ng-click="toggleBatchSelection(batch.id)">
                               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
@@ -579,67 +665,133 @@
                               </div>
                            </div>
                         </div>
-                     </div>
 
-                     <!-- Questions List -->
-                     <div class="questions-section">
-                        <div class="questions-header">
-                           <h4 style="margin: 0; color: #333;">
-                              <i class="ti ti-list"></i> Practice Questions
-                           </h4>
-                           <div class="questions-count">
-                              Total: <strong>{{filteredQuestions.length}}</strong> question(s)
-                              <span ng-if="selectedBatchFilter" style="color: #006073; margin-left: 10px;">
-                                 (Batch: {{selectedBatchFilter}})
+                        <!-- Empty State for Batches -->
+                        <div ng-if="batchesList.length === 0" style="text-align: center; padding: 30px 20px; color: #6c757d;">
+                           <i class="ti ti-package" style="font-size: 40px; opacity: 0.5; display: block; margin-bottom: 10px;"></i>
+                           <div style="font-size: 14px;">No bundles yet. Upload a PDF to create your first bundle.</div>
+                        </div>
+
+                        <!-- Bottom Actions (Pagination + Create Quiz) -->
+                        <div ng-if="batchesList.length > 0" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                           <!-- Pagination -->
+                           <div ng-if="getBatchTotalPages() > 1" style="display: flex; align-items: center; gap: 10px;">
+                              <button ng-click="prevBatchPage()"
+                                      ng-disabled="batchCurrentPage === 1"
+                                      class="btn btn-sm"
+                                      style="padding: 6px 12px; font-size: 12px;">
+                                 <i class="ti ti-angle-left"></i> Prev
+                              </button>
+                              <span style="font-size: 13px; color: #495057;">
+                                 Page {{batchCurrentPage}} of {{getBatchTotalPages()}}
+                              </span>
+                              <button ng-click="nextBatchPage()"
+                                      ng-disabled="batchCurrentPage === getBatchTotalPages()"
+                                      class="btn btn-sm"
+                                      style="padding: 6px 12px; font-size: 12px;">
+                                 Next <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
+                           <!-- Spacer when no pagination -->
+                           <div ng-if="getBatchTotalPages() <= 1"></div>
+                           <!-- Create Quiz Button -->
+                           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                              <button ng-click="createQuizFromSelectedBatches()"
+                                      ng-disabled="selectedBatchesCount === 0 || !allQuestionsVerified"
+                                      class="btn btn-primary"
+                                      style="padding: 10px 20px; font-size: 14px; font-weight: 600;">
+                                 <i class="ti ti-plus"></i> Create Quiz from Selected Bundles
+                                 <span ng-if="selectedBatchesCount > 0" style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-size: 12px;">
+                                    {{selectedBatchesCount}}
+                                 </span>
+                              </button>
+                              <span ng-if="selectedBatchesCount > 0 && unverifiedCount > 0" style="font-size: 11px; color: #856404; display: flex; align-items: center; gap: 5px;">
+                                 <i class="ti ti-alert-triangle"></i>
+                                 {{unverifiedCount}} of {{filteredQuestions.length}} questions not verified. Verify them to continue.
+                              </span>
+                              <span ng-if="selectedBatchesCount > 0 && allQuestionsVerified" style="font-size: 11px; color: #155724; display: flex; align-items: center; gap: 5px;">
+                                 <i class="ti ti-check"></i>
+                                 All {{filteredQuestions.length}} questions verified
                               </span>
                            </div>
                         </div>
+                     </div>
 
-                        <!-- Batch Filter -->
-                        <div ng-if="batchesList.length > 0" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-                           <label style="font-size: 13px; font-weight: 600; color: #495057;">Filter by Batch:</label>
-                           <select ng-model="selectedBatchFilter"
-                                   class="form-control"
-                                   style="width: auto; display: inline-block; font-size: 13px; padding: 6px 12px;">
-                              <option value="">All Batches</option>
-                              <option ng-repeat="batch in batchesList" value="{{batch.id}}">{{batch.id}} ({{batch.count}} questions)</option>
-                           </select>
+                     <!-- Questions List (only show when batches are selected) -->
+                     <div class="questions-section" ng-if="selectedBatchesCount > 0">
+                        <div class="questions-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                           <div style="display: flex; align-items: center; gap: 15px;">
+                              <h3 style="margin: 0; color: #333;">
+                                 Questions Preview
+                              </h3>
+                              <div class="questions-count" style="margin: 0;">
+                                 Total: <strong>{{filteredQuestions.length}}</strong> question(s)
+                                 <span style="color: #006073; margin-left: 10px;">
+                                    ({{selectedBatchesCount}} batch<span ng-if="selectedBatchesCount > 1">es</span> selected)
+                                 </span>
+                              </div>
+                           </div>
+                           <!-- Filter and Navigation -->
+                           <div style="display: flex; align-items: center; gap: 15px;">
+                              <!-- Verification Filter Dropdown -->
+                              <select ng-model="verificationFilter"
+                                      ng-change="onVerificationFilterChange()"
+                                      class="form-control"
+                                      style="width: auto; font-size: 12px; padding: 6px 10px; border-radius: 4px; cursor: pointer;">
+                                 <option value="all">All Questions</option>
+                                 <option value="verified">Verified Only</option>
+                                 <option value="unverified">Unverified Only</option>
+                              </select>
+                              <!-- Inline Navigation -->
+                              <div ng-if="filteredQuestions.length > 1" style="display: flex; align-items: center; gap: 10px;">
+                                 <button ng-click="previousQuestion()"
+                                         ng-disabled="currentQuestionIndex === 0"
+                                         class="btn btn-sm"
+                                         style="padding: 6px 12px; font-size: 12px;">
+                                    <i class="ti ti-angle-left"></i> Prev
+                                 </button>
+                                 <span style="font-size: 13px; color: #495057; font-weight: 600;">
+                                    {{currentQuestionIndex + 1}} / {{filteredQuestions.length}}
+                                 </span>
+                                 <button ng-click="nextQuestion()"
+                                         ng-disabled="currentQuestionIndex === filteredQuestions.length - 1"
+                                         class="btn btn-sm"
+                                         style="padding: 6px 12px; font-size: 12px;">
+                                    Next <i class="ti ti-angle-right"></i>
+                                 </button>
+                              </div>
+                           </div>
                         </div>
 
-                        <!-- Questions -->
-                        <div ng-if="filteredQuestions.length > 0">
-                           <div ng-repeat="question in filteredQuestions track by question.uuid" class="question-card">
+                        <!-- Single Question Display -->
+                        <div ng-if="filteredQuestions.length > 0 && filteredQuestions[currentQuestionIndex]" class="question-card">
                               <div class="question-header">
                                  <div class="question-id">
-                                    Question #{{$index + 1}} • ID: {{question.id}}
+                                    Question #{{currentQuestionIndex + 1}} • ID: {{filteredQuestions[currentQuestionIndex].id}}
                                     <span style="font-size: 12px; color: #6c757d; font-weight: normal; margin-left: 8px;">
-                                       • by Abhijith on {{formatDate(question.createdAt)}}
+                                       • by Abhijith on {{formatDate(filteredQuestions[currentQuestionIndex].createdAt)}}
                                     </span>
-                                    <span ng-if="question.batchId" style="font-size: 12px; color: #006073; font-weight: 600; margin-left: 8px; background: #e3f2f5; padding: 2px 8px; border-radius: 4px;">
-                                       <i class="ti ti-package"></i> {{question.batchId}}
+                                    <span ng-if="filteredQuestions[currentQuestionIndex].batchId" style="font-size: 12px; color: #006073; font-weight: 600; margin-left: 8px; background: #e3f2f5; padding: 2px 8px; border-radius: 4px;">
+                                       <i class="ti ti-package"></i> {{filteredQuestions[currentQuestionIndex].batchId}}
                                     </span>
                                  </div>
-                                 <div class="question-meta">
-                                    <span class="question-badge badge-mcq">{{question.answerType}}</span>
-                                    <span class="answer-badge">Correct: {{question.correctAnswer}}</span>
+                                 <div class="question-meta" style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="question-badge badge-mcq">{{filteredQuestions[currentQuestionIndex].answerType}}</span>
+                                    <span class="answer-badge">Correct: {{filteredQuestions[currentQuestionIndex].correctAnswer}}</span>
+                                    <!-- Verified Status Indicator (Right Corner) -->
+                                    <span ng-click="toggleVerified(filteredQuestions[currentQuestionIndex]); $event.stopPropagation()"
+                                          style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-left: 10px;"
+                                          ng-style="{'background': filteredQuestions[currentQuestionIndex].verified ? '#d4edda' : '#fff3cd', 'color': filteredQuestions[currentQuestionIndex].verified ? '#155724' : '#856404'}"
+                                          title="Click to toggle verification status">
+                                       <span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"
+                                             ng-style="{'background': filteredQuestions[currentQuestionIndex].verified ? '#28a745' : '#ffc107'}"></span>
+                                       {{filteredQuestions[currentQuestionIndex].verified ? 'Verified' : 'Unverified'}}
+                                    </span>
                                  </div>
                               </div>
                               <div class="question-body">
                                  <div class="question-image-container">
-                                    <img ng-src="{{question.imageData}}" class="question-image" alt="Question {{$index + 1}}">
-                                 </div>
-                                 <!-- OCR Text Section -->
-                                 <div style="padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
-                                    <div style="font-size: 11px; color: #6c757d; margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
-                                       <i class="ti ti-text"></i> OCR Extracted Text
-                                       <span ng-if="question.isProcessingOCR" style="color: #856404; font-weight: normal; text-transform: none;">
-                                          - Processing... {{question.ocrProgress}}%
-                                       </span>
-                                    </div>
-                                    <div ng-if="question.ocrText" style="font-size: 13px; color: #495057; line-height: 1.6; white-space: pre-wrap;">{{question.ocrText}}</div>
-                                    <div ng-if="!question.ocrText && !question.isProcessingOCR" style="font-size: 13px; color: #adb5bd; font-style: italic;">
-                                       No text extracted yet
-                                    </div>
+                                    <img ng-src="{{filteredQuestions[currentQuestionIndex].imageData}}" class="question-image" alt="Question {{currentQuestionIndex + 1}}" style="max-height: 800px;">
                                  </div>
                               </div>
 
@@ -649,12 +801,12 @@
                                     <!-- Average Time -->
                                     <div style="display: flex; flex-direction: column;">
                                        <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Avg Time</label>
-                                       <input ng-model="question.averageTime" type="text" class="form-control" placeholder="seconds" maxlength="4" style="font-size: 13px; padding: 6px 10px;">
+                                       <input ng-model="filteredQuestions[currentQuestionIndex].averageTime" type="text" class="form-control" placeholder="seconds" maxlength="4" style="font-size: 13px; padding: 6px 10px;">
                                        <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px;">
-                                          <span ng-click="question.averageTime = 30" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">30s</span>
-                                          <span ng-click="question.averageTime = 60" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">1m</span>
-                                          <span ng-click="question.averageTime = 120" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">2m</span>
-                                          <span ng-click="question.averageTime = 180" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">3m</span>
+                                          <span ng-click="filteredQuestions[currentQuestionIndex].averageTime = 30" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">30s</span>
+                                          <span ng-click="filteredQuestions[currentQuestionIndex].averageTime = 60" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">1m</span>
+                                          <span ng-click="filteredQuestions[currentQuestionIndex].averageTime = 120" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">2m</span>
+                                          <span ng-click="filteredQuestions[currentQuestionIndex].averageTime = 180" style="padding: 2px 6px; background: #e9ecef; border-radius: 4px; font-size: 10px; cursor: pointer; user-select: none;">3m</span>
                                        </div>
                                     </div>
 
@@ -662,16 +814,16 @@
                                     <div style="display: flex; flex-direction: column;">
                                        <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Level</label>
                                        <div style="display: flex; gap: 5px;">
-                                          <button ng-click="question.level = 'Easy'"
-                                                  ng-class="{'btn-success': question.level === 'Easy'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].level = 'Easy'"
+                                                  ng-class="{'btn-success': filteredQuestions[currentQuestionIndex].level === 'Easy'}"
                                                   class="btn btn-sm"
                                                   style="flex: 1; padding: 6px; font-size: 11px;">Easy</button>
-                                          <button ng-click="question.level = 'Medium'"
-                                                  ng-class="{'btn-warning': question.level === 'Medium'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].level = 'Medium'"
+                                                  ng-class="{'btn-warning': filteredQuestions[currentQuestionIndex].level === 'Medium'}"
                                                   class="btn btn-sm"
                                                   style="flex: 1; padding: 6px; font-size: 11px;">Medium</button>
-                                          <button ng-click="question.level = 'Hard'"
-                                                  ng-class="{'btn-danger': question.level === 'Hard'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].level = 'Hard'"
+                                                  ng-class="{'btn-danger': filteredQuestions[currentQuestionIndex].level === 'Hard'}"
                                                   class="btn btn-sm"
                                                   style="flex: 1; padding: 6px; font-size: 11px;">Hard</button>
                                        </div>
@@ -681,20 +833,20 @@
                                     <div style="display: flex; flex-direction: column;">
                                        <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Correct Answer</label>
                                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
-                                          <button ng-click="question.correctAnswer = 'A'"
-                                                  ng-class="{'btn-success': question.correctAnswer === 'A'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].correctAnswer = 'A'"
+                                                  ng-class="{'btn-success': filteredQuestions[currentQuestionIndex].correctAnswer === 'A'}"
                                                   class="btn btn-sm"
                                                   style="padding: 6px; font-size: 12px; font-weight: 600;">A</button>
-                                          <button ng-click="question.correctAnswer = 'B'"
-                                                  ng-class="{'btn-success': question.correctAnswer === 'B'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].correctAnswer = 'B'"
+                                                  ng-class="{'btn-success': filteredQuestions[currentQuestionIndex].correctAnswer === 'B'}"
                                                   class="btn btn-sm"
                                                   style="padding: 6px; font-size: 12px; font-weight: 600;">B</button>
-                                          <button ng-click="question.correctAnswer = 'C'"
-                                                  ng-class="{'btn-success': question.correctAnswer === 'C'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].correctAnswer = 'C'"
+                                                  ng-class="{'btn-success': filteredQuestions[currentQuestionIndex].correctAnswer === 'C'}"
                                                   class="btn btn-sm"
                                                   style="padding: 6px; font-size: 12px; font-weight: 600;">C</button>
-                                          <button ng-click="question.correctAnswer = 'D'"
-                                                  ng-class="{'btn-success': question.correctAnswer === 'D'}"
+                                          <button ng-click="filteredQuestions[currentQuestionIndex].correctAnswer = 'D'"
+                                                  ng-class="{'btn-success': filteredQuestions[currentQuestionIndex].correctAnswer === 'D'}"
                                                   class="btn btn-sm"
                                                   style="padding: 6px; font-size: 12px; font-weight: 600;">D</button>
                                        </div>
@@ -705,7 +857,7 @@
                                        <!-- Module -->
                                        <div style="display: flex; flex-direction: column;">
                                           <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Module</label>
-                                          <select ng-model="question.subject" class="form-control" style="font-size: 13px; padding: 6px 10px;">
+                                          <select ng-model="filteredQuestions[currentQuestionIndex].subject" class="form-control" style="font-size: 13px; padding: 6px 10px;">
                                              <option value="">None</option>
                                              <option value="Physics">Physics</option>
                                              <option value="Chemistry">Chemistry</option>
@@ -717,13 +869,13 @@
                                        <!-- Chapter -->
                                        <div style="display: flex; flex-direction: column;">
                                           <label style="font-size: 11px; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">
-                                             Chapter <span ng-if="question.subject">from {{question.subject}}</span>
+                                             Chapter <span ng-if="filteredQuestions[currentQuestionIndex].subject">from {{filteredQuestions[currentQuestionIndex].subject}}</span>
                                           </label>
-                                          <select ng-model="question.chapter" class="form-control" style="font-size: 13px; padding: 6px 10px;">
+                                          <select ng-model="filteredQuestions[currentQuestionIndex].chapter" class="form-control" style="font-size: 13px; padding: 6px 10px;">
                                              <option value="">None</option>
 
                                              <!-- Physics Chapters -->
-                                             <optgroup label="Physics - Plus One" ng-if="question.subject == 'Physics'">
+                                             <optgroup label="Physics - Plus One" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Physics'">
                                                 <option value="1P01">Chapter 1: Physical World</option>
                                                 <option value="1P02">Chapter 2: Units and Measurements</option>
                                                 <option value="1P03">Chapter 3: Motion in a Straight Line</option>
@@ -741,7 +893,7 @@
                                                 <option value="1P15">Chapter 15: Waves</option>
                                              </optgroup>
 
-                                             <optgroup label="Physics - Plus Two" ng-if="question.subject == 'Physics'">
+                                             <optgroup label="Physics - Plus Two" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Physics'">
                                                 <option value="2P01">Chapter 1: Electric Charges and Fields</option>
                                                 <option value="2P02">Chapter 2: Electrostatic Potential and Capacitance</option>
                                                 <option value="2P03">Chapter 3: Current Electricity</option>
@@ -760,7 +912,7 @@
                                              </optgroup>
 
                                              <!-- Chemistry Chapters -->
-                                             <optgroup label="Chemistry - Plus One" ng-if="question.subject == 'Chemistry'">
+                                             <optgroup label="Chemistry - Plus One" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Chemistry'">
                                                 <option value="1C01">Chapter 1: Some Basic Concepts of Chemistry</option>
                                                 <option value="1C02">Chapter 2: Structure of Atom</option>
                                                 <option value="1C03">Chapter 3: Classification of Elements and Periodicity</option>
@@ -777,7 +929,7 @@
                                                 <option value="1C14">Chapter 14: Environmental Chemistry</option>
                                              </optgroup>
 
-                                             <optgroup label="Chemistry - Plus Two" ng-if="question.subject == 'Chemistry'">
+                                             <optgroup label="Chemistry - Plus Two" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Chemistry'">
                                                 <option value="2C01">Chapter 1: The Solid State</option>
                                                 <option value="2C02">Chapter 2: Solutions</option>
                                                 <option value="2C03">Chapter 3: Electrochemistry</option>
@@ -797,7 +949,7 @@
                                              </optgroup>
 
                                              <!-- Mathematics Chapters -->
-                                             <optgroup label="Mathematics - Plus One" ng-if="question.subject == 'Mathematics'">
+                                             <optgroup label="Mathematics - Plus One" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Mathematics'">
                                                 <option value="1M01">Chapter 1: Sets</option>
                                                 <option value="1M02">Chapter 2: Relations and Functions</option>
                                                 <option value="1M03">Chapter 3: Trigonometric Functions</option>
@@ -816,7 +968,7 @@
                                                 <option value="1M16">Chapter 16: Probability</option>
                                              </optgroup>
 
-                                             <optgroup label="Mathematics - Plus Two" ng-if="question.subject == 'Mathematics'">
+                                             <optgroup label="Mathematics - Plus Two" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Mathematics'">
                                                 <option value="2M01">Chapter 1: Relations and Functions</option>
                                                 <option value="2M02">Chapter 2: Inverse Trigonometric Functions</option>
                                                 <option value="2M03">Chapter 3: Matrices</option>
@@ -833,7 +985,7 @@
                                              </optgroup>
 
                                              <!-- Biology Chapters -->
-                                             <optgroup label="Biology - Plus One" ng-if="question.subject == 'Biology'">
+                                             <optgroup label="Biology - Plus One" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Biology'">
                                                 <option value="1B01">Chapter 1: Diversity of the Living World</option>
                                                 <option value="1B02">Chapter 2: Biological Classification</option>
                                                 <option value="1B03">Chapter 3: Plant Kingdom</option>
@@ -858,7 +1010,7 @@
                                                 <option value="1B22">Chapter 22: Chemical Coordination and Integration</option>
                                              </optgroup>
 
-                                             <optgroup label="Biology - Plus Two" ng-if="question.subject == 'Biology'">
+                                             <optgroup label="Biology - Plus Two" ng-if="filteredQuestions[currentQuestionIndex].subject == 'Biology'">
                                                 <option value="2B01">Chapter 1: Reproduction in Organisms</option>
                                                 <option value="2B02">Chapter 2: Sexual Reproduction in Flowering Plants</option>
                                                 <option value="2B03">Chapter 3: Human Reproduction</option>
@@ -881,13 +1033,6 @@
                                     </div>
                                  </div>
                               </div>
-
-                              <div class="question-actions">
-                                 <button class="btn-delete" ng-click="deleteQuestion(question)">
-                                    <i class="ti ti-trash"></i> Delete
-                                 </button>
-                              </div>
-                           </div>
                         </div>
 
                         <!-- Empty State -->

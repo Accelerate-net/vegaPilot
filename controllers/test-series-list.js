@@ -32,6 +32,37 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     $scope.sortColumn = 'name';
     $scope.sortReverse = false;
 
+    // Toggle Kebab Menu
+    $scope.toggleKebabMenu = function(series, $event) {
+        $event.stopPropagation();
+
+        // Close all other kebab menus first
+        $scope.testSeriesList.forEach(function(s) {
+            if (s !== series) {
+                s.showKebabMenu = false;
+            }
+        });
+
+        // Toggle the clicked series's menu
+        series.showKebabMenu = !series.showKebabMenu;
+    };
+
+    // Close kebab menus when clicking outside
+    angular.element(document).on('click', function(e) {
+        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
+            var hasOpenMenu = $scope.testSeriesList && $scope.testSeriesList.some(function(series) {
+                return series.showKebabMenu;
+            });
+            if (hasOpenMenu) {
+                $scope.$applyAsync(function() {
+                    $scope.testSeriesList.forEach(function(series) {
+                        series.showKebabMenu = false;
+                    });
+                });
+            }
+        }
+    });
+
     // ===== Initialize App =====
     $scope.init = function() {
         $scope.showLoading('Loading data...');

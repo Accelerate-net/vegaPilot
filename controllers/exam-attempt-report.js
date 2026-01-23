@@ -1,10 +1,10 @@
-// Quiz Attempt Report Controller - Displays rank list and analytics
-var quizReportApp = angular.module('quizReportApp', []);
+// Exam Attempt Report Controller - Displays rank list and analytics for exams
+var examReportApp = angular.module('examReportApp', []);
 
-quizReportApp.controller('quizReportController', ['$scope', '$window', function($scope, $window) {
+examReportApp.controller('examReportController', ['$scope', '$window', function($scope, $window) {
 
     // ===== Initialize Scope Variables =====
-    $scope.quiz = null;
+    $scope.exam = null;
     $scope.rankings = [];
     $scope.searchQuery = '';
     $scope.statusFilter = 'all';
@@ -57,7 +57,7 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
     $scope.init = function() {
         $scope.loadUrlParams();
         $scope.loadCoursesAndBatches();
-        $scope.loadQuizData();
+        $scope.loadExamData();
         if ($scope.courseId) {
             $scope.loadCourseInfo();
         }
@@ -103,10 +103,10 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
         });
     };
 
-    // ===== Get Quiz ID from URL =====
-    $scope.getQuizIdFromUrl = function() {
+    // ===== Get Exam ID from URL =====
+    $scope.getExamIdFromUrl = function() {
         var urlParams = new URLSearchParams($window.location.search);
-        return urlParams.get('quiz');
+        return urlParams.get('exam');
     };
 
     // ===== Load Course Info =====
@@ -122,64 +122,87 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
         };
     };
 
-    // ===== Load Quiz Data =====
-    $scope.loadQuizData = function() {
-        var quizId = $scope.getQuizIdFromUrl();
+    // ===== Load Exam Data =====
+    $scope.loadExamData = function() {
+        var examId = $scope.getExamIdFromUrl();
 
         // Try to get from localStorage first (passed from listing page)
-        var reportQuizData = localStorage.getItem('reportQuizData');
-        if (reportQuizData) {
+        var reportExamData = localStorage.getItem('reportExamData');
+        if (reportExamData) {
             try {
-                $scope.quiz = JSON.parse(reportQuizData);
-                console.log('Loaded quiz from localStorage:', $scope.quiz);
+                $scope.exam = JSON.parse(reportExamData);
+                console.log('Loaded exam from localStorage:', $scope.exam);
                 // Clear after loading
-                localStorage.removeItem('reportQuizData');
+                localStorage.removeItem('reportExamData');
+
+                // If exam exists but has no attempts, add sample data
+                if (!$scope.exam.attempts || $scope.exam.attempts.length === 0) {
+                    $scope.exam.attempts = $scope.generateSampleAttempts();
+                }
                 return;
             } catch (e) {
-                console.error('Error parsing quiz data:', e);
+                console.error('Error parsing exam data:', e);
             }
         }
 
-        // Fallback: Try to find in published quizzes
-        var publishedQuizzes = localStorage.getItem('publishedQuizzes');
-        if (publishedQuizzes) {
+        // Fallback: Try to find in published exams
+        var publishedExams = localStorage.getItem('publishedExams');
+        if (publishedExams) {
             try {
-                var quizzes = JSON.parse(publishedQuizzes);
-                $scope.quiz = quizzes.find(function(q) { return q.id === quizId; });
+                var exams = JSON.parse(publishedExams);
+                $scope.exam = exams.find(function(e) { return e.id === examId; });
 
-                if (!$scope.quiz) {
+                if (!$scope.exam) {
                     // Try drafts
-                    var draftQuizzes = localStorage.getItem('quizDrafts');
-                    if (draftQuizzes) {
-                        var drafts = JSON.parse(draftQuizzes);
-                        $scope.quiz = drafts.find(function(q) { return q.id === quizId; });
+                    var draftExams = localStorage.getItem('examDrafts');
+                    if (draftExams) {
+                        var drafts = JSON.parse(draftExams);
+                        $scope.exam = drafts.find(function(e) { return e.id === examId; });
                     }
                 }
             } catch (e) {
-                console.error('Error loading quiz:', e);
+                console.error('Error loading exam:', e);
             }
         }
 
-        if (!$scope.quiz) {
-            console.error('Quiz not found for ID:', quizId);
+        if (!$scope.exam) {
+            console.error('Exam not found for ID:', examId);
 
-            // Create sample quiz with dummy attempts
-            $scope.quiz = {
-                id: quizId || '608904B5',
-                title: 'IAT 2026 - Mock Test 1',
-                description: 'Comprehensive mock test for IISER Aptitude Test 2026 preparation',
+            // Create sample exam with dummy attempts
+            $scope.exam = {
+                id: examId || 'EXAM-001',
+                title: 'IAT 2026 - Full Length Mock Test 1',
+                brief: 'Comprehensive mock test for IISER Aptitude Test 2026 preparation covering all sections',
                 totalQuestions: 60,
                 duration: 180,
                 maximumMarks: 240,
+                numberOfSections: 3,
                 status: 'published',
+                sectionsData: [
+                    { name: 'Mathematics', questions: 20, marks: 80 },
+                    { name: 'Physics', questions: 20, marks: 80 },
+                    { name: 'Chemistry', questions: 20, marks: 80 }
+                ],
                 attempts: $scope.generateSampleAttempts()
             };
         }
 
-        // If quiz exists but has no attempts, add sample data
-        if ($scope.quiz && (!$scope.quiz.attempts || $scope.quiz.attempts.length === 0)) {
-            $scope.quiz.attempts = $scope.generateSampleAttempts();
+        // If exam exists but has no attempts, add sample data
+        if ($scope.exam && (!$scope.exam.attempts || $scope.exam.attempts.length === 0)) {
+            $scope.exam.attempts = $scope.generateSampleAttempts();
         }
+    };
+
+    // ===== Get Status Label =====
+    $scope.getStatusLabel = function(status) {
+        var statusLabels = {
+            'draft': 'Draft',
+            'published': 'Published',
+            'scheduled': 'Scheduled',
+            'completed': 'Completed',
+            'archived': 'Archived'
+        };
+        return statusLabels[status] || status;
     };
 
     // ===== Generate Sample Attempts =====
@@ -229,12 +252,12 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
 
     // ===== Calculate Rankings =====
     $scope.calculateRankings = function() {
-        if (!$scope.quiz || !$scope.quiz.attempts) {
+        if (!$scope.exam || !$scope.exam.attempts) {
             $scope.rankings = [];
             return;
         }
 
-        var attempts = $scope.quiz.attempts;
+        var attempts = $scope.exam.attempts;
 
         // Filter by course enrollment if course parameter is present
         if ($scope.courseId) {
@@ -253,17 +276,18 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
 
         // Assign ranks
         var currentRank = 1;
+        var maximumMarks = $scope.exam.maximumMarks || 240;
         for (var i = 0; i < completedAttempts.length; i++) {
             if (i > 0 && completedAttempts[i].score < completedAttempts[i - 1].score) {
                 currentRank = i + 1;
             }
             completedAttempts[i].rank = currentRank;
-            completedAttempts[i].percentage = Math.round((completedAttempts[i].score / $scope.quiz.maximumMarks) * 100);
+            completedAttempts[i].percentage = Math.round((completedAttempts[i].score / maximumMarks) * 100);
             completedAttempts[i].timeTaken = $scope.calculateTimeTaken(completedAttempts[i]);
         }
 
         // Add in-progress attempts without ranks
-        var inProgressAttempts = $scope.quiz.attempts.filter(function(attempt) {
+        var inProgressAttempts = $scope.exam.attempts.filter(function(attempt) {
             return attempt.status === 'in-progress';
         }).map(function(attempt) {
             attempt.rank = '-';
@@ -964,11 +988,12 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
 
         // Get selected columns
         var cols = $scope.exportColumns;
+        var maximumMarks = $scope.exam.maximumMarks || 240;
 
         // Generate PDF content
         var printWindow = $window.open('', '_blank');
 
-        var html = '<!DOCTYPE html><html><head><title>Rank List - ' + $scope.quiz.title + '</title>';
+        var html = '<!DOCTYPE html><html><head><title>Rank List - ' + $scope.exam.title + '</title>';
         html += '<style>';
         html += 'body { font-family: Arial, sans-serif; margin: 20px; }';
         html += 'h1 { color: #006073; font-size: 24px; margin-bottom: 5px; }';
@@ -987,15 +1012,18 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
         html += '</style></head><body>';
 
         // Header
-        html += '<h1>Quiz Rank List Report</h1>';
-        html += '<h2>' + $scope.quiz.title + '</h2>';
+        html += '<h1>Exam Rank List Report</h1>';
+        html += '<h2>' + $scope.exam.title + '</h2>';
 
-        // Quiz Info
+        // Exam Info
         html += '<div class="header-info">';
         html += '<div class="info-row">';
-        html += '<div><span class="info-label">Total Questions:</span> ' + $scope.quiz.totalQuestions + '</div>';
-        html += '<div><span class="info-label">Duration:</span> ' + $scope.quiz.duration + ' minutes</div>';
-        html += '<div><span class="info-label">Maximum Marks:</span> ' + $scope.quiz.maximumMarks + '</div>';
+        html += '<div><span class="info-label">Total Questions:</span> ' + $scope.exam.totalQuestions + '</div>';
+        html += '<div><span class="info-label">Duration:</span> ' + $scope.exam.duration + ' minutes</div>';
+        html += '<div><span class="info-label">Maximum Marks:</span> ' + maximumMarks + '</div>';
+        if ($scope.exam.numberOfSections) {
+            html += '<div><span class="info-label">Sections:</span> ' + $scope.exam.numberOfSections + '</div>';
+        }
         html += '</div>';
 
         // Filter Info
@@ -1042,7 +1070,7 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
             if (cols.rank) html += '<td class="rank-col">' + (record.rank || 'N/A') + '</td>';
             if (cols.studentName) html += '<td>' + record.studentName + '</td>';
             if (cols.rollNumber) html += '<td>' + (record.rollNumber || 'N/A') + '</td>';
-            if (cols.totalScore) html += '<td class="score-col">' + record.score + ' / ' + $scope.quiz.maximumMarks + '</td>';
+            if (cols.totalScore) html += '<td class="score-col">' + record.score + ' / ' + maximumMarks + '</td>';
             if (cols.percentage) html += '<td class="score-col">' + (record.percentage || 0) + '%</td>';
             if (cols.totalAttempts) {
                 var totalAttempts = (record.correctAnswers || 0) + (record.incorrectAnswers || 0);
@@ -1057,7 +1085,7 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
 
         // Footer
         html += '<div class="footer">';
-        html += 'Generated by VegaPilot LMS - Quiz Attempt Report<br>';
+        html += 'Generated by VegaPilot LMS - Exam Attempt Report<br>';
         html += 'This document is auto-generated and reflects data at the time of export.';
         html += '</div>';
 

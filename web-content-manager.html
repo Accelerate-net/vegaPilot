@@ -193,6 +193,11 @@
             color: #721c24;
         }
 
+        .status-revoked {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
         /* Buttons */
         .btn-primary-custom {
             background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
@@ -284,6 +289,88 @@
                 opacity: 1;
             }
         }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-btn {
+            padding: 5px 12px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            min-width: 32px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+
+        .pagination-btn.active {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            font-weight: 600;
+        }
+
+        /* Custom Dropdown Styling */
+        #statusFilter {
+            padding: 8px 35px 8px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 viewBox=%270 0 12 8%27%3e%3cpath fill=%27%234b5563%27 d=%27M6 8L0 0h12z%27/%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: all 0.2s ease;
+        }
+
+        #statusFilter:hover {
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+        }
+
+        #statusFilter:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.15);
+        }
     </style>
 </head>
 
@@ -327,29 +414,43 @@
                                 <ul class="acc-menu">
 
                                     <li class="nav-separator"><span>Programs</span></li>
-                                    <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
-                                    <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a></li>
-                                    <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
-                                    <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+                                    <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a>
+                                    </li>
+                                    <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test
+                                                Series</span></a></li>
+                                    <li><a href="candidate-profile.html"><i
+                                                class="ti ti-user"></i><span>Students</span></a></li>
+                                    <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a>
+                                    </li>
 
                                     <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                                    <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                                    <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+                                    <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice
+                                                Quizzes</span></a></li>
+                                    <li><a href="exam-listing.html"><i
+                                                class="ti ti-clipboard"></i><span>Exams</span></a></li>
 
                                     <li class="nav-separator"><span>Content Library</span></li>
-                                    <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
-                                    <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a></li>
-                                    <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a></li>
-                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a></li>
+                                    <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question
+                                                Bank</span></a></li>
+                                    <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                                Library</span></a></li>
+                                    <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                                Questions</span></a></li>
+                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video
+                                                Hosting</span></a></li>
 
                                     <li class="nav-separator"><span>Commerce</span></li>
-                                    <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                                    <li><a href="catalog.html"><i
+                                                class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
                                     <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                                    <li><a href="web-content-manager.html" class="active"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+                                    <li><a href="web-content-manager.html" class="active"><i
+                                                class="ti ti-world"></i><span>Web Content Manager</span></a></li>
 
                                     <li class="nav-separator"><span>People</span></li>
-                                    <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a></li>
-                                    <li><a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                                    <li><a href="instructor-portfolio.html"><i
+                                                class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                                    <li><a href="mentor-profiles.html"><i
+                                                class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
                                 </ul>
                             </nav>
                         </div>
@@ -410,9 +511,15 @@
                                 <div class="section-header">
                                     <h2 class="section-title"><i class="ti ti-ticket"
                                             style="margin-right: 10px;"></i>Discount Codes</h2>
-                                    <button class="btn btn-success-custom" id="addDiscountBtn">
-                                        <i class="ti ti-plus"></i> Add New Code
-                                    </button>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <select id="statusFilter">
+                                            <option value="all">All Codes</option>
+                                            <option value="active">Active Only</option>
+                                        </select>
+                                        <button class="btn btn-success-custom" id="addDiscountBtn">
+                                            <i class="ti ti-plus"></i> Add New Code
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div class="table-responsive">
@@ -433,13 +540,31 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
 
-                        </div> <!-- .container-fluid -->
-                    </div> <!-- #page-content -->
-                </div>
+                                <!-- Pagination for Discounts -->
+                                <div id="discountsPaginationContainer" class="pagination-container"
+                                    style="display: none;">
+                                    <div class="pagination-info">
+                                        Showing <span id="discountsPageInfo">0-0 of 0</span> codes
+                                    </div>
+                                    <div class="pagination-controls">
+                                        <button type="button" class="pagination-btn" id="discountsPrevPage">
+                                            <i class="ti ti-angle-left"></i> Previous
+                                        </button>
+                                        <div id="discountsPageNumbers" style="display: flex; gap: 5px;"></div>
+                                        <button type="button" class="pagination-btn" id="discountsNextPage">
+                                            Next <i class="ti ti-angle-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- .container-fluid -->
+                </div> <!-- #page-content -->
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Course Selection Modal -->
@@ -462,24 +587,28 @@
 
                     <!-- Empty State -->
                     <div id="modalEmptyState" style="display: none; text-align: center; padding: 40px; color: #6c757d;">
-                        <i class="ti ti-search" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                        <i class="ti ti-search"
+                            style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
                         <p style="margin: 0;">No courses found</p>
                     </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div id="modalPaginationContainer" style="padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
+                <div id="modalPaginationContainer"
+                    style="padding: 15px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb;">
                     <div style="font-size: 13px; color: #6c757d;">
                         Showing <span id="modalPageInfo">1-8 of 0</span> courses
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button type="button" class="btn btn-sm btn-default" id="modalPrevPage" style="padding: 5px 12px;">
+                        <button type="button" class="btn btn-sm btn-default" id="modalPrevPage"
+                            style="padding: 5px 12px;">
                             <i class="ti ti-angle-left"></i> Previous
                         </button>
                         <div id="modalPageNumbers" style="display: flex; gap: 5px;">
                             <!-- Page numbers will be inserted here -->
                         </div>
-                        <button type="button" class="btn btn-sm btn-default" id="modalNextPage" style="padding: 5px 12px;">
+                        <button type="button" class="btn btn-sm btn-default" id="modalNextPage"
+                            style="padding: 5px 12px;">
                             Next <i class="ti ti-angle-right"></i>
                         </button>
                     </div>
@@ -533,13 +662,15 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Min Order Value (Optional)</label>
-                                <input type="number" class="form-control" name="minOrderValue" min="0" placeholder="Minimum order amount">
+                                <input type="number" class="form-control" name="minOrderValue" min="0"
+                                    placeholder="Minimum order amount">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Max Discount (Optional)</label>
-                                <input type="number" class="form-control" name="maxDiscount" min="0" placeholder="Maximum discount amount">
+                                <input type="number" class="form-control" name="maxDiscount" min="0"
+                                    placeholder="Maximum discount amount">
                             </div>
                         </div>
                     </div>
@@ -548,25 +679,162 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Min Order Value (Optional)</label>
-                                <input type="number" class="form-control" name="minOrderValueFixed" min="0" placeholder="Minimum order amount">
+                                <input type="number" class="form-control" name="minOrderValueFixed" min="0"
+                                    placeholder="Minimum order amount">
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Valid Until</label>
-                        <input type="date" class="form-control" name="validUntil" required>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Valid Until</label>
+                                <input type="date" class="form-control" name="validUntil" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Usage Limit (Optional)</label>
+                                <input type="number" class="form-control" name="usageLimit"
+                                    placeholder="Leave empty for unlimited">
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Limited to Specific Users -->
                     <div class="form-group">
-                        <label>Usage Limit (Optional)</label>
-                        <input type="number" class="form-control" name="usageLimit"
-                            placeholder="Leave empty for unlimited">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                            <input type="checkbox" id="limitedUsersCheckbox" style="margin: 0;">
+                            <label for="limitedUsersCheckbox" style="margin: 0; cursor: pointer;">Limited to Specific
+                                User(s)</label>
+                        </div>
+
+                        <div id="userSelectionContainer" style="display: none;">
+                            <!-- Search Input -->
+                            <div style="position: relative; margin-bottom: 10px;">
+                                <input type="text" class="form-control" id="userSearchInput"
+                                    placeholder="Search by name, email, or mobile...">
+                                <i class="ti ti-search"
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                            </div>
+
+                            <!-- Selected Users Display -->
+                            <div id="selectedUsersContainer"
+                                style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 32px;">
+                                <!-- Selected user tags will appear here -->
+                            </div>
+
+                            <!-- User Search Results Dropdown -->
+                            <div id="userSearchResults"
+                                style="display: none; border: 1px solid #e5e7eb; border-radius: 4px; max-height: 240px; overflow-y: auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <!-- Search results will appear here -->
+                            </div>
+                        </div>
                     </div>
+
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
                         <button type="button" class="btn btn-default close-modal">Cancel</button>
                         <button type="submit" class="btn btn-primary-custom">Create Code</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Users Modal -->
+    <div class="custom-modal" id="viewUsersModal">
+        <div class="custom-modal-content" style="width: 700px;">
+            <div class="custom-modal-header">
+                <h3 id="viewUsersModalTitle">Users Associated with Voucher</h3>
+                <button class="close-modal"
+                    style="background:none; border:none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="custom-modal-body">
+                <!-- Search Box -->
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="voucherUserSearchInput" class="form-control"
+                        placeholder="Search by name, email, or mobile...">
+                </div>
+
+                <!-- Users Table -->
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="custom-table" id="voucherUsersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Users will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div id="voucherUsersPagination"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <div style="font-size: 13px; color: #6c757d;">
+                        Showing <span id="voucherUsersPageInfo">0-0 of 0</span> users
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="btn btn-sm btn-default" id="voucherUsersPrevPage">
+                            <i class="ti ti-angle-left"></i> Previous
+                        </button>
+                        <div id="voucherUsersPageNumbers" style="display: flex; gap: 5px;"></div>
+                        <button type="button" class="btn btn-sm btn-default" id="voucherUsersNextPage">
+                            Next <i class="ti ti-angle-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voucher Details Modal -->
+    <div class="custom-modal" id="voucherDetailsModal">
+        <div class="custom-modal-content" style="width: 500px;">
+            <div class="custom-modal-header">
+                <h3>Voucher Details</h3>
+                <button class="close-modal"
+                    style="background:none; border:none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="custom-modal-body">
+                <div id="voucherDetailsContent">
+                    <!-- Details will be populated here -->
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-default close-modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke Confirmation Modal -->
+    <div class="custom-modal" id="revokeConfirmModal">
+        <div class="custom-modal-content" style="width: 450px;">
+            <div class="custom-modal-header" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                <h3><i class="ti ti-alert-circle"></i> Confirm Revoke</h3>
+                <button class="close-modal"
+                    style="background:none; border:none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="custom-modal-body">
+                <div style="text-align: center; padding: 20px 0;">
+                    <i class="ti ti-ban" style="font-size: 64px; color: #dc2626; margin-bottom: 15px;"></i>
+                    <h4 style="margin: 0 0 10px 0; color: #1f2937;">Revoke Voucher Code?</h4>
+                    <p style="color: #6b7280; margin: 0 0 5px 0;">Are you sure you want to revoke this voucher code?</p>
+                    <p style="color: #dc2626; font-weight: 600; margin: 0;" id="revokeVoucherCode"></p>
+                    <p style="color: #6b7280; font-size: 13px; margin-top: 15px;">This action cannot be undone.</p>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-default close-modal">Cancel</button>
+                    <button type="button" class="btn" id="confirmRevokeBtn"
+                        style="background: #dc2626; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600;">
+                        <i class="ti ti-ban"></i> Revoke Code
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -100,12 +100,18 @@
             border-bottom: 1px solid #e9ecef;
             transition: all 0.2s ease;
             cursor: pointer;
+            position: relative;
         }
 
         .test-series-table tbody tr:hover {
             background: #f8f9fc;
             transform: scale(1.002);
             box-shadow: 0 2px 8px rgba(0, 96, 115, 0.1);
+        }
+
+        .test-series-table tbody tr:has(.kebab-dropdown.active) {
+            z-index: 100;
+            transform: none;
         }
 
         .test-series-table td {
@@ -465,6 +471,85 @@
         .summary-item strong {
             color: #006073;
         }
+
+        /* Kebab Menu Styles */
+        .kebab-menu-container {
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+        }
+        .kebab-menu-container:has(.kebab-dropdown.active) {
+            z-index: 100;
+        }
+        .kebab-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            color: #495057;
+        }
+        .kebab-button:hover {
+            background: #f0f0f0;
+            color: #006073;
+        }
+        .kebab-button i {
+            font-size: 18px;
+        }
+        .kebab-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 180px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+        .kebab-dropdown.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .kebab-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            color: #333;
+        }
+        .kebab-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .kebab-dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        .kebab-dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        .kebab-dropdown-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+        .kebab-dropdown-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .kebab-dropdown-item.edit-action i { color: #007bff; }
+        .kebab-dropdown-item.delete-action i { color: #dc3545; }
+        .kebab-dropdown-item.delete-action:hover {
+            background: #fff5f5;
+        }
     </style>
 
     <script src="controllers/test-series-list.js"></script>
@@ -607,13 +692,20 @@
                                                 </span>
                                             </td>
                                             <td style="text-align: center;" ng-click="$event.stopPropagation()">
-                                                <div style="display: flex; gap: 5px; justify-content: center;">
-                                                    <button class="btn btn-xs btn-primary" ng-click="editSeries(series)" title="Edit">
-                                                        <i class="ti ti-pencil"></i>
+                                                <div class="kebab-menu-container">
+                                                    <button class="kebab-button" ng-click="toggleKebabMenu(series, $event)">
+                                                        <i class="ti ti-more-alt"></i>
                                                     </button>
-                                                    <button class="btn btn-xs btn-danger" ng-click="deleteSeries(series)" title="Delete">
-                                                        <i class="ti ti-trash"></i>
-                                                    </button>
+                                                    <div class="kebab-dropdown" ng-class="{active: series.showKebabMenu}">
+                                                        <div class="kebab-dropdown-item edit-action" ng-click="editSeries(series)">
+                                                            <i class="ti ti-pencil"></i>
+                                                            <span>Edit Series</span>
+                                                        </div>
+                                                        <div class="kebab-dropdown-item delete-action" ng-click="deleteSeries(series)">
+                                                            <i class="ti ti-trash"></i>
+                                                            <span>Delete Series</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
