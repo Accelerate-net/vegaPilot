@@ -16,7 +16,7 @@
     <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
     <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
@@ -554,9 +554,11 @@
             display: inline-block;
             z-index: 1;
         }
+
         .kebab-menu-container:has(.kebab-dropdown.active) {
             z-index: 100;
         }
+
         .kebab-button {
             background: transparent;
             border: none;
@@ -566,13 +568,16 @@
             transition: all 0.2s ease;
             color: #495057;
         }
+
         .kebab-button:hover {
             background: #f0f0f0;
             color: #006073;
         }
+
         .kebab-button i {
             font-size: 18px;
         }
+
         .kebab-dropdown {
             position: absolute;
             right: 0;
@@ -588,11 +593,13 @@
             pointer-events: none;
             transition: all 0.2s ease;
         }
+
         .kebab-dropdown.active {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
+
         .kebab-dropdown-item {
             padding: 12px 16px;
             cursor: pointer;
@@ -604,25 +611,37 @@
             font-size: 13px;
             color: #333;
         }
+
         .kebab-dropdown-item:last-child {
             border-bottom: none;
         }
+
         .kebab-dropdown-item:hover {
             background: #f8f9fa;
         }
+
         .kebab-dropdown-item:first-child {
             border-radius: 8px 8px 0 0;
         }
+
         .kebab-dropdown-item:last-child {
             border-radius: 0 0 8px 8px;
         }
+
         .kebab-dropdown-item i {
             font-size: 16px;
             width: 20px;
             text-align: center;
         }
-        .kebab-dropdown-item.edit-action i { color: #007bff; }
-        .kebab-dropdown-item.delete-action i { color: #dc3545; }
+
+        .kebab-dropdown-item.edit-action i {
+            color: #007bff;
+        }
+
+        .kebab-dropdown-item.delete-action i {
+            color: #dc3545;
+        }
+
         .kebab-dropdown-item.delete-action:hover {
             background: #fff5f5;
         }
@@ -637,6 +656,7 @@
             padding-top: 15px;
             border-top: 1px solid #e9ecef;
         }
+
         .exam-pagination-btn {
             width: 36px;
             height: 36px;
@@ -651,24 +671,90 @@
             font-size: 14px;
             color: #495057;
         }
+
         .exam-pagination-btn:hover:not(:disabled) {
             background: #f8f9fa;
             border-color: #006073;
             color: #006073;
         }
+
         .exam-pagination-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         .exam-pagination-btn.active {
             background: #006073;
             border-color: #006073;
             color: white;
         }
+
         .exam-pagination-info {
             font-size: 13px;
             color: #6c757d;
             margin: 0 10px;
+        }
+
+        /* Navbar Styling - Match courses-list.html */
+        #topnav {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+            position: relative !important;
+        }
+
+        /* Navbar text and elements color */
+        #topnav .navbar-brand,
+        #topnav h2,
+        #topnav .toolbar-icon-bg a {
+            color: white !important;
+        }
+
+        #topnav .logo-area .navbar-brand {
+            color: white !important;
+        }
+
+        /* Toolbar icon backgrounds - blend with gradient */
+        #topnav .toolbar-icon-bg .icon-bg {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #topnav .toolbar-icon-bg:hover .icon-bg {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        #topnav .toolbar-icon-bg i {
+            color: white !important;
+        }
+
+        /* Sidebar trigger specific styling */
+        #topnav #trigger-sidebar .icon-bg {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #topnav #trigger-sidebar:hover .icon-bg {
+            background: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        /* Sidebar active menu item styling */
+        .acc-menu li a.active {
+            border-left: 5px solid #005e70 !important;
+            color: #005e6f !important;
+            font-weight: bold !important;
+            background: rgba(0, 94, 112, 0.1) !important;
+        }
+
+        .acc-menu li a.active i {
+            color: #005e6f !important;
+        }
+
+        /* Remove wrapper padding */
+        #wrapper {
+            padding: 0 !important;
         }
     </style>
 
@@ -687,7 +773,28 @@
             </span>
             <span class="navbar-brand" style="width: 125px">VegaPilot</span>
         </div>
+
+        <!-- Page Title in Header - Centered -->
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+                <i class="ti ti-layers" style="margin-right: 8px; color: white;"></i> Test Series Management
+            </h2>
+        </div>
+
+        <!-- Spacer to push right items to the right -->
+        <div style="flex: 1;"></div>
+
         <ul class="nav navbar-nav toolbar pull-right">
+            <!-- Create Test Series Button - Right Side -->
+            <li style="display: flex; align-items: center; margin-right: 10px;">
+                <button class="btn"
+                    style="background: #ffb706; color: #006073; border: none; font-weight: 600; padding: 10px 20px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease; white-space: nowrap; margin-top: 7px;"
+                    onclick="angular.element(this).scope().openCreateModal()"
+                    onmouseover="this.style.background='#ffa500'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(255, 183, 6, 0.3)'"
+                    onmouseout="this.style.background='#ffb706'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                    <i class="ti ti-plus"></i> Create Test Series
+                </button>
+            </li>
             <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
                 <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
             </li>
@@ -712,29 +819,43 @@
                                 <ul class="acc-menu">
 
                                     <li class="nav-separator"><span>Programs</span></li>
-                                    <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
-                                    <li><a href="test-series-list.html" class="active"><i class="ti ti-layers"></i><span>Test Series</span></a></li>
-                                    <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
-                                    <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+                                    <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a>
+                                    </li>
+                                    <li><a href="test-series-list.html" class="active"><i
+                                                class="ti ti-layers"></i><span>Test Series</span></a></li>
+                                    <li><a href="candidate-profile.html"><i
+                                                class="ti ti-user"></i><span>Students</span></a></li>
+                                    <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a>
+                                    </li>
 
                                     <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                                    <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                                    <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+                                    <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice
+                                                Quizzes</span></a></li>
+                                    <li><a href="exam-listing.html"><i
+                                                class="ti ti-clipboard"></i><span>Exams</span></a></li>
 
                                     <li class="nav-separator"><span>Content Library</span></li>
-                                    <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
-                                    <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a></li>
-                                    <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a></li>
-                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a></li>
+                                    <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question
+                                                Bank</span></a></li>
+                                    <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                                Library</span></a></li>
+                                    <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                                Questions</span></a></li>
+                                    <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video
+                                                Hosting</span></a></li>
 
                                     <li class="nav-separator"><span>Commerce</span></li>
-                                    <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                                    <li><a href="catalog.html"><i
+                                                class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
                                     <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                                    <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+                                    <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
+                                                Manager</span></a></li>
 
                                     <li class="nav-separator"><span>People</span></li>
-                                    <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a></li>
-                                    <li><a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                                    <li><a href="instructor-portfolio.html"><i
+                                                class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                                    <li><a href="mentor-profiles.html"><i
+                                                class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
                                 </ul>
                             </nav>
                         </div>
@@ -745,24 +866,15 @@
             <div class="static-content-wrapper">
                 <div class="static-content">
                     <div class="page-content">
-                        <div class="container-fluid" style="padding-top: 4%;">
-
-                            <!-- Page Header -->
-                            <div class="page-header-section">
-                                <div>
-                                    <h2><i class="ti ti-clipboard"></i> Test Series Management</h2>
-                                    <p>Create and manage test series with multiple exams</p>
-                                </div>
-                                <button class="btn btn-success" ng-click="openCreateModal()" style="padding: 10px 20px;">
-                                    <i class="ti ti-plus"></i> Create Test Series
-                                </button>
-                            </div>
+                        <div class="container-fluid" style="padding-top: 1%;">
 
                             <!-- Filter Bar -->
                             <div class="filter-bar">
                                 <div class="search-wrapper">
                                     <i class="ti ti-search"></i>
-                                    <input type="text" class="search-input" placeholder="Search test series by name or description..." ng-model="searchQuery">
+                                    <input type="text" class="search-input"
+                                        placeholder="Search test series by name or description..."
+                                        ng-model="searchQuery">
                                 </div>
                             </div>
 
@@ -771,57 +883,74 @@
                                 <table class="test-series-table">
                                     <thead>
                                         <tr>
-                                            <th class="sortable" ng-click="sortByColumn('name')" ng-class="{active: sortColumn === 'name'}">
+                                            <th class="sortable" ng-click="sortByColumn('name')"
+                                                ng-class="{active: sortColumn === 'name'}">
                                                 Test Series Name
-                                                <i class="sort-icon ti" ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                                <i class="sort-icon ti"
+                                                    ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                             </th>
-                                            <th style="text-align: center;" class="sortable" ng-click="sortByColumn('examCount')" ng-class="{active: sortColumn === 'examCount'}">
+                                            <th style="text-align: center;" class="sortable"
+                                                ng-click="sortByColumn('examCount')"
+                                                ng-class="{active: sortColumn === 'examCount'}">
                                                 Total Exams
-                                                <i class="sort-icon ti" ng-class="sortColumn === 'examCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                                <i class="sort-icon ti"
+                                                    ng-class="sortColumn === 'examCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                             </th>
                                             <th style="text-align: center;">Access Type</th>
-                                            <th style="text-align: center;" class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
+                                            <th style="text-align: center;" class="sortable"
+                                                ng-click="sortByColumn('status')"
+                                                ng-class="{active: sortColumn === 'status'}">
                                                 Status
-                                                <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                                <i class="sort-icon ti"
+                                                    ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                             </th>
                                             <th style="text-align: center;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr ng-repeat="series in testSeriesList | filter:searchQuery" ng-click="viewSeriesDetails(series)">
+                                        <tr ng-repeat="series in testSeriesList | filter:searchQuery"
+                                            ng-click="viewSeriesDetails(series)">
                                             <td>
                                                 <div class="series-name">{{series.name}}</div>
-                                                <div class="series-description" ng-if="series.description">{{series.description}}</div>
+                                                <div class="series-description" ng-if="series.description">
+                                                    {{series.description}}</div>
                                             </td>
                                             <td style="text-align: center;">
                                                 <span class="exam-count-badge">{{series.exams.length}} Exams</span>
                                             </td>
                                             <td style="text-align: center;">
                                                 <div class="access-badges">
-                                                    <span class="access-badge free" ng-if="getFreeExamsCount(series) > 0">
+                                                    <span class="access-badge free"
+                                                        ng-if="getFreeExamsCount(series) > 0">
                                                         {{getFreeExamsCount(series)}} Free
                                                     </span>
-                                                    <span class="access-badge premium" ng-if="getPremiumExamsCount(series) > 0">
+                                                    <span class="access-badge premium"
+                                                        ng-if="getPremiumExamsCount(series) > 0">
                                                         {{getPremiumExamsCount(series)}} Premium
                                                     </span>
                                                 </div>
                                             </td>
                                             <td style="text-align: center;">
-                                                <span class="status-badge" ng-class="{active: series.status === 1, draft: series.status === 0}">
+                                                <span class="status-badge"
+                                                    ng-class="{active: series.status === 1, draft: series.status === 0}">
                                                     {{series.status === 1 ? 'Active' : 'Draft'}}
                                                 </span>
                                             </td>
                                             <td style="text-align: center;" ng-click="$event.stopPropagation()">
                                                 <div class="kebab-menu-container">
-                                                    <button class="kebab-button" ng-click="toggleKebabMenu(series, $event)">
+                                                    <button class="kebab-button"
+                                                        ng-click="toggleKebabMenu(series, $event)">
                                                         <i class="ti ti-more-alt"></i>
                                                     </button>
-                                                    <div class="kebab-dropdown" ng-class="{active: series.showKebabMenu}">
-                                                        <div class="kebab-dropdown-item edit-action" ng-click="editSeries(series)">
+                                                    <div class="kebab-dropdown"
+                                                        ng-class="{active: series.showKebabMenu}">
+                                                        <div class="kebab-dropdown-item edit-action"
+                                                            ng-click="editSeries(series)">
                                                             <i class="ti ti-pencil"></i>
                                                             <span>Edit Series</span>
                                                         </div>
-                                                        <div class="kebab-dropdown-item delete-action" ng-click="deleteSeries(series)">
+                                                        <div class="kebab-dropdown-item delete-action"
+                                                            ng-click="deleteSeries(series)">
                                                             <i class="ti ti-trash"></i>
                                                             <span>Delete Series</span>
                                                         </div>
@@ -851,7 +980,8 @@
     </div>
 
     <!-- Create/Edit Test Series Modal -->
-    <div class="modal-backdrop" ng-class="{active: createModalOpen}" ng-style="{'display': createModalOpen ? 'flex' : 'none'}">
+    <div class="modal-backdrop" ng-class="{active: createModalOpen}"
+        ng-style="{'display': createModalOpen ? 'flex' : 'none'}">
         <div class="modal-dialog">
             <div class="modal-header">
                 <h3>
@@ -867,31 +997,38 @@
                     <div class="form-section-title">Basic Information</div>
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Test Series Name <span style="color: red;">*</span></label>
-                            <input type="text" class="form-control" ng-model="currentSeries.name" placeholder="e.g., IAT 2026 - Mock Tests" required style="height: 38px;">
+                            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Test
+                                Series Name <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" ng-model="currentSeries.name"
+                                placeholder="e.g., IAT 2026 - Mock Tests" required style="height: 38px;">
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Status</label>
+                            <label
+                                style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Status</label>
                             <div class="status-toggle">
                                 <button type="button" class="status-toggle-btn"
-                                        ng-class="{active: currentSeries.status === 'active' || currentSeries.status === 1}"
-                                        ng-click="currentSeries.status = 1">Active</button>
+                                    ng-class="{active: currentSeries.status === 'active' || currentSeries.status === 1}"
+                                    ng-click="currentSeries.status = 1">Active</button>
                                 <button type="button" class="status-toggle-btn"
-                                        ng-class="{active: currentSeries.status === 'draft' || currentSeries.status === 0}"
-                                        ng-click="currentSeries.status = 0">Draft</button>
+                                    ng-class="{active: currentSeries.status === 'draft' || currentSeries.status === 0}"
+                                    ng-click="currentSeries.status = 0">Draft</button>
                             </div>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Description</label>
-                        <textarea class="form-control" ng-model="currentSeries.description" rows="2" placeholder="Brief description of the test series" style="resize: vertical; min-height: 60px;"></textarea>
+                        <label
+                            style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">Description</label>
+                        <textarea class="form-control" ng-model="currentSeries.description" rows="2"
+                            placeholder="Brief description of the test series"
+                            style="resize: vertical; min-height: 60px;"></textarea>
                     </div>
                 </div>
 
                 <!-- Exam Selection -->
                 <div class="form-section">
                     <div class="form-section-header">
-                        <div class="form-section-title" style="margin-bottom: 0;">Select Exams <span style="color: red;">*</span></div>
+                        <div class="form-section-title" style="margin-bottom: 0;">Select Exams <span
+                                style="color: red;">*</span></div>
                         <div class="selected-exams-summary" ng-if="getSelectedExamsCount() > 0">
                             <div class="summary-item">
                                 <span class="summary-label">Selected:</span>
@@ -913,12 +1050,15 @@
                     <!-- Search Bar -->
                     <div class="search-box">
                         <div class="input-group">
-                            <span class="input-group-addon" style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
+                            <span class="input-group-addon"
+                                style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
                                 <i class="ti ti-search"></i>
                             </span>
-                            <input type="text" class="form-control" placeholder="Search exams by name..." ng-model="examSearchQuery" style="border-left: none;">
+                            <input type="text" class="form-control" placeholder="Search exams by name..."
+                                ng-model="examSearchQuery" style="border-left: none;">
                             <span class="input-group-btn" ng-if="examSearchQuery">
-                                <button class="btn btn-default" ng-click="examSearchQuery = ''" style="border: 1px solid #dee2e6; border-left: none;">
+                                <button class="btn btn-default" ng-click="examSearchQuery = ''"
+                                    style="border: 1px solid #dee2e6; border-left: none;">
                                     <i class="ti ti-close"></i>
                                 </button>
                             </span>
@@ -927,21 +1067,18 @@
 
                     <!-- Exam Grid -->
                     <div class="exam-grid">
-                        <div class="exam-card"
-                             ng-repeat="exam in getPaginatedExams()"
-                             ng-class="{selected: isExamSelected(exam)}"
-                             ng-click="toggleExamSelection(exam)">
+                        <div class="exam-card" ng-repeat="exam in getPaginatedExams()"
+                            ng-class="{selected: isExamSelected(exam)}" ng-click="toggleExamSelection(exam)">
                             <div class="exam-card-header">
-                                <input type="checkbox"
-                                       class="exam-checkbox"
-                                       ng-checked="isExamSelected(exam)"
-                                       ng-click="$event.stopPropagation(); toggleExamSelection(exam)">
+                                <input type="checkbox" class="exam-checkbox" ng-checked="isExamSelected(exam)"
+                                    ng-click="$event.stopPropagation(); toggleExamSelection(exam)">
                                 <div class="exam-info">
                                     <div class="exam-title">{{exam.title}}</div>
                                     <div class="exam-meta">
                                         <span><i class="ti ti-time"></i> {{exam.duration}} min</span>
                                         <span><i class="ti ti-help"></i> {{exam.totalQuestions}} questions</span>
-                                        <span><i class="ti ti-layout-grid2"></i> {{exam.numberOfSections}} sections</span>
+                                        <span><i class="ti ti-layout-grid2"></i> {{exam.numberOfSections}}
+                                            sections</span>
                                     </div>
                                 </div>
                             </div>
@@ -949,20 +1086,18 @@
                             <!-- Access Type Selector (shown when selected) -->
                             <div class="access-type-selector" ng-if="isExamSelected(exam)">
                                 <div class="radio-group">
-                                    <div class="radio-option" ng-click="$event.stopPropagation(); setExamAccessType(exam, 'free')">
-                                        <input type="radio"
-                                               name="access_{{exam.id}}"
-                                               value="free"
-                                               ng-checked="getExamAccessType(exam) === 'free'"
-                                               ng-click="$event.stopPropagation()">
+                                    <div class="radio-option"
+                                        ng-click="$event.stopPropagation(); setExamAccessType(exam, 'free')">
+                                        <input type="radio" name="access_{{exam.id}}" value="free"
+                                            ng-checked="getExamAccessType(exam) === 'free'"
+                                            ng-click="$event.stopPropagation()">
                                         <label>Free Access</label>
                                     </div>
-                                    <div class="radio-option" ng-click="$event.stopPropagation(); setExamAccessType(exam, 'premium')">
-                                        <input type="radio"
-                                               name="access_{{exam.id}}"
-                                               value="premium"
-                                               ng-checked="getExamAccessType(exam) === 'premium'"
-                                               ng-click="$event.stopPropagation()">
+                                    <div class="radio-option"
+                                        ng-click="$event.stopPropagation(); setExamAccessType(exam, 'premium')">
+                                        <input type="radio" name="access_{{exam.id}}" value="premium"
+                                            ng-checked="getExamAccessType(exam) === 'premium'"
+                                            ng-click="$event.stopPropagation()">
                                         <label>Premium Access</label>
                                     </div>
                                 </div>
@@ -972,24 +1107,27 @@
 
                     <!-- Exam Pagination -->
                     <div class="exam-pagination" ng-if="getExamTotalPages() > 1">
-                        <button class="exam-pagination-btn" ng-click="prevExamPage()" ng-disabled="examCurrentPage === 1">
+                        <button class="exam-pagination-btn" ng-click="prevExamPage()"
+                            ng-disabled="examCurrentPage === 1">
                             <i class="ti ti-angle-left"></i>
                         </button>
-                        <button class="exam-pagination-btn"
-                                ng-repeat="page in getExamPageNumbers()"
-                                ng-class="{active: examCurrentPage === page}"
-                                ng-click="goToExamPage(page)">
+                        <button class="exam-pagination-btn" ng-repeat="page in getExamPageNumbers()"
+                            ng-class="{active: examCurrentPage === page}" ng-click="goToExamPage(page)">
                             {{page}}
                         </button>
-                        <button class="exam-pagination-btn" ng-click="nextExamPage()" ng-disabled="examCurrentPage === getExamTotalPages()">
+                        <button class="exam-pagination-btn" ng-click="nextExamPage()"
+                            ng-disabled="examCurrentPage === getExamTotalPages()">
                             <i class="ti ti-angle-right"></i>
                         </button>
                         <span class="exam-pagination-info">
-                            Showing {{(examCurrentPage - 1) * examPageSize + 1}}-{{examCurrentPage * examPageSize > filteredAvailableExams.length ? filteredAvailableExams.length : examCurrentPage * examPageSize}} of {{filteredAvailableExams.length}} exams
+                            Showing {{(examCurrentPage - 1) * examPageSize + 1}}-{{examCurrentPage * examPageSize >
+                            filteredAvailableExams.length ? filteredAvailableExams.length : examCurrentPage *
+                            examPageSize}} of {{filteredAvailableExams.length}} exams
                         </span>
                     </div>
 
-                    <div ng-if="filteredAvailableExams.length === 0" style="text-align: center; padding: 40px; color: #6c757d;">
+                    <div ng-if="filteredAvailableExams.length === 0"
+                        style="text-align: center; padding: 40px; color: #6c757d;">
                         <i class="ti ti-info-alt" style="font-size: 36px; color: #dee2e6; margin-bottom: 10px;"></i>
                         <p ng-if="!examSearchQuery">No exams available</p>
                         <p ng-if="examSearchQuery">No exams found matching "{{examSearchQuery}}"</p>
@@ -1008,7 +1146,8 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div ng-if="isLoading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+    <div ng-if="isLoading"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; display: flex; align-items: center; justify-content: center;">
         <div style="background: white; padding: 30px; border-radius: 8px; text-align: center;">
             <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #006073; margin-bottom: 15px;"></i>
             <p style="margin: 0; color: #333;">{{loadingMessage}}</p>

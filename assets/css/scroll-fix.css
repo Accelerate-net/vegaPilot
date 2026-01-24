@@ -1,5 +1,17 @@
 /* Fix for independent scrolling of sidebar and content */
 
+/* Prevent parent containers from scrolling */
+body.animated-content {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+#wrapper {
+    overflow: hidden !important;
+    height: 100vh !important;
+    display: block !important;
+}
+
 /* Make the layout container use flexbox instead of table layout for better scroll control */
 #layout-static {
     display: flex !important;
@@ -50,7 +62,7 @@
 
 /* Static content should allow natural height */
 .static-content {
-    min-height: 100% !important;
+    height: auto !important;
 }
 
 /* Adjust for collapsed sidebar state */

@@ -16,7 +16,7 @@
     <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
     <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
 
@@ -372,6 +372,68 @@
             border-color: #006073;
             box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.15);
         }
+
+        /* Navbar Styling - Match other pages */
+        #topnav {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+            position: relative !important;
+        }
+
+        /* Navbar text and elements color */
+        #topnav .navbar-brand,
+        #topnav h2,
+        #topnav .toolbar-icon-bg a {
+            color: white !important;
+        }
+
+        #topnav .logo-area .navbar-brand {
+            color: white !important;
+        }
+
+        /* Toolbar icon backgrounds - blend with gradient */
+        #topnav .toolbar-icon-bg .icon-bg {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #topnav .toolbar-icon-bg:hover .icon-bg {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        #topnav .toolbar-icon-bg i {
+            color: white !important;
+        }
+
+        /* Sidebar trigger specific styling */
+        #topnav #trigger-sidebar .icon-bg {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #topnav #trigger-sidebar:hover .icon-bg {
+            background: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        /* Sidebar active menu item styling */
+        .acc-menu li a.active {
+            border-left: 5px solid #005e70 !important;
+            color: #005e6f !important;
+            font-weight: bold !important;
+            background: rgba(0, 94, 112, 0.1) !important;
+        }
+
+        .acc-menu li a.active i {
+            color: #005e6f !important;
+        }
+
+        /* Remove wrapper padding */
+        #wrapper {
+            padding: 0 !important;
+        }
     </style>
 </head>
 
@@ -388,6 +450,17 @@
             </span>
             <span class="navbar-brand" style="width: 125px">VegaPilot</span>
         </div>
+
+        <!-- Page Title in Header - Centered -->
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+                <i class="ti ti-world" style="margin-right: 8px; color: white;"></i> Web Content Manager
+            </h2>
+        </div>
+
+        <!-- Spacer to push right items to the right -->
+        <div style="flex: 1;"></div>
+
         <ul class="nav navbar-nav toolbar pull-right">
             <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
                 <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
@@ -463,15 +536,7 @@
             <div class="static-content-wrapper">
                 <div class="static-content">
                     <div class="page-content">
-                        <div class="container-fluid" style="padding-top: 20px;">
-
-                            <!-- Page Header -->
-                            <div class="page-header-section">
-                                <div>
-                                    <h2><i class="ti ti-world"></i> Web Content Manager</h2>
-                                    <p>Manage auto-enrollment settings and discount codes for crisprlearning.com</p>
-                                </div>
-                            </div>
+                        <div class="container-fluid" style="padding-top: 1%;">
 
                             <!-- Auto-Enrollment Section -->
                             <div class="section-card">

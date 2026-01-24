@@ -21276,7 +21276,7 @@ body.error .error-wrapper h1 {
 #topnav.navbar-default .navbar-brand,
 #topnav.navbar-bluegraylight .navbar-brand,
 #topnav.navbar-graylight .navbar-brand {
-  background: url("../logo/crispr-logo-for-bright-bg.png") no-repeat left 0 center;
+  background: url("../logo/crispr-logo-for-dark-bg.png") no-repeat left 0 center;
   background-size: 100px auto;
 }
 #topnav .navbar-brand {
