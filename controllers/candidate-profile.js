@@ -677,7 +677,31 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
         student.showKebabMenu = false;
     };
 
-    // ===== Initialize on Load =====
-    $scope.init();
+    // Change Page Size
+    $scope.changePageSize = function () {
+        $scope.itemsPerPage = parseInt($scope.pageSize);
+        $scope.currentPage = 1;
+        // Trigger re-filtering/pagination
+        if (typeof $scope.filterStudents === 'function') {
+            $scope.filterStudents();
+        } else if (typeof $scope.updatePagination === 'function') {
+            $scope.updatePagination();
+        } else {
+            // If manual slicing, reload from API
+            $scope.loadStudents(); // Use loadStudents which exists
+        }
+    };
+
+    // Generate array for skeleton rows based on current page size
+    $scope.getSkeletonRows = function () {
+        var count = $scope.pageSize || $scope.itemsPerPage || 10;
+        return new Array(count);
+    };
+
+    // Initialize Page Size model
+    $scope.itemsPerPage = 10; // Ensure default is 10
+    $scope.pageSize = 10;
+
+    // Note: init() is already defined earlier in the file (line 67) and will be called there
 
 }]);

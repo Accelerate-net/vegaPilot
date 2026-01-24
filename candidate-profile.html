@@ -517,6 +517,28 @@
       .pagination-info {
          font-size: 14px;
          color: #6c757d;
+         display: flex;
+         align-items: center;
+         gap: 15px;
+      }
+
+      .page-size-select {
+         padding: 5px 25px 5px 10px;
+         border: 1px solid #dee2e6;
+         border-radius: 4px;
+         font-size: 13px;
+         color: #495057;
+         background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+         background-size: 10px;
+         appearance: none;
+         -webkit-appearance: none;
+         -moz-appearance: none;
+         cursor: pointer;
+         outline: none;
+      }
+
+      .page-size-select:focus {
+         border-color: #006073;
       }
 
       .pagination-controls {
@@ -600,6 +622,8 @@
          transform: translateY(-10px);
          pointer-events: none;
          transition: all 0.2s ease;
+         overflow: hidden;
+         /* Prevent hover backgrounds from overflowing */
       }
 
       .kebab-dropdown.active {
@@ -621,8 +645,15 @@
          font-size: 13px;
       }
 
+      .kebab-dropdown-item:first-child {
+         border-top-left-radius: 8px;
+         border-top-right-radius: 8px;
+      }
+
       .kebab-dropdown-item:last-child {
          border-bottom: none;
+         border-bottom-left-radius: 8px;
+         border-bottom-right-radius: 8px;
       }
 
       .kebab-dropdown-item:hover {
@@ -854,26 +885,8 @@
                            </div>
                         </div>
 
-                        <!-- Skeleton Link -->
-                        <div class="skeleton-loader-container" ng-if="isLoading">
-                           <div class="skeleton-row" ng-repeat="i in [1,2,3,4,5]">
-                              <div class="skeleton-col avatar">
-                                 <div class="skeleton-shimmer"></div>
-                              </div>
-                              <div class="skeleton-col text-medium">
-                                 <div class="skeleton-shimmer"></div>
-                              </div>
-                              <div class="skeleton-col text-long">
-                                 <div class="skeleton-shimmer"></div>
-                              </div>
-                              <div class="skeleton-col text-short">
-                                 <div class="skeleton-shimmer"></div>
-                              </div>
-                           </div>
-                        </div>
-
                         <!-- Students Table -->
-                        <div class="students-table-container" ng-if="!isLoading && paginatedStudents.length > 0">
+                        <div class="students-table-container" ng-if="paginatedStudents.length > 0 || isLoading">
                            <table class="students-table">
                               <thead>
                                  <tr>
@@ -921,7 +934,54 @@
                                     <th style="width: 50px;"></th>
                                  </tr>
                               </thead>
-                              <tbody>
+                              <!-- Skeleton Body -->
+                              <tbody ng-if="isLoading">
+                                 <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                    <td>
+                                       <div style="display: flex; align-items: center; gap: 12px;">
+                                          <div class="skeleton-col avatar">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                          <div>
+                                             <div class="skeleton-col text-medium" style="margin-bottom: 5px;">
+                                                <div class="skeleton-shimmer"></div>
+                                             </div>
+                                             <div class="skeleton-col text-short" style="height: 12px; width: 60px;">
+                                                <div class="skeleton-shimmer"></div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-medium">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-medium">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short" style="width: 60px;">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td></td>
+                                 </tr>
+                              </tbody>
+                              <!-- Data Body -->
+                              <tbody ng-if="!isLoading">
                                  <tr ng-repeat="student in paginatedStudents"
                                     ng-class="{'row-active-menu': student.showKebabMenu}">
                                     <td>
@@ -991,7 +1051,11 @@
                            <!-- Pagination -->
                            <div class="pagination-container">
                               <div class="pagination-info">
-                                 Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalStudents}} students
+                                 <span>Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalStudents}}
+                                    students</span>
+                                 <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()"
+                                    ng-options="size as 'Show ' + size for size in [10, 20, 50, 200]">
+                                 </select>
                               </div>
                               <div class="pagination-controls">
                                  <button class="pagination-btn" ng-click="previousPage()"

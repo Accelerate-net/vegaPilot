@@ -361,3 +361,184 @@
     font-size: 16px;
     font-weight: 500;
 }
+
+/* ===== Enhanced Search and Filter Bar ===== */
+.filter-bar {
+    display: flex;
+    margin-bottom: 25px;
+    align-items: center;
+    max-width: 100%;
+    gap: 15px;
+}
+
+.search-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 15px;
+    color: #999;
+    font-size: 16px;
+    z-index: 2;
+    transition: color 0.2s;
+}
+
+.search-wrapper i.ti-close {
+    cursor: pointer;
+}
+
+.search-wrapper i.ti-close:hover {
+    color: #dc3545;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    height: 46px;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #006073;
+    box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+    z-index: 1;
+}
+
+/* Custom Filter Dropdown */
+.filter-dropdown {
+    position: relative;
+}
+
+.filter-dropdown-btn {
+    padding: 0 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+    background-color: white;
+    cursor: pointer;
+    height: 46px;
+    min-width: 160px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 0;
+    transition: all 0.2s ease;
+}
+
+.filter-dropdown-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    position: relative;
+}
+
+.filter-dropdown-btn:focus,
+.filter-dropdown.open .filter-dropdown-btn {
+    outline: none;
+    border-color: #006073;
+    box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+    position: relative;
+}
+
+.filter-dropdown-btn i {
+    font-size: 12px;
+    color: #006073;
+}
+
+.filter-dropdown .dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    padding: 5px 0;
+    margin-top: 5px;
+    min-width: 160px;
+    z-index: 1001;
+}
+
+.filter-dropdown .dropdown-menu>li>a {
+    padding: 8px 15px;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filter-dropdown .dropdown-menu>li>a:hover {
+    background-color: #f8f9fa;
+    color: #006073;
+}
+
+/* ===== Skeleton Loader with Shimmer Animation ===== */
+.skeleton-loader-container {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-row {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f1f3f5;
+    gap: 15px;
+}
+
+.skeleton-row:last-child {
+    border-bottom: none;
+}
+
+.skeleton-col {
+    height: 20px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-col.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skeleton-col.text-short {
+    width: 100px;
+}
+
+.skeleton-col.text-medium {
+    width: 150px;
+}
+
+.skeleton-col.text-long {
+    flex: 1;
+}
+
+.skeleton-shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
