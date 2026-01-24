@@ -684,33 +684,67 @@
                   <div class="container-fluid" style="padding-top: 1%;">
 
                      <!-- Statistics Cards -->
-                     <div class="stats-row">
-                        <div class="stat-card">
-                           <div class="stat-icon blue"><i class="ti ti-layers"></i></div>
-                           <div class="stat-info">
-                              <h3>{{summaryData.totalItems}}</h3>
-                              <p>Total Catalog Items</p>
+                     <!-- Statistics Cards -->
+                     <div class="stats-row"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 35px;">
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); display: flex; align-items: center; gap: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f3f4f6; position: relative; overflow: hidden;">
+                           <div class="stat-icon blue"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 10px 20px -5px rgba(118, 75, 162, 0.4);">
+                              <i class="ti ti-layers"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3
+                                 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0; line-height: 1; letter-spacing: -0.5px;">
+                                 {{summaryData.totalItems}}</h3>
+                              <p
+                                 style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Total Catalog Items</p>
                            </div>
                         </div>
-                        <div class="stat-card">
-                           <div class="stat-icon teal"><i class="ti ti-book"></i></div>
-                           <div class="stat-info">
-                              <h3>{{summaryData.totalCourses}}</h3>
-                              <p>Courses Available</p>
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); display: flex; align-items: center; gap: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f3f4f6; position: relative; overflow: hidden;">
+                           <div class="stat-icon teal"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #006073 0%, #004d5c 100%); box-shadow: 0 10px 20px -5px rgba(0, 96, 115, 0.4);">
+                              <i class="ti ti-book"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3
+                                 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0; line-height: 1; letter-spacing: -0.5px;">
+                                 {{summaryData.totalCourses}}</h3>
+                              <p
+                                 style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Courses Available</p>
                            </div>
                         </div>
-                        <div class="stat-card">
-                           <div class="stat-icon orange"><i class="ti ti-write"></i></div>
-                           <div class="stat-info">
-                              <h3>{{summaryData.totalExams}}</h3>
-                              <p>Exams Available</p>
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); display: flex; align-items: center; gap: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f3f4f6; position: relative; overflow: hidden;">
+                           <div class="stat-icon orange"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow: 0 10px 20px -5px rgba(245, 87, 108, 0.4);">
+                              <i class="ti ti-write"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3
+                                 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0; line-height: 1; letter-spacing: -0.5px;">
+                                 {{summaryData.totalExams}}</h3>
+                              <p
+                                 style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Exams Available</p>
                            </div>
                         </div>
-                        <div class="stat-card">
-                           <div class="stat-icon green"><i class="ti ti-check"></i></div>
-                           <div class="stat-info">
-                              <h3>{{summaryData.totalActive}}</h3>
-                              <p>Active Items</p>
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); display: flex; align-items: center; gap: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f3f4f6; position: relative; overflow: hidden;">
+                           <div class="stat-icon green"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 10px 20px -5px rgba(0, 242, 254, 0.4);">
+                              <i class="ti ti-check"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3
+                                 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0; line-height: 1; letter-spacing: -0.5px;">
+                                 {{summaryData.totalActive}}</h3>
+                              <p
+                                 style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Active Items</p>
                            </div>
                         </div>
                      </div>
@@ -1263,7 +1297,7 @@
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
    <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
@@ -1278,26 +1312,27 @@
    <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
    <script type="text/javascript" src="controllers/catalog.js"></script>
 
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

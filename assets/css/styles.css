@@ -24866,7 +24866,7 @@ body {
 
 .navbar-fixed-top+#wrapper,
 .navbar-fixed-top+#layout-fixed {
-  padding-top: 56px !important;
+  /*padding-top: 56px !important;*/
 }
 
 .navbar-fixed-top {

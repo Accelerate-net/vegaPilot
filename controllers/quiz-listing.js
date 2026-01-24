@@ -1,9 +1,32 @@
 // Quiz Listing Controller - Manages quiz listing and attempts
-var quizListingApp = angular.module('quizListingApp', []);
+var quizListingApp = angular.module('quizListingApp', ['ngCookies']);
 
-quizListingApp.controller('quizListingController', ['$scope', '$timeout', function ($scope, $timeout) {
+quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$timeout', function ($scope, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize Scope Variables =====

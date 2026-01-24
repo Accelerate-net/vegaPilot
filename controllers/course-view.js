@@ -1,23 +1,39 @@
 // Course View Controller - Handles course content navigation and display
-var courseViewApp = angular.module('courseViewApp', []);
+var courseViewApp = angular.module('courseViewApp', ['ngCookies']);
 
-courseViewApp.controller('courseViewController', ['$scope', '$timeout', '$http', function($scope, $timeout, $http) {
+courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeout', '$http', function($scope, $cookies, $timeout, $http) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/course';
 
     // Get token from localStorage
-    $scope.getAuthToken = function() {
-        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
-        if (!token) {
-            console.warn('No auth token found. Using default token for development.');
-            localStorage.setItem('authToken', token);
-        }
-        return token;
-    };
+    
 
     // Loading state
     $scope.isLoading = false;
@@ -240,7 +256,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', '$http',
             url: url,
             params: params,
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
         }).then(function(response) {
@@ -465,7 +481,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$timeout', '$http',
             url: url,
             params: params,
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
         }).then(function(response) {

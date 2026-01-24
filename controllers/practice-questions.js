@@ -1,9 +1,32 @@
 // Practice Questions Controller - Manages PDF to JPEG conversion and question bank
-var practiceQuestionsApp = angular.module('practiceQuestionsApp', []);
+var practiceQuestionsApp = angular.module('practiceQuestionsApp', ['ngCookies']);
 
-practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$timeout', function($scope, $timeout) {
+practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$cookies', '$timeout', function($scope, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize Scope Variables =====

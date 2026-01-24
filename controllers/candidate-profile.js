@@ -3,24 +3,15 @@
  * Angular 1.x Controller for managing student profiles
  */
 
-var app = angular.module('StudentManagementApp', []);
+var app = angular.module('StudentManagementApp', ['ngCookies']);
 
-app.controller('StudentManagementController', ['$scope', '$timeout', '$window', '$http', function ($scope, $timeout, $window, $http) {
+app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout', '$window', '$http', function ($scope, $cookies, $timeout, $window, $http) {
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage (same pattern as instructor-portfolio.js)
-    $scope.getAuthToken = function () {
-        // Try localStorage first
-        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
-        // If still no token, use the default token
-        if (!token) {
-            console.warn('No auth token found. Using default token for development.');
-            localStorage.setItem('authToken', token);
-        }
-        return token;
-    };
+    
 
     // ===== Initialize Data =====
     $scope.students = [];
@@ -47,6 +38,29 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
 
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize App =====
@@ -88,7 +102,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             url: url,
             params: params,
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
         }).then(function (response) {
@@ -436,7 +450,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             url: url,
             params: params,
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
         }).then(function (response) {

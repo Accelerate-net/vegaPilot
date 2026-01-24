@@ -9,29 +9,41 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
+
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage or cookies
-    $scope.getAuthToken = function() {
-        // Try localStorage first
-        var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
-        // Fallback to cookies
-        if (!token) {
-            token = $cookies.get('authToken') || $cookies.get('X-Access-Token');
-        }
-        // If still no token, use the default token
-        if (!token) {
-        }
-        return token;
-    };
+    
 
     // HTTP Config with auth header
     $scope.getHttpConfig = function() {
         return {
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
         };
@@ -41,7 +53,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     $scope.getFormDataConfig = function() {
         return {
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': undefined // Let browser set it for FormData
             },
             transformRequest: angular.identity
@@ -366,7 +378,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             url: url,
             data: formData,
             headers: {
-                'X-Access-Token': $scope.getAuthToken(),
+                'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': undefined
             },
             transformRequest: angular.identity

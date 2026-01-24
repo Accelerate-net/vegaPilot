@@ -1,9 +1,32 @@
 // Exam Attempt Report Controller - Displays rank list and analytics for exams
-var examReportApp = angular.module('examReportApp', []);
+var examReportApp = angular.module('examReportApp', ['ngCookies']);
 
-examReportApp.controller('examReportController', ['$scope', '$timeout', '$window', function($scope, $timeout, $window) {
+examReportApp.controller('examReportController', ['$scope', '$cookies', '$timeout', '$window', function($scope, $cookies, $timeout, $window) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize Scope Variables =====

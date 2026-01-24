@@ -3,11 +3,34 @@
  * Angular 1.x Controller with full API integration
  */
 
-var app = angular.module('BunnyAdminApp', []);
+var app = angular.module('BunnyAdminApp', ['ngCookies']);
 
-app.controller('BunnyAdminController', ['$scope', '$http', '$timeout', '$sce', function($scope, $http, $timeout, $sce) {
+app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout', '$sce', function($scope, $cookies, $http, $timeout, $sce) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize Data =====

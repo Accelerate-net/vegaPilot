@@ -1,9 +1,32 @@
 // Quiz Creation Controller - Manages quiz creation from question batches
-var quizCreationApp = angular.module('quizCreationApp', []);
+var quizCreationApp = angular.module('quizCreationApp', ['ngCookies']);
 
-quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', function($scope, $timeout) {
+quizCreationApp.controller('quizCreationController', ['$scope', '$cookies', '$timeout', function($scope, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
 
 
     // ===== Initialize Scope Variables =====

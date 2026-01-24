@@ -1029,7 +1029,7 @@
    <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
    <!-- Advanced Select Boxes -->
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
 
    <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
@@ -1058,26 +1058,27 @@
    <!-- Calendar Plugin -->
 
 
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

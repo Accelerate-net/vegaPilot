@@ -10,14 +10,14 @@ angular.module('questionBankApp', ['ngCookies'])
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
 
-      // //Check if logged in
-      // if($cookies.get("vegaPilotAdminToken")){
-      //   $scope.isLoggedIn = true;
-      // }
-      // else{
-      //   $scope.isLoggedIn = false;
-      //   window.location = "index.html";
-      // }
+      //Check if logged in
+      if(getAdminTokenFromCookie()){
+        $scope.isLoggedIn = true;
+      }
+      else{
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
+      }
 
       //Logout function
       $scope.logoutNow = function(){
@@ -28,7 +28,7 @@ angular.module('questionBankApp', ['ngCookies'])
       }
 
       function getAdminTokenFromCookie() {
-        return $cookies.get("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
       }
 
       $scope.maxResultsShown = 10; //Records

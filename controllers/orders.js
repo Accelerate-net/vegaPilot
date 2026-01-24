@@ -9,6 +9,29 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
+    //Check if logged in
+    if(getAdminTokenFromCookie()){
+      $scope.isLoggedIn = true;
+    }
+    else{
+      $scope.isLoggedIn = false;
+      window.location = "index.html";
+    }
+
+    //Logout function
+    $scope.logoutNow = function(){
+      if($cookies.get("vegaPilotAdminToken")){
+        $cookies.remove("vegaPilotAdminToken");
+        window.location = "index.html";
+      }
+    }
+
+    function getAdminTokenFromCookie() {
+      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+    }
+
+
+
 
     // ===== Initialize Data =====
     $scope.orders = [];

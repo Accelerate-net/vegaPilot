@@ -1,4 +1,78 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Vanilla JS Toaster Implementation
+    const toasterContainer = document.querySelector('.toaster-container');
+    if (toasterContainer) {
+        // Clear Angular template if present
+        toasterContainer.innerHTML = '';
+    }
+
+    window.showToaster = function(type, title, message) {
+        if (!toasterContainer) return;
+
+        // Default title if missing
+        if (!message) {
+            message = title;
+            switch (type) {
+                case 'success': title = 'Success'; break;
+                case 'error': title = 'Error'; break;
+                case 'warning': title = 'Warning'; break;
+                case 'info': title = 'Info'; break;
+                default: title = 'Notification';
+            }
+        }
+
+        const toaster = document.createElement('div');
+        toaster.className = `toaster ${type}`;
+        
+        let iconClass = 'ti-info-alt';
+        if (type === 'success') iconClass = 'ti-check';
+        if (type === 'error') iconClass = 'ti-alert';
+        if (type === 'warning') iconClass = 'ti-bell';
+
+        toaster.innerHTML = `
+           <div class="toaster-icon">
+              <i class="ti ${iconClass}"></i>
+           </div>
+           <div class="toaster-content">
+              <div class="toaster-title">${title}</div>
+              <div class="toaster-message">${message}</div>
+           </div>
+           <button class="toaster-close">
+              <i class="ti ti-close"></i>
+           </button>
+        `;
+
+        // Close button functionality
+        toaster.querySelector('.toaster-close').addEventListener('click', () => {
+            toaster.classList.add('hiding');
+            setTimeout(() => {
+                if(toaster.parentElement) toaster.parentElement.removeChild(toaster);
+            }, 500);
+        });
+
+        toasterContainer.appendChild(toaster);
+
+        // Auto remove
+        setTimeout(() => {
+            if (toaster.parentElement) {
+                toaster.classList.add('hiding');
+                setTimeout(() => {
+                    if(toaster.parentElement) toaster.parentElement.removeChild(toaster);
+                }, 500);
+            }
+        }, 5000);
+    };
+    
+
+    // Helper to get token
+    function getAdminTokenFromCookie() {
+        var name = "vegaPilotAdminToken";
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        var cookieVal = v ? v[2] : null;
+        return cookieVal || localStorage.getItem("vegaPilotAdminToken");
+    }
+
     // State
     let courses = [];
     let coursesPagination = {
@@ -160,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchCourses(page = 1, size = 100, searchKey = '', sortBy = 'name') {
         try {
             // Get auth token from localStorage
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+            const token = getAdminTokenFromCookie();
 
             // Build query params
             let url = `http://localhost:3000/restricted/catalog/list-catalog.php?page=${page}&size=${size}&sortBy=${sortBy}`;
@@ -325,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchConfig() {
         try {
             // Get auth token from localStorage
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+            const token = getAdminTokenFromCookie();
 
             const res = await fetch('http://localhost:3000/restricted/config/get-auto-enrollment-mapping.php', {
                 method: 'GET',
@@ -411,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveAutoEnroll(data) {
         try {
             // Get auth token from localStorage
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+            const token = getAdminTokenFromCookie();
 
             // Find courses that were removed (in initial but not in current)
             const currentCodes = data.courses.map(c => c.code);
@@ -469,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Save response:', result);
 
             if (result.status === 'success') {
-                alert('Auto-enrollment settings saved successfully!');
+                showToaster('success', 'Auto-enrollment settings saved successfully!');
                 // Reload config to get updated IDs from server
                 await fetchConfig();
                 // Update initial state after successful save
@@ -477,17 +551,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderSelectedCourses();
                 updateSaveButtonVisibility();
             } else {
-                alert('Failed to save settings: ' + (result.message || 'Unknown error'));
+                showToaster('error', 'Error', 'Failed to save settings: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error saving auto-enroll:', err);
-            alert('Error saving settings.');
+            showToaster('success', 'Error saving settings.');
         }
     }
 
     async function saveDiscount(discountData) {
         try {
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+            const token = getAdminTokenFromCookie();
 
             const url = 'http://localhost:3000/restricted/config/add-new-voucher-code.php';
 
@@ -508,21 +582,21 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Save discount API response:', result);
 
             if (result.status === 'success') {
-                alert('Discount code created successfully!');
+                showToaster('success', 'Discount code created successfully!');
                 // Refresh the discounts list
                 await fetchDiscounts();
             } else {
-                alert('Failed to save discount code: ' + (result.message || 'Unknown error'));
+                showToaster('error', 'Error', 'Failed to save discount code: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error saving discount:', err);
-            alert('Error saving discount code.');
+            showToaster('success', 'Error saving discount code.');
         }
     }
 
     async function performRevoke(voucherId) {
         try {
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+            const token = getAdminTokenFromCookie();
             const url = `http://localhost:3000/restricted/config/revoke-voucher-code.php?id=${voucherId}`;
 
             console.log('Revoking voucher:', voucherId);
@@ -538,21 +612,21 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Revoke voucher API response:', result);
 
             if (result.status === 'success') {
-                alert('Voucher code revoked successfully!');
+                showToaster('success', 'Voucher code revoked successfully!');
                 // Refresh the discounts list
                 await fetchDiscounts();
             } else {
-                alert('Failed to revoke voucher code: ' + (result.message || 'Unknown error'));
+                showToaster('error', 'Error', 'Failed to revoke voucher code: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error revoking voucher:', err);
-            alert('Error revoking voucher code.');
+            showToaster('success', 'Error revoking voucher code.');
         }
     }
 
     async function searchUsers(searchKey) {
         try {
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
+            const token = getAdminTokenFromCookie();
 
             let url = `http://localhost:3000/restricted/people/list-candidates.php?page=1&size=20&sortBy=name`;
             if (searchKey && searchKey.trim()) {
@@ -590,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchVoucherUsers(voucherId, page = 1, size = 5, searchKey = '', sortBy = 'name') {
         try {
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+            const token = getAdminTokenFromCookie();
 
             let url = `http://localhost:3000/restricted/config/get-users-associated-to-voucher-code.php?id=${voucherId}&page=${page}&size=${size}&sortBy=${sortBy}&searchKey=${encodeURIComponent(searchKey)}`;
 
@@ -808,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchDiscounts(page = 1, size = 10) {
         try {
             // Use the same token retrieval as searchUsers
-            const token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token') || 'DEFAULT_TOKEN';
+            const token = getAdminTokenFromCookie();
 
             let url = `http://localhost:3000/restricted/config/list-vouchers.php?page=${page}&size=${size}`;
 
