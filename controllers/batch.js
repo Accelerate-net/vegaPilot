@@ -1,28 +1,28 @@
 var app = angular.module('batchApp', ['ngCookies']);
 
-app.controller('batchController', function($scope, $http, $cookies, $timeout) {
+app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -37,6 +37,14 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     $scope.editingBatch = false;
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
+
+    // Initialize Controller
+    $scope.init = function () {
+        $scope.isLoading = true;
+        $timeout(function () {
+            $scope.isLoading = false;
+        }, 1500);
+    };
 
     // Modal control variables
     $scope.studentsModalOpen = false;
@@ -58,6 +66,21 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     // Sorting state
     $scope.sortColumn = 'batchName';
     $scope.sortReverse = false;
+
+    // Pagination state
+    $scope.currentPage = 1;
+    $scope.itemsPerPage = 10;
+    $scope.pageSize = "10";
+    $scope.totalItems = 0;
+    $scope.totalPages = 0;
+
+    $scope.changePageSize = function () {
+        $scope.itemsPerPage = parseInt($scope.pageSize);
+        $scope.currentPage = 1;
+        // In a real app, we would reload data here.
+    };
+
+    $scope.Math = window.Math; // Expose Math to scope for pagination calculations
 
     // Dummy data for available courses
     $scope.availableCourses = [
@@ -138,7 +161,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     }
 
     // Open create batch modal
-    $scope.openCreateBatchModal = function() {
+    $scope.openCreateBatchModal = function () {
         $scope.editingBatch = false;
         $scope.newBatch = {
             batchName: '',
@@ -152,7 +175,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Edit batch
-    $scope.editBatch = function(batch) {
+    $scope.editBatch = function (batch) {
         // Close kebab menu
         batch.showKebabMenu = false;
 
@@ -162,7 +185,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Save batch (create or update)
-    $scope.saveBatch = function() {
+    $scope.saveBatch = function () {
         // Validate required fields
         if (!$scope.newBatch.batchName || !$scope.newBatch.numberOfStudents) {
             $scope.showToaster('info', 'Notification', 'Please fill in all required fields');
@@ -177,10 +200,10 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.isLoading = true;
         $scope.loadingMessage = $scope.editingBatch ? 'Updating batch...' : 'Creating batch...';
 
-        $timeout(function() {
+        $timeout(function () {
             if ($scope.editingBatch) {
                 // Update existing batch
-                var index = $scope.batches.findIndex(function(b) { return b.id === $scope.newBatch.id; });
+                var index = $scope.batches.findIndex(function (b) { return b.id === $scope.newBatch.id; });
                 if (index !== -1) {
                     $scope.batches[index] = angular.copy($scope.newBatch);
                 }
@@ -199,24 +222,24 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Delete batch - Open confirmation modal
-    $scope.deleteBatch = function(batch) {
+    $scope.deleteBatch = function (batch) {
         $scope.batchToDelete = batch;
         $scope.deleteModalOpen = true;
     };
 
     // Close delete modal
-    $scope.closeDeleteModal = function() {
+    $scope.closeDeleteModal = function () {
         $scope.deleteModalOpen = false;
         $scope.batchToDelete = null;
     };
 
     // Confirm delete
-    $scope.confirmDelete = function() {
+    $scope.confirmDelete = function () {
         $scope.isLoading = true;
         $scope.loadingMessage = 'Deleting batch...';
         $scope.deleteModalOpen = false;
 
-        $timeout(function() {
+        $timeout(function () {
             var index = $scope.batches.indexOf($scope.batchToDelete);
             if (index !== -1) {
                 $scope.batches.splice(index, 1);
@@ -227,7 +250,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Open manage courses modal
-    $scope.openEnrollCourseModal = function(batch) {
+    $scope.openEnrollCourseModal = function (batch) {
         // Close kebab menu
         batch.showKebabMenu = false;
 
@@ -241,7 +264,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Add course to batch
-    $scope.addCourseToBatch = function() {
+    $scope.addCourseToBatch = function () {
         if (!$scope.selectedCourse) {
             return;
         }
@@ -255,7 +278,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.isLoading = true;
         $scope.loadingMessage = 'Adding course and enrolling students...';
 
-        $timeout(function() {
+        $timeout(function () {
             // Initialize enrolledCourses array if it doesn't exist
             if (!$scope.selectedBatch.enrolledCourses) {
                 $scope.selectedBatch.enrolledCourses = [];
@@ -265,7 +288,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
             $scope.selectedBatch.enrolledCourses.push($scope.selectedCourse);
 
             // Mark all existing students as enrolled (to at least one course)
-            $scope.selectedBatch.students.forEach(function(student) {
+            $scope.selectedBatch.students.forEach(function (student) {
                 student.enrolledToCourse = true;
             });
 
@@ -275,7 +298,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Remove course from batch
-    $scope.removeCourseFromBatch = function(courseTitle) {
+    $scope.removeCourseFromBatch = function (courseTitle) {
         if (!confirm('Are you sure you want to remove "' + courseTitle + '" from this batch? All students will be unenrolled from this course.')) {
             return;
         }
@@ -283,7 +306,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.isLoading = true;
         $scope.loadingMessage = 'Removing course...';
 
-        $timeout(function() {
+        $timeout(function () {
             // Remove course from enrolledCourses array
             var index = $scope.selectedBatch.enrolledCourses.indexOf(courseTitle);
             if (index !== -1) {
@@ -292,7 +315,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
             // If no courses left, mark all students as not enrolled
             if (!$scope.selectedBatch.enrolledCourses || $scope.selectedBatch.enrolledCourses.length === 0) {
-                $scope.selectedBatch.students.forEach(function(student) {
+                $scope.selectedBatch.students.forEach(function (student) {
                     student.enrolledToCourse = false;
                 });
             }
@@ -315,7 +338,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     }
 
     // Add students to batch - Open modal
-    $scope.addStudentsToBatch = function(batch) {
+    $scope.addStudentsToBatch = function (batch) {
         // Close kebab menu
         batch.showKebabMenu = false;
 
@@ -324,10 +347,10 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.studentSearchQuery = '';
 
         // Get students already in this batch
-        var batchStudentIds = batch.students.map(function(s) { return s.id; });
+        var batchStudentIds = batch.students.map(function (s) { return s.id; });
 
         // Filter out students already in this batch
-        $scope.availableStudentsForBatch = $scope.allAvailableStudents.filter(function(student) {
+        $scope.availableStudentsForBatch = $scope.allAvailableStudents.filter(function (student) {
             return batchStudentIds.indexOf(student.id) === -1;
         });
 
@@ -336,9 +359,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Close add students modal
-    $scope.closeAddStudentsModal = function() {
+    $scope.closeAddStudentsModal = function () {
         $scope.addStudentsModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.batchForAddingStudents = null;
             $scope.selectedStudentsToAdd = {};
             $scope.studentSearchQuery = '';
@@ -348,7 +371,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Toggle student selection for adding to batch
-    $scope.toggleStudentSelection = function(student) {
+    $scope.toggleStudentSelection = function (student) {
         if ($scope.selectedStudentsToAdd[student.id]) {
             delete $scope.selectedStudentsToAdd[student.id];
         } else {
@@ -357,23 +380,23 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Check if student is selected
-    $scope.isStudentSelected = function(student) {
+    $scope.isStudentSelected = function (student) {
         return !!$scope.selectedStudentsToAdd[student.id];
     };
 
     // Get count of selected students
-    $scope.getSelectedStudentsCount = function() {
+    $scope.getSelectedStudentsCount = function () {
         return Object.keys($scope.selectedStudentsToAdd).length;
     };
 
     // Select all students
-    $scope.selectAllStudents = function($event) {
+    $scope.selectAllStudents = function ($event) {
         $event.stopPropagation();
         var checkbox = $event.target;
 
         if (checkbox.checked) {
             // Select all filtered students
-            $scope.filteredAvailableStudents.forEach(function(student) {
+            $scope.filteredAvailableStudents.forEach(function (student) {
                 $scope.selectedStudentsToAdd[student.id] = student;
             });
         } else {
@@ -383,7 +406,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Watch for search query changes
-    $scope.$watch('studentSearchQuery', function(newVal) {
+    $scope.$watch('studentSearchQuery', function (newVal) {
         if (!$scope.availableStudentsForBatch || $scope.availableStudentsForBatch.length === 0) {
             return;
         }
@@ -392,16 +415,16 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
             $scope.filteredAvailableStudents = angular.copy($scope.availableStudentsForBatch);
         } else {
             var searchLower = newVal.toLowerCase();
-            $scope.filteredAvailableStudents = $scope.availableStudentsForBatch.filter(function(student) {
+            $scope.filteredAvailableStudents = $scope.availableStudentsForBatch.filter(function (student) {
                 return student.name.toLowerCase().indexOf(searchLower) !== -1 ||
-                       student.email.toLowerCase().indexOf(searchLower) !== -1 ||
-                       student.phone.indexOf(searchLower) !== -1;
+                    student.email.toLowerCase().indexOf(searchLower) !== -1 ||
+                    student.phone.indexOf(searchLower) !== -1;
             });
         }
     });
 
     // Confirm add students
-    $scope.confirmAddStudents = function() {
+    $scope.confirmAddStudents = function () {
         var selectedCount = $scope.getSelectedStudentsCount();
 
         if (selectedCount === 0) {
@@ -413,9 +436,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.loadingMessage = 'Adding ' + selectedCount + ' student(s) to batch...';
         $scope.closeAddStudentsModal();
 
-        $timeout(function() {
+        $timeout(function () {
             // Add selected students to batch
-            Object.values($scope.selectedStudentsToAdd).forEach(function(student) {
+            Object.values($scope.selectedStudentsToAdd).forEach(function (student) {
                 $scope.batchForAddingStudents.students.push({
                     id: student.id,
                     name: student.name,
@@ -432,7 +455,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Get initials for avatar
-    $scope.getInitials = function(name) {
+    $scope.getInitials = function (name) {
         if (!name) return '??';
         var parts = name.split(' ');
         if (parts.length >= 2) {
@@ -442,7 +465,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Format date
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         var date = new Date(timestamp);
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -452,19 +475,19 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // View batch details - Open modal
-    $scope.viewBatchDetails = function(batch) {
+    $scope.viewBatchDetails = function (batch) {
         $scope.selectedBatchForDetails = batch;
         $scope.detailsModalOpen = true;
     };
 
     // Close details modal
-    $scope.closeDetailsModal = function() {
+    $scope.closeDetailsModal = function () {
         $scope.detailsModalOpen = false;
         $scope.selectedBatchForDetails = null;
     };
 
     // View batch students - Open modal
-    $scope.viewBatchStudents = function(batch) {
+    $scope.viewBatchStudents = function (batch) {
         $scope.selectedBatchForStudents = batch;
         $scope.studentSearchQuery = '';
         $scope.studentFilter = 'all'; // Reset filter to 'all'
@@ -473,7 +496,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Close students modal
-    $scope.closeStudentsModal = function() {
+    $scope.closeStudentsModal = function () {
         $scope.studentsModalOpen = false;
         $scope.selectedBatchForStudents = null;
         $scope.studentSearchQuery = '';
@@ -482,12 +505,12 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Set student filter
-    $scope.setStudentFilter = function(filter) {
+    $scope.setStudentFilter = function (filter) {
         $scope.studentFilter = filter;
     };
 
     // Get filtered students based on selected filter
-    $scope.getFilteredStudents = function() {
+    $scope.getFilteredStudents = function () {
         if (!$scope.selectedBatchForStudents || !$scope.selectedBatchForStudents.students) {
             return [];
         }
@@ -495,9 +518,9 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         var students = $scope.selectedBatchForStudents.students;
 
         if ($scope.studentFilter === 'enrolled') {
-            return students.filter(function(s) { return s.enrolledToCourse; });
+            return students.filter(function (s) { return s.enrolledToCourse; });
         } else if ($scope.studentFilter === 'not-enrolled') {
-            return students.filter(function(s) { return !s.enrolledToCourse; });
+            return students.filter(function (s) { return !s.enrolledToCourse; });
         }
 
         // 'all' or default
@@ -505,7 +528,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Navigate to student profile
-    $scope.navigateToStudentProfile = function(student) {
+    $scope.navigateToStudentProfile = function (student) {
         // Navigate to candidate profile page with student ID
         window.location.href = 'candidate-profile.html?studentId=' + student.id;
     };
@@ -513,7 +536,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     // ===== Batch Student Selection Functions =====
 
     // Toggle individual student selection in batch modal
-    $scope.toggleBatchStudentSelection = function(student) {
+    $scope.toggleBatchStudentSelection = function (student) {
         if ($scope.selectedBatchStudents[student.id]) {
             delete $scope.selectedBatchStudents[student.id];
         } else {
@@ -522,17 +545,17 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Check if student is selected
-    $scope.isBatchStudentSelected = function(student) {
+    $scope.isBatchStudentSelected = function (student) {
         return !!$scope.selectedBatchStudents[student.id];
     };
 
     // Get count of selected students
-    $scope.getSelectedBatchStudentsCount = function() {
+    $scope.getSelectedBatchStudentsCount = function () {
         return Object.keys($scope.selectedBatchStudents).length;
     };
 
     // Check if all students are selected
-    $scope.isAllBatchStudentsSelected = function() {
+    $scope.isAllBatchStudentsSelected = function () {
         if (!$scope.selectedBatchForStudents || !$scope.selectedBatchForStudents.students) {
             return false;
         }
@@ -541,7 +564,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
             return false;
         }
         var allSelected = true;
-        filteredStudents.forEach(function(student) {
+        filteredStudents.forEach(function (student) {
             if (!$scope.selectedBatchStudents[student.id]) {
                 allSelected = false;
             }
@@ -550,7 +573,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Toggle select all students
-    $scope.toggleSelectAllBatchStudents = function($event) {
+    $scope.toggleSelectAllBatchStudents = function ($event) {
         $event.stopPropagation();
         var checkbox = $event.target;
 
@@ -558,7 +581,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
         if (checkbox.checked) {
             // Select all filtered students
-            filteredStudents.forEach(function(student) {
+            filteredStudents.forEach(function (student) {
                 $scope.selectedBatchStudents[student.id] = student;
             });
         } else {
@@ -568,7 +591,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Remove selected students from batch
-    $scope.removeStudentsFromBatch = function() {
+    $scope.removeStudentsFromBatch = function () {
         var selectedCount = $scope.getSelectedBatchStudentsCount();
 
         if (selectedCount === 0) {
@@ -577,8 +600,8 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         }
 
         var confirmMsg = 'Are you sure you want to remove ' + selectedCount + ' student(s) from "' +
-                        $scope.selectedBatchForStudents.batchName + '"?\n\n' +
-                        'This action cannot be undone.';
+            $scope.selectedBatchForStudents.batchName + '"?\n\n' +
+            'This action cannot be undone.';
 
         if (!confirm(confirmMsg)) {
             return;
@@ -587,12 +610,12 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         $scope.isLoading = true;
         $scope.loadingMessage = 'Removing ' + selectedCount + ' student(s) from batch...';
 
-        $timeout(function() {
+        $timeout(function () {
             // Get list of student IDs to remove
             var studentIdsToRemove = Object.keys($scope.selectedBatchStudents);
 
             // Remove students from the batch
-            $scope.selectedBatchForStudents.students = $scope.selectedBatchForStudents.students.filter(function(student) {
+            $scope.selectedBatchForStudents.students = $scope.selectedBatchForStudents.students.filter(function (student) {
                 return studentIdsToRemove.indexOf(student.id) === -1;
             });
 
@@ -605,7 +628,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Get batch status
-    $scope.getBatchStatus = function(batch) {
+    $scope.getBatchStatus = function (batch) {
         if (!batch) return 'Active';
         if (!batch.startDate) return 'Active';
 
@@ -623,7 +646,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Get batch status class
-    $scope.getBatchStatusClass = function(batch) {
+    $scope.getBatchStatusClass = function (batch) {
         if (!batch) return {};
         var status = $scope.getBatchStatus(batch);
         return {
@@ -634,43 +657,43 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Format date
-    $scope.formatDate = function(dateValue) {
+    $scope.formatDate = function (dateValue) {
         if (!dateValue) return '';
         var date = new Date(dateValue);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
 
     // Get unenrolled students in a batch
-    $scope.getUnenrolledStudentsInBatch = function(batch) {
+    $scope.getUnenrolledStudentsInBatch = function (batch) {
         if (!batch || !batch.students) return 0;
-        return batch.students.filter(function(s) { return !s.enrolledToCourse; }).length;
+        return batch.students.filter(function (s) { return !s.enrolledToCourse; }).length;
     };
 
     // Statistics functions
-    $scope.getTotalBatches = function() {
+    $scope.getTotalBatches = function () {
         return $scope.batches.length;
     };
 
-    $scope.getActiveBatches = function() {
-        return $scope.batches.filter(function(b) {
+    $scope.getActiveBatches = function () {
+        return $scope.batches.filter(function (b) {
             return $scope.getBatchStatus(b) === 'Active';
         }).length;
     };
 
-    $scope.getTotalStudents = function() {
-        return $scope.batches.reduce(function(sum, batch) {
+    $scope.getTotalStudents = function () {
+        return $scope.batches.reduce(function (sum, batch) {
             return sum + batch.students.length;
         }, 0);
     };
 
-    $scope.getUnenrolledCount = function() {
-        return $scope.batches.reduce(function(sum, batch) {
+    $scope.getUnenrolledCount = function () {
+        return $scope.batches.reduce(function (sum, batch) {
             return sum + $scope.getUnenrolledStudentsInBatch(batch);
         }, 0);
     };
 
     // ===== Sortable Column Functionality =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
         } else {
@@ -678,10 +701,10 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
             $scope.sortReverse = false;
         }
 
-        $scope.batches.sort(function(a, b) {
+        $scope.batches.sort(function (a, b) {
             var aVal, bVal;
 
-            switch(column) {
+            switch (column) {
                 case 'batchName':
                     aVal = a.batchName.toLowerCase();
                     bVal = b.batchName.toLowerCase();
@@ -713,11 +736,11 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // ===== Kebab Menu Functionality =====
-    $scope.toggleKebabMenu = function(batch, $event) {
+    $scope.toggleKebabMenu = function (batch, $event) {
         $event.stopPropagation();
 
         // Close all other kebab menus
-        $scope.batches.forEach(function(b) {
+        $scope.batches.forEach(function (b) {
             if (b !== batch) {
                 b.showKebabMenu = false;
             }
@@ -728,16 +751,16 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     };
 
     // Close kebab menu when clicking outside
-    angular.element(document).on('click', function(event) {
-        $scope.$apply(function() {
-            $scope.batches.forEach(function(batch) {
+    angular.element(document).on('click', function (event) {
+        $scope.$apply(function () {
+            $scope.batches.forEach(function (batch) {
                 batch.showKebabMenu = false;
             });
         });
     });
 
     // ===== Freeze/Unfreeze Batch Functionality =====
-    $scope.toggleFreezeBatch = function(batch) {
+    $scope.toggleFreezeBatch = function (batch) {
         var action = batch.isFrozen ? 'unfreeze' : 'freeze';
         var confirmMsg = batch.isFrozen
             ? 'Are you sure you want to unfreeze "' + batch.batchName + '"? Students will be able to access the batch again.'
@@ -753,7 +776,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         // Close the kebab menu
         batch.showKebabMenu = false;
 
-        $timeout(function() {
+        $timeout(function () {
             batch.isFrozen = !batch.isFrozen;
             $scope.isLoading = false;
 
@@ -763,6 +786,11 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
             $scope.showToaster('info', 'Notification', successMsg);
         }, 500);
+    };
+
+    // Generate array for skeleton rows
+    $scope.getSkeletonRows = function () {
+        return new Array(10);
     };
 
 });

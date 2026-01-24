@@ -529,6 +529,8 @@
 .search-wrapper i {
     position: absolute;
     left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
     color: #999;
     font-size: 16px;
     z-index: 2;

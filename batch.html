@@ -17,6 +17,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
 
@@ -51,68 +52,91 @@
          font-size: 14px;
       }
 
-      /* Batches Table */
-      .batches-table {
-         width: 100%;
+      /* Replicate candidate-profile.html table behavior */
+      .students-table-container {
          background: white;
-         border-radius: 8px;
-         overflow: visible;
+         border-radius: 6px;
          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         overflow: visible;
       }
 
-      .batches-table thead {
+      .students-table {
+         width: 100%;
+         border-collapse: separate;
+         border-spacing: 0;
+      }
+
+      .students-table thead {
          background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
          color: white;
       }
 
-      .batches-table th {
-         padding: 15px 20px;
+      .students-table th {
+         padding: 15px;
          text-align: left;
          font-weight: 600;
+         color: white;
          font-size: 13px;
          text-transform: uppercase;
          letter-spacing: 0.5px;
-      }
-
-      .batches-table th.sortable {
-         cursor: pointer;
-         user-select: none;
+         border-bottom: none;
          position: relative;
-         padding-right: 30px;
       }
 
-      .batches-table th.sortable:hover {
+      .students-table th:first-child {
+         border-top-left-radius: 6px;
+      }
+
+      .students-table th:last-child {
+         border-top-right-radius: 6px;
+      }
+
+      .students-table th.sortable:hover {
          background: rgba(255, 255, 255, 0.1);
       }
 
-      .batches-table th.sortable .sort-icon {
+      .students-table th.sortable .sort-icon {
          position: absolute;
          right: 10px;
          top: 50%;
          transform: translateY(-50%);
-         opacity: 0.5;
+         opacity: 0.3;
          font-size: 12px;
       }
 
-      .batches-table th.sortable.active .sort-icon {
+      .students-table th.sortable.active .sort-icon {
          opacity: 1;
       }
 
-      .batches-table tbody tr {
-         border-bottom: 1px solid #e9ecef;
-         transition: all 0.2s ease;
-      }
-
-      .batches-table tbody tr:hover {
-         background: #f8f9fc;
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.1);
-      }
-
-      .batches-table td {
-         padding: 18px 20px;
+      .students-table td {
+         padding: 15px;
+         border-bottom: 1px solid #f1f3f5;
          vertical-align: middle;
       }
 
+      .students-table tbody tr {
+         transition: all 0.2s ease;
+         position: relative;
+      }
+
+      .students-table tbody tr:hover {
+         background: #f8f9fa;
+         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+         position: relative;
+         z-index: 10;
+      }
+
+      .students-table tbody tr.row-active-menu {
+         z-index: 1000 !important;
+         background: #f8f9fa;
+      }
+
+      .students-table td.cell-active-menu {
+         position: relative;
+         z-index: 500;
+      }
+
+      /* Batches Table Item Styles */
       .batch-name {
          font-weight: 600;
          color: #2c3e50;
@@ -160,7 +184,37 @@
          color: #6c757d;
       }
 
-      /* Filter Bar */
+      .batch-course-badge {
+         background: #006073;
+         color: white;
+         padding: 5px 12px;
+         border-radius: 12px;
+         font-size: 11px;
+         display: inline-block;
+         font-weight: 600;
+      }
+
+      /* Search Clear Button Styles */
+      .search-clear-btn {
+         position: absolute;
+         right: 15px;
+         background: none;
+         border: none;
+         color: #999;
+         cursor: pointer;
+         padding: 5px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         transition: color 0.2s;
+         z-index: 2;
+      }
+
+      .search-clear-btn:hover {
+         color: #dc3545;
+      }
+
+      /* Filter Bar specific spacing */
       .filter-bar {
          display: flex;
          gap: 15px;
@@ -168,43 +222,79 @@
          flex-wrap: wrap;
       }
 
-      .search-wrapper {
-         flex: 1;
-         min-width: 250px;
-         position: relative;
-      }
-
-      .search-wrapper i {
-         position: absolute;
-         left: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         color: #999;
-      }
-
-      .search-input {
-         width: 100%;
-         padding: 12px 15px 12px 45px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-      }
-
-      .search-input:focus {
+      .page-size-select {
+         padding: 5px 25px 5px 10px;
+         border: 1px solid #dee2e6;
+         border-radius: 4px;
+         font-size: 13px;
+         color: #495057;
+         background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+         background-size: 10px;
+         appearance: none;
+         -webkit-appearance: none;
+         -moz-appearance: none;
+         cursor: pointer;
          outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+         margin-left: 10px;
       }
 
-      .action-buttons {
+      .page-size-select:focus {
+         border-color: #006073;
+      }
+
+      /* Pagination */
+      .pagination-container {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         padding: 20px;
+         background: white;
+         border-top: 1px solid #e9ecef;
+         border-bottom-left-radius: 6px;
+         border-bottom-right-radius: 6px;
+      }
+
+      .pagination-info {
+         font-size: 14px;
+         color: #6c757d;
+         display: flex;
+         align-items: center;
+         gap: 15px;
+      }
+
+      .pagination-controls {
          display: flex;
          gap: 5px;
-         flex-wrap: wrap;
-         justify-content: center;
       }
 
-      .action-buttons .btn {
-         margin: 2px;
+      .pagination-btn {
+         padding: 8px 12px;
+         border: 1px solid #dee2e6;
+         background: white;
+         cursor: pointer;
+         border-radius: 4px;
+         font-size: 13px;
+         transition: all 0.2s ease;
+         display: flex;
+         align-items: center;
+         gap: 5px;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+         background: #006073;
+         color: white;
+         border-color: #006073;
+      }
+
+      .pagination-btn:disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+      }
+
+      .pagination-btn.active {
+         background: #006073;
+         color: white;
+         border-color: #006073;
       }
 
       @keyframes modalFadeIn {
@@ -257,159 +347,25 @@
          color: #adb5bd;
       }
 
-      /* Loading Overlay */
-      .loading-overlay {
-         position: fixed;
-         top: 0;
-         left: 0;
-         right: 0;
-         bottom: 0;
-         background: rgba(0, 0, 0, 0.7);
-         z-index: 9999;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         opacity: 0;
-         pointer-events: none;
-         transition: opacity 0.3s ease;
-      }
-
-      .loading-overlay.active {
-         opacity: 1;
-         pointer-events: auto;
-      }
-
-      .loading-content {
-         background: white;
-         padding: 30px;
-         border-radius: 8px;
-         text-align: center;
-      }
-
-      .spinner {
-         border: 4px solid #f3f3f3;
-         border-top: 4px solid #006073;
-         border-radius: 50%;
-         width: 50px;
-         height: 50px;
-         animation: spin 1s linear infinite;
-         margin: 0 auto 15px;
-      }
-
-      @keyframes spin {
+      /* Loading patterns and Kebab menu styles moved to crispr-table.css */
+      @keyframes shimmer {
          0% {
-            transform: rotate(0deg);
+            transform: translateX(-100%);
          }
 
          100% {
-            transform: rotate(360deg);
+            transform: translateX(100%);
          }
       }
 
-      .loading-text {
-         color: #333;
-         font-weight: 500;
-      }
-
-      /* Kebab Menu Styles */
-      .kebab-menu-container {
-         position: relative;
-         display: inline-block;
-      }
-
-      .kebab-button {
-         background: transparent;
-         border: none;
-         cursor: pointer;
-         padding: 8px 12px;
-         border-radius: 6px;
-         transition: all 0.2s ease;
-         display: flex;
-         align-items: center;
-         justify-content: center;
-      }
-
-      .kebab-button:hover {
-         background: #f0f0f0;
-      }
-
-      .kebab-button i {
-         font-size: 20px;
-         color: #495057;
-      }
-
-      .kebab-dropdown {
+      .skeleton-shimmer {
          position: absolute;
-         right: 0;
-         top: 100%;
-         background: white;
-         border: 1px solid #e0e0e0;
-         border-radius: 8px;
-         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-         min-width: 220px;
-         z-index: 1000;
-         margin-top: 5px;
-         opacity: 0;
-         transform: translateY(-10px);
-         pointer-events: none;
-         transition: all 0.2s ease;
-      }
-
-      .kebab-dropdown.active {
-         opacity: 1;
-         transform: translateY(0);
-         pointer-events: auto;
-      }
-
-      .kebab-dropdown-item {
-         padding: 12px 16px;
-         cursor: pointer;
-         display: flex;
-         align-items: center;
-         gap: 12px;
-         border-bottom: 1px solid #f0f0f0;
-         transition: all 0.2s ease;
-         color: #333;
-         text-decoration: none;
-      }
-
-      .kebab-dropdown-item:last-child {
-         border-bottom: none;
-      }
-
-      .kebab-dropdown-item:hover {
-         background: #f8f9fa;
-      }
-
-      .kebab-dropdown-item i {
-         font-size: 16px;
-         width: 20px;
-         text-align: center;
-      }
-
-      .kebab-dropdown-item.manage-courses i {
-         color: #28a745;
-      }
-
-      .kebab-dropdown-item.manage-students i {
-         color: #17a2b8;
-      }
-
-      .kebab-dropdown-item.modify-batch i {
-         color: #ffc107;
-      }
-
-      .kebab-dropdown-item.freeze-batch i {
-         color: #dc3545;
-      }
-
-      .kebab-dropdown-item.unfreeze-batch i {
-         color: #28a745;
-      }
-
-      .kebab-dropdown-item .item-label {
-         font-size: 14px;
-         font-weight: 500;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+         animation: shimmer 1.5s infinite;
       }
 
       /* Navbar Styling - Match other pages */
@@ -476,7 +432,7 @@
    </style>
 </head>
 
-<body class="animated-content" ng-app="batchApp" ng-controller="batchController" ng-cloak>
+<body class="animated-content" ng-app="batchApp" ng-controller="batchController" ng-cloak ng-init="init()">
    <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
       <div class="logo-area">
          <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
@@ -583,14 +539,17 @@
                      <div class="filter-bar">
                         <div class="search-wrapper">
                            <i class="ti ti-search"></i>
-                           <input type="text" class="search-input"
-                              placeholder="Search batches by name, course, or status..." ng-model="searchQuery">
+                           <input type="text" class="search-input" ng-model="searchQuery"
+                              placeholder="Search batches by name, course, or status...">
+                           <button class="search-clear-btn" ng-show="searchQuery" ng-click="searchQuery = ''">
+                              <i class="ti ti-close"></i>
+                           </button>
                         </div>
                      </div>
 
                      <!-- Batch Listing -->
                      <!-- Empty State -->
-                     <div ng-if="batches.length === 0" class="empty-state">
+                     <div ng-if="batches.length === 0 && !isLoading" class="empty-state">
                         <i class="ti ti-user"></i>
                         <h3>No Batches Found</h3>
                         <p>Create your first batch to start organizing students</p>
@@ -600,8 +559,8 @@
                      </div>
 
                      <!-- Batches Table -->
-                     <div ng-if="batches.length > 0">
-                        <table class="batches-table">
+                     <div class="students-table-container" ng-if="batches.length > 0 || isLoading">
+                        <table class="students-table">
                            <thead>
                               <tr>
                                  <th class="sortable" ng-click="sortByColumn('batchName')"
@@ -636,17 +595,64 @@
                                     <i class="sort-icon ti"
                                        ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                  </th>
-                                 <th style="text-align: center; width: 60px;"></th>
+                                 <th style="text-align: center; width: 60px;">Actions</th>
                               </tr>
                            </thead>
-                           <tbody>
-                              <tr ng-repeat="batch in batches | filter:searchQuery">
+                           <!-- Skeleton Body -->
+                           <tbody ng-if="isLoading">
+                              <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                 <td>
+                                    <div class="skeleton-col text-long">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                    <div class="skeleton-col text-medium" style="margin-top: 5px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short" style="margin: 0 auto;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-medium">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short" style="margin: 0 auto;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short" style="margin: 0 auto; width: 30px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                           <!-- Data Body -->
+                           <tbody ng-if="!isLoading">
+                              <tr ng-repeat="batch in batches | filter:searchQuery"
+                                 ng-class="{'row-active-menu': batch.showKebabMenu}">
                                  <td>
                                     <div class="batch-name">{{batch.batchName}}</div>
                                     <div class="batch-description" ng-if="batch.description">{{batch.description}}</div>
                                  </td>
-                                 <td style="text-align: center; cursor: pointer;" ng-click="viewBatchStudents(batch)">
-                                    <div class="student-count">{{batch.students.length}} / {{batch.numberOfStudents}}
+                                 <td style="text-align: center;">
+                                    <div class="student-count" style="cursor: pointer;"
+                                       ng-click="viewBatchStudents(batch)">{{batch.students.length}} /
+                                       {{batch.numberOfStudents}}
                                     </div>
                                     <div class="course-info" ng-if="getUnenrolledStudentsInBatch(batch) > 0">
                                        <span class="badge badge-warning" style="font-size: 10px;">
@@ -658,8 +664,7 @@
                                  <td>
                                     <div ng-if="batch.enrolledCourses && batch.enrolledCourses.length > 0"
                                        style="display: flex; flex-wrap: wrap; gap: 5px;">
-                                       <span ng-repeat="course in batch.enrolledCourses" class="badge"
-                                          style="background: #006073; color: white; padding: 5px 10px; border-radius: 12px; font-size: 11px; display: inline-block;">
+                                       <span ng-repeat="course in batch.enrolledCourses" class="batch-course-badge">
                                           <i class="ti ti-book"></i> {{course}}
                                        </span>
                                     </div>
@@ -690,13 +695,14 @@
                                        {{getBatchStatus(batch)}}
                                     </span>
                                  </td>
-                                 <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                 <td style="text-align: center;" ng-click="$event.stopPropagation()"
+                                    ng-class="{'cell-active-menu': batch.showKebabMenu}">
                                     <div class="kebab-menu-container">
                                        <button class="kebab-button" ng-click="toggleKebabMenu(batch, $event)">
                                           <i class="ti ti-more-alt"></i>
                                        </button>
                                        <div class="kebab-dropdown" ng-class="{active: batch.showKebabMenu}">
-                                          <div class="kebab-dropdown-item manage-courses"
+                                          <div class="kebab-dropdown-item view-profile"
                                              ng-click="openEnrollCourseModal(batch)">
                                              <i class="ti ti-book"></i>
                                              <span class="item-label">Manage Courses</span>
@@ -706,12 +712,12 @@
                                              <i class="ti ti-user"></i>
                                              <span class="item-label">Manage Students</span>
                                           </div>
-                                          <div class="kebab-dropdown-item modify-batch" ng-click="editBatch(batch)">
+                                          <div class="kebab-dropdown-item edit-action" ng-click="editBatch(batch)">
                                              <i class="ti ti-pencil"></i>
                                              <span class="item-label">Modify Batch Details</span>
                                           </div>
                                           <div class="kebab-dropdown-item"
-                                             ng-class="batch.isFrozen ? 'unfreeze-batch' : 'freeze-batch'"
+                                             ng-class="batch.isFrozen ? 'enable-action' : 'draft-action'"
                                              ng-click="toggleFreezeBatch(batch)">
                                              <i class="ti" ng-class="batch.isFrozen ? 'ti-unlock' : 'ti-lock'"></i>
                                              <span class="item-label">{{batch.isFrozen ? 'Unfreeze' : 'Freeze'}}
@@ -723,6 +729,32 @@
                               </tr>
                            </tbody>
                         </table>
+
+                        <!-- Pagination Container -->
+                        <div class="pagination-container" ng-if="batches.length > 0 && !isLoading">
+                           <div class="pagination-info">
+                              <span>Showing {{(currentPage-1)*itemsPerPage + 1}} to
+                                 {{Math.min(currentPage*itemsPerPage, batches.length)}} of
+                                 {{batches.length}} entries</span>
+                              <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()">
+                                 <option value="10">Show 10</option>
+                                 <option value="20">Show 20</option>
+                                 <option value="50">Show 50</option>
+                                 <option value="200">Show 200</option>
+                              </select>
+                           </div>
+                           <div class="pagination-controls">
+                              <button class="pagination-btn" ng-disabled="currentPage === 1">
+                                 <i class="ti ti-angle-left"></i> Previous
+                              </button>
+                              <button class="pagination-btn active">
+                                 {{currentPage}}
+                              </button>
+                              <button class="pagination-btn" ng-disabled="true">
+                                 Next <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
+                        </div>
                      </div>
                   </div>
                </div>
@@ -1405,33 +1437,34 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
    <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
    <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
    <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/batch.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 
