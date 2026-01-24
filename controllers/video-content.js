@@ -1,7 +1,7 @@
 var app = angular.module('videoContentApp', ['ngCookies']);
 
-app.controller('videoContentController', function($scope, $http, $cookies, $timeout) {
-    
+app.controller('videoContentController', function ($scope, $http, $cookies, $timeout) {
+
     // Initialize scope variables
     $scope.createView = false;
     $scope.modifyVideoView = false;
@@ -13,7 +13,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     $scope.uploadStatus = null;
     $scope.videoPreview = null;
     $scope.isDragOver = false;
-    
+
     // Summary data for tiles
     $scope.summaryTileData = {
         total: 0,
@@ -22,7 +22,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         totalCompleted: 0,
         totalStorage: 0
     };
-    
+
     // Video list data
     $scope.listData = [];
     $scope.filteredVideos = [];
@@ -55,10 +55,10 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         customCollectionName: '',
         status: 1
     };
-    
+
     // Video being modified
     $scope.modifyVideoData = {};
-    
+
     // Bunny.net collection management
     $scope.bunnyCollections = [];
     $scope.loadingCollections = false;
@@ -66,7 +66,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
 
     // API Configuration - Use proxy server
     var API_BASE = '/api/bunny';
-    
+
     // Dummy data for testing
     $scope.dummyVideos = [
         {
@@ -240,30 +240,30 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_8mb.mp4'
         }
     ];
-    
+
     // Initialize the controller
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.loadVideoList();
         $scope.loadSummaryData();
-        
+
         // Try to load collections from Bunny.net
         console.log('Initializing controller, attempting to load collections...');
         $scope.loadBunnyCollections();
-        
+
         // Load storage data from Bunny.net
         $scope.loadBunnyStorage();
-        
+
         // Also try a direct test after a short delay
-        $timeout(function() {
+        $timeout(function () {
             console.log('Testing API connection after initialization...');
             $scope.testBunnyConnection();
         }, 2000);
     };
-    
+
     // Load video list from database (using dummy data for now)
-    $scope.loadVideoList = function() {
+    $scope.loadVideoList = function () {
         // Simulate API call delay
-        $timeout(function() {
+        $timeout(function () {
             $scope.listData = $scope.dummyVideos;
             $scope.totalPages = 1;
 
@@ -272,25 +272,25 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             $scope.applyFilters();
         }, 500);
     };
-    
+
     // Load summary data for tiles
-    $scope.loadSummaryData = function() {
+    $scope.loadSummaryData = function () {
         // Calculate summary from dummy data
         var total = $scope.dummyVideos.length;
-        var totalDuration = $scope.dummyVideos.reduce(function(sum, video) {
+        var totalDuration = $scope.dummyVideos.reduce(function (sum, video) {
             return sum + video.durationInSeconds;
         }, 0);
-        var totalRecent = $scope.dummyVideos.filter(function(video) {
+        var totalRecent = $scope.dummyVideos.filter(function (video) {
             // Show videos uploaded in last 30 days
             var uploadDate = new Date(video.uploadedAt || video.createdOn * 1000);
             var thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             return uploadDate > thirtyDaysAgo;
         }).length;
-        var totalLong = $scope.dummyVideos.filter(function(video) {
+        var totalLong = $scope.dummyVideos.filter(function (video) {
             return video.durationInSeconds > 300; // Longer than 5 minutes
         }).length;
-        
+
         $scope.summaryTileData = {
             total: total,
             totalDuration: Math.round(totalDuration / 60), // Convert to minutes
@@ -299,16 +299,16 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             totalStorage: '0.00' // Will be updated from Bunny.net
         };
     };
-    
+
     // Load Bunny.net collections
-    $scope.loadBunnyCollections = function() {
+    $scope.loadBunnyCollections = function () {
         $scope.loadingCollections = true;
 
         // Use proxy server to fetch collections
         $http.get(API_BASE + '/folders')
-            .then(function(response) {
+            .then(function (response) {
                 console.log('Collections loaded from proxy:', response.data);
-                $scope.bunnyCollections = response.data.map(function(folder) {
+                $scope.bunnyCollections = response.data.map(function (folder) {
                     return {
                         guid: folder.id,
                         name: folder.name,
@@ -317,25 +317,25 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 });
                 $scope.loadingCollections = false;
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading collections from proxy:', error);
                 $scope.loadingCollections = false;
                 $scope.loadFallbackCollections();
             });
     };
-    
+
     // Load storage data from Bunny.net
-    $scope.loadBunnyStorage = function() {
+    $scope.loadBunnyStorage = function () {
         console.log('Loading storage data - using fallback calculation');
         // For now, use fallback calculation
         // TODO: Add storage endpoint to proxy server if needed
         $scope.calculateFallbackStorage();
     };
-    
+
     // Fallback storage calculation
-    $scope.calculateFallbackStorage = function() {
+    $scope.calculateFallbackStorage = function () {
         if ($scope.bunnyCollections && $scope.bunnyCollections.length > 0) {
-            var totalVideos = $scope.bunnyCollections.reduce(function(sum, collection) {
+            var totalVideos = $scope.bunnyCollections.reduce(function (sum, collection) {
                 return sum + (collection.videoCount || 0);
             }, 0);
             // Estimate 500MB per video on average
@@ -348,9 +348,9 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             console.log('📊 No videos found, storage set to 0.00 GB');
         }
     };
-    
+
     // Fetch collections from Bunny.net API
-    $scope.fetchBunnyCollections = function() {
+    $scope.fetchBunnyCollections = function () {
         var url = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/collections';
         var params = {
             page: 1,
@@ -358,25 +358,25 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             orderBy: 'date',
             includeThumbnails: false
         };
-        
+
         console.log('Fetching collections from:', url);
         console.log('API Key:', $scope.bunnyNetConfig.accessKey);
         console.log('Library ID:', $scope.bunnyNetConfig.libraryId);
-        
+
         $http.get(url, {
             params: params,
             headers: {
                 'AccessKey': $scope.bunnyNetConfig.accessKey
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Collections API response:', response);
             console.log('Response data:', response.data);
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
-            
+
             // Try different possible response structures
             var collections = [];
-            
+
             if (response.data && response.data.data) {
                 // Standard paginated response
                 collections = response.data.data;
@@ -396,41 +396,41 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             } else {
                 console.log('No collections found in response. Full response structure:', JSON.stringify(response.data, null, 2));
             }
-            
+
             if (collections && collections.length > 0) {
-                $scope.bunnyCollections = collections.map(function(collection) {
+                $scope.bunnyCollections = collections.map(function (collection) {
                     console.log('Processing collection:', collection);
-                    
+
                     var mappedCollection = {
                         id: collection.id || collection.guid || collection.collectionId || 'unknown',
                         name: collection.name || collection.collectionName || 'Unnamed Collection',
                         videoCount: collection.videoCount || collection.videosCount || collection.count || 0,
-                        created: collection.dateCreated ? new Date(collection.dateCreated * 1000).toISOString().split('T')[0] : 
-                               collection.createdAt ? new Date(collection.createdAt).toISOString().split('T')[0] :
-                               collection.date ? new Date(collection.date).toISOString().split('T')[0] : 'Unknown',
+                        created: collection.dateCreated ? new Date(collection.dateCreated * 1000).toISOString().split('T')[0] :
+                            collection.createdAt ? new Date(collection.createdAt).toISOString().split('T')[0] :
+                                collection.date ? new Date(collection.date).toISOString().split('T')[0] : 'Unknown',
                         description: collection.description || collection.desc || 'Collection from Bunny.net'
                     };
-                    
+
                     console.log('Mapped collection:', mappedCollection);
                     return mappedCollection;
                 });
-                
+
                 console.log('Final bunnyCollections array:', $scope.bunnyCollections);
                 $scope.showToaster('Collections loaded successfully from Bunny.net: ' + $scope.bunnyCollections.length + ' found', 'success');
-                
+
                 // Refresh storage data after collections are loaded
                 $scope.loadBunnyStorage();
             } else {
                 $scope.bunnyCollections = [];
                 $scope.showToaster('No collections found in your Bunny.net library', 'info');
-                
+
                 // Still try to get storage data
                 $scope.loadBunnyStorage();
             }
-            
+
             $scope.loadingCollections = false;
-            
-        }).catch(function(error) {
+
+        }).catch(function (error) {
             console.error('Error fetching collections:', error);
             console.error('Error details:', {
                 status: error.status,
@@ -438,9 +438,9 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 data: error.data,
                 config: error.config
             });
-            
+
             $scope.loadingCollections = false;
-            
+
             if (error.status === 401) {
                 $scope.showToaster('Authentication failed. Please check your API key.', 'error');
             } else if (error.status === 404) {
@@ -450,41 +450,41 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             } else {
                 $scope.showToaster('Failed to load collections from Bunny.net: ' + (error.data?.message || error.statusText || 'Unknown error'), 'error');
             }
-            
+
             // Fallback to dummy data if API fails
             $scope.loadFallbackCollections();
         });
     };
-    
+
     // Refresh collections
-    $scope.refreshCollections = function() {
+    $scope.refreshCollections = function () {
         $scope.loadBunnyCollections();
         // Also refresh storage data
         $scope.loadBunnyStorage();
     };
-    
+
     // Handle collection selection change
-    $scope.onCollectionChange = function() {
+    $scope.onCollectionChange = function () {
         if ($scope.newVideo.collectionName === '__custom__') {
             $scope.newVideo.customCollectionName = '';
         }
     };
-    
+
     // Create new collection
-    $scope.createCollection = function() {
+    $scope.createCollection = function () {
         if (!$scope.newVideo.customCollectionName) {
             $scope.showToaster('Please enter a collection name', 'error');
             return;
         }
-        
+
         $scope.creatingCollection = true;
-        
+
         // Make actual API call to Bunny.net
         $scope.createBunnyCollection();
     };
-    
+
     // Load fallback collections if API fails
-    $scope.loadFallbackCollections = function() {
+    $scope.loadFallbackCollections = function () {
         console.log('Loading fallback collections due to API failure');
         $scope.bunnyCollections = [
             {
@@ -511,14 +511,14 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         ];
         $scope.showToaster('Using fallback collections. API connection failed.', 'warning');
     };
-    
+
     // Create collection in Bunny.net
-    $scope.createBunnyCollection = function() {
+    $scope.createBunnyCollection = function () {
         var url = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/collections';
-        
+
         console.log('Creating collection:', $scope.newVideo.customCollectionName);
         console.log('API URL:', url);
-        
+
         $http.post(url, {
             name: $scope.newVideo.customCollectionName
         }, {
@@ -526,9 +526,9 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 'AccessKey': $scope.bunnyNetConfig.accessKey,
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Collection creation response:', response.data);
-            
+
             var newCollection = {
                 id: response.data.id || response.data.guid,
                 name: response.data.name,
@@ -536,18 +536,18 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 created: new Date().toISOString().split('T')[0],
                 description: 'Custom collection created by user'
             };
-            
+
             $scope.bunnyCollections.push(newCollection);
             $scope.newVideo.collectionName = newCollection.name;
             $scope.newVideo.customCollectionName = '';
             $scope.creatingCollection = false;
-            
+
             $scope.showToaster('Collection "' + newCollection.name + '" created successfully in Bunny.net!', 'success');
-            
-        }).catch(function(error) {
+
+        }).catch(function (error) {
             console.error('Error creating collection:', error);
             $scope.creatingCollection = false;
-            
+
             if (error.status === 401) {
                 $scope.showToaster('Authentication failed. Please check your API key.', 'error');
             } else if (error.status === 400) {
@@ -559,16 +559,16 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             }
         });
     };
-    
+
     // Add new video (show upload form)
-    $scope.addNewVideo = function() {
+    $scope.addNewVideo = function () {
         $scope.createView = true;
         $scope.modifyVideoView = false;
         $scope.resetNewVideo();
     };
-    
+
     // Reset new video form
-    $scope.resetNewVideo = function() {
+    $scope.resetNewVideo = function () {
         $scope.newVideo = {
             file: null,
             titleName: '',
@@ -584,94 +584,94 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         $scope.uploadInProgress = false;
         $scope.uploadStatus = null;
     };
-    
+
     // Test function for debugging
-    $scope.testFileSelect = function() {
+    $scope.testFileSelect = function () {
         console.log('Test function called');
         console.log('Current newVideo:', $scope.newVideo);
         console.log('Current videoPreview:', $scope.videoPreview);
         $scope.showToaster('Test function called - check console', 'info');
     };
-    
+
     // Show debug information
-    $scope.showDebugInfo = function() {
+    $scope.showDebugInfo = function () {
         console.log('=== DEBUG INFORMATION ===');
         console.log('Current bunnyCollections:', $scope.bunnyCollections);
         console.log('Collections length:', $scope.bunnyCollections.length);
         console.log('Loading state:', $scope.loadingCollections);
         console.log('API Config:', $scope.bunnyNetConfig);
         console.log('Current newVideo:', $scope.newVideo);
-        
+
         var debugInfo = 'Collections: ' + $scope.bunnyCollections.length + '\n';
         debugInfo += 'Loading: ' + $scope.loadingCollections + '\n';
         debugInfo += 'API Key: ' + $scope.bunnyNetConfig.accessKey.substring(0, 10) + '...\n';
         debugInfo += 'Library ID: ' + $scope.bunnyNetConfig.libraryId + '\n';
         debugInfo += 'Base URL: ' + $scope.bunnyNetConfig.baseUrl;
-        
+
         alert('Debug Information:\n\n' + debugInfo);
     };
-    
+
     // Test Bunny.net API connection
-    $scope.testBunnyConnection = function() {
+    $scope.testBunnyConnection = function () {
         console.log('Testing Bunny.net API connection...');
         $scope.showToaster('Testing API connection...', 'info');
-        
+
         var testUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/collections?page=1&itemsPerPage=1';
-        
+
         console.log('Testing URL:', testUrl);
         console.log('Using API Key:', $scope.bunnyNetConfig.accessKey);
-        
+
         $http.get(testUrl, {
             headers: {
                 'AccessKey': $scope.bunnyNetConfig.accessKey
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('✅ API connection successful!');
             console.log('Response status:', response.status);
             console.log('Response data:', response.data);
             console.log('Response structure:', JSON.stringify(response.data, null, 2));
-            
+
             if (response.data && response.data.data) {
                 console.log('Collections found:', response.data.data.length);
-                response.data.data.forEach(function(col, index) {
+                response.data.data.forEach(function (col, index) {
                     console.log('Collection ' + index + ':', col);
                 });
             } else if (response.data && Array.isArray(response.data)) {
                 console.log('Direct array response, collections found:', response.data.length);
-                response.data.forEach(function(col, index) {
+                response.data.forEach(function (col, index) {
                     console.log('Collection ' + index + ':', col);
                 });
             } else {
                 console.log('Unexpected response structure:', Object.keys(response.data || {}));
             }
-            
+
             $scope.showToaster('✅ Bunny.net API connection successful! Check console for details.', 'success');
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.error('❌ API connection failed:', error);
             console.error('Error status:', error.status);
             console.error('Error message:', error.data?.message || error.statusText);
             console.error('Full error:', error);
-            
+
             $scope.showToaster('❌ API connection failed: ' + (error.data?.message || error.statusText || 'Unknown error'), 'error');
         });
     };
-    
+
     // Handle video file selection
-    $scope.onVideoFileSelect = function(event) {
+    $scope.onVideoFileSelect = function (event) {
         console.log('File selected:', event.target.files[0]);
         var file = event.target.files[0];
         if (file) {
             $scope.newVideo.file = file;
-            
+
             // Create preview URL
             $scope.videoPreview = URL.createObjectURL(file);
-            
+
             // Get video duration
             $scope.getVideoDuration(file);
-            
+
             // Force Angular to update the view
             $scope.$apply();
-            
+
             console.log('Video file loaded:', {
                 name: file.name,
                 size: file.size,
@@ -680,16 +680,16 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             });
         }
     };
-    
+
     // Select video file function for button click
-    $scope.selectVideoFile = function() {
+    $scope.selectVideoFile = function () {
         if (!$scope.uploadInProgress) {
             document.getElementById('videoFile').click();
         }
     };
 
     // Remove selected file
-    $scope.removeSelectedFile = function() {
+    $scope.removeSelectedFile = function () {
         if (!$scope.uploadInProgress) {
             $scope.newVideo.file = null;
             $scope.newVideo.durationInSeconds = null;
@@ -698,45 +698,45 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Get video duration from file
-    $scope.getVideoDuration = function(file) {
+    $scope.getVideoDuration = function (file) {
         var video = document.createElement('video');
         video.preload = 'metadata';
-        
-        video.onloadedmetadata = function() {
-            $scope.$apply(function() {
+
+        video.onloadedmetadata = function () {
+            $scope.$apply(function () {
                 $scope.newVideo.durationInSeconds = Math.round(video.duration);
             });
         };
-        
+
         video.src = URL.createObjectURL(file);
     };
-    
+
     // Upload video to Bunny.net
-    $scope.uploadVideo = function() {
+    $scope.uploadVideo = function () {
         if (!$scope.newVideo.file || !$scope.newVideo.titleName) {
             $scope.showToaster('Please select a video file and enter a title.', 'error');
             return;
         }
-        
+
         if (!$scope.newVideo.collectionName || $scope.newVideo.collectionName === '__custom__') {
             $scope.showToaster('Please select a collection or create a new one.', 'error');
             return;
         }
-        
+
         // Validate file type
         var allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm', 'video/mkv'];
         if (!allowedTypes.includes($scope.newVideo.file.type)) {
             $scope.showToaster('Unsupported file type: ' + $scope.newVideo.file.type + '. Please use MP4, AVI, MOV, WMV, FLV, WebM, or MKV.', 'error');
             return;
         }
-        
+
         // Validate file size (500MB limit)
         var maxSize = 500 * 1024 * 1024; // 500MB in bytes
         if ($scope.newVideo.file.size > maxSize) {
             $scope.showToaster('File too large: ' + ($scope.newVideo.file.size / (1024 * 1024)).toFixed(2) + 'MB. Maximum size is 500MB.', 'error');
             return;
         }
-        
+
         // Show upload progress
         $scope.uploadProgress = 0;
         $scope.uploadInProgress = true;
@@ -745,29 +745,29 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             title: 'Starting Upload',
             message: 'Preparing to upload video to Bunny.net collection: ' + $scope.newVideo.collectionName
         };
-        
+
         // Get the collection ID for the selected collection
-        var selectedCollection = $scope.bunnyCollections.find(function(col) {
+        var selectedCollection = $scope.bunnyCollections.find(function (col) {
             return col.name === $scope.newVideo.collectionName;
         });
-        
+
         if (!selectedCollection) {
             $scope.showToaster('Selected collection not found. Please refresh and try again.', 'error');
             $scope.uploadInProgress = false;
             return;
         }
-        
+
         console.log('Starting upload for file:', $scope.newVideo.file.name);
         console.log('File type:', $scope.newVideo.file.type);
         console.log('File size:', $scope.newVideo.file.size, 'bytes');
         console.log('Collection:', selectedCollection.name, '(ID:', selectedCollection.id + ')');
-        
+
         // Upload video to Bunny.net
         $scope.uploadVideoToBunny(selectedCollection);
     };
-    
+
     // Single upload method to Bunny.net via proxy server
-    $scope.uploadVideoToBunny = function(selectedCollection) {
+    $scope.uploadVideoToBunny = function (selectedCollection) {
         console.log('Uploading video to Bunny.net via proxy server');
 
         // Create FormData for file upload
@@ -779,10 +779,10 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         var xhr = new XMLHttpRequest();
 
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
@@ -790,14 +790,14 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         });
 
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Upload response:', xhr.status, xhr.responseText);
 
             if (xhr.status === 200 || xhr.status === 201) {
                 try {
                     var response = JSON.parse(xhr.responseText);
                     $scope.handleUploadSuccess(response, selectedCollection);
-                } catch(e) {
+                } catch (e) {
                     console.log('Error parsing response:', e);
                     $scope.handleUploadError(xhr.status, 'Invalid response format');
                 }
@@ -807,7 +807,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         });
 
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('Upload failed with network error');
             $scope.handleUploadError('network', 'Network error occurred during upload');
         });
@@ -816,23 +816,23 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         xhr.open('POST', API_BASE + '/upload');
         xhr.send(formData);
     };
-    
+
     // Method 3: Upload using fetch API with different approach
-    $scope.tryUploadMethod3 = function(selectedCollection) {
+    $scope.tryUploadMethod3 = function (selectedCollection) {
         console.log('Trying Method 3: Fetch API upload');
-        
+
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
-        
+
         // Create FormData
         var formData = new FormData();
         formData.append('file', $scope.newVideo.file);
-        
+
         // Add metadata
         formData.append('title', $scope.newVideo.titleName);
         formData.append('description', $scope.newVideo.titleName + ' - Uploaded via VegaPilot');
         formData.append('tags', 'vegapilot,upload');
         formData.append('collectionId', selectedCollection.id);
-        
+
         // Use fetch API
         fetch(uploadUrl, {
             method: 'POST',
@@ -840,9 +840,9 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 'AccessKey': $scope.bunnyNetConfig.accessKey
             },
             body: formData
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Method 3 response:', response.status);
-            
+
             if (response.ok) {
                 return response.text();
             } else if (response.status === 415) {
@@ -852,46 +852,46 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             } else {
                 throw new Error('Upload failed: ' + response.status);
             }
-        }).then(function(responseText) {
+        }).then(function (responseText) {
             if (responseText) {
                 $scope.handleUploadSuccess(responseText, selectedCollection);
             }
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.log('Method 3 error, trying Method 4...');
             $scope.tryUploadMethod4(selectedCollection);
         });
     };
-    
+
     // Method 4: Upload to collection endpoint directly
-    $scope.tryUploadMethod4 = function(selectedCollection) {
+    $scope.tryUploadMethod4 = function (selectedCollection) {
         console.log('Trying Method 4: Collection-specific upload');
-        
+
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/collections/' + selectedCollection.id + '/videos';
-        
+
         // Create FormData
         var formData = new FormData();
         formData.append('file', $scope.newVideo.file);
         formData.append('title', $scope.newVideo.titleName);
         formData.append('description', $scope.newVideo.titleName + ' - Uploaded via VegaPilot');
-        
+
         // Create XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
             }
         });
-        
+
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Method 4 response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else if (xhr.status === 415) {
@@ -902,45 +902,45 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 $scope.tryUploadMethod5(selectedCollection);
             }
         });
-        
+
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('Method 4 error, trying Method 5...');
             $scope.tryUploadMethod5(selectedCollection);
         });
-        
+
         // Set request headers
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
-        
+
         // Send the request
         xhr.send(formData);
     };
-    
+
     // Method 5: Direct binary upload without FormData
-    $scope.tryUploadMethod5 = function(selectedCollection) {
+    $scope.tryUploadMethod5 = function (selectedCollection) {
         console.log('Trying Method 5: Direct binary upload');
-        
+
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
-        
+
         // Create XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
             }
         });
-        
+
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Method 5 response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else if (xhr.status === 415) {
@@ -951,61 +951,61 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 $scope.tryUploadMethod6(selectedCollection);
             }
         });
-        
+
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('Method 5 error, trying Method 6...');
             $scope.tryUploadMethod6(selectedCollection);
         });
-        
+
         // Set request headers for binary upload
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        
+
         // Add metadata as query parameters
-        var metadataUrl = uploadUrl + '?title=' + encodeURIComponent($scope.newVideo.titleName) + 
-                         '&description=' + encodeURIComponent($scope.newVideo.titleName + ' - Uploaded via VegaPilot') +
-                         '&tags=vegapilot,upload' +
-                         '&collectionId=' + selectedCollection.id;
-        
+        var metadataUrl = uploadUrl + '?title=' + encodeURIComponent($scope.newVideo.titleName) +
+            '&description=' + encodeURIComponent($scope.newVideo.titleName + ' - Uploaded via VegaPilot') +
+            '&tags=vegapilot,upload' +
+            '&collectionId=' + selectedCollection.id;
+
         xhr.open('POST', metadataUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-        
+
         // Send the file directly as binary data
         xhr.send($scope.newVideo.file);
     };
-    
+
     // Method 6: Try using pull zone approach (upload to a different endpoint)
-    $scope.tryUploadMethod6 = function(selectedCollection) {
+    $scope.tryUploadMethod6 = function (selectedCollection) {
         console.log('Trying Method 6: Pull zone upload approach');
-        
+
         // Try the pull zone endpoint
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/pullzone';
-        
+
         // Create FormData with minimal fields
         var formData = new FormData();
         formData.append('file', $scope.newVideo.file);
-        
+
         // Create XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
             }
         });
-        
+
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Method 6 response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else if (xhr.status === 415) {
@@ -1016,50 +1016,50 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 $scope.tryUploadMethod7(selectedCollection);
             }
         });
-        
+
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('Method 6 error, trying Method 7...');
             $scope.tryUploadMethod7(selectedCollection);
         });
-        
+
         // Set request headers
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
-        
+
         // Send the request
         xhr.send(formData);
     };
-    
+
     // Method 7: Try using the Bunny.net direct upload approach
-    $scope.tryUploadMethod7 = function(selectedCollection) {
+    $scope.tryUploadMethod7 = function (selectedCollection) {
         console.log('Trying Method 7: Direct upload with minimal headers');
-        
+
         // Try a different endpoint structure
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos/upload';
-        
+
         // Create FormData with only the file
         var formData = new FormData();
         formData.append('file', $scope.newVideo.file);
-        
+
         // Create XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
             }
         });
-        
+
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Method 7 response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else if (xhr.status === 415) {
@@ -1070,49 +1070,49 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 $scope.tryUploadMethod8(selectedCollection);
             }
         });
-        
+
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('Method 7 error, trying Method 8...');
             $scope.tryUploadMethod8(selectedCollection);
         });
-        
+
         // Set request headers - minimal approach
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
-        
+
         // Send the request
         xhr.send(formData);
     };
-    
+
     // Method 8: Try using different authentication header format
-    $scope.tryUploadMethod8 = function(selectedCollection) {
+    $scope.tryUploadMethod8 = function (selectedCollection) {
         console.log('Trying Method 8: Different authentication header format');
-        
+
         var uploadUrl = $scope.bunnyNetConfig.baseUrl + '/' + $scope.bunnyNetConfig.libraryId + '/videos';
-        
+
         // Create FormData with minimal fields
         var formData = new FormData();
         formData.append('file', $scope.newVideo.file);
-        
+
         // Create XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        
+
         // Progress tracking
-        xhr.upload.addEventListener('progress', function(e) {
+        xhr.upload.addEventListener('progress', function (e) {
             if (e.lengthComputable) {
                 var percentComplete = (e.loaded / e.total) * 100;
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     $scope.uploadProgress = Math.round(percentComplete);
                     $scope.updateUploadStatus(percentComplete, selectedCollection.name);
                 });
             }
         });
-        
+
         // Upload complete
-        xhr.addEventListener('load', function() {
+        xhr.addEventListener('load', function () {
             console.log('Method 8 response:', xhr.status, xhr.responseText);
-            
+
             if (xhr.status === 200 || xhr.status === 201) {
                 $scope.handleUploadSuccess(xhr.responseText, selectedCollection);
             } else {
@@ -1120,25 +1120,25 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 $scope.handleUploadError(xhr.status, xhr.responseText);
             }
         });
-        
+
         // Upload error
-        xhr.addEventListener('error', function() {
+        xhr.addEventListener('error', function () {
             console.log('All upload methods failed');
             $scope.handleUploadError(0, 'All upload methods failed');
         });
-        
+
         // Try different header formats
         xhr.open('POST', uploadUrl);
         xhr.setRequestHeader('AccessKey', $scope.bunnyNetConfig.accessKey);
         xhr.setRequestHeader('Authorization', 'Bearer ' + $scope.bunnyNetConfig.accessKey);
         xhr.setRequestHeader('X-Access-Key', $scope.bunnyNetConfig.accessKey);
-        
+
         // Send the request
         xhr.send(formData);
     };
-    
+
     // Update upload status based on progress
-    $scope.updateUploadStatus = function(percentComplete, collectionName) {
+    $scope.updateUploadStatus = function (percentComplete, collectionName) {
         if (percentComplete < 20) {
             $scope.uploadStatus = {
                 type: 'info',
@@ -1171,20 +1171,20 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             };
         }
     };
-    
+
     // Handle successful upload
-    $scope.handleUploadSuccess = function(responseText, selectedCollection) {
+    $scope.handleUploadSuccess = function (responseText, selectedCollection) {
         var response = JSON.parse(responseText);
         console.log('✅ Upload successful:', response);
-        
-        $scope.$apply(function() {
+
+        $scope.$apply(function () {
             $scope.uploadProgress = 100;
             $scope.uploadStatus = {
                 type: 'success',
                 title: 'Upload Complete!',
                 message: 'Video uploaded to Bunny.net successfully! Video ID: ' + (response.guid || response.id || 'Unknown')
             };
-            
+
             // Add to local data with real Bunny.net details
             var newVideo = {
                 videoId: 20000 + $scope.dummyVideos.length + 1,
@@ -1205,29 +1205,29 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
                 fileSize: $scope.newVideo.file.size,
                 uploadedAt: new Date().toISOString()
             };
-            
+
             $scope.dummyVideos.unshift(newVideo);
             $scope.listData = $scope.dummyVideos;
             $scope.loadSummaryData();
-            
+
             // Refresh collections to update video counts
             $scope.loadBunnyCollections();
-            
+
             $scope.showToaster('Video uploaded successfully to Bunny.net!', 'success');
-            
+
             // Reset form after successful upload
-            setTimeout(function() {
+            setTimeout(function () {
                 $scope.uploadInProgress = false;
                 $scope.resetNewVideo();
                 $scope.showToaster('Video added to your library!', 'success');
             }, 2000);
         });
     };
-    
+
     // Handle upload error
-    $scope.handleUploadError = function(status, responseText) {
+    $scope.handleUploadError = function (status, responseText) {
         console.error('❌ Upload failed:', status, responseText);
-        
+
         var errorMessage = 'Upload failed';
         if (status === 415) {
             errorMessage = 'Unsupported file format. Please try converting your video to MP4 format.';
@@ -1242,8 +1242,8 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         } else {
             errorMessage = 'Upload failed with status: ' + status;
         }
-        
-        $scope.$apply(function() {
+
+        $scope.$apply(function () {
             $scope.uploadStatus = {
                 type: 'error',
                 title: 'Upload Failed',
@@ -1251,31 +1251,31 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             };
             $scope.uploadInProgress = false;
         });
-        
+
         $scope.showToaster(errorMessage, 'error');
     };
-    
+
     // Check if form is complete for upload
-    $scope.isFormComplete = function() {
-        return $scope.newVideo.file && 
-               $scope.newVideo.titleName && 
-               $scope.newVideo.titleName.trim() !== '' &&
-               $scope.newVideo.collectionName && 
-               $scope.newVideo.collectionName !== '__custom__' &&
-               $scope.newVideo.collectionName !== '';
+    $scope.isFormComplete = function () {
+        return $scope.newVideo.file &&
+            $scope.newVideo.titleName &&
+            $scope.newVideo.titleName.trim() !== '' &&
+            $scope.newVideo.collectionName &&
+            $scope.newVideo.collectionName !== '__custom__' &&
+            $scope.newVideo.collectionName !== '';
     };
-    
+
     // Generate UUID for demo purposes
-    $scope.generateUUID = function() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    $scope.generateUUID = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0;
             var v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
     };
-    
+
     // Cancel upload and return to list
-    $scope.cancelUpload = function() {
+    $scope.cancelUpload = function () {
         $scope.createView = false;
         $scope.modifyVideoView = false;
         $scope.uploadInProgress = false;
@@ -1283,26 +1283,26 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         $scope.uploadStatus = null;
         $scope.resetNewVideo();
     };
-    
+
     // Open video for viewing
-    $scope.openVideo = function(videoData) {
+    $scope.openVideo = function (videoData) {
         // This could open a modal or navigate to video player
         console.log('Opening video:', videoData);
     };
-    
+
     // View video details
-    $scope.viewVideo = function(videoData) {
+    $scope.viewVideo = function (videoData) {
         $scope.modifyVideoData = angular.copy(videoData);
         $scope.createView = true;
         $scope.modifyVideoView = true;
     };
-    
+
     // Modify video
-    $scope.modifyVideo = function(videoId) {
-        var video = $scope.dummyVideos.find(function(v) {
+    $scope.modifyVideo = function (videoId) {
+        var video = $scope.dummyVideos.find(function (v) {
             return v.videoId === videoId;
         });
-        
+
         if (video) {
             $scope.modifyVideoData = angular.copy(video);
             $scope.createView = true;
@@ -1311,17 +1311,17 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             $scope.showToaster('Video not found.', 'error');
         }
     };
-    
+
     // Save video changes
-    $scope.saveVideoChanges = function() {
-        var index = $scope.dummyVideos.findIndex(function(v) {
+    $scope.saveVideoChanges = function () {
+        var index = $scope.dummyVideos.findIndex(function (v) {
             return v.videoId === $scope.modifyVideoData.videoId;
         });
-        
+
         if (index !== -1) {
             $scope.dummyVideos[index] = angular.copy($scope.modifyVideoData);
             $scope.dummyVideos[index].lastUpdatedOn = Math.floor(Date.now() / 1000);
-            
+
             $scope.showToaster('Video updated successfully!', 'success');
             $scope.goBackToList();
             $scope.loadSummaryData();
@@ -1329,19 +1329,19 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             $scope.showToaster('Error updating video.', 'error');
         }
     };
-    
+
     // Go back to video list
-    $scope.goBackToList = function() {
+    $scope.goBackToList = function () {
         $scope.createView = false;
         $scope.modifyVideoView = false;
         $scope.modifyVideoData = {};
     };
-    
+
     // Quick filter videos
-    $scope.quickFilterVideos = function(filter) {
+    $scope.quickFilterVideos = function (filter) {
         $scope.videoFilterApplied = filter;
         $scope.currentPage = 1;
-        
+
         if (filter === 'ALL') {
             $scope.listData = $scope.dummyVideos;
         } else if (filter === 'RECENT') {
@@ -1349,36 +1349,36 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             $scope.listData = $scope.dummyVideos.slice(0, 10);
         } else if (filter === 'LONG') {
             // Show videos longer than 5 minutes
-            $scope.listData = $scope.dummyVideos.filter(function(video) {
+            $scope.listData = $scope.dummyVideos.filter(function (video) {
                 return video.durationInSeconds > 300;
             });
         }
     };
-    
+
     // Remove filter on videos
-    $scope.removeFilterOnVideos = function() {
+    $scope.removeFilterOnVideos = function () {
         $scope.videoFilterApplied = '';
         $scope.currentPage = 1;
         $scope.listData = $scope.dummyVideos;
     };
-    
+
     // Pagination functions
-    $scope.goLeft = function() {
+    $scope.goLeft = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.loadVideoList();
         }
     };
-    
-    $scope.goRight = function() {
+
+    $scope.goRight = function () {
         if ($scope.currentPage < $scope.totalPages) {
             $scope.currentPage++;
             $scope.loadVideoList();
         }
     };
-    
+
     // Utility functions
-    $scope.formatDuration = function(seconds) {
+    $scope.formatDuration = function (seconds) {
         if (!seconds) return '0:00';
         var minutes = Math.floor(seconds / 60);
         var remainingSeconds = seconds % 60;
@@ -1386,7 +1386,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Get Bunny.net embed URL for video player
-    $scope.getBunnyEmbedUrl = function(videoId) {
+    $scope.getBunnyEmbedUrl = function (videoId) {
         // Bunny.net iframe embed URL format
         // https://iframe.mediadelivery.net/embed/{libraryId}/{videoId}
         var embedUrl = 'https://iframe.mediadelivery.net/embed/534211/' + videoId;
@@ -1394,9 +1394,9 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
 
-    $scope.copyToClipboard = function(text, event) {
+    $scope.copyToClipboard = function (text, event) {
         event.stopPropagation();
-        
+
         // Create temporary input element
         var tempInput = document.createElement('input');
         tempInput.value = text;
@@ -1404,26 +1404,26 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         tempInput.select();
         document.execCommand('copy');
         document.body.removeChild(tempInput);
-        
+
         // Show copied message
         var copiedMessage = event.target.parentElement.querySelector('.copiedMessage');
         if (copiedMessage) {
             copiedMessage.style.display = 'block';
-            $timeout(function() {
+            $timeout(function () {
                 copiedMessage.style.display = 'none';
             }, 1000);
         }
     };
-    
+
     // Toaster notification system
     $scope.toasterVisible = false;
     $scope.toasterMessage = '';
 
-    $scope.showToaster = function(message, type) {
+    $scope.showToaster = function (message, type) {
         $scope.toasterMessage = '<div class="alert alert-' + type + '">' + message + '</div>';
         $scope.toasterVisible = true;
 
-        $timeout(function() {
+        $timeout(function () {
             $scope.toasterVisible = false;
         }, 3000);
     };
@@ -1431,13 +1431,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     // ===== VIDEO FILTER FUNCTIONS =====
 
     // Populate filter dropdowns
-    $scope.populateFilterOptions = function() {
+    $scope.populateFilterOptions = function () {
         // Extract unique chapters from video data
         var chaptersMap = {};
         var modulesMap = {};
         var instructorsMap = {};
 
-        $scope.listData.forEach(function(video) {
+        $scope.listData.forEach(function (video) {
             // Extract chapter info (you'll need to add chapterId and chapterName to your video data)
             if (video.chapterId && video.chapterName) {
                 chaptersMap[video.chapterId] = video.chapterName;
@@ -1455,15 +1455,15 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         });
 
         // Convert maps to arrays
-        $scope.availableChapters = Object.keys(chaptersMap).map(function(id) {
+        $scope.availableChapters = Object.keys(chaptersMap).map(function (id) {
             return { id: id, name: chaptersMap[id] };
         });
 
-        $scope.availableModules = Object.keys(modulesMap).map(function(id) {
+        $scope.availableModules = Object.keys(modulesMap).map(function (id) {
             return { id: id, name: modulesMap[id] };
         });
 
-        $scope.availableInstructors = Object.keys(instructorsMap).map(function(id) {
+        $scope.availableInstructors = Object.keys(instructorsMap).map(function (id) {
             return { id: id, name: instructorsMap[id] };
         });
 
@@ -1475,7 +1475,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Apply filters to video list
-    $scope.applyFilters = function() {
+    $scope.applyFilters = function () {
         console.log('Applying filters:', $scope.videoFilters);
 
         var filtered = $scope.listData.slice(); // Start with all videos
@@ -1483,7 +1483,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
         // Apply search filter (title or video ID)
         if ($scope.videoFilters.searchText) {
             var searchLower = $scope.videoFilters.searchText.toLowerCase();
-            filtered = filtered.filter(function(video) {
+            filtered = filtered.filter(function (video) {
                 var titleMatch = video.titleName && video.titleName.toLowerCase().indexOf(searchLower) !== -1;
                 var idMatch = video.videoId && video.videoId.toString().indexOf(searchLower) !== -1;
                 var displayKeyMatch = video.videoDisplayKey && video.videoDisplayKey.toLowerCase().indexOf(searchLower) !== -1;
@@ -1493,21 +1493,21 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
 
         // Apply chapter filter
         if ($scope.videoFilters.chapterId) {
-            filtered = filtered.filter(function(video) {
+            filtered = filtered.filter(function (video) {
                 return video.chapterId === $scope.videoFilters.chapterId;
             });
         }
 
         // Apply module filter
         if ($scope.videoFilters.moduleId) {
-            filtered = filtered.filter(function(video) {
+            filtered = filtered.filter(function (video) {
                 return video.moduleId === $scope.videoFilters.moduleId;
             });
         }
 
         // Apply instructor filter
         if ($scope.videoFilters.instructorId) {
-            filtered = filtered.filter(function(video) {
+            filtered = filtered.filter(function (video) {
                 return video.instructorId === $scope.videoFilters.instructorId;
             });
         }
@@ -1518,7 +1518,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
             var isDescending = sortField.startsWith('-');
             var field = isDescending ? sortField.substring(1) : sortField;
 
-            filtered.sort(function(a, b) {
+            filtered.sort(function (a, b) {
                 var aVal = a[field];
                 var bVal = b[field];
 
@@ -1546,7 +1546,7 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Clear all filters
-    $scope.clearFilters = function() {
+    $scope.clearFilters = function () {
         $scope.videoFilters = {
             searchText: '',
             chapterId: '',
@@ -1558,34 +1558,34 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Check if any filters are active
-    $scope.hasActiveFilters = function() {
+    $scope.hasActiveFilters = function () {
         return $scope.videoFilters.searchText ||
-               $scope.videoFilters.chapterId ||
-               $scope.videoFilters.moduleId ||
-               $scope.videoFilters.instructorId;
+            $scope.videoFilters.chapterId ||
+            $scope.videoFilters.moduleId ||
+            $scope.videoFilters.instructorId;
     };
 
     // Get name helpers for active filters display
-    $scope.getChapterName = function(chapterId) {
-        var chapter = $scope.availableChapters.find(function(c) { return c.id === chapterId; });
+    $scope.getChapterName = function (chapterId) {
+        var chapter = $scope.availableChapters.find(function (c) { return c.id === chapterId; });
         return chapter ? chapter.name : chapterId;
     };
 
-    $scope.getModuleName = function(moduleId) {
-        var module = $scope.availableModules.find(function(m) { return m.id === moduleId; });
+    $scope.getModuleName = function (moduleId) {
+        var module = $scope.availableModules.find(function (m) { return m.id === moduleId; });
         return module ? module.name : moduleId;
     };
 
-    $scope.getInstructorName = function(instructorId) {
-        var instructor = $scope.availableInstructors.find(function(i) { return i.id === instructorId; });
+    $scope.getInstructorName = function (instructorId) {
+        var instructor = $scope.availableInstructors.find(function (i) { return i.id === instructorId; });
         return instructor ? instructor.name : instructorId;
     };
 
     // Update summary data for filtered results
-    $scope.updateFilteredSummary = function() {
+    $scope.updateFilteredSummary = function () {
         if ($scope.filteredVideos.length === 0) return;
 
-        var totalDuration = $scope.filteredVideos.reduce(function(sum, video) {
+        var totalDuration = $scope.filteredVideos.reduce(function (sum, video) {
             return sum + (video.durationInSeconds || 0);
         }, 0);
 
@@ -1595,67 +1595,13 @@ app.controller('videoContentController', function($scope, $http, $cookies, $time
     };
 
     // Logout function
-    $scope.logoutNow = function() {
+    $scope.logoutNow = function () {
         $cookies.remove('userToken');
         window.location.href = 'login.html';
     };
 
     // Initialize controller
     $scope.init();
-    
-    // Navbar Brand Animation System
-    $scope.initNavbarAnimations = function() {
-        var brandElement = document.getElementById('animatedBrand');
-        if (!brandElement) return;
-        
-        var animations = [
-            'glow',
-            'gradient', 
-            'bounce',
-            'pulse',
-            'slide',
-            'rotate',
-            'wave',
-            'neon'
-        ];
-        
-        var currentAnimationIndex = 0;
-        
-        // Function to cycle through animations
-        var cycleAnimation = function() {
-            // Remove all animation classes
-            animations.forEach(function(anim) {
-                brandElement.classList.remove(anim);
-            });
-            
-            // Add current animation class
-            brandElement.classList.add(animations[currentAnimationIndex]);
-            
-            // Move to next animation
-            currentAnimationIndex = (currentAnimationIndex + 1) % animations.length;
-            
-            console.log('Navbar brand animation changed to:', animations[currentAnimationIndex - 1 === -1 ? animations.length - 1 : currentAnimationIndex - 1]);
-        };
-        
-        // Start with first animation
-        cycleAnimation();
-        
-        // Set interval to cycle every 8 seconds
-        setInterval(cycleAnimation, 8000);
-        
-        // Add hover effect for interactive feel
-        brandElement.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.1)';
-            this.style.transition = 'transform 0.3s ease';
-        });
-        
-        brandElement.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-        });
-    };
-    
-    // Initialize navbar animations after a short delay
-    $timeout(function() {
-        $scope.initNavbarAnimations();
-    }, 1000);
+
+    // Navbar animations are now handled globally in assets/js/application.js
 });
