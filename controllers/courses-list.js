@@ -1,29 +1,29 @@
 // Courses List Controller - Displays all courses with navigation to course viewer
 var coursesListApp = angular.module('coursesListApp', ['ngCookies']);
 
-coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$timeout', '$http', function($scope, $cookies, $timeout, $http) {
+coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$timeout', '$http', function ($scope, $cookies, $timeout, $http) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -33,7 +33,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/course';
 
     // Get token from localStorage
-    
+
 
     // ===== Initialize Scope Variables =====
     $scope.courses = [];
@@ -46,6 +46,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     // Pagination
     $scope.currentPage = 1;
     $scope.itemsPerPage = 10;
+    $scope.pageSize = 10; // Initialize page size for dropdown
     $scope.totalItems = 0;
     $scope.totalPages = 0;
     $scope.sortBy = 'name';
@@ -74,13 +75,13 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     $scope.studentsSortOrder = 'ASC';
 
     // ===== Initialize Controller =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.showLoading('Loading courses...');
         $scope.loadCourses();
     };
 
     // ===== Load Courses from API =====
-    $scope.loadCourses = function() {
+    $scope.loadCourses = function () {
         $scope.showLoading('Loading courses...');
 
         var url = $scope.apiBaseUrl + '/list-course-bundles.php';
@@ -105,14 +106,14 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
                 'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Courses API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
                 var apiData = response.data.data || [];
 
                 // Map API response to UI format
-                $scope.courses = apiData.map(function(course) {
+                $scope.courses = apiData.map(function (course) {
                     return {
                         id: course.id,
                         code: course.code || '',
@@ -144,28 +145,28 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error loading courses:', error);
             $scope.hideLoading();
         });
     };
 
     // ===== Calculate Statistics =====
-    $scope.calculateStats = function() {
+    $scope.calculateStats = function () {
         $scope.stats.totalCourses = $scope.courses.length;
-        $scope.stats.totalModules = $scope.courses.reduce(function(sum, course) {
+        $scope.stats.totalModules = $scope.courses.reduce(function (sum, course) {
             return sum + course.totalModules;
         }, 0);
-        $scope.stats.totalChapters = $scope.courses.reduce(function(sum, course) {
+        $scope.stats.totalChapters = $scope.courses.reduce(function (sum, course) {
             return sum + course.totalChapters;
         }, 0);
-        $scope.stats.activeCourses = $scope.courses.filter(function(course) {
+        $scope.stats.activeCourses = $scope.courses.filter(function (course) {
             return course.status === 'Active';
         }).length;
     };
 
     // ===== Open Course =====
-    $scope.openCourse = function(course) {
+    $scope.openCourse = function (course) {
         // Navigate to course-view page with bundleId and default values
         var bundleId = course.id || 70005;
         var segment = '1';
@@ -174,34 +175,34 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
         var partId = '0';
 
         var url = 'course-view.html?courseCode=' + course.code +
-                  '&bundleId=' + bundleId +
-                  '&segment=' + segment +
-                  '&module=' + moduleId +
-                  '&chapter=' + chapterId +
-                  '&part=' + partId;
+            '&bundleId=' + bundleId +
+            '&segment=' + segment +
+            '&module=' + moduleId +
+            '&chapter=' + chapterId +
+            '&part=' + partId;
 
         window.location.href = url;
     };
 
     // ===== Loading Functions =====
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.loadingMessage = message || 'Loading...';
         $scope.isLoading = true;
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 300);
     };
 
     // ===== Generate Sample Students for a Course =====
-    $scope.generateStudentsForCourse = function(courseCode, totalStudents) {
+    $scope.generateStudentsForCourse = function (courseCode, totalStudents) {
         var students = [];
         var firstNames = ['John', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'James', 'Jennifer', 'Robert', 'Lisa',
-                         'William', 'Mary', 'Richard', 'Patricia', 'Thomas', 'Linda', 'Charles', 'Barbara', 'Daniel', 'Elizabeth'];
+            'William', 'Mary', 'Richard', 'Patricia', 'Thomas', 'Linda', 'Charles', 'Barbara', 'Daniel', 'Elizabeth'];
         var lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
-                        'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+            'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
 
         for (var i = 0; i < totalStudents; i++) {
             var firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
@@ -216,8 +217,8 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
                 name: name,
                 email: firstName.toLowerCase() + '.' + lastName.toLowerCase() + '@example.com',
                 phone: '+1 (' + (200 + Math.floor(Math.random() * 800)) + ') ' +
-                       (100 + Math.floor(Math.random() * 900)) + '-' +
-                       (1000 + Math.floor(Math.random() * 9000)),
+                    (100 + Math.floor(Math.random() * 900)) + '-' +
+                    (1000 + Math.floor(Math.random() * 9000)),
                 enrollmentDate: enrollmentDate.getTime(),
                 status: isActive ? 'active' : 'inactive',
                 enrollmentStatus: isActive ? 1 : 0,
@@ -230,7 +231,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== View Course Students =====
-    $scope.viewCourseStudents = function(course) {
+    $scope.viewCourseStudents = function (course) {
         $scope.selectedCourseForStudents = course;
         $scope.studentSearchQuery = '';
         $scope.studentsModalOpen = true;
@@ -245,7 +246,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Load Course Enrollments from API =====
-    $scope.loadCourseEnrollments = function() {
+    $scope.loadCourseEnrollments = function () {
         if (!$scope.selectedCourseForStudents) return;
 
         $scope.showLoading('Loading enrolled students...');
@@ -274,14 +275,14 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
                 'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Course enrollments API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
                 var enrollmentsData = response.data.data || [];
 
                 // Map API response to student format
-                $scope.paginatedStudentsList = enrollmentsData.map(function(enrollment) {
+                $scope.paginatedStudentsList = enrollmentsData.map(function (enrollment) {
                     return {
                         id: enrollment.candidateId || '',
                         name: enrollment.name || 'Unknown Student',
@@ -309,7 +310,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error loading course enrollments:', error);
             $scope.paginatedStudentsList = [];
             $scope.studentsTotalItems = 0;
@@ -319,14 +320,14 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Search Students (Server-side) =====
-    $scope.searchStudents = function() {
+    $scope.searchStudents = function () {
         // Reset to page 1 when searching
         $scope.studentsCurrentPage = 1;
         $scope.loadCourseEnrollments();
     };
 
     // ===== Change Students Sort (Server-side) =====
-    $scope.changeStudentsSort = function(sortBy) {
+    $scope.changeStudentsSort = function (sortBy) {
         // Toggle sort order if clicking the same column
         if ($scope.studentsSortBy === sortBy) {
             $scope.studentsSortOrder = $scope.studentsSortOrder === 'ASC' ? 'DESC' : 'ASC';
@@ -341,28 +342,28 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Students Pagination Functions =====
-    $scope.studentsPreviousPage = function() {
+    $scope.studentsPreviousPage = function () {
         if ($scope.studentsCurrentPage > 1) {
             $scope.studentsCurrentPage--;
             $scope.loadCourseEnrollments();
         }
     };
 
-    $scope.studentsNextPage = function() {
+    $scope.studentsNextPage = function () {
         if ($scope.studentsCurrentPage < $scope.studentsTotalPages) {
             $scope.studentsCurrentPage++;
             $scope.loadCourseEnrollments();
         }
     };
 
-    $scope.studentsGoToPage = function(page) {
+    $scope.studentsGoToPage = function (page) {
         if (page >= 1 && page <= $scope.studentsTotalPages) {
             $scope.studentsCurrentPage = page;
             $scope.loadCourseEnrollments();
         }
     };
 
-    $scope.getStudentsPageNumbers = function() {
+    $scope.getStudentsPageNumbers = function () {
         var pages = [];
         var startPage = Math.max(1, $scope.studentsCurrentPage - 2);
         var endPage = Math.min($scope.studentsTotalPages, $scope.studentsCurrentPage + 2);
@@ -374,9 +375,9 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Close Students Modal =====
-    $scope.closeStudentsModal = function() {
+    $scope.closeStudentsModal = function () {
         $scope.studentsModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.selectedCourseForStudents = null;
             $scope.studentSearchQuery = '';
             $scope.filteredStudentsList = [];
@@ -387,14 +388,14 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== View Student Profile =====
-    $scope.viewStudentProfile = function(student) {
+    $scope.viewStudentProfile = function (student) {
         // Store student data in localStorage and open candidate-detail page
         localStorage.setItem('selectedStudent', JSON.stringify(student));
         window.open('candidate-detail.html', '_blank');
     };
 
     // ===== Get Initials =====
-    $scope.getInitials = function(name) {
+    $scope.getInitials = function (name) {
         if (!name) return '??';
         var parts = name.split(' ');
         if (parts.length >= 2) {
@@ -404,7 +405,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Format Date =====
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         if (!timestamp) return 'N/A';
         var date = new Date(timestamp);
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -412,7 +413,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Sort by Column =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         // If clicking the same column, toggle sort direction
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
@@ -422,10 +423,10 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
         }
 
         // Sort the courses
-        $scope.courses.sort(function(a, b) {
+        $scope.courses.sort(function (a, b) {
             var aVal, bVal;
 
-            switch(column) {
+            switch (column) {
                 case 'code':
                     aVal = a.code ? a.code.toLowerCase() : '';
                     bVal = b.code ? b.code.toLowerCase() : '';
@@ -460,35 +461,35 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Search Courses =====
-    $scope.searchCourses = function() {
+    $scope.searchCourses = function () {
         // Reset to page 1 when searching
         $scope.currentPage = 1;
         $scope.loadCourses();
     };
 
     // ===== Pagination Functions =====
-    $scope.previousPage = function() {
+    $scope.previousPage = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.loadCourses();
         }
     };
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function () {
         if ($scope.currentPage < $scope.totalPages) {
             $scope.currentPage++;
             $scope.loadCourses();
         }
     };
 
-    $scope.goToPage = function(page) {
+    $scope.goToPage = function (page) {
         if (page >= 1 && page <= $scope.totalPages) {
             $scope.currentPage = page;
             $scope.loadCourses();
         }
     };
 
-    $scope.getPageNumbers = function() {
+    $scope.getPageNumbers = function () {
         var pages = [];
         var startPage = Math.max(1, $scope.currentPage - 2);
         var endPage = Math.min($scope.totalPages, $scope.currentPage + 2);
@@ -500,7 +501,7 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
     };
 
     // ===== Change Sort =====
-    $scope.changeSortBy = function(sortBy) {
+    $scope.changeSortBy = function (sortBy) {
         if ($scope.sortBy === sortBy) {
             // Toggle sort order
             $scope.sortOrder = $scope.sortOrder === 'ASC' ? 'DESC' : 'ASC';
@@ -510,6 +511,77 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
         }
         $scope.currentPage = 1;
         $scope.loadCourses();
+    };
+
+    // ===== Change Page Size =====
+    $scope.changePageSize = function () {
+        $scope.itemsPerPage = parseInt($scope.pageSize);
+        $scope.currentPage = 1;
+        $scope.loadCourses();
+    };
+
+    // ===== Kebab Menu Functions =====
+    $scope.toggleKebabMenu = function (course, event) {
+        event.stopPropagation();
+
+        // Close all other kebab menus
+        $scope.courses.forEach(function (c) {
+            if (c !== course) {
+                c.showKebabMenu = false;
+            }
+        });
+
+        // Toggle current kebab menu
+        course.showKebabMenu = !course.showKebabMenu;
+    };
+
+    // Close kebab menu when clicking outside
+    document.addEventListener('click', function (event) {
+        $scope.$apply(function () {
+            $scope.courses.forEach(function (course) {
+                course.showKebabMenu = false;
+            });
+        });
+    });
+
+    // View Course Content
+    $scope.viewCourseContent = function (course) {
+        // Navigate to course-view page with bundleId and default values
+        var bundleId = course.id || 70005;
+        var segment = '1';
+        var moduleId = '1';
+        var chapterId = '1';
+        var partId = '0';
+
+        var url = 'course-view.html?courseCode=' + course.code +
+            '&bundleId=' + bundleId +
+            '&segment=' + segment +
+            '&module=' + moduleId +
+            '&chapter=' + chapterId +
+            '&part=' + partId;
+
+        window.location.href = url;
+        course.showKebabMenu = false;
+    };
+
+    // Toggle Course Status (Active/Draft)
+    $scope.toggleCourseStatus = function (course) {
+        var newStatus = course.status.toLowerCase() === 'active' ? 'Draft' : 'Active';
+        var confirmMsg = 'Are you sure you want to change the status to ' + newStatus + '?';
+
+        if (confirm(confirmMsg)) {
+            // TODO: Make API call to update course status
+            console.log('Toggling course status from', course.status, 'to', newStatus);
+            course.status = newStatus;
+            $scope.showToaster('success', 'Success', 'Course status updated to ' + newStatus);
+        }
+        course.showKebabMenu = false;
+    };
+
+    // Generate array for skeleton rows based on current page size
+    $scope.getSkeletonRows = function () {
+        var count = $scope.pageSize || $scope.itemsPerPage || 10;
+        return new Array(count);
     };
 
     // ===== Initialize on Load =====

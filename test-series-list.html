@@ -17,6 +17,7 @@
     <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
     <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
     <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
@@ -392,41 +393,7 @@
             margin: 0;
         }
 
-        /* Filter Bar */
-        .filter-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .search-wrapper {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-wrapper i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #006073;
-            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-        }
+        /* Filter Bar styles moved to crispr-table.css */
 
         .search-box {
             margin-bottom: 20px;
@@ -871,7 +838,8 @@
                             <!-- Filter Bar -->
                             <div class="filter-bar">
                                 <div class="search-wrapper">
-                                    <i class="ti ti-search"></i>
+                                    <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                                        ng-click="searchQuery = ''"></i>
                                     <input type="text" class="search-input"
                                         placeholder="Search test series by name or description..."
                                         ng-model="searchQuery">
@@ -879,7 +847,7 @@
                             </div>
 
                             <!-- Test Series Table -->
-                            <div ng-show="testSeriesList.length > 0">
+                            <div ng-show="testSeriesList.length > 0 || isLoading">
                                 <table class="test-series-table">
                                     <thead>
                                         <tr>
@@ -907,7 +875,40 @@
                                             <th style="text-align: center;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <!-- Skeleton Body -->
+                                    <tbody ng-if="isLoading">
+                                        <tr ng-repeat="i in [1,2,3,4,5,6,7,8,9,10] track by $index">
+                                            <td>
+                                                <div>
+                                                    <div class="skeleton-col text-long" style="margin-bottom: 5px;">
+                                                        <div class="skeleton-shimmer"></div>
+                                                    </div>
+                                                    <div class="skeleton-col text-medium" style="height: 14px;">
+                                                        <div class="skeleton-shimmer"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="skeleton-col text-short" style="margin: 0 auto;">
+                                                    <div class="skeleton-shimmer"></div>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="skeleton-col text-medium" style="margin: 0 auto;">
+                                                    <div class="skeleton-shimmer"></div>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <div class="skeleton-col text-short"
+                                                    style="margin: 0 auto; width: 60px;">
+                                                    <div class="skeleton-shimmer"></div>
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                    <!-- Data Body -->
+                                    <tbody ng-if="!isLoading">
                                         <tr ng-repeat="series in testSeriesList | filter:searchQuery"
                                             ng-click="viewSeriesDetails(series)">
                                             <td>
@@ -960,6 +961,32 @@
                                         </tr>
                                     </tbody>
                                 </table>
+
+                                <!-- Pagination -->
+                                <div class="pagination-container">
+                                    <div class="pagination-info">
+                                        <span>Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalSeries}} test
+                                            series</span>
+                                        <select class="page-size-select" ng-model="pageSize"
+                                            ng-change="changePageSize()"
+                                            ng-options="size as 'Show ' + size for size in [10, 20, 50, 200]">
+                                        </select>
+                                    </div>
+                                    <div class="pagination-controls">
+                                        <button class="pagination-btn" ng-click="previousPage()"
+                                            ng-disabled="currentPage === 1">
+                                            <i class="ti ti-angle-left"></i> Previous
+                                        </button>
+                                        <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                            ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                            {{page}}
+                                        </button>
+                                        <button class="pagination-btn" ng-click="nextPage()"
+                                            ng-disabled="currentPage === getTotalPages()">
+                                            Next <i class="ti ti-angle-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Empty State -->
@@ -1145,14 +1172,8 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div ng-if="isLoading"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 99999; display: flex; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center;">
-            <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #006073; margin-bottom: 15px;"></i>
-            <p style="margin: 0; color: #333;">{{loadingMessage}}</p>
-        </div>
-    </div>
+    <!-- Loading Overlay removed - using shimmer skeleton loader in table instead -->
+
 
     <!-- Scripts -->
     <script src="assets/js/jquery.min.js"></script>
@@ -1161,23 +1182,24 @@
     <script type="text/javascript" src="assets/js/toaster.js"></script>
     <!-- Toaster Container -->
     <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+        <div class="toaster" ng-repeat="toaster in toasters track by $index"
+            ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+            <div class="toaster-icon">
+                <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
+            </div>
+            <div class="toaster-content">
+                <div class="toaster-title">{{toaster.title}}</div>
+                <div class="toaster-message">{{toaster.message}}</div>
+            </div>
+            <button class="toaster-close" ng-click="removeToaster($index)">
+                <i class="ti ti-close"></i>
+            </button>
+        </div>
     </div>
 
 </body>

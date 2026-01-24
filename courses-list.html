@@ -17,6 +17,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
@@ -115,88 +116,7 @@
          color: #666;
       }
 
-      /* Courses Table */
-      .courses-table {
-         width: 100%;
-         background: white;
-         border-radius: 8px;
-         overflow: hidden;
-         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .courses-table thead {
-         background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
-         color: white;
-      }
-
-      .courses-table th {
-         padding: 15px 20px;
-         text-align: left;
-         font-weight: 600;
-         font-size: 13px;
-         text-transform: uppercase;
-         letter-spacing: 0.5px;
-      }
-
-      .courses-table th.sortable {
-         cursor: pointer;
-         user-select: none;
-         position: relative;
-         padding-right: 35px;
-      }
-
-      .courses-table th.sortable:hover {
-         background: #e9ecef;
-      }
-
-      .courses-table th.sortable .sort-icon {
-         position: absolute;
-         right: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         opacity: 0.3;
-         font-size: 12px;
-      }
-
-      .courses-table th.sortable.active .sort-icon {
-         opacity: 1;
-         color: #006073;
-      }
-
-      .courses-table tbody tr {
-         border-bottom: 1px solid #e9ecef;
-         transition: all 0.2s ease;
-         cursor: pointer;
-      }
-
-      .courses-table tbody tr:hover {
-         background: #f8f9fc;
-         transform: scale(1.01);
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.1);
-      }
-
-      .courses-table td {
-         padding: 18px 20px;
-         vertical-align: middle;
-      }
-
-      .course-id {
-         font-weight: 700;
-         color: #006073;
-         font-size: 14px;
-      }
-
-      .course-name {
-         font-weight: 600;
-         color: #2c3e50;
-         font-size: 15px;
-         margin-bottom: 4px;
-      }
-
-      .course-category {
-         font-size: 12px;
-         color: #6c757d;
-      }
+      /* Table styles moved to crispr-table.css (using .students-table class) */
 
       .module-badge {
          display: inline-block;
@@ -244,47 +164,7 @@
          font-size: 13px;
       }
 
-      /* Loading Overlay */
-      .loading-overlay {
-         position: fixed;
-         top: 0;
-         left: 0;
-         width: 100%;
-         height: 100%;
-         background: rgba(255, 255, 255, 0.95);
-         display: none;
-         align-items: center;
-         justify-content: center;
-         z-index: 10000;
-      }
-
-      .loading-overlay.active {
-         display: flex;
-      }
-
-      .loading-content {
-         text-align: center;
-      }
-
-      .spinner {
-         width: 50px;
-         height: 50px;
-         border: 4px solid #e9ecef;
-         border-top: 4px solid #006073;
-         border-radius: 50%;
-         animation: spin 1s linear infinite;
-         margin: 0 auto 20px;
-      }
-
-      @keyframes spin {
-         0% {
-            transform: rotate(0deg);
-         }
-
-         100% {
-            transform: rotate(360deg);
-         }
-      }
+      /* Loading overlay styles removed - using shimmer skeleton loader */
 
       .loading-text {
          color: #006073;
@@ -299,34 +179,7 @@
          flex-wrap: wrap;
       }
 
-      .search-wrapper {
-         flex: 1;
-         min-width: 250px;
-         position: relative;
-      }
-
-      .search-wrapper i {
-         position: absolute;
-         left: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         color: #999;
-      }
-
-      .search-input {
-         width: 100%;
-         padding: 12px 15px 12px 45px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-      }
-
-      .search-input:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
-
+      /* Search bar styles moved to crispr-table.css */
 
       /* Header Layout */
       #topnav {
@@ -546,7 +399,8 @@
                      <!-- Filter Bar -->
                      <div class="filter-bar">
                         <div class="search-wrapper">
-                           <i class="ti ti-search"></i>
+                           <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                              ng-click="searchQuery = ''; searchCourses()"></i>
                            <input type="text" class="search-input"
                               placeholder="Search courses by name, ID, or category..." ng-model="searchQuery"
                               ng-change="searchCourses()">
@@ -554,85 +408,183 @@
                      </div>
 
                      <!-- Courses Table -->
-                     <table class="courses-table">
-                        <thead>
-                           <tr>
-                              <th class="sortable" ng-click="changeSortBy('code')"
-                                 ng-class="{active: sortBy === 'code'}">
-                                 Course ID
-                                 <i class="sort-icon ti"
-                                    ng-class="sortBy === 'code' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                              </th>
-                              <th class="sortable" ng-click="changeSortBy('name')"
-                                 ng-class="{active: sortBy === 'name'}">
-                                 Course Name
-                                 <i class="sort-icon ti"
-                                    ng-class="sortBy === 'name' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                              </th>
-                              <th>Modules</th>
-                              <th class="sortable" style="text-align: center;" ng-click="changeSortBy('chapters')"
-                                 ng-class="{active: sortBy === 'chapters'}">
-                                 Chapters
-                                 <i class="sort-icon ti"
-                                    ng-class="sortBy === 'chapters' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                              </th>
-                              <th>Total Duration</th>
-                              <th class="sortable" ng-click="changeSortBy('status')"
-                                 ng-class="{active: sortBy === 'status'}">
-                                 Status
-                                 <i class="sort-icon ti"
-                                    ng-class="sortBy === 'status' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                              </th>
-                              <th class="sortable" style="text-align: center;" ng-click="changeSortBy('students')"
-                                 ng-class="{active: sortBy === 'students'}">
-                                 Students
-                                 <i class="sort-icon ti"
-                                    ng-class="sortBy === 'students' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                              </th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                           <tr ng-repeat="course in courses" ng-click="openCourse(course)">
-                              <td>
-                                 <div class="course-id">{{course.code}}</div>
-                              </td>
-                              <td>
-                                 <div class="course-name">{{course.title}}</div>
-                                 <div class="course-category">{{course.category}}</div>
-                              </td>
-                              <td>
-                                 <div>
-                                    <span class="module-badge" ng-repeat="module in course.modulesList">
-                                       {{module}}
+                     <div class="students-table-container" ng-if="courses.length > 0 || isLoading">
+                        <table class="students-table">
+                           <thead>
+                              <tr>
+                                 <th class="sortable" ng-click="changeSortBy('code')"
+                                    ng-class="{active: sortBy === 'code'}">
+                                    Course ID
+                                    <i class="sort-icon ti"
+                                       ng-class="sortBy === 'code' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 </th>
+                                 <th class="sortable" ng-click="changeSortBy('name')"
+                                    ng-class="{active: sortBy === 'name'}">
+                                    Course Name
+                                    <i class="sort-icon ti"
+                                       ng-class="sortBy === 'name' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 </th>
+                                 <th>Modules</th>
+                                 <th class="sortable" style="text-align: center;" ng-click="changeSortBy('chapters')"
+                                    ng-class="{active: sortBy === 'chapters'}">
+                                    Chapters
+                                    <i class="sort-icon ti"
+                                       ng-class="sortBy === 'chapters' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 </th>
+                                 <th>Total Duration</th>
+                                 <th class="sortable" ng-click="changeSortBy('status')"
+                                    ng-class="{active: sortBy === 'status'}">
+                                    Status
+                                    <i class="sort-icon ti"
+                                       ng-class="sortBy === 'status' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 </th>
+                                 <th class="sortable" style="text-align: center;" ng-click="changeSortBy('students')"
+                                    ng-class="{active: sortBy === 'students'}">
+                                    Students
+                                    <i class="sort-icon ti"
+                                       ng-class="sortBy === 'students' ? (sortOrder === 'DESC' ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                 </th>
+                                 <th style="width: 50px;"></th>
+                              </tr>
+                           </thead>
+                           <!-- Skeleton Body -->
+                           <tbody ng-if="isLoading">
+                              <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                 <td>
+                                    <div class="skeleton-col text-short">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div>
+                                       <div class="skeleton-col text-long" style="margin-bottom: 5px;">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                       <div class="skeleton-col text-medium" style="height: 14px;">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-medium">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td style="text-align: center;">
+                                    <div class="skeleton-col text-short" style="margin: 0 auto; width: 40px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-medium">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div class="skeleton-col text-short" style="width: 60px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td style="text-align: center;">
+                                    <div class="skeleton-col text-short" style="margin: 0 auto; width: 80px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td></td>
+                              </tr>
+                           </tbody>
+                           <!-- Data Body -->
+                           <tbody ng-if="!isLoading">
+                              <tr ng-repeat="course in courses" ng-class="{'row-active-menu': course.showKebabMenu}">
+                                 <td>
+                                    <div class="course-id">{{course.code}}</div>
+                                 </td>
+                                 <td>
+                                    <div class="course-name">{{course.title}}</div>
+                                    <div class="course-category">{{course.category}}</div>
+                                 </td>
+                                 <td>
+                                    <div>
+                                       <span class="module-badge" ng-repeat="module in course.modulesList">
+                                          {{module}}
+                                       </span>
+                                    </div>
+                                 </td>
+                                 <td style="text-align: center;">
+                                    <div class="chapters-count">{{course.totalChapters}}</div>
+                                 </td>
+                                 <td>
+                                    <div class="time-info">
+                                       <i class="ti ti-time"></i> {{course.totalDuration}}
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <span class="status-badge" ng-class="course.status.toLowerCase()">
+                                       {{course.status}}
                                     </span>
-                                 </div>
-                              </td>
-                              <td style="text-align: center;">
-                                 <div class="chapters-count">{{course.totalChapters}}</div>
-                              </td>
-                              <td>
-                                 <div class="time-info">
-                                    <i class="ti ti-time"></i> {{course.totalDuration}}
-                                 </div>
-                              </td>
-                              <td>
-                                 <span class="status-badge" ng-class="course.status.toLowerCase()">
-                                    {{course.status}}
-                                 </span>
-                              </td>
-                              <td style="text-align: center;" ng-click="$event.stopPropagation()">
-                                 <button class="btn"
-                                    style="padding: 6px 12px; background: #e7f5f7; color: #006073; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                    ng-click="viewCourseStudents(course)"
-                                    ng-mouseover="$event.target.style.background='#006073'; $event.target.style.color='white'"
-                                    ng-mouseleave="$event.target.style.background='#e7f5f7'; $event.target.style.color='#006073'"
-                                    title="View enrolled students">
-                                    {{course.totalStudents}} Student{{course.totalStudents !== 1 ? 's' : ''}}
-                                 </button>
-                              </td>
-                           </tr>
-                        </tbody>
-                     </table>
+                                 </td>
+                                 <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                    <button class="btn"
+                                       style="padding: 6px 12px; background: #e7f5f7; color: #006073; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                       ng-click="viewCourseStudents(course)"
+                                       ng-mouseover="$event.target.style.background='#006073'; $event.target.style.color='white'"
+                                       ng-mouseleave="$event.target.style.background='#e7f5f7'; $event.target.style.color='#006073'"
+                                       title="View enrolled students">
+                                       {{course.totalStudents}} Student{{course.totalStudents !== 1 ? 's' : ''}}
+                                    </button>
+                                 </td>
+                                 <td style="text-align: center;" ng-click="$event.stopPropagation()"
+                                    ng-class="{'cell-active-menu': course.showKebabMenu}">
+                                    <div class="kebab-menu-container">
+                                       <button class="kebab-button" ng-click="toggleKebabMenu(course, $event)">
+                                          <i class="ti ti-more-alt"></i>
+                                       </button>
+                                       <div class="kebab-dropdown" ng-class="{active: course.showKebabMenu}">
+                                          <div class="kebab-dropdown-item view-profile"
+                                             ng-click="viewCourseContent(course)">
+                                             <i class="ti ti-eye"></i>
+                                             <span class="item-label">View Course Content</span>
+                                          </div>
+                                          <div class="kebab-dropdown-item"
+                                             ng-class="course.status.toLowerCase() === 'active' ? 'draft-action' : 'enable-action'"
+                                             ng-click="toggleCourseStatus(course)">
+                                             <i class="ti"
+                                                ng-class="course.status.toLowerCase() === 'active' ? 'ti-pencil' : 'ti-check'"></i>
+                                             <span class="item-label">{{course.status.toLowerCase() === 'active' ? 'Move
+                                                as Draft' : 'Enable the Course'}}</span>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+
+                        <!-- Pagination Controls -->
+                        <div class="pagination-container">
+                           <div class="pagination-info">
+                              <span>Showing {{(currentPage - 1) * itemsPerPage + 1}} to {{Math.min(currentPage *
+                                 itemsPerPage,
+                                 totalItems)}} of {{totalItems}} courses</span>
+                              <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()"
+                                 ng-options="size as 'Show ' + size for size in [10, 20, 50, 200]">
+                              </select>
+                           </div>
+                           <div class="pagination-controls">
+                              <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
+                                 <i class="ti ti-angle-left"></i> Previous
+                              </button>
+                              <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                 ng-click="goToPage(page)" ng-class="{active: page === currentPage}">
+                                 {{page}}
+                              </button>
+                              <button class="pagination-btn" ng-click="nextPage()"
+                                 ng-disabled="currentPage === totalPages">
+                                 Next <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
+                        </div>
+                     </div>
 
                      <!-- No Results Message -->
                      <div ng-if="courses.length === 0 && !isLoading"
@@ -642,27 +594,6 @@
                         <p style="color: #adb5bd;">Try adjusting your search criteria</p>
                      </div>
 
-                     <!-- Pagination Controls -->
-                     <div class="pagination-container">
-                        <div class="pagination-info">
-                           Showing {{(currentPage - 1) * itemsPerPage + 1}} to {{Math.min(currentPage * itemsPerPage,
-                           totalItems)}} of {{totalItems}} courses
-                        </div>
-                        <div class="pagination-controls">
-                           <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
-                              <i class="ti ti-angle-left"></i> Previous
-                           </button>
-                           <button class="pagination-btn" ng-repeat="page in getPageNumbers()" ng-click="goToPage(page)"
-                              ng-class="{active: page === currentPage}">
-                              {{page}}
-                           </button>
-                           <button class="pagination-btn" ng-click="nextPage()"
-                              ng-disabled="currentPage === totalPages">
-                              Next <i class="ti ti-angle-right"></i>
-                           </button>
-                        </div>
-                     </div>
-
                   </div>
                </div>
             </div>
@@ -670,13 +601,8 @@
       </div>
    </div>
 
-   <!-- Loading Overlay -->
-   <div class="loading-overlay" ng-class="{active: isLoading}">
-      <div class="loading-content">
-         <div class="spinner"></div>
-         <div class="loading-text">{{loadingMessage}}</div>
-      </div>
-   </div>
+   <!-- Loading Overlay removed - using shimmer skeleton loader in table instead -->
+
 
    <!-- Students Modal -->
    <div class="modal-backdrop" ng-class="{active: studentsModalOpen}"
