@@ -7,14 +7,14 @@ angular.module('questionBankApp', ['ngCookies'])
 
 .controller('questionBankController', function($scope, $http, $interval, $cookies, $sce, $timeout) {
 
-      //Check if logged in
-      if($cookies.get("vegaPilotAdminToken")){
-        $scope.isLoggedIn = true;
-      }
-      else{
-        $scope.isLoggedIn = false;
-        window.location = "index.html";
-      }
+      // //Check if logged in
+      // if($cookies.get("vegaPilotAdminToken")){
+      //   $scope.isLoggedIn = true;
+      // }
+      // else{
+      //   $scope.isLoggedIn = false;
+      //   window.location = "index.html";
+      // }
 
       //Logout function
       $scope.logoutNow = function(){

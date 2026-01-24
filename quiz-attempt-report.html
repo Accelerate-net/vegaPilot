@@ -1,1114 +1,1392 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <title>Quiz Report - VegaPilot</title>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-touch-fullscreen" content="yes">
-      <meta name="description" content="VegaPilot Quiz Report">
-      <meta name="author" content="VegaPilot">
 
-      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
-      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+<head>
+   <meta charset="utf-8">
+   <title>Quiz Report - VegaPilot</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+   <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-touch-fullscreen" content="yes">
+   <meta name="description" content="VegaPilot Quiz Report">
+   <meta name="author" content="VegaPilot">
 
-      <style>
-         /* Combined Quiz Header Card */
-         .quiz-header-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            overflow: hidden;
-         }
-         .quiz-header-top {
-            background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
-            padding: 25px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-         }
-         .quiz-header-top h2 {
-            margin: 0 0 8px 0;
-            font-size: 24px;
-            font-weight: 600;
-         }
-         .quiz-header-top h2 i {
-            margin-right: 10px;
-            opacity: 0.9;
-         }
-         .quiz-header-top .quiz-description {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 14px;
-         }
-         .quiz-header-body {
-            padding: 25px;
-            background: #f8f9fa;
-         }
-         .quiz-info-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-         }
-         .info-item {
-            display: flex;
-            flex-direction: column;
-         }
-         .info-label {
-            font-size: 11px;
-            color: #6c757d;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-         }
-         .info-value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 600;
-         }
+   <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+      rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
 
-         /* Stats Cards */
-         .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-         }
-         .stat-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s ease;
-         }
-         .stat-card:hover {
-            border-color: #006073;
-            background: #f0f8fa;
-         }
-         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-         }
-         .stat-icon.indigo { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-         .stat-icon.green { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-         .stat-icon.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-         .stat-icon.teal { background: linear-gradient(135deg, #006073 0%, #004d5c 100%); }
-         .stat-info h3 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
-         }
-         .stat-info p {
-            margin: 0;
-            font-size: 13px;
-            color: #666;
-         }
+   <style type="text/css">
+      /* Header Layout */
+      #topnav {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: flex-start !important;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+         position: relative !important;
+      }
 
-         /* Search and Filter Bar */
-         .filter-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 8px 8px 0 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-         }
-         .search-input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            font-size: 14px;
-         }
-         .search-input:focus {
-            outline: none;
-            border-color: #006073;
-            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-         }
-         .filter-select {
-            padding: 10px 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-         }
+      /* Navbar text and elements color */
+      #topnav .navbar-brand,
+      #topnav h2,
+      #topnav .toolbar-icon-bg a {
+         color: white !important;
+      }
 
-         /* Date Input Placeholder */
-         .date-input-wrapper {
-            position: relative;
-         }
-         .date-input {
-            pointer-events: none;
-            padding-right: 40px !important;
-         }
-         .date-input:not(.has-value) {
-            color: transparent;
-         }
-         .date-input:not(.has-value)::-webkit-datetime-edit {
-            color: transparent;
-         }
-         .date-input.has-value {
-            color: #333;
-         }
-         .date-input::-webkit-calendar-picker-indicator {
-            opacity: 0;
-            position: absolute;
-            right: 0;
-            width: 40px;
-            height: 100%;
-            cursor: pointer;
-            pointer-events: auto;
-         }
-         .date-placeholder {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 14px;
-            pointer-events: none;
-         }
-         .date-icon-btn {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #006073;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 5px;
-            pointer-events: auto;
-            z-index: 1;
-         }
-         .date-icon-btn:hover {
-            color: #004d5c;
-         }
+      #topnav .logo-area .navbar-brand {
+         color: white !important;
+      }
 
-         /* Multi-select Dropdown */
-         .batch-multiselect {
-            position: relative;
-         }
-         .batch-multiselect-trigger {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            background: white;
-            cursor: pointer;
-            min-height: 38px;
-            font-size: 14px;
-            color: #333;
-         }
-         .batch-multiselect-trigger:hover {
-            border-color: #006073;
-         }
-         .batch-multiselect-trigger.disabled {
-            background: #e9ecef;
-            color: #6c757d;
-            cursor: not-allowed;
-         }
-         .batch-multiselect-trigger.disabled:hover {
-            border-color: #dee2e6;
-         }
-         .batch-multiselect-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            margin-top: 4px;
-            max-height: 250px;
-            overflow-y: auto;
-         }
-         .batch-multiselect-actions {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            border-bottom: 1px solid #e9ecef;
-            background: #f8f9fa;
-         }
-         .batch-multiselect-actions button {
-            font-size: 12px;
-            padding: 4px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-         }
-         .batch-multiselect-actions .select-all {
-            background: #006073;
-            color: white;
-         }
-         .batch-multiselect-actions .clear-all {
-            background: #e9ecef;
-            color: #495057;
-         }
-         .batch-multiselect-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.15s;
-         }
-         .batch-multiselect-item:hover {
-            background: #f8f9fa;
-         }
-         .batch-multiselect-item:last-child {
-            border-bottom: none;
-         }
-         .batch-multiselect-item input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-         }
-         .batch-multiselect-item span {
-            flex: 1;
-            font-size: 13px;
-         }
-         .batch-multiselect-item.selected {
-            background: #e3f2f5;
-         }
-         .batch-count-badge {
-            background: #006073;
-            color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
-         }
+      /* Toolbar icon backgrounds - blend with gradient */
+      #topnav .toolbar-icon-bg .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
 
-         /* Modal Styles */
-         .modal-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-         }
-         .modal-backdrop.active {
-            display: flex;
-         }
-         .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-         }
-         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #e9ecef;
-         }
-         .modal-header h4 {
-            margin: 0;
-            font-size: 18px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-         }
-         .modal-header h4 i {
-            color: #e67e22;
-         }
-         .modal-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #6c757d;
-            cursor: pointer;
-            padding: 5px;
-            line-height: 1;
-         }
-         .modal-close:hover {
-            color: #333;
-         }
-         .modal-body {
-            padding: 20px;
-         }
-         .modal-footer {
-            padding: 15px 20px;
-            border-top: 1px solid #e9ecef;
-         }
+      #topnav .toolbar-icon-bg:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+         border-color: rgba(255, 255, 255, 0.3) !important;
+      }
 
-         /* Rank Table */
-         .rank-table-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-         }
+      #topnav .toolbar-icon-bg i {
+         color: white !important;
+      }
 
-         .rank-table {
-            width: 100%;
-            border-collapse: collapse;
-         }
+      /* Sidebar trigger specific styling */
+      #topnav #trigger-sidebar .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
 
-         .rank-table thead {
-            background: #f8f9fa;
-         }
+      #topnav #trigger-sidebar:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+      }
 
-         .rank-table th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #e9ecef;
-         }
+      /* Sidebar active menu item styling */
+      .acc-menu li a.active {
+         border-left: 5px solid #005e70 !important;
+         color: #005e6f !important;
+         font-weight: bold !important;
+         background: rgba(0, 94, 112, 0.1) !important;
+      }
 
-         .rank-table th.sortable {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-            padding-right: 30px;
-         }
+      .acc-menu li a.active i {
+         color: #005e6f !important;
+      }
 
-         .rank-table th.sortable:hover {
-            background: #e9ecef;
-         }
+      /* Remove wrapper padding */
+      #wrapper {
+         padding: 0 !important;
+      }
+   </style>
+   <style>
+      /* Combined Quiz Header Card */
+      .quiz-header-card {
+         background: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         margin-bottom: 30px;
+         overflow: hidden;
+      }
 
-         .rank-table th.sortable .sort-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.3;
-            font-size: 12px;
-         }
+      .quiz-header-top {
+         background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
+         padding: 25px;
+         color: white;
+         display: flex;
+         justify-content: space-between;
+         align-items: flex-start;
+      }
 
-         .rank-table th.sortable.active .sort-icon {
-            opacity: 1;
-            color: #006073;
-         }
+      .quiz-header-top h2 {
+         margin: 0 0 8px 0;
+         font-size: 24px;
+         font-weight: 600;
+      }
 
-         .rank-table td {
-            padding: 15px;
-            border-bottom: 1px solid #f1f3f5;
-            vertical-align: middle;
-         }
+      .quiz-header-top h2 i {
+         margin-right: 10px;
+         opacity: 0.9;
+      }
 
-         .rank-table tbody tr {
-            transition: all 0.2s ease;
-         }
+      .quiz-header-top .quiz-description {
+         margin: 0;
+         opacity: 0.9;
+         font-size: 14px;
+      }
 
-         .rank-table tbody tr:hover {
-            background: #f8f9fa;
-         }
+      .quiz-header-body {
+         padding: 25px;
+         background: #f8f9fa;
+      }
 
-         .rank-table tbody tr:last-child td {
-            border-bottom: none;
-         }
+      .quiz-info-grid {
+         display: grid;
+         grid-template-columns: repeat(4, 1fr);
+         gap: 20px;
+      }
 
-         /* Rank Badge */
-         .rank-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 16px;
-         }
-         .rank-1 { background: #ffd700; color: #333; }
-         .rank-2 { background: #c0c0c0; color: #333; }
-         .rank-3 { background: #cd7f32; color: white; }
-         .rank-other { background: #e9ecef; color: #495057; }
+      .info-item {
+         display: flex;
+         flex-direction: column;
+      }
 
-         /* Status Badge */
-         .status-badge {
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-         }
-         .status-completed {
-            background: #d4edda;
-            color: #155724;
-         }
-         .status-in-progress {
-            background: #fff3cd;
-            color: #856404;
-         }
+      .info-label {
+         font-size: 11px;
+         color: #6c757d;
+         text-transform: uppercase;
+         font-weight: 600;
+         margin-bottom: 5px;
+         letter-spacing: 0.5px;
+      }
 
-         /* Score Badge */
-         .score-badge {
-            font-weight: 700;
-            font-size: 16px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: inline-block;
-         }
-         .score-excellent { background: #d4edda; color: #155724; }
-         .score-good { background: #d1ecf1; color: #0c5460; }
-         .score-average { background: #fff3cd; color: #856404; }
-         .score-poor { background: #f8d7da; color: #721c24; }
+      .info-value {
+         font-size: 16px;
+         color: #333;
+         font-weight: 600;
+      }
 
-         /* Empty State */
-         .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-         }
-         .empty-state i {
-            font-size: 64px;
-            color: #dee2e6;
-            margin-bottom: 20px;
-            display: block;
-         }
-         .empty-state h4 {
-            color: #495057;
-            margin-bottom: 8px;
-            font-size: 18px;
-         }
-         .empty-state p {
-            color: #6c757d;
-            font-size: 14px;
-            margin: 0;
-         }
+      /* Stats Cards */
+      .stats-row {
+         display: grid;
+         grid-template-columns: repeat(4, 1fr);
+         gap: 15px;
+      }
 
-         /* Filter Badge */
-         .filter-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 10px;
-            background: #e7f5f7;
-            color: #006073;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid #b3dce3;
-         }
-         .filter-badge i {
-            font-size: 10px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-         }
-         .filter-badge i:hover {
-            opacity: 1;
-         }
-      </style>
-   </head>
-   <body class="animated-content" ng-app="quizReportApp" ng-controller="quizReportController" ng-init="init()" ng-cloak ng-click="closeBatchDropdown()">
-      <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
-         <div class="logo-area">
-            <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+      .stat-card {
+         background: white;
+         padding: 15px;
+         border-radius: 8px;
+         border: 1px solid #e9ecef;
+         display: flex;
+         align-items: center;
+         gap: 12px;
+         transition: all 0.2s ease;
+      }
+
+      .stat-card:hover {
+         border-color: #006073;
+         background: #f0f8fa;
+      }
+
+      .stat-icon {
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 24px;
+         color: white;
+      }
+
+      .stat-icon.indigo {
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .stat-icon.green {
+         background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+
+      .stat-icon.orange {
+         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .stat-icon.teal {
+         background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+      }
+
+      .stat-info h3 {
+         margin: 0;
+         font-size: 28px;
+         font-weight: 700;
+         color: #333;
+      }
+
+      .stat-info p {
+         margin: 0;
+         font-size: 13px;
+         color: #666;
+      }
+
+      /* Search and Filter Bar */
+      .filter-bar {
+         background: white;
+         padding: 20px;
+         border-radius: 8px 8px 0 0;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         display: flex;
+         gap: 15px;
+         align-items: center;
+      }
+
+      .search-input {
+         flex: 1;
+         padding: 10px 15px;
+         border: 1px solid #dee2e6;
+         border-radius: 6px;
+         font-size: 14px;
+      }
+
+      .search-input:focus {
+         outline: none;
+         border-color: #006073;
+         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+      }
+
+      .filter-select {
+         padding: 10px 15px;
+         border: 1px solid #dee2e6;
+         border-radius: 6px;
+         font-size: 14px;
+         background: white;
+         cursor: pointer;
+      }
+
+      /* Date Input Placeholder */
+      .date-input-wrapper {
+         position: relative;
+      }
+
+      .date-input {
+         pointer-events: none;
+         padding-right: 40px !important;
+      }
+
+      .date-input:not(.has-value) {
+         color: transparent;
+      }
+
+      .date-input:not(.has-value)::-webkit-datetime-edit {
+         color: transparent;
+      }
+
+      .date-input.has-value {
+         color: #333;
+      }
+
+      .date-input::-webkit-calendar-picker-indicator {
+         opacity: 0;
+         position: absolute;
+         right: 0;
+         width: 40px;
+         height: 100%;
+         cursor: pointer;
+         pointer-events: auto;
+      }
+
+      .date-placeholder {
+         position: absolute;
+         left: 12px;
+         top: 50%;
+         transform: translateY(-50%);
+         color: #6c757d;
+         font-size: 14px;
+         pointer-events: none;
+      }
+
+      .date-icon-btn {
+         position: absolute;
+         right: 8px;
+         top: 50%;
+         transform: translateY(-50%);
+         background: none;
+         border: none;
+         color: #006073;
+         font-size: 16px;
+         cursor: pointer;
+         padding: 5px;
+         pointer-events: auto;
+         z-index: 1;
+      }
+
+      .date-icon-btn:hover {
+         color: #004d5c;
+      }
+
+      /* Multi-select Dropdown */
+      .batch-multiselect {
+         position: relative;
+      }
+
+      .batch-multiselect-trigger {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         padding: 8px 12px;
+         border: 1px solid #dee2e6;
+         border-radius: 6px;
+         background: white;
+         cursor: pointer;
+         min-height: 38px;
+         font-size: 14px;
+         color: #333;
+      }
+
+      .batch-multiselect-trigger:hover {
+         border-color: #006073;
+      }
+
+      .batch-multiselect-trigger.disabled {
+         background: #e9ecef;
+         color: #6c757d;
+         cursor: not-allowed;
+      }
+
+      .batch-multiselect-trigger.disabled:hover {
+         border-color: #dee2e6;
+      }
+
+      .batch-multiselect-dropdown {
+         position: absolute;
+         top: 100%;
+         left: 0;
+         right: 0;
+         background: white;
+         border: 1px solid #dee2e6;
+         border-radius: 6px;
+         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+         z-index: 1000;
+         margin-top: 4px;
+         max-height: 250px;
+         overflow-y: auto;
+      }
+
+      .batch-multiselect-actions {
+         display: flex;
+         justify-content: space-between;
+         padding: 8px 12px;
+         border-bottom: 1px solid #e9ecef;
+         background: #f8f9fa;
+      }
+
+      .batch-multiselect-actions button {
+         font-size: 12px;
+         padding: 4px 10px;
+         border: none;
+         border-radius: 4px;
+         cursor: pointer;
+      }
+
+      .batch-multiselect-actions .select-all {
+         background: #006073;
+         color: white;
+      }
+
+      .batch-multiselect-actions .clear-all {
+         background: #e9ecef;
+         color: #495057;
+      }
+
+      .batch-multiselect-item {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         padding: 10px 12px;
+         cursor: pointer;
+         border-bottom: 1px solid #f0f0f0;
+         transition: background 0.15s;
+      }
+
+      .batch-multiselect-item:hover {
+         background: #f8f9fa;
+      }
+
+      .batch-multiselect-item:last-child {
+         border-bottom: none;
+      }
+
+      .batch-multiselect-item input[type="checkbox"] {
+         width: 16px;
+         height: 16px;
+         cursor: pointer;
+      }
+
+      .batch-multiselect-item span {
+         flex: 1;
+         font-size: 13px;
+      }
+
+      .batch-multiselect-item.selected {
+         background: #e3f2f5;
+      }
+
+      .batch-count-badge {
+         background: #006073;
+         color: white;
+         font-size: 11px;
+         padding: 2px 8px;
+         border-radius: 10px;
+         margin-left: 8px;
+      }
+
+      /* Modal Styles */
+      .modal-backdrop {
+         display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: rgba(0, 0, 0, 0.5);
+         z-index: 9999;
+         justify-content: center;
+         align-items: center;
+      }
+
+      .modal-backdrop.active {
+         display: flex;
+      }
+
+      .modal-content {
+         background: white;
+         border-radius: 12px;
+         width: 100%;
+         max-width: 500px;
+         max-height: 90vh;
+         overflow-y: auto;
+         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         padding: 20px;
+         border-bottom: 1px solid #e9ecef;
+      }
+
+      .modal-header h4 {
+         margin: 0;
+         font-size: 18px;
+         color: #333;
+         display: flex;
+         align-items: center;
+         gap: 10px;
+      }
+
+      .modal-header h4 i {
+         color: #e67e22;
+      }
+
+      .modal-close {
+         background: none;
+         border: none;
+         font-size: 20px;
+         color: #6c757d;
+         cursor: pointer;
+         padding: 5px;
+         line-height: 1;
+      }
+
+      .modal-close:hover {
+         color: #333;
+      }
+
+      .modal-body {
+         padding: 20px;
+      }
+
+      .modal-footer {
+         padding: 15px 20px;
+         border-top: 1px solid #e9ecef;
+      }
+
+      /* Rank Table */
+      .rank-table-container {
+         background: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+      }
+
+      .rank-table {
+         width: 100%;
+         border-collapse: collapse;
+      }
+
+      .rank-table thead {
+         background: #f8f9fa;
+      }
+
+      .rank-table th {
+         padding: 15px;
+         text-align: left;
+         font-weight: 600;
+         color: #2c3e50;
+         font-size: 13px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         border-bottom: 2px solid #e9ecef;
+      }
+
+      .rank-table th.sortable {
+         cursor: pointer;
+         user-select: none;
+         position: relative;
+         padding-right: 30px;
+      }
+
+      .rank-table th.sortable:hover {
+         background: #e9ecef;
+      }
+
+      .rank-table th.sortable .sort-icon {
+         position: absolute;
+         right: 10px;
+         top: 50%;
+         transform: translateY(-50%);
+         opacity: 0.3;
+         font-size: 12px;
+      }
+
+      .rank-table th.sortable.active .sort-icon {
+         opacity: 1;
+         color: #006073;
+      }
+
+      .rank-table td {
+         padding: 15px;
+         border-bottom: 1px solid #f1f3f5;
+         vertical-align: middle;
+      }
+
+      .rank-table tbody tr {
+         transition: all 0.2s ease;
+      }
+
+      .rank-table tbody tr:hover {
+         background: #f8f9fa;
+      }
+
+      .rank-table tbody tr:last-child td {
+         border-bottom: none;
+      }
+
+      /* Rank Badge */
+      .rank-badge {
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         font-weight: 700;
+         font-size: 16px;
+      }
+
+      .rank-1 {
+         background: #ffd700;
+         color: #333;
+      }
+
+      .rank-2 {
+         background: #c0c0c0;
+         color: #333;
+      }
+
+      .rank-3 {
+         background: #cd7f32;
+         color: white;
+      }
+
+      .rank-other {
+         background: #e9ecef;
+         color: #495057;
+      }
+
+      /* Status Badge */
+      .status-badge {
+         padding: 4px 10px;
+         border-radius: 10px;
+         font-size: 11px;
+         font-weight: 600;
+         display: inline-block;
+      }
+
+      .status-completed {
+         background: #d4edda;
+         color: #155724;
+      }
+
+      .status-in-progress {
+         background: #fff3cd;
+         color: #856404;
+      }
+
+      /* Score Badge */
+      .score-badge {
+         font-weight: 700;
+         font-size: 16px;
+         padding: 8px 12px;
+         border-radius: 6px;
+         display: inline-block;
+      }
+
+      .score-excellent {
+         background: #d4edda;
+         color: #155724;
+      }
+
+      .score-good {
+         background: #d1ecf1;
+         color: #0c5460;
+      }
+
+      .score-average {
+         background: #fff3cd;
+         color: #856404;
+      }
+
+      .score-poor {
+         background: #f8d7da;
+         color: #721c24;
+      }
+
+      /* Empty State */
+      .empty-state {
+         text-align: center;
+         padding: 80px 20px;
+         background: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .empty-state i {
+         font-size: 64px;
+         color: #dee2e6;
+         margin-bottom: 20px;
+         display: block;
+      }
+
+      .empty-state h4 {
+         color: #495057;
+         margin-bottom: 8px;
+         font-size: 18px;
+      }
+
+      .empty-state p {
+         color: #6c757d;
+         font-size: 14px;
+         margin: 0;
+      }
+
+      /* Filter Badge */
+      .filter-badge {
+         display: inline-flex;
+         align-items: center;
+         padding: 6px 10px;
+         background: #e7f5f7;
+         color: #006073;
+         border-radius: 16px;
+         font-size: 12px;
+         font-weight: 600;
+         border: 1px solid #b3dce3;
+      }
+
+      .filter-badge i {
+         font-size: 10px;
+         opacity: 0.7;
+         transition: opacity 0.2s;
+      }
+
+      .filter-badge i:hover {
+         opacity: 1;
+      }
+   </style>
+</head>
+
+<body class="animated-content" ng-app="quizReportApp" ng-controller="quizReportController" ng-init="init()" ng-cloak
+   ng-click="closeBatchDropdown()">
+   <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+      <div class="logo-area">
+         <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
             <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-            <span class="icon-bg">
-             <i class="ti ti-menu"></i>
-            </span>
+               <span class="icon-bg">
+                  <i class="ti ti-menu"></i>
+               </span>
             </a>
-            </span>
-            <span class="navbar-brand" style="width: 125px">VegaPilot</span>
-         </div>
-         <ul class="nav navbar-nav toolbar pull-right">
-            <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
-               <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
-            </li>
-            <li class="dropdown toolbar-icon-bg">
-               <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+         </span>
+         <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+      </div>
+
+      <!-- Page Title in Header - Centered -->
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+         <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+            <i class="ti ti-bar-chart" style="margin-right: 8px; color: white;"></i> Quiz Report
+         </h2>
+      </div>
+
+      <!-- Spacer to push right items to the right -->
+      <div style="flex: 1;"></div>
+
+      <ul class="nav navbar-nav toolbar pull-right">
+         <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+         </li>
+         <li class="dropdown toolbar-icon-bg">
+            <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
                <img class="img-circle" src="assets/img/default_user.png" alt="" />
-               </a>
-               <ul class="dropdown-menu userinfo arrow">
-                  <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
-               </ul>
-            </li>
-         </ul>
-      </header>
+            </a>
+            <ul class="dropdown-menu userinfo arrow">
+               <li><a href="index.html"><i class="ti ti-shift-right"></i><span>Back to Dashboard</span></a></li>
+            </ul>
+         </li>
+      </ul>
+   </header>
 
-      <div id="wrapper">
-         <div id="layout-static">
-            <div class="static-sidebar-wrapper sidebar-default">
-               <div class="static-sidebar">
-                  <div class="sidebar">
-                     <div class="widget stay-on-collapse" id="widget-sidebar">
-                        <nav role="navigation" class="widget-body">
-                            <ul class="acc-menu">
+   <div id="wrapper">
+      <div id="layout-static">
+         <div class="static-sidebar-wrapper sidebar-default">
+            <div class="static-sidebar">
+               <div class="sidebar">
+                  <div class="widget stay-on-collapse" id="widget-sidebar">
+                     <nav role="navigation" class="widget-body">
+                        <ul class="acc-menu">
 
-                               <li class="nav-separator"><span>Programs</span></li>
-                               <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
-                               <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a></li>
-                               <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
-                               <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+                           <li class="nav-separator"><span>Programs</span></li>
+                           <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
+                           <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a>
+                           </li>
+                           <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
+                           <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
-                               <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                               <li><a href="quiz-listing.html" class="active"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                               <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+                           <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                           <li><a href="quiz-listing.html" class="active"><i class="ti ti-files"></i><span>Practice
+                                    Quizzes</span></a></li>
+                           <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
 
-                               <li class="nav-separator"><span>Content Library</span></li>
-                               <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
-                               <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a></li>
-                               <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a></li>
-                               <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a></li>
+                           <li class="nav-separator"><span>Content Library</span></li>
+                           <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a>
+                           </li>
+                           <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                    Library</span></a></li>
+                           <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                    Questions</span></a></li>
+                           <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a>
+                           </li>
 
-                               <li class="nav-separator"><span>Commerce</span></li>
-                               <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
-                               <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                               <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+                           <li class="nav-separator"><span>Commerce</span></li>
+                           <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                           <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
+                                    Manager</span></a></li>
 
-                               <li class="nav-separator"><span>People</span></li>
-                               <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a></li>
-                               <li><a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
-                            </ul>
-                        </nav>
-                     </div>
+                           <li class="nav-separator"><span>People</span></li>
+                           <li><a href="instructor-portfolio.html"><i
+                                    class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                           <li><a href="mentor-profiles.html"><i
+                                    class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                        </ul>
+                     </nav>
                   </div>
                </div>
             </div>
+         </div>
 
-            <div class="static-content-wrapper">
-               <div class="static-content">
-                  <div class="page-content">
-                     <div class="container-fluid" style="padding-top: 4%;">
+         <div class="static-content-wrapper">
+            <div class="static-content">
+               <div class="page-content">
+                  <div class="container-fluid" style="padding-top: 1%;">
 
-                        <!-- Combined Quiz Header Card -->
-                        <div class="quiz-header-card">
-                           <div class="quiz-header-top">
-                              <div>
-                                 <h2><i class="ti ti-bar-chart"></i> {{quiz.title}}</h2>
-                                 <p class="quiz-description">{{quiz.description}}</p>
-                                 <!-- Course Context (if applicable) -->
-                                 <div ng-if="courseInfo" style="margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.9;">
-                                    <i class="ti ti-book"></i>
-                                    <span>{{courseInfo.name}}</span>
-                                    <span ng-if="courseInfo.module"> · {{courseInfo.module}}</span>
-                                    <span ng-if="courseInfo.chapter"> · {{courseInfo.chapter}}</span>
-                                 </div>
+                     <!-- Combined Quiz Header Card -->
+                     <div class="quiz-header-card">
+                        <div class="quiz-header-top">
+                           <div>
+                              <h2><i class="ti ti-bar-chart"></i> {{quiz.title}}</h2>
+                              <p class="quiz-description">{{quiz.description}}</p>
+                              <!-- Course Context (if applicable) -->
+                              <div ng-if="courseInfo"
+                                 style="margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.9;">
+                                 <i class="ti ti-book"></i>
+                                 <span>{{courseInfo.name}}</span>
+                                 <span ng-if="courseInfo.module"> · {{courseInfo.module}}</span>
+                                 <span ng-if="courseInfo.chapter"> · {{courseInfo.chapter}}</span>
                               </div>
-                              <a href="quiz-listing.html" class="btn btn-light" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                                 <i class="ti ti-arrow-left"></i> Back to Quizzes
-                              </a>
                            </div>
-                           <div class="quiz-header-body">
-                              <!-- Quiz Info Row -->
-                              <div class="quiz-info-grid" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;">
-                                 <div class="info-item">
-                                    <div class="info-label">Questions</div>
-                                    <div class="info-value">{{quiz.totalQuestions}}</div>
-                                 </div>
-                                 <div class="info-item">
-                                    <div class="info-label">Duration</div>
-                                    <div class="info-value">{{quiz.duration}} min</div>
-                                 </div>
-                                 <div class="info-item">
-                                    <div class="info-label">Max Marks</div>
-                                    <div class="info-value">{{quiz.maximumMarks}}</div>
-                                 </div>
-                                 <div class="info-item">
-                                    <div class="info-label">Status</div>
-                                    <div class="info-value" style="text-transform: capitalize;">{{quiz.status}}</div>
+                           <a href="quiz-listing.html" class="btn btn-light"
+                              style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                              <i class="ti ti-arrow-left"></i> Back to Quizzes
+                           </a>
+                        </div>
+                        <div class="quiz-header-body">
+                           <!-- Quiz Info Row -->
+                           <div class="quiz-info-grid"
+                              style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;">
+                              <div class="info-item">
+                                 <div class="info-label">Questions</div>
+                                 <div class="info-value">{{quiz.totalQuestions}}</div>
+                              </div>
+                              <div class="info-item">
+                                 <div class="info-label">Duration</div>
+                                 <div class="info-value">{{quiz.duration}} min</div>
+                              </div>
+                              <div class="info-item">
+                                 <div class="info-label">Max Marks</div>
+                                 <div class="info-value">{{quiz.maximumMarks}}</div>
+                              </div>
+                              <div class="info-item">
+                                 <div class="info-label">Status</div>
+                                 <div class="info-value" style="text-transform: capitalize;">{{quiz.status}}</div>
+                              </div>
+                           </div>
+                           <!-- Statistics Row -->
+                           <div class="stats-row">
+                              <div class="stat-card">
+                                 <div class="stat-icon indigo"><i class="ti ti-user"></i></div>
+                                 <div class="stat-info">
+                                    <h3>{{getTotalAttempts()}}</h3>
+                                    <p>Total Attempts</p>
                                  </div>
                               </div>
-                              <!-- Statistics Row -->
-                              <div class="stats-row">
-                                 <div class="stat-card">
-                                    <div class="stat-icon indigo"><i class="ti ti-user"></i></div>
-                                    <div class="stat-info">
-                                       <h3>{{getTotalAttempts()}}</h3>
-                                       <p>Total Attempts</p>
-                                    </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon green"><i class="ti ti-check"></i></div>
+                                 <div class="stat-info">
+                                    <h3>{{getCompletedCount()}}</h3>
+                                    <p>Completed</p>
                                  </div>
-                                 <div class="stat-card">
-                                    <div class="stat-icon green"><i class="ti ti-check"></i></div>
-                                    <div class="stat-info">
-                                       <h3>{{getCompletedCount()}}</h3>
-                                       <p>Completed</p>
-                                    </div>
+                              </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon orange"><i class="ti ti-timer"></i></div>
+                                 <div class="stat-info">
+                                    <h3>{{getInProgressCount()}}</h3>
+                                    <p>In Progress</p>
                                  </div>
-                                 <div class="stat-card">
-                                    <div class="stat-icon orange"><i class="ti ti-timer"></i></div>
-                                    <div class="stat-info">
-                                       <h3>{{getInProgressCount()}}</h3>
-                                       <p>In Progress</p>
-                                    </div>
-                                 </div>
-                                 <div class="stat-card">
-                                    <div class="stat-icon teal"><i class="ti ti-bar-chart"></i></div>
-                                    <div class="stat-info">
-                                       <h3>{{getAverageScore()}}%</h3>
-                                       <p>Avg Score</p>
-                                    </div>
+                              </div>
+                              <div class="stat-card">
+                                 <div class="stat-icon teal"><i class="ti ti-bar-chart"></i></div>
+                                 <div class="stat-info">
+                                    <h3>{{getAverageScore()}}%</h3>
+                                    <p>Avg Score</p>
                                  </div>
                               </div>
                            </div>
                         </div>
+                     </div>
 
-                        <!-- Filter Bar -->
-                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
-                           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                              <h4 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">
-                                 <i class="ti ti-filter"></i> Filters
-                              </h4>
-                              <button class="btn btn-sm btn-default" ng-click="clearFilters()" ng-if="hasActiveFilters()">
-                                 <i class="ti ti-reload"></i> Clear Filters
-                              </button>
-                           </div>
-
-                           <!-- Row 1: Search, Status, Date Range -->
-                           <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Search</label>
-                                 <input type="text"
-                                        class="form-control"
-                                        ng-model="searchQuery"
-                                        placeholder="Search by student name or email..."
-                                        style="height: 38px;">
-                              </div>
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Status</label>
-                                 <select class="form-control" ng-model="statusFilter" style="height: 38px;">
-                                    <option value="all">All Status</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="in-progress">In Progress</option>
-                                 </select>
-                              </div>
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
-                                    <i class="ti ti-calendar"></i> From Date & Time
-                                 </label>
-                                 <div class="date-input-wrapper">
-                                    <input type="datetime-local"
-                                           id="dateFromInput"
-                                           class="form-control date-input"
-                                           ng-model="dateFrom"
-                                           ng-class="{'has-value': dateFrom}"
-                                           style="height: 38px;">
-                                    <span ng-if="!dateFrom" class="date-placeholder">Not Set</span>
-                                    <button type="button" class="date-icon-btn" onclick="document.getElementById('dateFromInput').showPicker()">
-                                       <i class="ti ti-calendar"></i>
-                                    </button>
-                                 </div>
-                              </div>
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
-                                    <i class="ti ti-calendar"></i> To Date & Time
-                                 </label>
-                                 <div class="date-input-wrapper">
-                                    <input type="datetime-local"
-                                           id="dateToInput"
-                                           class="form-control date-input"
-                                           ng-model="dateTo"
-                                           ng-class="{'has-value': dateTo}"
-                                           style="height: 38px;">
-                                    <span ng-if="!dateTo" class="date-placeholder">Not Set</span>
-                                    <button type="button" class="date-icon-btn" onclick="document.getElementById('dateToInput').showPicker()">
-                                       <i class="ti ti-calendar"></i>
-                                    </button>
-                                 </div>
-                              </div>
-                           </div>
-
-                           <!-- Row 2: Course and Batch Filters -->
-                           <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 15px;">
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
-                                    <i class="ti ti-book"></i> Course
-                                 </label>
-                                 <select class="form-control" ng-model="selectedCourseFilter" ng-change="onCourseChange()" style="height: 38px;">
-                                    <option value="">All Courses</option>
-                                    <option ng-repeat="course in availableCourses" value="{{course.id}}">{{course.name}}</option>
-                                 </select>
-                              </div>
-                              <div>
-                                 <label style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
-                                    <i class="ti ti-layout-grid2"></i> Batch
-                                 </label>
-                                 <!-- Multi-select Batch Dropdown -->
-                                 <div class="batch-multiselect" ng-click="$event.stopPropagation()">
-                                    <div class="batch-multiselect-trigger"
-                                         ng-class="{'disabled': !selectedCourseFilter}"
-                                         ng-click="selectedCourseFilter && toggleBatchDropdown($event)">
-                                       <span>{{getSelectedBatchesText()}}</span>
-                                       <span style="display: flex; align-items: center;">
-                                          <span ng-if="selectedBatchFilters.length > 0" class="batch-count-badge">{{selectedBatchFilters.length}}</span>
-                                          <i class="ti ti-angle-down" style="margin-left: 8px;"></i>
-                                       </span>
-                                    </div>
-                                    <div class="batch-multiselect-dropdown" ng-if="batchDropdownOpen && selectedCourseFilter">
-                                       <div class="batch-multiselect-actions">
-                                          <button class="select-all" ng-click="selectAllBatches($event)">Select All</button>
-                                          <button class="clear-all" ng-click="clearAllBatches($event)">Clear All</button>
-                                       </div>
-                                       <div ng-repeat="batch in filteredBatchesForCourse"
-                                            class="batch-multiselect-item"
-                                            ng-class="{'selected': isBatchSelected(batch.id)}"
-                                            ng-click="toggleBatchSelection(batch.id, $event)">
-                                          <input type="checkbox" ng-checked="isBatchSelected(batch.id)" ng-click="toggleBatchSelection(batch.id, $event)">
-                                          <span>{{batch.name}}</span>
-                                       </div>
-                                       <div ng-if="filteredBatchesForCourse.length === 0" style="padding: 15px; text-align: center; color: #6c757d; font-size: 13px;">
-                                          No batches available for this course
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
-                           </div>
-
-                           <!-- Active Filters Summary -->
-                           <div ng-if="hasActiveFilters()" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
-                              <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                                 <span style="font-size: 12px; font-weight: 600; color: #6c757d;">Active Filters:</span>
-                                 <span ng-if="searchQuery" class="filter-badge">
-                                    Search: "{{searchQuery}}" <i class="ti ti-close" ng-click="searchQuery = ''" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                                 <span ng-if="statusFilter !== 'all'" class="filter-badge">
-                                    Status: {{statusFilter}} <i class="ti ti-close" ng-click="clearStatusFilter()" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                                 <span ng-if="dateFrom" class="filter-badge">
-                                    From: {{formatFilterDate(dateFrom)}} <i class="ti ti-close" ng-click="clearDateFrom()" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                                 <span ng-if="dateTo" class="filter-badge">
-                                    To: {{formatFilterDate(dateTo)}} <i class="ti ti-close" ng-click="clearDateTo()" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                                 <span ng-if="selectedCourseFilter" class="filter-badge">
-                                    Course: {{getCourseName(selectedCourseFilter)}} <i class="ti ti-close" ng-click="clearCourseFilter()" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                                 <span ng-repeat="batchId in selectedBatchFilters" class="filter-badge">
-                                    Batch: {{getBatchName(batchId)}} <i class="ti ti-close" ng-click="removeBatchFilter(batchId)" style="cursor: pointer; margin-left: 4px;"></i>
-                                 </span>
-                              </div>
-                           </div>
+                     <!-- Filter Bar -->
+                     <div
+                        style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+                        <div
+                           style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                           <h4 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">
+                              <i class="ti ti-filter"></i> Filters
+                           </h4>
+                           <button class="btn btn-sm btn-default" ng-click="clearFilters()" ng-if="hasActiveFilters()">
+                              <i class="ti ti-reload"></i> Clear Filters
+                           </button>
                         </div>
 
-                        <!-- Export Button and Record Count -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 15px 0;">
-                           <div style="display: flex; align-items: center; gap: 15px;">
-                              <div style="color: #6c757d; font-size: 14px;">
-                                 <strong>{{getFilteredRankings().length}}</strong> record(s) found
-                              </div>
-                              <div style="display: flex; align-items: center; gap: 8px;">
-                                 <span style="font-size: 13px; color: #6c757d;">Show:</span>
-                                 <select ng-model="pageSize" ng-options="size for size in pageSizeOptions" ng-change="onPageSizeChange()" style="padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; cursor: pointer;">
-                                 </select>
-                                 <span style="font-size: 13px; color: #6c757d;">per page</span>
-                              </div>
+                        <!-- Row 1: Search, Status, Date Range -->
+                        <div
+                           style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Search</label>
+                              <input type="text" class="form-control" ng-model="searchQuery"
+                                 placeholder="Search by student name or email..." style="height: 38px;">
                            </div>
-                           <div style="display: flex; gap: 10px;">
-                              <button class="btn" ng-click="openReEvaluateModal()" ng-disabled="getFilteredRankings().length === 0" style="background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%); border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
-                                 <i class="ti ti-reload"></i> Re-evaluate Responses
-                              </button>
-                              <button class="btn btn-primary" ng-click="openExportModal()" ng-disabled="getFilteredRankings().length === 0" style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
-                                 <i class="ti ti-download"></i> Export Rank List to PDF
-                              </button>
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">Status</label>
+                              <select class="form-control" ng-model="statusFilter" style="height: 38px;">
+                                 <option value="all">All Status</option>
+                                 <option value="completed">Completed</option>
+                                 <option value="in-progress">In Progress</option>
+                              </select>
                            </div>
-                        </div>
-
-                        <!-- Rank Table -->
-                        <div class="rank-table-container" ng-if="getFilteredRankings().length > 0">
-                           <table class="rank-table">
-                              <thead>
-                                 <tr>
-                                    <th class="sortable" style="width: 80px;" ng-click="sortBy('rank')" ng-class="{active: sortColumn === 'rank'}">
-                                       Rank
-                                       <i class="ti sort-icon" ng-class="getSortIcon('rank')"></i>
-                                    </th>
-                                    <th class="sortable" ng-click="sortBy('studentName')" ng-class="{active: sortColumn === 'studentName'}">
-                                       Student Name
-                                       <i class="ti sort-icon" ng-class="getSortIcon('studentName')"></i>
-                                    </th>
-                                    <th class="sortable" ng-click="sortBy('rollNumber')" ng-class="{active: sortColumn === 'rollNumber'}">
-                                       Roll Number
-                                       <i class="ti sort-icon" ng-class="getSortIcon('rollNumber')"></i>
-                                    </th>
-                                    <th>Email</th>
-                                    <th>Status</th>
-                                    <th>Score</th>
-                                    <th class="sortable" ng-click="sortBy('percentage')" ng-class="{active: sortColumn === 'percentage'}">
-                                       Percentage
-                                       <i class="ti sort-icon" ng-class="getSortIcon('percentage')"></i>
-                                    </th>
-                                    <th>Time Taken</th>
-                                    <th>Started At</th>
-                                 </tr>
-                              </thead>
-                              <tbody>
-                                 <tr ng-repeat="ranking in getPaginatedRankings()">
-                                    <td>
-                                       <div class="rank-badge" ng-class="getRankClass(ranking.rank)">
-                                          {{ranking.rank}}
-                                       </div>
-                                    </td>
-                                    <td><strong>{{ranking.studentName}}</strong></td>
-                                    <td style="color: #495057; font-family: monospace; font-size: 12px;">{{ranking.rollNumber}}</td>
-                                    <td style="color: #6c757d;">{{ranking.studentEmail}}</td>
-                                    <td>
-                                       <span class="status-badge" ng-class="ranking.status === 'completed' ? 'status-completed' : 'status-in-progress'">
-                                          {{ranking.status === 'completed' ? 'Completed' : 'In Progress'}}
-                                       </span>
-                                    </td>
-                                    <td>
-                                       <span class="score-badge" ng-class="getScoreClass(ranking.percentage)" ng-if="ranking.status === 'completed'">
-                                          {{ranking.score}}/{{quiz.maximumMarks}}
-                                       </span>
-                                       <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
-                                    </td>
-                                    <td>
-                                       <strong ng-if="ranking.status === 'completed'">{{ranking.percentage}}%</strong>
-                                       <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
-                                    </td>
-                                    <td>
-                                       <span ng-if="ranking.status === 'completed'">{{ranking.timeTaken}}</span>
-                                       <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
-                                    </td>
-                                    <td style="font-size: 12px;">{{formatDateTime(ranking.startedAt)}}</td>
-                                 </tr>
-                              </tbody>
-                           </table>
-
-                           <!-- Pagination -->
-                           <div ng-if="getTotalPages() > 1" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
-                              <div style="font-size: 13px; color: #6c757d;">
-                                 Showing <strong>{{getStartIndex()}}</strong> to <strong>{{getEndIndex()}}</strong> of <strong>{{getFilteredRankings().length}}</strong> records
-                              </div>
-                              <div style="display: flex; align-items: center; gap: 5px;">
-                                 <!-- Previous Button -->
-                                 <button ng-click="prevPage()" ng-disabled="currentPage === 1" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: white; cursor: pointer; font-size: 13px;" ng-style="{'opacity': currentPage === 1 ? '0.5' : '1', 'cursor': currentPage === 1 ? 'not-allowed' : 'pointer'}">
-                                    <i class="ti ti-angle-left"></i>
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                 <i class="ti ti-calendar"></i> From Date & Time
+                              </label>
+                              <div class="date-input-wrapper">
+                                 <input type="datetime-local" id="dateFromInput" class="form-control date-input"
+                                    ng-model="dateFrom" ng-class="{'has-value': dateFrom}" style="height: 38px;">
+                                 <span ng-if="!dateFrom" class="date-placeholder">Not Set</span>
+                                 <button type="button" class="date-icon-btn"
+                                    onclick="document.getElementById('dateFromInput').showPicker()">
+                                    <i class="ti ti-calendar"></i>
                                  </button>
-
-                                 <!-- Page Numbers -->
-                                 <span ng-repeat="page in getPageNumbers()">
-                                    <button ng-if="page !== '...'" ng-click="goToPage(page)" style="padding: 6px 12px; border: 1px solid; border-radius: 4px; font-size: 13px; min-width: 36px; cursor: pointer;" ng-style="{'background': page === currentPage ? '#006073' : 'white', 'color': page === currentPage ? 'white' : '#333', 'border-color': page === currentPage ? '#006073' : '#dee2e6'}">
-                                       {{page}}
-                                    </button>
-                                    <span ng-if="page === '...'" style="padding: 6px 8px; color: #6c757d;">...</span>
-                                 </span>
-
-                                 <!-- Next Button -->
-                                 <button ng-click="nextPage()" ng-disabled="currentPage === getTotalPages()" style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: white; cursor: pointer; font-size: 13px;" ng-style="{'opacity': currentPage === getTotalPages() ? '0.5' : '1', 'cursor': currentPage === getTotalPages() ? 'not-allowed' : 'pointer'}">
-                                    <i class="ti ti-angle-right"></i>
+                              </div>
+                           </div>
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                 <i class="ti ti-calendar"></i> To Date & Time
+                              </label>
+                              <div class="date-input-wrapper">
+                                 <input type="datetime-local" id="dateToInput" class="form-control date-input"
+                                    ng-model="dateTo" ng-class="{'has-value': dateTo}" style="height: 38px;">
+                                 <span ng-if="!dateTo" class="date-placeholder">Not Set</span>
+                                 <button type="button" class="date-icon-btn"
+                                    onclick="document.getElementById('dateToInput').showPicker()">
+                                    <i class="ti ti-calendar"></i>
                                  </button>
                               </div>
                            </div>
                         </div>
 
-                        <!-- Empty State -->
-                        <div class="empty-state" ng-if="getFilteredRankings().length === 0">
-                           <i class="ti ti-search"></i>
-                           <h4>No Results Found</h4>
-                           <p ng-if="searchQuery || statusFilter !== 'all'">Try adjusting your search or filters.</p>
-                           <p ng-if="!searchQuery && statusFilter === 'all'">No students have attempted this quiz yet.</p>
+                        <!-- Row 2: Course and Batch Filters -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 15px;">
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                 <i class="ti ti-book"></i> Course
+                              </label>
+                              <select class="form-control" ng-model="selectedCourseFilter" ng-change="onCourseChange()"
+                                 style="height: 38px;">
+                                 <option value="">All Courses</option>
+                                 <option ng-repeat="course in availableCourses" value="{{course.id}}">{{course.name}}
+                                 </option>
+                              </select>
+                           </div>
+                           <div>
+                              <label
+                                 style="display: block; font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px; text-transform: uppercase;">
+                                 <i class="ti ti-layout-grid2"></i> Batch
+                              </label>
+                              <!-- Multi-select Batch Dropdown -->
+                              <div class="batch-multiselect" ng-click="$event.stopPropagation()">
+                                 <div class="batch-multiselect-trigger" ng-class="{'disabled': !selectedCourseFilter}"
+                                    ng-click="selectedCourseFilter && toggleBatchDropdown($event)">
+                                    <span>{{getSelectedBatchesText()}}</span>
+                                    <span style="display: flex; align-items: center;">
+                                       <span ng-if="selectedBatchFilters.length > 0"
+                                          class="batch-count-badge">{{selectedBatchFilters.length}}</span>
+                                       <i class="ti ti-angle-down" style="margin-left: 8px;"></i>
+                                    </span>
+                                 </div>
+                                 <div class="batch-multiselect-dropdown"
+                                    ng-if="batchDropdownOpen && selectedCourseFilter">
+                                    <div class="batch-multiselect-actions">
+                                       <button class="select-all" ng-click="selectAllBatches($event)">Select
+                                          All</button>
+                                       <button class="clear-all" ng-click="clearAllBatches($event)">Clear All</button>
+                                    </div>
+                                    <div ng-repeat="batch in filteredBatchesForCourse" class="batch-multiselect-item"
+                                       ng-class="{'selected': isBatchSelected(batch.id)}"
+                                       ng-click="toggleBatchSelection(batch.id, $event)">
+                                       <input type="checkbox" ng-checked="isBatchSelected(batch.id)"
+                                          ng-click="toggleBatchSelection(batch.id, $event)">
+                                       <span>{{batch.name}}</span>
+                                    </div>
+                                    <div ng-if="filteredBatchesForCourse.length === 0"
+                                       style="padding: 15px; text-align: center; color: #6c757d; font-size: 13px;">
+                                       No batches available for this course
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
                         </div>
 
+                        <!-- Active Filters Summary -->
+                        <div ng-if="hasActiveFilters()"
+                           style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                           <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                              <span style="font-size: 12px; font-weight: 600; color: #6c757d;">Active Filters:</span>
+                              <span ng-if="searchQuery" class="filter-badge">
+                                 Search: "{{searchQuery}}" <i class="ti ti-close" ng-click="searchQuery = ''"
+                                    style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                              <span ng-if="statusFilter !== 'all'" class="filter-badge">
+                                 Status: {{statusFilter}} <i class="ti ti-close" ng-click="clearStatusFilter()"
+                                    style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                              <span ng-if="dateFrom" class="filter-badge">
+                                 From: {{formatFilterDate(dateFrom)}} <i class="ti ti-close" ng-click="clearDateFrom()"
+                                    style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                              <span ng-if="dateTo" class="filter-badge">
+                                 To: {{formatFilterDate(dateTo)}} <i class="ti ti-close" ng-click="clearDateTo()"
+                                    style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                              <span ng-if="selectedCourseFilter" class="filter-badge">
+                                 Course: {{getCourseName(selectedCourseFilter)}} <i class="ti ti-close"
+                                    ng-click="clearCourseFilter()" style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                              <span ng-repeat="batchId in selectedBatchFilters" class="filter-badge">
+                                 Batch: {{getBatchName(batchId)}} <i class="ti ti-close"
+                                    ng-click="removeBatchFilter(batchId)"
+                                    style="cursor: pointer; margin-left: 4px;"></i>
+                              </span>
+                           </div>
+                        </div>
                      </div>
+
+                     <!-- Export Button and Record Count -->
+                     <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 15px 0;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                           <div style="color: #6c757d; font-size: 14px;">
+                              <strong>{{getFilteredRankings().length}}</strong> record(s) found
+                           </div>
+                           <div style="display: flex; align-items: center; gap: 8px;">
+                              <span style="font-size: 13px; color: #6c757d;">Show:</span>
+                              <select ng-model="pageSize" ng-options="size for size in pageSizeOptions"
+                                 ng-change="onPageSizeChange()"
+                                 style="padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; cursor: pointer;">
+                              </select>
+                              <span style="font-size: 13px; color: #6c757d;">per page</span>
+                           </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                           <button class="btn" ng-click="openReEvaluateModal()"
+                              ng-disabled="getFilteredRankings().length === 0"
+                              style="background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%); border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
+                              <i class="ti ti-reload"></i> Re-evaluate Responses
+                           </button>
+                           <button class="btn btn-primary" ng-click="openExportModal()"
+                              ng-disabled="getFilteredRankings().length === 0"
+                              style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                              <i class="ti ti-download"></i> Export Rank List to PDF
+                           </button>
+                        </div>
+                     </div>
+
+                     <!-- Rank Table -->
+                     <div class="rank-table-container" ng-if="getFilteredRankings().length > 0">
+                        <table class="rank-table">
+                           <thead>
+                              <tr>
+                                 <th class="sortable" style="width: 80px;" ng-click="sortBy('rank')"
+                                    ng-class="{active: sortColumn === 'rank'}">
+                                    Rank
+                                    <i class="ti sort-icon" ng-class="getSortIcon('rank')"></i>
+                                 </th>
+                                 <th class="sortable" ng-click="sortBy('studentName')"
+                                    ng-class="{active: sortColumn === 'studentName'}">
+                                    Student Name
+                                    <i class="ti sort-icon" ng-class="getSortIcon('studentName')"></i>
+                                 </th>
+                                 <th class="sortable" ng-click="sortBy('rollNumber')"
+                                    ng-class="{active: sortColumn === 'rollNumber'}">
+                                    Roll Number
+                                    <i class="ti sort-icon" ng-class="getSortIcon('rollNumber')"></i>
+                                 </th>
+                                 <th>Email</th>
+                                 <th>Status</th>
+                                 <th>Score</th>
+                                 <th class="sortable" ng-click="sortBy('percentage')"
+                                    ng-class="{active: sortColumn === 'percentage'}">
+                                    Percentage
+                                    <i class="ti sort-icon" ng-class="getSortIcon('percentage')"></i>
+                                 </th>
+                                 <th>Time Taken</th>
+                                 <th>Started At</th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              <tr ng-repeat="ranking in getPaginatedRankings()">
+                                 <td>
+                                    <div class="rank-badge" ng-class="getRankClass(ranking.rank)">
+                                       {{ranking.rank}}
+                                    </div>
+                                 </td>
+                                 <td><strong>{{ranking.studentName}}</strong></td>
+                                 <td style="color: #495057; font-family: monospace; font-size: 12px;">
+                                    {{ranking.rollNumber}}</td>
+                                 <td style="color: #6c757d;">{{ranking.studentEmail}}</td>
+                                 <td>
+                                    <span class="status-badge"
+                                       ng-class="ranking.status === 'completed' ? 'status-completed' : 'status-in-progress'">
+                                       {{ranking.status === 'completed' ? 'Completed' : 'In Progress'}}
+                                    </span>
+                                 </td>
+                                 <td>
+                                    <span class="score-badge" ng-class="getScoreClass(ranking.percentage)"
+                                       ng-if="ranking.status === 'completed'">
+                                       {{ranking.score}}/{{quiz.maximumMarks}}
+                                    </span>
+                                    <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
+                                 </td>
+                                 <td>
+                                    <strong ng-if="ranking.status === 'completed'">{{ranking.percentage}}%</strong>
+                                    <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
+                                 </td>
+                                 <td>
+                                    <span ng-if="ranking.status === 'completed'">{{ranking.timeTaken}}</span>
+                                    <span style="color: #6c757d;" ng-if="ranking.status !== 'completed'">-</span>
+                                 </td>
+                                 <td style="font-size: 12px;">{{formatDateTime(ranking.startedAt)}}</td>
+                              </tr>
+                           </tbody>
+                        </table>
+
+                        <!-- Pagination -->
+                        <div ng-if="getTotalPages() > 1"
+                           style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
+                           <div style="font-size: 13px; color: #6c757d;">
+                              Showing <strong>{{getStartIndex()}}</strong> to <strong>{{getEndIndex()}}</strong> of
+                              <strong>{{getFilteredRankings().length}}</strong> records
+                           </div>
+                           <div style="display: flex; align-items: center; gap: 5px;">
+                              <!-- Previous Button -->
+                              <button ng-click="prevPage()" ng-disabled="currentPage === 1"
+                                 style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: white; cursor: pointer; font-size: 13px;"
+                                 ng-style="{'opacity': currentPage === 1 ? '0.5' : '1', 'cursor': currentPage === 1 ? 'not-allowed' : 'pointer'}">
+                                 <i class="ti ti-angle-left"></i>
+                              </button>
+
+                              <!-- Page Numbers -->
+                              <span ng-repeat="page in getPageNumbers()">
+                                 <button ng-if="page !== '...'" ng-click="goToPage(page)"
+                                    style="padding: 6px 12px; border: 1px solid; border-radius: 4px; font-size: 13px; min-width: 36px; cursor: pointer;"
+                                    ng-style="{'background': page === currentPage ? '#006073' : 'white', 'color': page === currentPage ? 'white' : '#333', 'border-color': page === currentPage ? '#006073' : '#dee2e6'}">
+                                    {{page}}
+                                 </button>
+                                 <span ng-if="page === '...'" style="padding: 6px 8px; color: #6c757d;">...</span>
+                              </span>
+
+                              <!-- Next Button -->
+                              <button ng-click="nextPage()" ng-disabled="currentPage === getTotalPages()"
+                                 style="padding: 6px 12px; border: 1px solid #dee2e6; border-radius: 4px; background: white; cursor: pointer; font-size: 13px;"
+                                 ng-style="{'opacity': currentPage === getTotalPages() ? '0.5' : '1', 'cursor': currentPage === getTotalPages() ? 'not-allowed' : 'pointer'}">
+                                 <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Empty State -->
+                     <div class="empty-state" ng-if="getFilteredRankings().length === 0">
+                        <i class="ti ti-search"></i>
+                        <h4>No Results Found</h4>
+                        <p ng-if="searchQuery || statusFilter !== 'all'">Try adjusting your search or filters.</p>
+                        <p ng-if="!searchQuery && statusFilter === 'all'">No students have attempted this quiz yet.</p>
+                     </div>
+
                   </div>
                </div>
             </div>
          </div>
       </div>
+   </div>
 
-      <!-- Re-evaluate Confirmation Modal -->
-      <div class="modal-backdrop" ng-class="{active: showReEvaluateModal}" ng-click="closeReEvaluateModal()">
-         <div class="modal-content" ng-click="$event.stopPropagation()">
-            <div class="modal-header">
-               <h4><i class="ti ti-reload"></i> Re-evaluate Responses</h4>
-               <button class="modal-close" ng-click="closeReEvaluateModal()">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
-            <div class="modal-body">
-               <div style="text-align: center; padding: 20px 0;">
-                  <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                     <i class="ti ti-alert-triangle" style="font-size: 32px; color: #856404;"></i>
+   <!-- Re-evaluate Confirmation Modal -->
+   <div class="modal-backdrop" ng-class="{active: showReEvaluateModal}" ng-click="closeReEvaluateModal()">
+      <div class="modal-content" ng-click="$event.stopPropagation()">
+         <div class="modal-header">
+            <h4><i class="ti ti-reload"></i> Re-evaluate Responses</h4>
+            <button class="modal-close" ng-click="closeReEvaluateModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body">
+            <div style="text-align: center; padding: 20px 0;">
+               <div
+                  style="width: 70px; height: 70px; background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                  <i class="ti ti-alert-triangle" style="font-size: 32px; color: #856404;"></i>
+               </div>
+               <h4 style="margin: 0 0 10px; color: #333; font-size: 18px;">Confirm Re-evaluation</h4>
+               <p style="color: #6c757d; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
+                  This will re-evaluate <strong style="color: #006073;">{{getFilteredRankings().length}}</strong>
+                  student response(s) based on the current answer keys.
+               </p>
+               <div
+                  style="background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; margin-bottom: 20px;">
+                  <div style="font-size: 13px; color: #495057; margin-bottom: 8px;">
+                     <i class="ti ti-info-circle" style="color: #006073; margin-right: 5px;"></i>
+                     <strong>What this does:</strong>
                   </div>
-                  <h4 style="margin: 0 0 10px; color: #333; font-size: 18px;">Confirm Re-evaluation</h4>
-                  <p style="color: #6c757d; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
-                     This will re-evaluate <strong style="color: #006073;">{{getFilteredRankings().length}}</strong> student response(s) based on the current answer keys.
-                  </p>
-                  <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; margin-bottom: 20px;">
-                     <div style="font-size: 13px; color: #495057; margin-bottom: 8px;">
-                        <i class="ti ti-info-circle" style="color: #006073; margin-right: 5px;"></i>
-                        <strong>What this does:</strong>
-                     </div>
-                     <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #6c757d; line-height: 1.8;">
-                        <li>Recalculates scores for all filtered attempts</li>
-                        <li>Updates rankings based on new scores</li>
-                        <li>Reflects any changes made to answer keys</li>
-                     </ul>
-                  </div>
-                  <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; text-align: left;">
-                     <div style="display: flex; align-items: flex-start; gap: 10px;">
-                        <i class="ti ti-alert-circle" style="color: #856404; font-size: 18px; margin-top: 2px;"></i>
-                        <div style="font-size: 12px; color: #856404; line-height: 1.5;">
-                           <strong>Note:</strong> This action cannot be undone. Student notifications may be sent if scores change significantly.
-                        </div>
+                  <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #6c757d; line-height: 1.8;">
+                     <li>Recalculates scores for all filtered attempts</li>
+                     <li>Updates rankings based on new scores</li>
+                     <li>Reflects any changes made to answer keys</li>
+                  </ul>
+               </div>
+               <div
+                  style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; text-align: left;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                     <i class="ti ti-alert-circle" style="color: #856404; font-size: 18px; margin-top: 2px;"></i>
+                     <div style="font-size: 12px; color: #856404; line-height: 1.5;">
+                        <strong>Note:</strong> This action cannot be undone. Student notifications may be sent if scores
+                        change significantly.
                      </div>
                   </div>
                </div>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid #e9ecef;">
-               <button class="btn btn-default" ng-click="closeReEvaluateModal()" style="padding: 10px 20px; border-radius: 6px; font-size: 14px;">
-                  Cancel
-               </button>
-               <button class="btn" ng-click="confirmReEvaluate()" style="background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%); border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
-                  <i class="ti ti-check"></i> Yes, Re-evaluate
-               </button>
-            </div>
+         </div>
+         <div class="modal-footer"
+            style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid #e9ecef;">
+            <button class="btn btn-default" ng-click="closeReEvaluateModal()"
+               style="padding: 10px 20px; border-radius: 6px; font-size: 14px;">
+               Cancel
+            </button>
+            <button class="btn" ng-click="confirmReEvaluate()"
+               style="background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%); border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
+               <i class="ti ti-check"></i> Yes, Re-evaluate
+            </button>
          </div>
       </div>
+   </div>
 
-      <!-- Export PDF Confirmation Modal -->
-      <div class="modal-backdrop" ng-class="{active: showExportModal}" ng-click="closeExportModal()">
-         <div class="modal-content" ng-click="$event.stopPropagation()">
-            <div class="modal-header">
-               <h4 style="color: #006073;"><i class="ti ti-download" style="color: #006073;"></i> Export Rank List</h4>
-               <button class="modal-close" ng-click="closeExportModal()">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
-            <div class="modal-body">
-               <div style="text-align: center; padding: 20px 0;">
-                  <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #e3f2f5 0%, #d0e8ed 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                     <i class="ti ti-file-pdf" style="font-size: 32px; color: #006073;"></i>
+   <!-- Export PDF Confirmation Modal -->
+   <div class="modal-backdrop" ng-class="{active: showExportModal}" ng-click="closeExportModal()">
+      <div class="modal-content" ng-click="$event.stopPropagation()">
+         <div class="modal-header">
+            <h4 style="color: #006073;"><i class="ti ti-download" style="color: #006073;"></i> Export Rank List</h4>
+            <button class="modal-close" ng-click="closeExportModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body">
+            <div style="text-align: center; padding: 20px 0;">
+               <div
+                  style="width: 70px; height: 70px; background: linear-gradient(135deg, #e3f2f5 0%, #d0e8ed 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                  <i class="ti ti-file-pdf" style="font-size: 32px; color: #006073;"></i>
+               </div>
+               <h4 style="margin: 0 0 10px; color: #333; font-size: 18px;">Confirm PDF Export</h4>
+               <p style="color: #6c757d; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
+                  You are about to export <strong style="color: #006073;">{{getFilteredRankings().length}}</strong>
+                  record(s) to PDF.
+               </p>
+               <div
+                  style="background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; margin-bottom: 20px;">
+                  <div
+                     style="font-size: 13px; color: #495057; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                     <span>
+                        <i class="ti ti-layout-list" style="color: #006073; margin-right: 5px;"></i>
+                        <strong>Select columns to include:</strong>
+                     </span>
+                     <button type="button" ng-click="selectAllExportColumns()"
+                        style="font-size: 11px; padding: 3px 8px; background: #006073; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Select All
+                     </button>
                   </div>
-                  <h4 style="margin: 0 0 10px; color: #333; font-size: 18px;">Confirm PDF Export</h4>
-                  <p style="color: #6c757d; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
-                     You are about to export <strong style="color: #006073;">{{getFilteredRankings().length}}</strong> record(s) to PDF.
-                  </p>
-                  <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; margin-bottom: 20px;">
-                     <div style="font-size: 13px; color: #495057; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>
-                           <i class="ti ti-layout-list" style="color: #006073; margin-right: 5px;"></i>
-                           <strong>Select columns to include:</strong>
-                        </span>
-                        <button type="button" ng-click="selectAllExportColumns()" style="font-size: 11px; padding: 3px 8px; background: #006073; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                           Select All
-                        </button>
-                     </div>
-                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <!-- Rank -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
-                               ng-style="{'background': exportColumns.rank ? '#e3f2f5' : 'white', 'border-color': exportColumns.rank ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('rank') ? '1' : '0.7'}">
-                           <input type="checkbox" ng-checked="exportColumns.rank" ng-click="toggleExportColumn('rank')" ng-disabled="!canToggleColumn('rank')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Rank</span>
-                           <i ng-if="!canToggleColumn('rank')" class="ti ti-lock" style="font-size: 10px; color: #6c757d; margin-left: auto;" title="Either Rank or Total Score must be selected"></i>
-                        </label>
-                        <!-- Student Name -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
-                               ng-style="{'background': exportColumns.studentName ? '#e3f2f5' : 'white', 'border-color': exportColumns.studentName ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('studentName') ? '1' : '0.7'}">
-                           <input type="checkbox" ng-checked="exportColumns.studentName" ng-click="toggleExportColumn('studentName')" ng-disabled="!canToggleColumn('studentName')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Student Name</span>
-                           <i ng-if="!canToggleColumn('studentName')" class="ti ti-lock" style="font-size: 10px; color: #6c757d; margin-left: auto;" title="Either Student Name or Roll Number must be selected"></i>
-                        </label>
-                        <!-- Roll Number -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
-                               ng-style="{'background': exportColumns.rollNumber ? '#e3f2f5' : 'white', 'border-color': exportColumns.rollNumber ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('rollNumber') ? '1' : '0.7'}">
-                           <input type="checkbox" ng-checked="exportColumns.rollNumber" ng-click="toggleExportColumn('rollNumber')" ng-disabled="!canToggleColumn('rollNumber')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Roll Number</span>
-                           <i ng-if="!canToggleColumn('rollNumber')" class="ti ti-lock" style="font-size: 10px; color: #6c757d; margin-left: auto;" title="Either Student Name or Roll Number must be selected"></i>
-                        </label>
-                        <!-- Total Score -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
-                               ng-style="{'background': exportColumns.totalScore ? '#e3f2f5' : 'white', 'border-color': exportColumns.totalScore ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('totalScore') ? '1' : '0.7'}">
-                           <input type="checkbox" ng-checked="exportColumns.totalScore" ng-click="toggleExportColumn('totalScore')" ng-disabled="!canToggleColumn('totalScore')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Total Score</span>
-                           <i ng-if="!canToggleColumn('totalScore')" class="ti ti-lock" style="font-size: 10px; color: #6c757d; margin-left: auto;" title="Either Rank or Total Score must be selected"></i>
-                        </label>
-                        <!-- Percentage -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
-                               ng-style="{'background': exportColumns.percentage ? '#e3f2f5' : 'white', 'border-color': exportColumns.percentage ? '#006073' : '#e9ecef'}">
-                           <input type="checkbox" ng-checked="exportColumns.percentage" ng-click="toggleExportColumn('percentage')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Percentage</span>
-                        </label>
-                        <!-- Total Attempts -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
-                               ng-style="{'background': exportColumns.totalAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.totalAttempts ? '#006073' : '#e9ecef'}">
-                           <input type="checkbox" ng-checked="exportColumns.totalAttempts" ng-click="toggleExportColumn('totalAttempts')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Total Attempts</span>
-                        </label>
-                        <!-- Correct Attempts -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
-                               ng-style="{'background': exportColumns.correctAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.correctAttempts ? '#006073' : '#e9ecef'}">
-                           <input type="checkbox" ng-checked="exportColumns.correctAttempts" ng-click="toggleExportColumn('correctAttempts')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Correct Attempts</span>
-                        </label>
-                        <!-- Wrong Attempts -->
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
-                               ng-style="{'background': exportColumns.wrongAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.wrongAttempts ? '#006073' : '#e9ecef'}">
-                           <input type="checkbox" ng-checked="exportColumns.wrongAttempts" ng-click="toggleExportColumn('wrongAttempts')" style="width: 16px; height: 16px; cursor: pointer;">
-                           <span style="color: #333;">Wrong Attempts</span>
-                        </label>
-                     </div>
-                     <div style="margin-top: 10px; font-size: 11px; color: #6c757d; display: flex; align-items: center; gap: 5px;">
-                        <i class="ti ti-info-circle"></i>
-                        <span>Either Student Name or Roll Number must be selected. Either Rank or Total Score must be selected.</span>
-                     </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                     <!-- Rank -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
+                        ng-style="{'background': exportColumns.rank ? '#e3f2f5' : 'white', 'border-color': exportColumns.rank ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('rank') ? '1' : '0.7'}">
+                        <input type="checkbox" ng-checked="exportColumns.rank" ng-click="toggleExportColumn('rank')"
+                           ng-disabled="!canToggleColumn('rank')" style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Rank</span>
+                        <i ng-if="!canToggleColumn('rank')" class="ti ti-lock"
+                           style="font-size: 10px; color: #6c757d; margin-left: auto;"
+                           title="Either Rank or Total Score must be selected"></i>
+                     </label>
+                     <!-- Student Name -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
+                        ng-style="{'background': exportColumns.studentName ? '#e3f2f5' : 'white', 'border-color': exportColumns.studentName ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('studentName') ? '1' : '0.7'}">
+                        <input type="checkbox" ng-checked="exportColumns.studentName"
+                           ng-click="toggleExportColumn('studentName')" ng-disabled="!canToggleColumn('studentName')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Student Name</span>
+                        <i ng-if="!canToggleColumn('studentName')" class="ti ti-lock"
+                           style="font-size: 10px; color: #6c757d; margin-left: auto;"
+                           title="Either Student Name or Roll Number must be selected"></i>
+                     </label>
+                     <!-- Roll Number -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
+                        ng-style="{'background': exportColumns.rollNumber ? '#e3f2f5' : 'white', 'border-color': exportColumns.rollNumber ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('rollNumber') ? '1' : '0.7'}">
+                        <input type="checkbox" ng-checked="exportColumns.rollNumber"
+                           ng-click="toggleExportColumn('rollNumber')" ng-disabled="!canToggleColumn('rollNumber')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Roll Number</span>
+                        <i ng-if="!canToggleColumn('rollNumber')" class="ti ti-lock"
+                           style="font-size: 10px; color: #6c757d; margin-left: auto;"
+                           title="Either Student Name or Roll Number must be selected"></i>
+                     </label>
+                     <!-- Total Score -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; position: relative;"
+                        ng-style="{'background': exportColumns.totalScore ? '#e3f2f5' : 'white', 'border-color': exportColumns.totalScore ? '#006073' : '#e9ecef', 'opacity': canToggleColumn('totalScore') ? '1' : '0.7'}">
+                        <input type="checkbox" ng-checked="exportColumns.totalScore"
+                           ng-click="toggleExportColumn('totalScore')" ng-disabled="!canToggleColumn('totalScore')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Total Score</span>
+                        <i ng-if="!canToggleColumn('totalScore')" class="ti ti-lock"
+                           style="font-size: 10px; color: #6c757d; margin-left: auto;"
+                           title="Either Rank or Total Score must be selected"></i>
+                     </label>
+                     <!-- Percentage -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
+                        ng-style="{'background': exportColumns.percentage ? '#e3f2f5' : 'white', 'border-color': exportColumns.percentage ? '#006073' : '#e9ecef'}">
+                        <input type="checkbox" ng-checked="exportColumns.percentage"
+                           ng-click="toggleExportColumn('percentage')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Percentage</span>
+                     </label>
+                     <!-- Total Attempts -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
+                        ng-style="{'background': exportColumns.totalAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.totalAttempts ? '#006073' : '#e9ecef'}">
+                        <input type="checkbox" ng-checked="exportColumns.totalAttempts"
+                           ng-click="toggleExportColumn('totalAttempts')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Total Attempts</span>
+                     </label>
+                     <!-- Correct Attempts -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
+                        ng-style="{'background': exportColumns.correctAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.correctAttempts ? '#006073' : '#e9ecef'}">
+                        <input type="checkbox" ng-checked="exportColumns.correctAttempts"
+                           ng-click="toggleExportColumn('correctAttempts')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Correct Attempts</span>
+                     </label>
+                     <!-- Wrong Attempts -->
+                     <label
+                        style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s;"
+                        ng-style="{'background': exportColumns.wrongAttempts ? '#e3f2f5' : 'white', 'border-color': exportColumns.wrongAttempts ? '#006073' : '#e9ecef'}">
+                        <input type="checkbox" ng-checked="exportColumns.wrongAttempts"
+                           ng-click="toggleExportColumn('wrongAttempts')"
+                           style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #333;">Wrong Attempts</span>
+                     </label>
                   </div>
-                  <div ng-if="hasActiveFilters()" style="background: #e3f2f5; border: 1px solid #006073; border-radius: 6px; padding: 12px; text-align: left;">
-                     <div style="display: flex; align-items: flex-start; gap: 10px;">
-                        <i class="ti ti-filter" style="color: #006073; font-size: 18px; margin-top: 2px;"></i>
-                        <div style="font-size: 12px; color: #006073; line-height: 1.5;">
-                           <strong>Note:</strong> Active filters are applied. Only filtered records will be exported.
-                        </div>
+                  <div
+                     style="margin-top: 10px; font-size: 11px; color: #6c757d; display: flex; align-items: center; gap: 5px;">
+                     <i class="ti ti-info-circle"></i>
+                     <span>Either Student Name or Roll Number must be selected. Either Rank or Total Score must be
+                        selected.</span>
+                  </div>
+               </div>
+               <div ng-if="hasActiveFilters()"
+                  style="background: #e3f2f5; border: 1px solid #006073; border-radius: 6px; padding: 12px; text-align: left;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                     <i class="ti ti-filter" style="color: #006073; font-size: 18px; margin-top: 2px;"></i>
+                     <div style="font-size: 12px; color: #006073; line-height: 1.5;">
+                        <strong>Note:</strong> Active filters are applied. Only filtered records will be exported.
                      </div>
                   </div>
                </div>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid #e9ecef;">
-               <button class="btn btn-default" ng-click="closeExportModal()" style="padding: 10px 20px; border-radius: 6px; font-size: 14px;">
-                  Cancel
-               </button>
-               <button class="btn" ng-click="confirmExportPDF()" style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
-                  <i class="ti ti-download"></i> Export PDF
-               </button>
-            </div>
+         </div>
+         <div class="modal-footer"
+            style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid #e9ecef;">
+            <button class="btn btn-default" ng-click="closeExportModal()"
+               style="padding: 10px 20px; border-radius: 6px; font-size: 14px;">
+               Cancel
+            </button>
+            <button class="btn" ng-click="confirmExportPDF()"
+               style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
+               <i class="ti ti-download"></i> Export PDF
+            </button>
          </div>
       </div>
+   </div>
 
-      <!-- Scripts -->
-      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
-      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
-      <script type="text/javascript" src="assets/js/angular.min.js"></script>
-      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
-      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
-      <script type="text/javascript" src="assets/js/application.js"></script>
-      <script type="text/javascript" src="assets/demo/demo.js"></script>
-      <script src="controllers/quiz-attempt-report.js"></script>
-   </body>
+   <!-- Scripts -->
+   <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+   <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+   <script type="text/javascript" src="assets/js/angular.min.js"></script>
+   <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+   <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+   <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+   <script type="text/javascript" src="assets/js/application.js"></script>
+   <script type="text/javascript" src="assets/demo/demo.js"></script>
+   <script src="controllers/quiz-attempt-report.js"></script>
+</body>
+
 </html>

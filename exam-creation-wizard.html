@@ -1,247 +1,592 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <title>Exam Creation Wizard - VegaPilot</title>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-touch-fullscreen" content="yes">
-      <meta name="description" content="VegaPilot Exam Creation Wizard">
-      <meta name="author" content="VegaPilot">
-      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
-      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">
 
-      <style type="text/css">
-         /* Page Header Section */
-         .page-header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
-            border-radius: 8px;
-            color: white;
-         }
-         .page-header-section h2 {
-            margin: 0;
-            color: white;
-            font-size: 28px;
-            font-weight: 600;
-         }
-         .page-header-section p {
-            margin: 5px 0 0 0;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-         }
+<head>
+   <meta charset="utf-8">
+   <title>Exam Creation Wizard - VegaPilot</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+   <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-touch-fullscreen" content="yes">
+   <meta name="description" content="VegaPilot Exam Creation Wizard">
+   <meta name="author" content="VegaPilot">
+   <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+      rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/fullcalendar/fullcalendar.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/form-select2/select2.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/dropzone/dropzone.css" rel="stylesheet">
 
-         /* Stats Cards */
-         .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-         }
-         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-         }
-         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-         }
-         .stat-icon.teal { background: #006073; }
-         .stat-icon.green { background: #28a745; }
-         .stat-icon.orange { background: #fd7e14; }
-         .stat-icon.purple { background: #6f42c1; }
-         .stat-icon.blue { background: #007bff; }
-         .stat-info h3 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-            color: #2c3e50;
-         }
-         .stat-info p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: #6c757d;
-         }
+   <style type="text/css">
+      /* Header Layout */
+      #topnav {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: flex-start !important;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+         position: relative !important;
+      }
 
-         /* Wizard Styles */
-         .wizard-step { display: none; }
-         .wizard-step.active { display: block; }
-         .wizard-nav { margin-bottom: 30px; }
-         .wizard-nav .step { display: inline-block; width: 40px; height: 40px; border-radius: 50%; background: #f0f0f0; text-align: center; line-height: 40px; margin: 0 10px; color: #666; }
-         .wizard-nav .step.active { background: #007bff; color: white; }
-         .wizard-nav .step.completed { background: #28a745; color: white; }
-         .wizard-nav .step-line { display: inline-block; width: 60px; height: 2px; background: #ddd; margin: 0 5px; vertical-align: middle; }
-         .wizard-nav .step-line.completed { background: #28a745; }
-         
-         .section-card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
-         .section-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #007bff; }
-         .section-header { background: #f8f9fa; padding: 15px; border-radius: 8px 8px 0 0; border-bottom: 1px solid #ddd; }
-         .section-title { font-size: 18px; font-weight: bold; color: #333; margin: 0; }
-         .section-info { color: #666; margin: 5px 0 0 0; }
-         
-         .question-item { border: 1px solid #e9ecef; border-radius: 6px; margin: 10px; padding: 15px; background: white; transition: all 0.2s ease; }
-         .question-item:hover { border-color: #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-         .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-         .question-title { font-weight: bold; color: #333; margin: 0; }
-         .question-meta { color: #666; font-size: 12px; }
-         .question-actions { display: flex; gap: 5px; }
-         
-         .question-bank-item { border: 1px solid #e9ecef; border-radius: 6px; margin: 5px 0; padding: 10px; background: white; cursor: pointer; transition: all 0.2s ease; }
-         .question-bank-item:hover { border-color: #007bff; background: #f8f9fa; }
-         .question-bank-item.selected { border-color: #28a745; background: #d4edda; }
-         .question-bank-item input[type="checkbox"] { margin-right: 10px; }
-         
-         .question-preview { max-width: 200px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd; }
-         .question-details { flex: 1; margin-left: 10px; }
-         
-         .exam-summary { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; }
-         .exam-summary h4 { color: #333; margin-bottom: 15px; }
-         .exam-summary-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-         .exam-summary-item:last-child { border-bottom: none; }
-         
-         .section-summary { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 10px 0; }
-         .section-summary h5 { color: #333; margin-bottom: 10px; }
-         
-         .info-tile { transition: all 0.3s ease; }
-         .info-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-         
-         .btn-wizard { padding: 12px 24px; font-size: 16px; margin: 0 10px; }
-         .btn-wizard:disabled { opacity: 0.6; cursor: not-allowed; }
-         
-         .question-filters { background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 15px 0; }
-         .question-filters h5 { margin-top: 0; color: #333; }
-         
-         .filter-group { margin-bottom: 15px; }
-         .filter-group label { font-weight: bold; color: #555; margin-bottom: 5px; display: block; }
-         
-         .question-count { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-         
-         .alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-         .alert-info h3 { margin-top: 0; color: #0c5460; }
-         
-         .copyQuestion { cursor: pointer; margin-left: 8px; color: #666; transition: color 0.2s ease; }
-         .copyQuestion:hover { color: #007bff; }
-         .copiedMessage { background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; position: absolute; z-index: 1000; }
-         
-         .panel-ctrls { position: absolute; right: 12px; top: 14px; }
-         .btn-group .btn { border-radius: 0; }
-         .btn-group .btn:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
-         .btn-group .btn:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
-      </style>
+      /* Navbar text and elements color */
+      #topnav .navbar-brand,
+      #topnav h2,
+      #topnav .toolbar-icon-bg a {
+         color: white !important;
+      }
 
-      <script src="assets/js/jquery.js"></script>
-      <script src="assets/js/angular.min.js"></script>
-      <script src="assets/js/angular-cookies.min.js"></script>
-      <script src="controllers/exam-creation-wizard.js"></script>
-      <script src="assets/plugins/cropper/cropper.js"></script>
-      <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
-   </head>
+      #topnav .logo-area .navbar-brand {
+         color: white !important;
+      }
 
-   <body class="animated-content" ng-app="examCreationWizardApp" ng-controller="examCreationWizardController" ng-cloak> 
-     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
-        <div class="logo-area">
-           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
-           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-           <span class="icon-bg"><i class="ti ti-menu"></i></span>
-           </a>
-           </span>
-           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
-        </div>
-        <ul class="nav navbar-nav toolbar pull-right">
-           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
-              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
-           </li>
-           <li class="dropdown toolbar-icon-bg">
-              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
-              <img class="img-circle" src="assets/img/default_user.png" alt="" />
-              </a>
-              <ul class="dropdown-menu userinfo arrow">
-                 <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
-              </ul>
-           </li>
-        </ul>
-     </header>
-     
-      <div id="wrapper">
-         <div id="layout-static">
-           <div class="static-sidebar-wrapper sidebar-default">
-              <div class="static-sidebar">
-                 <div class="sidebar">
-                    <div class="widget stay-on-collapse" id="widget-sidebar">
-                       <nav role="navigation" class="widget-body">
-                           <ul class="acc-menu">
+      /* Toolbar icon backgrounds - blend with gradient */
+      #topnav .toolbar-icon-bg .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
 
-                              <li class="nav-separator"><span>Programs</span></li>
-                              <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
-                              <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a></li>
-                              <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
-                              <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+      #topnav .toolbar-icon-bg:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+         border-color: rgba(255, 255, 255, 0.3) !important;
+      }
 
-                              <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                              <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                              <li><a href="exam-listing.html" class="active"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+      #topnav .toolbar-icon-bg i {
+         color: white !important;
+      }
 
-                              <li class="nav-separator"><span>Content Library</span></li>
-                              <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
-                              <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a></li>
-                              <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a></li>
-                              <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a></li>
+      /* Sidebar trigger specific styling */
+      #topnav #trigger-sidebar .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
 
-                              <li class="nav-separator"><span>Commerce</span></li>
-                              <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
-                              <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                              <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+      #topnav #trigger-sidebar:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+      }
 
-                              <li class="nav-separator"><span>People</span></li>
-                              <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a></li>
-                              <li><a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
-                           </ul>
-                       </nav>
-                    </div>
-                 </div>
-              </div>
-           </div>
+      /* Sidebar active menu item styling */
+      .acc-menu li a.active {
+         border-left: 5px solid #005e70 !important;
+         color: #005e6f !important;
+         font-weight: bold !important;
+         background: rgba(0, 94, 112, 0.1) !important;
+      }
 
-            <div class="static-content-wrapper">
-               <div class="static-content">
-                  <div class="page-content">
-                     <div class="container-fluid" style="padding-top: 4%;">
+      .acc-menu li a.active i {
+         color: #005e6f !important;
+      }
+
+      /* Remove wrapper padding */
+      #wrapper {
+         padding: 0 !important;
+      }
+   </style>
+   <style type="text/css">
+      /* Page Header Section */
+      .page-header-section {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 30px;
+         padding: 20px;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+         border-radius: 8px;
+         color: white;
+      }
+
+      .page-header-section h2 {
+         margin: 0;
+         color: white;
+         font-size: 28px;
+         font-weight: 600;
+      }
+
+      .page-header-section p {
+         margin: 5px 0 0 0;
+         color: rgba(255, 255, 255, 0.9);
+         font-size: 14px;
+      }
+
+      /* Stats Cards */
+      .stats-row {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+         gap: 20px;
+         margin-bottom: 30px;
+      }
+
+      .stat-card {
+         background: white;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         display: flex;
+         align-items: center;
+         gap: 15px;
+      }
+
+      .stat-icon {
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 24px;
+         color: white;
+      }
+
+      .stat-icon.teal {
+         background: #006073;
+      }
+
+      .stat-icon.green {
+         background: #28a745;
+      }
+
+      .stat-icon.orange {
+         background: #fd7e14;
+      }
+
+      .stat-icon.purple {
+         background: #6f42c1;
+      }
+
+      .stat-icon.blue {
+         background: #007bff;
+      }
+
+      .stat-info h3 {
+         margin: 0;
+         font-size: 28px;
+         font-weight: 600;
+         color: #2c3e50;
+      }
+
+      .stat-info p {
+         margin: 5px 0 0 0;
+         font-size: 13px;
+         color: #6c757d;
+      }
+
+      /* Wizard Styles */
+      .wizard-step {
+         display: none;
+      }
+
+      .wizard-step.active {
+         display: block;
+      }
+
+      .wizard-nav {
+         margin-bottom: 30px;
+      }
+
+      .wizard-nav .step {
+         display: inline-block;
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         background: #f0f0f0;
+         text-align: center;
+         line-height: 40px;
+         margin: 0 10px;
+         color: #666;
+      }
+
+      .wizard-nav .step.active {
+         background: #007bff;
+         color: white;
+      }
+
+      .wizard-nav .step.completed {
+         background: #28a745;
+         color: white;
+      }
+
+      .wizard-nav .step-line {
+         display: inline-block;
+         width: 60px;
+         height: 2px;
+         background: #ddd;
+         margin: 0 5px;
+         vertical-align: middle;
+      }
+
+      .wizard-nav .step-line.completed {
+         background: #28a745;
+      }
+
+      .section-card {
+         border: 1px solid #ddd;
+         border-radius: 8px;
+         margin-bottom: 20px;
+         transition: all 0.3s ease;
+      }
+
+      .section-card:hover {
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+         border-color: #007bff;
+      }
+
+      .section-header {
+         background: #f8f9fa;
+         padding: 15px;
+         border-radius: 8px 8px 0 0;
+         border-bottom: 1px solid #ddd;
+      }
+
+      .section-title {
+         font-size: 18px;
+         font-weight: bold;
+         color: #333;
+         margin: 0;
+      }
+
+      .section-info {
+         color: #666;
+         margin: 5px 0 0 0;
+      }
+
+      .question-item {
+         border: 1px solid #e9ecef;
+         border-radius: 6px;
+         margin: 10px;
+         padding: 15px;
+         background: white;
+         transition: all 0.2s ease;
+      }
+
+      .question-item:hover {
+         border-color: #007bff;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .question-header {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 10px;
+      }
+
+      .question-title {
+         font-weight: bold;
+         color: #333;
+         margin: 0;
+      }
+
+      .question-meta {
+         color: #666;
+         font-size: 12px;
+      }
+
+      .question-actions {
+         display: flex;
+         gap: 5px;
+      }
+
+      .question-bank-item {
+         border: 1px solid #e9ecef;
+         border-radius: 6px;
+         margin: 5px 0;
+         padding: 10px;
+         background: white;
+         cursor: pointer;
+         transition: all 0.2s ease;
+      }
+
+      .question-bank-item:hover {
+         border-color: #007bff;
+         background: #f8f9fa;
+      }
+
+      .question-bank-item.selected {
+         border-color: #28a745;
+         background: #d4edda;
+      }
+
+      .question-bank-item input[type="checkbox"] {
+         margin-right: 10px;
+      }
+
+      .question-preview {
+         max-width: 200px;
+         max-height: 150px;
+         border-radius: 4px;
+         border: 1px solid #ddd;
+      }
+
+      .question-details {
+         flex: 1;
+         margin-left: 10px;
+      }
+
+      .exam-summary {
+         background: #f8f9fa;
+         border: 1px solid #ddd;
+         border-radius: 8px;
+         padding: 20px;
+         margin: 20px 0;
+      }
+
+      .exam-summary h4 {
+         color: #333;
+         margin-bottom: 15px;
+      }
+
+      .exam-summary-item {
+         display: flex;
+         justify-content: space-between;
+         padding: 8px 0;
+         border-bottom: 1px solid #eee;
+      }
+
+      .exam-summary-item:last-child {
+         border-bottom: none;
+      }
+
+      .section-summary {
+         background: white;
+         border: 1px solid #ddd;
+         border-radius: 6px;
+         padding: 15px;
+         margin: 10px 0;
+      }
+
+      .section-summary h5 {
+         color: #333;
+         margin-bottom: 10px;
+      }
+
+      .info-tile {
+         transition: all 0.3s ease;
+      }
+
+      .info-tile:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-wizard {
+         padding: 12px 24px;
+         font-size: 16px;
+         margin: 0 10px;
+      }
+
+      .btn-wizard:disabled {
+         opacity: 0.6;
+         cursor: not-allowed;
+      }
+
+      .question-filters {
+         background: #f8f9fa;
+         border: 1px solid #ddd;
+         border-radius: 6px;
+         padding: 15px;
+         margin: 15px 0;
+      }
+
+      .question-filters h5 {
+         margin-top: 0;
+         color: #333;
+      }
+
+      .filter-group {
+         margin-bottom: 15px;
+      }
+
+      .filter-group label {
+         font-weight: bold;
+         color: #555;
+         margin-bottom: 5px;
+         display: block;
+      }
+
+      .question-count {
+         background: #007bff;
+         color: white;
+         padding: 2px 8px;
+         border-radius: 12px;
+         font-size: 11px;
+         font-weight: bold;
+      }
+
+      .alert-info {
+         background-color: #d1ecf1;
+         border-color: #bee5eb;
+         color: #0c5460;
+         padding: 15px;
+         margin-bottom: 20px;
+         border-radius: 4px;
+      }
+
+      .alert-info h3 {
+         margin-top: 0;
+         color: #0c5460;
+      }
+
+      .copyQuestion {
+         cursor: pointer;
+         margin-left: 8px;
+         color: #666;
+         transition: color 0.2s ease;
+      }
+
+      .copyQuestion:hover {
+         color: #007bff;
+      }
+
+      .copiedMessage {
+         background: #28a745;
+         color: white;
+         padding: 2px 6px;
+         border-radius: 3px;
+         font-size: 10px;
+         position: absolute;
+         z-index: 1000;
+      }
+
+      .panel-ctrls {
+         position: absolute;
+         right: 12px;
+         top: 14px;
+      }
+
+      .btn-group .btn {
+         border-radius: 0;
+      }
+
+      .btn-group .btn:first-child {
+         border-top-left-radius: 4px;
+         border-bottom-left-radius: 4px;
+      }
+
+      .btn-group .btn:last-child {
+         border-top-right-radius: 4px;
+         border-bottom-right-radius: 4px;
+      }
+   </style>
+
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/exam-creation-wizard.js"></script>
+   <script src="assets/plugins/cropper/cropper.js"></script>
+   <link type="text/css" href="assets/plugins/cropper/cropper.css" rel="stylesheet">
+</head>
+
+<body class="animated-content" ng-app="examCreationWizardApp" ng-controller="examCreationWizardController" ng-cloak>
+   <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+      <div class="logo-area">
+         <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+               <span class="icon-bg">
+                  <i class="ti ti-menu"></i>
+               </span>
+            </a>
+         </span>
+         <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+      </div>
+
+      <!-- Page Title in Header - Centered -->
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+         <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+            <i class="ti ti-pencil" style="margin-right: 8px; color: white;"></i> Exam Creation Wizard
+         </h2>
+      </div>
+
+      <!-- Spacer to push right items to the right -->
+      <div style="flex: 1;"></div>
+
+      <ul class="nav navbar-nav toolbar pull-right">
+         <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></i></a>
+         </li>
+         <li class="dropdown toolbar-icon-bg">
+            <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+            </a>
+            <ul class="dropdown-menu userinfo arrow">
+               <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+            </ul>
+         </li>
+      </ul>
+   </header>
+
+   <div id="wrapper">
+      <div id="layout-static">
+         <div class="static-sidebar-wrapper sidebar-default">
+            <div class="static-sidebar">
+               <div class="sidebar">
+                  <div class="widget stay-on-collapse" id="widget-sidebar">
+                     <nav role="navigation" class="widget-body">
+                        <ul class="acc-menu">
+
+                           <li class="nav-separator"><span>Programs</span></li>
+                           <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
+                           <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a>
+                           </li>
+                           <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
+                           <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+
+                           <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                           <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a>
+                           </li>
+                           <li><a href="exam-listing.html" class="active"><i
+                                    class="ti ti-clipboard"></i><span>Exams</span></a></li>
+
+                           <li class="nav-separator"><span>Content Library</span></li>
+                           <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a>
+                           </li>
+                           <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                    Library</span></a></li>
+                           <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                    Questions</span></a></li>
+                           <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a>
+                           </li>
+
+                           <li class="nav-separator"><span>Commerce</span></li>
+                           <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                           <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
+                                    Manager</span></a></li>
+
+                           <li class="nav-separator"><span>People</span></li>
+                           <li><a href="instructor-portfolio.html"><i
+                                    class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                           <li><a href="mentor-profiles.html"><i
+                                    class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                        </ul>
+                     </nav>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div class="static-content-wrapper">
+            <div class="static-content">
+               <div class="page-content">
+                  <div class="container-fluid" style="padding-top: 1%;">
 
                      <!-- Page Header -->
                      <div class="page-header-section">
                         <div>
                            <h2><i class="ti ti-pencil"></i> Exam Creation Wizard</h2>
-                           <p>Create comprehensive exams by selecting questions from the question bank and organizing them into sections</p>
+                           <p>Create comprehensive exams by selecting questions from the question bank and organizing
+                              them into sections</p>
                         </div>
-                        <button class="btn btn-lg" style="background: #ffb706; color: #006073; border: none; font-weight: 600;" onclick="window.location.href='exam-listing.html'">
+                        <button class="btn btn-lg"
+                           style="background: #ffb706; color: #006073; border: none; font-weight: 600;"
+                           onclick="window.location.href='exam-listing.html'">
                            <i class="ti ti-list"></i> View All Exams
                         </button>
                      </div>
@@ -270,33 +615,37 @@
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Exam Title</label>
                                           <div class="col-sm-8">
-                                             <input type="text" class="form-control" ng-model="examData.title" placeholder="Enter exam title" maxlength="100">
+                                             <input type="text" class="form-control" ng-model="examData.title"
+                                                placeholder="Enter exam title" maxlength="100">
                                           </div>
                                        </div>
-                                       
+
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Brief Description</label>
                                           <div class="col-sm-8">
-                                             <textarea class="form-control" rows="3" ng-model="examData.brief" placeholder="Enter exam description"></textarea>
+                                             <textarea class="form-control" rows="3" ng-model="examData.brief"
+                                                placeholder="Enter exam description"></textarea>
                                           </div>
                                        </div>
-                                       
+
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Special Terms</label>
                                           <div class="col-sm-8">
-                                             <textarea class="form-control" rows="4" ng-model="examData.specialTerms" placeholder="Enter special terms and conditions"></textarea>
+                                             <textarea class="form-control" rows="4" ng-model="examData.specialTerms"
+                                                placeholder="Enter special terms and conditions"></textarea>
                                           </div>
                                        </div>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Total Duration (minutes)</label>
                                           <div class="col-sm-8">
-                                             <input type="number" class="form-control" ng-model="examData.duration" placeholder="Enter duration in minutes">
+                                             <input type="number" class="form-control" ng-model="examData.duration"
+                                                placeholder="Enter duration in minutes">
                                           </div>
                                        </div>
-                                       
+
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Challenge Questions Allowed</label>
                                           <div class="col-sm-8">
@@ -306,7 +655,7 @@
                                              </select>
                                           </div>
                                        </div>
-                                       
+
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Switch Sections Allowed</label>
                                           <div class="col-sm-8">
@@ -316,7 +665,7 @@
                                              </select>
                                           </div>
                                        </div>
-                                       
+
                                        <div class="form-group">
                                           <label class="col-sm-4 control-label">Marking Scheme</label>
                                           <div class="col-sm-8">
@@ -328,10 +677,11 @@
                                        </div>
                                     </div>
                                  </div>
-                                 
+
                                  <div class="form-group">
                                     <div class="col-sm-offset-4 col-sm-8">
-                                       <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()" ng-disabled="!examData.title || !examData.duration">
+                                       <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()"
+                                          ng-disabled="!examData.title || !examData.duration">
                                           Next Step <i class="ti ti-arrow-right"></i>
                                        </button>
                                     </div>
@@ -358,32 +708,38 @@
                                           <form>
                                              <div class="form-group">
                                                 <label>Section Name</label>
-                                                <input type="text" class="form-control" ng-model="newSection.name" placeholder="e.g., Biology, Chemistry">
+                                                <input type="text" class="form-control" ng-model="newSection.name"
+                                                   placeholder="e.g., Biology, Chemistry">
                                              </div>
-                                             
+
                                              <div class="form-group">
                                                 <label>Order</label>
-                                                <input type="number" class="form-control" ng-model="newSection.order" placeholder="Section order">
+                                                <input type="number" class="form-control" ng-model="newSection.order"
+                                                   placeholder="Section order">
                                              </div>
-                                             
+
                                              <div class="form-group">
                                                 <label>Duration (minutes)</label>
-                                                <input type="number" class="form-control" ng-model="newSection.duration" placeholder="Section duration">
+                                                <input type="number" class="form-control" ng-model="newSection.duration"
+                                                   placeholder="Section duration">
                                              </div>
-                                             
+
                                              <div class="form-group">
                                                 <label>Total Questions</label>
-                                                <input type="number" class="form-control" ng-model="newSection.totalQuestions" placeholder="Number of questions">
+                                                <input type="number" class="form-control"
+                                                   ng-model="newSection.totalQuestions"
+                                                   placeholder="Number of questions">
                                              </div>
-                                             
+
                                              <div class="form-group">
                                                 <label>Enable Section Timer</label>
-                                                <select class="form-control" ng-model="newSection.enableSectionWiseTimer">
+                                                <select class="form-control"
+                                                   ng-model="newSection.enableSectionWiseTimer">
                                                    <option value="false">No</option>
                                                    <option value="true">Yes</option>
                                                 </select>
                                              </div>
-                                             
+
                                              <div class="form-group">
                                                 <label>Section Marking Scheme</label>
                                                 <select class="form-control" ng-model="newSection.sectionMarkingScheme">
@@ -391,30 +747,33 @@
                                                    <option value="1">Custom</option>
                                                 </select>
                                              </div>
-                                             
-                                             <button type="button" class="btn btn-primary btn-block" ng-click="addSection()" ng-disabled="!newSection.name || !newSection.totalQuestions">
+
+                                             <button type="button" class="btn btn-primary btn-block"
+                                                ng-click="addSection()"
+                                                ng-disabled="!newSection.name || !newSection.totalQuestions">
                                                 <i class="ti ti-plus"></i> Add Section
                                              </button>
                                           </form>
                                        </div>
                                     </div>
                                  </div>
-                                 
+
                                  <div class="col-md-8">
                                     <h4><i class="ti ti-list"></i> Exam Sections</h4>
                                     <div ng-show="examData.sections.length === 0" class="alert alert-warning">
-                                       <i class="ti ti-info"></i> No sections created yet. Add at least one section to continue.
+                                       <i class="ti ti-info"></i> No sections created yet. Add at least one section to
+                                       continue.
                                     </div>
-                                    
+
                                     <div ng-repeat="section in examData.sections" class="section-card">
                                        <div class="section-header">
                                           <div class="row">
                                              <div class="col-md-8">
                                                 <h4 class="section-title">{{section.name}}</h4>
                                                 <p class="section-info">
-                                                   Order: {{section.order}} | 
-                                                   Duration: {{section.duration}} min | 
-                                                   Questions: {{section.totalQuestions}} | 
+                                                   Order: {{section.order}} |
+                                                   Duration: {{section.duration}} min |
+                                                   Questions: {{section.totalQuestions}} |
                                                    Timer: {{section.enableSectionWiseTimer ? 'Yes' : 'No'}}
                                                 </p>
                                              </div>
@@ -426,12 +785,14 @@
                                           </div>
                                        </div>
                                     </div>
-                                    
+
                                     <div class="form-group" style="margin-top: 20px;">
-                                       <button type="button" class="btn btn-default btn-wizard" ng-click="previousStep()">
+                                       <button type="button" class="btn btn-default btn-wizard"
+                                          ng-click="previousStep()">
                                           <i class="ti ti-arrow-left"></i> Previous
                                        </button>
-                                       <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()" ng-disabled="examData.sections.length === 0">
+                                       <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()"
+                                          ng-disabled="examData.sections.length === 0">
                                           Next Step <i class="ti ti-arrow-right"></i>
                                        </button>
                                     </div>
@@ -450,13 +811,14 @@
                            <div class="panel-body">
                               <div ng-repeat="section in examData.sections" class="section-card">
                                  <div class="section-header">
-                                    <h4 class="section-title">{{section.name}} - {{section.totalQuestions}} Questions Required</h4>
+                                    <h4 class="section-title">{{section.name}} - {{section.totalQuestions}} Questions
+                                       Required</h4>
                                     <p class="section-info">
-                                       Selected: {{section.questions.length}} | 
+                                       Selected: {{section.questions.length}} |
                                        Remaining: {{section.totalQuestions - section.questions.length}}
                                     </p>
                                  </div>
-                                 
+
                                  <div class="panel-body">
                                     <div class="question-filters">
                                        <h5><i class="ti ti-filter"></i> Question Filters</h5>
@@ -464,7 +826,8 @@
                                           <div class="col-md-3">
                                              <div class="filter-group">
                                                 <label>Module (Level 1)</label>
-                                                <select class="form-control" ng-model="section.filters.level1" ng-change="filterQuestions(section)">
+                                                <select class="form-control" ng-model="section.filters.level1"
+                                                   ng-change="filterQuestions(section)">
                                                    <option value="">All Modules</option>
                                                    <option value="1">Biology</option>
                                                    <option value="2">Chemistry</option>
@@ -476,7 +839,8 @@
                                           <div class="col-md-3">
                                              <div class="filter-group">
                                                 <label>Chapter (Level 2)</label>
-                                                <select class="form-control" ng-model="section.filters.level2" ng-change="filterQuestions(section)">
+                                                <select class="form-control" ng-model="section.filters.level2"
+                                                   ng-change="filterQuestions(section)">
                                                    <option value="">All Chapters</option>
                                                    <option value="1">Chapter 1</option>
                                                    <option value="2">Chapter 2</option>
@@ -489,7 +853,8 @@
                                           <div class="col-md-3">
                                              <div class="filter-group">
                                                 <label>Question Type</label>
-                                                <select class="form-control" ng-model="section.filters.questionType" ng-change="filterQuestions(section)">
+                                                <select class="form-control" ng-model="section.filters.questionType"
+                                                   ng-change="filterQuestions(section)">
                                                    <option value="">All Types</option>
                                                    <option value="MCQ">MCQ</option>
                                                    <option value="NAT">NAT</option>
@@ -500,7 +865,8 @@
                                           <div class="col-md-3">
                                              <div class="filter-group">
                                                 <label>Difficulty Level</label>
-                                                <select class="form-control" ng-model="section.filters.level" ng-change="filterQuestions(section)">
+                                                <select class="form-control" ng-model="section.filters.level"
+                                                   ng-change="filterQuestions(section)">
                                                    <option value="">All Levels</option>
                                                    <option value="1">Easy</option>
                                                    <option value="2">Medium</option>
@@ -510,43 +876,49 @@
                                           </div>
                                        </div>
                                     </div>
-                                    
+
                                     <div class="row">
                                        <div class="col-md-6">
                                           <h5><i class="ti ti-list"></i> Available Questions</h5>
                                           <div class="question-bank-list" style="max-height: 400px; overflow-y: auto;">
-                                             <div ng-repeat="question in section.filteredQuestions" class="question-bank-item" ng-class="{'selected': isQuestionSelected(section, question)}">
-                                                <input type="checkbox" ng-model="question.selected" ng-change="toggleQuestionSelection(section, question)">
+                                             <div ng-repeat="question in section.filteredQuestions"
+                                                class="question-bank-item"
+                                                ng-class="{'selected': isQuestionSelected(section, question)}">
+                                                <input type="checkbox" ng-model="question.selected"
+                                                   ng-change="toggleQuestionSelection(section, question)">
                                                 <div class="question-details">
                                                    <div class="question-title">Q{{question.questionId}}</div>
                                                    <div class="question-meta">
-                                                      Type: {{question.questionType}} | 
-                                                      Level: {{question.level}} | 
+                                                      Type: {{question.questionType}} |
+                                                      Level: {{question.level}} |
                                                       Time: {{question.averageTimeToSolveProblem}}s
                                                    </div>
                                                    <div class="question-meta">
-                                                      Module: {{question.classificationLevel1}} | 
+                                                      Module: {{question.classificationLevel1}} |
                                                       Chapter: {{question.classificationLevel2}}
                                                    </div>
                                                 </div>
                                              </div>
                                           </div>
                                        </div>
-                                       
+
                                        <div class="col-md-6">
                                           <h5><i class="ti ti-check"></i> Selected Questions</h5>
-                                          <div class="selected-questions-list" style="max-height: 400px; overflow-y: auto;">
+                                          <div class="selected-questions-list"
+                                             style="max-height: 400px; overflow-y: auto;">
                                              <div ng-repeat="question in section.questions" class="question-item">
                                                 <div class="question-header">
                                                    <div>
-                                                      <div class="question-title">Q{{question.qi}} (Order: {{question.o}})</div>
+                                                      <div class="question-title">Q{{question.qi}} (Order:
+                                                         {{question.o}})</div>
                                                       <div class="question-meta">
-                                                         Marks: {{question.ms}} | 
+                                                         Marks: {{question.ms}} |
                                                          <span class="question-count">{{$index + 1}}</span>
                                                       </div>
                                                    </div>
                                                    <div class="question-actions">
-                                                      <button class="btn btn-danger btn-xs" ng-click="removeQuestion(section, $index)">
+                                                      <button class="btn btn-danger btn-xs"
+                                                         ng-click="removeQuestion(section, $index)">
                                                          <i class="ti ti-trash"></i>
                                                       </button>
                                                    </div>
@@ -557,12 +929,13 @@
                                     </div>
                                  </div>
                               </div>
-                              
+
                               <div class="form-group" style="margin-top: 20px;">
                                  <button type="button" class="btn btn-default btn-wizard" ng-click="previousStep()">
                                     <i class="ti ti-arrow-left"></i> Previous
                                  </button>
-                                 <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()" ng-disabled="!areAllSectionsComplete()">
+                                 <button type="button" class="btn btn-primary btn-wizard" ng-click="nextStep()"
+                                    ng-disabled="!areAllSectionsComplete()">
                                     Next Step <i class="ti ti-arrow-right"></i>
                                  </button>
                               </div>
@@ -604,21 +977,24 @@
                                     <span>{{examData.switchSectionsAllowed ? 'Allowed' : 'Not Allowed'}}</span>
                                  </div>
                               </div>
-                              
+
                               <div ng-repeat="section in examData.sections" class="section-summary">
                                  <h5><i class="ti ti-layout"></i> {{section.name}}</h5>
                                  <div class="row">
                                     <div class="col-md-6">
                                        <p><strong>Order:</strong> {{section.order}}</p>
                                        <p><strong>Duration:</strong> {{section.duration}} minutes</p>
-                                       <p><strong>Questions:</strong> {{section.questions.length}} / {{section.totalQuestions}}</p>
+                                       <p><strong>Questions:</strong> {{section.questions.length}} /
+                                          {{section.totalQuestions}}</p>
                                     </div>
                                     <div class="col-md-6">
-                                       <p><strong>Section Timer:</strong> {{section.enableSectionWiseTimer ? 'Enabled' : 'Disabled'}}</p>
-                                       <p><strong>Marking Scheme:</strong> {{section.sectionMarkingScheme === 0 ? 'Overall' : 'Custom'}}</p>
+                                       <p><strong>Section Timer:</strong> {{section.enableSectionWiseTimer ? 'Enabled' :
+                                          'Disabled'}}</p>
+                                       <p><strong>Marking Scheme:</strong> {{section.sectionMarkingScheme === 0 ?
+                                          'Overall' : 'Custom'}}</p>
                                     </div>
                                  </div>
-                                 
+
                                  <div class="question-list">
                                     <h6>Selected Questions:</h6>
                                     <div class="row">
@@ -628,12 +1004,13 @@
                                     </div>
                                  </div>
                               </div>
-                              
+
                               <div class="form-group" style="margin-top: 20px;">
                                  <button type="button" class="btn btn-default btn-wizard" ng-click="previousStep()">
                                     <i class="ti ti-arrow-left"></i> Previous
                                  </button>
-                                 <button type="button" class="btn btn-success btn-wizard" ng-click="createExam()" ng-disabled="!isExamValid()">
+                                 <button type="button" class="btn btn-success btn-wizard" ng-click="createExam()"
+                                    ng-disabled="!isExamValid()">
                                     <i class="ti ti-check"></i> Create Exam
                                  </button>
                               </div>
@@ -641,41 +1018,44 @@
                         </div>
                      </div>
 
-                     </div>
                   </div>
                </div>
             </div>
          </div>
       </div>
+   </div>
 
-      <div ng-show="toasterVisible" class="appToaster" ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage"></div>
+   <div ng-show="toasterVisible" class="appToaster"
+      ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage">
+   </div>
 
-      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
-      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
-      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
-      <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
-      <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
-      <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
-      <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
-      <script type="text/javascript" src="assets/js/application.js"></script>
-      <script type="text/javascript" src="assets/demo/demo.js"></script>
-      <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
-      <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
-      <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>
-      <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
-      <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>   
-      <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
-      <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>
-      <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
+   <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+   <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+   <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+   <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+   <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+   <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
+   <script type="text/javascript" src="assets/js/application.js"></script>
+   <script type="text/javascript" src="assets/demo/demo.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+   <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script>
+   <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+   <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
+   <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script>
 
-   </body>
+</body>
+
 </html>
