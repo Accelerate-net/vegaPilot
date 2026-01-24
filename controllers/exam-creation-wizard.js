@@ -1,6 +1,9 @@
 var app = angular.module('examCreationWizardApp', ['ngCookies']);
 
 app.controller('examCreationWizardController', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
     
     // Initialize scope variables
     $scope.currentStep = 1;

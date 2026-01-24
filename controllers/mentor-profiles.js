@@ -6,6 +6,9 @@
 var app = angular.module('MentorProfilesApp', ['ngCookies']);
 
 app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
@@ -213,7 +216,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             })
             .catch(function(error) {
                 console.error('Error loading mentors:', error);
-                alert('Failed to load mentors. Please try again.');
+                $scope.showToaster('error', 'Error', 'Failed to load mentors. Please try again.');
                 $scope.mentors = [];
                 $scope.paginatedMentors = [];
                 $scope.filteredMentors = [];
@@ -249,7 +252,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             })
             .catch(function(error) {
                 console.error('Error loading mentor profile:', error);
-                alert('Failed to load mentor profile. Please try again.');
+                $scope.showToaster('error', 'Error', 'Failed to load mentor profile. Please try again.');
                 $scope.hideLoading();
             });
     };
@@ -376,13 +379,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                 $scope.loadMentors();
                 $scope.closeEditModal();
             } else {
-                alert('Error: ' + (response.data.error || 'Failed to save mentor'));
+                $scope.showToaster('error', 'Error', 'Error: ' + (response.data.error || 'Failed to save mentor'));
                 $scope.hideLoading();
             }
         })
         .catch(function(error) {
             console.error('Error saving mentor:', error);
-            alert('Failed to save mentor. Please try again.');
+            $scope.showToaster('error', 'Error', 'Failed to save mentor. Please try again.');
             $scope.hideLoading();
         });
     };
@@ -410,13 +413,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                     $scope.loadMentors();
                     $scope.closeDeleteModal();
                 } else {
-                    alert('Error: ' + (response.data.error || 'Failed to delete mentor'));
+                    $scope.showToaster('error', 'Error', 'Error: ' + (response.data.error || 'Failed to delete mentor'));
                     $scope.hideLoading();
                 }
             })
             .catch(function(error) {
                 console.error('Error deleting mentor:', error);
-                alert('Failed to delete mentor. Please try again.');
+                $scope.showToaster('error', 'Error', 'Failed to delete mentor. Please try again.');
                 $scope.hideLoading();
             });
     };
@@ -427,13 +430,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
 
         // Check file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File size must be less than 2MB');
+            $scope.showToaster('info', 'Notification', 'File size must be less than 2MB');
             return;
         }
 
         // Check file type
         if (!file.type.match('image.*')) {
-            alert('Please select an image file');
+            $scope.showToaster('info', 'Notification', 'Please select an image file');
             return;
         }
 
@@ -592,7 +595,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                 $scope.studentsTotalCount = 0;
                 $scope.studentsTotalPages = 0;
                 $scope.hideLoading();
-                alert('Failed to load students. Please try again.');
+                $scope.showToaster('error', 'Error', 'Failed to load students. Please try again.');
             });
     };
 

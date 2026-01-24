@@ -2,6 +2,9 @@
 var practiceQuestionsApp = angular.module('practiceQuestionsApp', []);
 
 practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$timeout', function($scope, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Scope Variables =====
     $scope.questions = [];
@@ -79,7 +82,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
             localStorage.setItem('practiceQuestions', JSON.stringify($scope.questions));
         } catch (e) {
             console.error('Error saving questions:', e);
-            alert('Error saving questions. LocalStorage may be full.');
+            $scope.showToaster('error', 'Error', 'Error saving questions. LocalStorage may be full.');
         }
     };
 
@@ -175,7 +178,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                 $scope.processPDF(file);
             });
         } else if (file) {
-            alert('Please select a valid PDF file.');
+            $scope.showToaster('info', 'Notification', 'Please select a valid PDF file.');
         }
         // Reset input so same file can be selected again
         event.target.value = '';
@@ -209,7 +212,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                     $scope.processPDF(file);
                 });
             } else {
-                alert('Please drop a valid PDF file.');
+                $scope.showToaster('info', 'Notification', 'Please drop a valid PDF file.');
             }
         }
     };
@@ -240,7 +243,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
     // ===== Process PDF File =====
     $scope.processPDF = function(file) {
         if (!pdfjsLib) {
-            alert('PDF.js library not loaded. Please refresh the page and try again.');
+            $scope.showToaster('info', 'Notification', 'PDF.js library not loaded. Please refresh the page and try again.');
             return;
         }
 
@@ -384,14 +387,14 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                             console.error('Error rendering page:', error);
                             $scope.$apply(function() {
                                 $scope.isProcessing = false;
-                                alert('Error rendering PDF page ' + pageNumber + '. Please try again.');
+                                $scope.showToaster('error', 'Error', 'Error rendering PDF page ' + pageNumber + '. Please try again.');
                             });
                         });
                     }).catch(function(error) {
                         console.error('Error getting page:', error);
                         $scope.$apply(function() {
                             $scope.isProcessing = false;
-                            alert('Error processing PDF page ' + pageNumber + '. Please try again.');
+                            $scope.showToaster('error', 'Error', 'Error processing PDF page ' + pageNumber + '. Please try again.');
                         });
                     });
                 };
@@ -405,7 +408,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
                 console.error('Error loading PDF:', error);
                 $scope.$apply(function() {
                     $scope.isProcessing = false;
-                    alert('Error loading PDF. Please make sure it is a valid PDF file.');
+                    $scope.showToaster('error', 'Error', 'Error loading PDF. Please make sure it is a valid PDF file.');
                 });
             });
         };
@@ -414,7 +417,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
             console.error('Error reading file:', error);
             $scope.$apply(function() {
                 $scope.isProcessing = false;
-                alert('Error reading file. Please try again.');
+                $scope.showToaster('error', 'Error', 'Error reading file. Please try again.');
             });
         };
 
@@ -427,7 +430,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
 
         if (!window.Tesseract) {
             console.error('Tesseract.js not loaded. OCR will be skipped.');
-            alert('Tesseract.js library is not loaded. Please refresh the page and try again.');
+            $scope.showToaster('info', 'Notification', 'Tesseract.js library is not loaded. Please refresh the page and try again.');
             return;
         }
 
@@ -802,7 +805,7 @@ practiceQuestionsApp.controller('practiceQuestionsController', ['$scope', '$time
         var selectedBatches = $scope.getSelectedBatches();
 
         if (selectedBatches.length === 0) {
-            alert('Please select at least one batch to create a quiz.');
+            $scope.showToaster('info', 'Notification', 'Please select at least one batch to create a quiz.');
             return;
         }
 

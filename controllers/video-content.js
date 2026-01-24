@@ -1,6 +1,8 @@
 var app = angular.module('videoContentApp', ['ngCookies']);
 
-app.controller('videoContentController', function ($scope, $http, $cookies, $timeout) {
+app.controller('videoContentController', function ($scope, $http, $cookies, $timeout, $sce) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     // Initialize scope variables
     $scope.createView = false;

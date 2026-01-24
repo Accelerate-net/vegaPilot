@@ -6,6 +6,9 @@
 var app = angular.module('candidateDetailApp', []);
 
 app.controller('candidateDetailController', ['$scope', '$timeout', function($scope, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Data =====
     $scope.candidate = {};
@@ -751,7 +754,7 @@ app.controller('candidateDetailController', ['$scope', '$timeout', function($sco
         $scope.candidate.mentor = angular.copy($scope.selectedNewMentor);
 
         // Show success notification (you can enhance this with a toast/notification)
-        alert('Mentor assigned successfully!');
+        $scope.showToaster('success', 'Success', 'Mentor assigned successfully!');
 
         // Close the modal
         $scope.closeChangeMentorModal();

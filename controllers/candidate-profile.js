@@ -5,13 +5,13 @@
 
 var app = angular.module('StudentManagementApp', []);
 
-app.controller('StudentManagementController', ['$scope', '$timeout', '$window', '$http', function($scope, $timeout, $window, $http) {
+app.controller('StudentManagementController', ['$scope', '$timeout', '$window', '$http', function ($scope, $timeout, $window, $http) {
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage (same pattern as instructor-portfolio.js)
-    $scope.getAuthToken = function() {
+    $scope.getAuthToken = function () {
         // Try localStorage first
         var token = localStorage.getItem('authToken') || localStorage.getItem('X-Access-Token');
         // If still no token, use the default token
@@ -45,14 +45,18 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
 
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
+
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.showLoading('Loading students...');
         $scope.loadStudents();
     };
 
     // ===== Load Students from API =====
-    $scope.loadStudents = function() {
+    $scope.loadStudents = function () {
         // Build API URL with parameters
         var url = $scope.apiBaseUrl + '/list-candidates.php';
         var params = {
@@ -87,7 +91,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
                 'X-Access-Token': $scope.getAuthToken(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('API Response:', response.data);
 
             if (response.data && response.data.status === 'success') {
@@ -101,7 +105,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
                 $scope.totalPages = meta.totalPages;
 
                 // Map API response to local data structure
-                $scope.students = apiData.map(function(candidate) {
+                $scope.students = apiData.map(function (candidate) {
                     return {
                         id: candidate.candidateKey || candidate.id,
                         candidateKey: candidate.candidateKey,
@@ -154,9 +158,9 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
                     errorMsg += '. Please check console for details.';
                 }
 
-                alert(errorMsg);
+                $scope.showToaster('error', 'Error', errorMsg);
             }
-        }).catch(function(error) {
+        }).catch(function (error) {
             console.error('Error loading students:', error);
             $scope.students = [];
             $scope.filteredStudents = [];
@@ -164,15 +168,15 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             $scope.hideLoading();
 
             if (error.status === 401) {
-                alert('Authentication failed. Please login again.');
+                $scope.showToaster('error', 'Authentication Failed', 'Please login again.');
             } else {
-                alert('Error loading students: ' + (error.statusText || 'Network error'));
+                $scope.showToaster('error', 'Network Error', 'Error loading students: ' + (error.statusText || 'Unknown error'));
             }
         });
     };
 
     // ===== View Student Detail =====
-    $scope.viewStudentDetail = function(student) {
+    $scope.viewStudentDetail = function (student) {
         // Store student data in localStorage for the detail page
         localStorage.setItem('selectedStudent', JSON.stringify(student));
         // Open detail page in new window
@@ -180,35 +184,35 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     };
 
     // ===== Add New Student =====
-    $scope.addNewStudent = function() {
-        alert('Add new student functionality would be implemented here.');
+    $scope.addNewStudent = function () {
+        $scope.showToaster('info', 'Feature Coming Soon', 'Add new student functionality is under development.');
     };
 
     // ===== Filter & Sort (triggers API call) =====
-    $scope.filterStudents = function() {
+    $scope.filterStudents = function () {
         // Reset to first page and reload from API
         $scope.currentPage = 1;
         $scope.showLoading('Filtering students...');
         $scope.loadStudents();
     };
 
-    $scope.sortStudents = function() {
+    $scope.sortStudents = function () {
         // Reload from API with new sort
         $scope.showLoading('Sorting students...');
         $scope.loadStudents();
     };
 
     // ===== Pagination (API-driven) =====
-    $scope.updatePagination = function() {
+    $scope.updatePagination = function () {
         // No longer needed for client-side pagination, kept for compatibility
         // API handles pagination server-side
     };
 
-    $scope.getTotalPages = function() {
+    $scope.getTotalPages = function () {
         return $scope.totalPages || 1;
     };
 
-    $scope.getPageNumbers = function() {
+    $scope.getPageNumbers = function () {
         var total = $scope.getTotalPages();
         var pages = [];
         var maxVisible = 5;
@@ -225,7 +229,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         return pages;
     };
 
-    $scope.goToPage = function(page) {
+    $scope.goToPage = function (page) {
         if (page !== $scope.currentPage) {
             $scope.currentPage = page;
             $scope.showLoading('Loading page ' + page + '...');
@@ -233,7 +237,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         }
     };
 
-    $scope.previousPage = function() {
+    $scope.previousPage = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.showLoading('Loading previous page...');
@@ -241,7 +245,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         }
     };
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function () {
         if ($scope.currentPage < $scope.getTotalPages()) {
             $scope.currentPage++;
             $scope.showLoading('Loading next page...');
@@ -249,37 +253,37 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         }
     };
 
-    $scope.getStartIndex = function() {
+    $scope.getStartIndex = function () {
         return ($scope.currentPage - 1) * $scope.itemsPerPage + 1;
     };
 
-    $scope.getEndIndex = function() {
+    $scope.getEndIndex = function () {
         return Math.min($scope.currentPage * $scope.itemsPerPage, $scope.totalStudents);
     };
 
     // ===== Statistics (using totalCourseEnrollments from API) =====
-    $scope.getActiveStudents = function() {
-        return $scope.students.filter(function(s) {
+    $scope.getActiveStudents = function () {
+        return $scope.students.filter(function (s) {
             return s.status === 'active' && !s.blocked;
         }).length;
     };
 
-    $scope.getTotalEnrollments = function() {
-        return $scope.students.reduce(function(sum, s) {
+    $scope.getTotalEnrollments = function () {
+        return $scope.students.reduce(function (sum, s) {
             return sum + (s.totalCourseEnrollments || 0);
         }, 0);
     };
 
-    $scope.getTotalRevenue = function() {
+    $scope.getTotalRevenue = function () {
         // Revenue calculation would need a separate API endpoint
         // For now, return placeholder
         return '0';
     };
 
-    $scope.getAllCourses = function() {
+    $scope.getAllCourses = function () {
         var courses = new Set();
-        $scope.students.forEach(function(s) {
-            s.enrolledCourses.forEach(function(e) {
+        $scope.students.forEach(function (s) {
+            s.enrolledCourses.forEach(function (e) {
                 courses.add(e.courseName);
             });
         });
@@ -287,7 +291,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     };
 
     // ===== Helper Functions =====
-    $scope.getInitials = function(name) {
+    $scope.getInitials = function (name) {
         if (!name) return '??';
         var parts = name.split(' ');
         if (parts.length >= 2) {
@@ -296,19 +300,19 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         return name.substring(0, 2).toUpperCase();
     };
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 300);
     };
 
     // ===== Sortable Column Functionality (API-driven) =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
         } else {
@@ -413,7 +417,7 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.coursesModalOpen = false;
     $scope.selectedStudentForCourses = null;
 
-    $scope.viewEnrolledCourses = function(student) {
+    $scope.viewEnrolledCourses = function (student) {
         $scope.selectedStudentForCourses = student;
         $scope.coursesModalOpen = true;
 
@@ -435,14 +439,14 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
                 'X-Access-Token': $scope.getAuthToken(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Course enrollments API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
                 var enrollmentsData = response.data.data || [];
 
                 // Map API response to local data structure
-                $scope.selectedStudentForCourses.enrolledCourses = enrollmentsData.map(function(enrollment) {
+                $scope.selectedStudentForCourses.enrolledCourses = enrollmentsData.map(function (enrollment) {
                     return {
                         courseId: enrollment.courseId,
                         courseName: enrollment.courseTitle,
@@ -467,16 +471,16 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error fetching course enrollments:', error);
             $scope.selectedStudentForCourses.enrolledCourses = [];
             $scope.hideLoading();
         });
     };
 
-    $scope.closeCoursesModal = function() {
+    $scope.closeCoursesModal = function () {
         $scope.coursesModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.selectedStudentForCourses = null;
         }, 300);
     };
@@ -486,15 +490,15 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
     $scope.courseSearchQuery = '';
     $scope.filteredAvailableCoursesForEnrollment = [];
 
-    $scope.openEnrollCourseModal = function() {
+    $scope.openEnrollCourseModal = function () {
         if (!$scope.selectedStudentForCourses) return;
 
         // Filter out courses already enrolled
-        var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+        var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function (c) {
             return c.courseId;
         });
 
-        $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+        $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function (course) {
             return enrolledCourseIds.indexOf(course.courseId) === -1;
         });
 
@@ -502,49 +506,49 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         $scope.enrollCourseModalOpen = true;
     };
 
-    $scope.closeEnrollCourseModal = function() {
+    $scope.closeEnrollCourseModal = function () {
         $scope.enrollCourseModalOpen = false;
         $scope.courseSearchQuery = '';
-        $timeout(function() {
+        $timeout(function () {
             $scope.filteredAvailableCoursesForEnrollment = [];
         }, 300);
     };
 
     // Watch for search query changes
-    $scope.$watch('courseSearchQuery', function(newVal) {
+    $scope.$watch('courseSearchQuery', function (newVal) {
         if (!$scope.enrollCourseModalOpen) return;
 
         if (!newVal) {
             // Show all available courses (not enrolled)
-            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function (c) {
                 return c.courseId;
             });
 
-            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function (course) {
                 return enrolledCourseIds.indexOf(course.courseId) === -1;
             });
         } else {
             // Filter by search query
             var searchLower = newVal.toLowerCase();
-            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function (c) {
                 return c.courseId;
             });
 
-            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(course) {
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function (course) {
                 var notEnrolled = enrolledCourseIds.indexOf(course.courseId) === -1;
                 var matchesSearch = course.courseName.toLowerCase().indexOf(searchLower) !== -1 ||
-                                  course.courseCode.toLowerCase().indexOf(searchLower) !== -1;
+                    course.courseCode.toLowerCase().indexOf(searchLower) !== -1;
                 return notEnrolled && matchesSearch;
             });
         }
     });
 
-    $scope.enrollStudentToCourse = function(course) {
+    $scope.enrollStudentToCourse = function (course) {
         if (!$scope.selectedStudentForCourses || !course) return;
 
         $scope.showLoading('Enrolling student to ' + course.courseName + '...');
 
-        $timeout(function() {
+        $timeout(function () {
             // Create new enrollment
             var newEnrollment = {
                 courseId: course.courseId,
@@ -571,23 +575,23 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
             $scope.selectedStudentForCourses.enrolledCourses.push(newEnrollment);
 
             // Update the filtered list
-            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function(c) {
+            var enrolledCourseIds = $scope.selectedStudentForCourses.enrolledCourses.map(function (c) {
                 return c.courseId;
             });
 
-            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function(c) {
+            $scope.filteredAvailableCoursesForEnrollment = $scope.availableCourses.filter(function (c) {
                 return enrolledCourseIds.indexOf(c.courseId) === -1;
             });
 
             $scope.hideLoading();
 
             // Show success message
-            alert('Successfully enrolled ' + $scope.selectedStudentForCourses.name + ' to ' + course.courseName + '!');
+            $scope.showToaster('success', 'Enrollment Successful', 'Successfully enrolled ' + $scope.selectedStudentForCourses.name + ' to ' + course.courseName + '!');
         }, 800);
     };
 
     // ===== Date and Validity Helper Functions =====
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         if (!timestamp) return 'Unknown';
         var date = new Date(timestamp * 1000);
         return date.toLocaleDateString('en-IN', {
@@ -597,14 +601,14 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         });
     };
 
-    $scope.getDaysRemaining = function(validUntil) {
+    $scope.getDaysRemaining = function (validUntil) {
         if (!validUntil) return 0;
         var now = Date.now() / 1000;
         var daysRemaining = Math.ceil((validUntil - now) / 86400);
         return Math.abs(daysRemaining); // Return absolute value for display
     };
 
-    $scope.getValidityStatus = function(validUntil) {
+    $scope.getValidityStatus = function (validUntil) {
         if (!validUntil) return 'UNKNOWN';
         var now = Date.now() / 1000;
         var daysRemaining = Math.ceil((validUntil - now) / 86400);
@@ -614,9 +618,9 @@ app.controller('StudentManagementController', ['$scope', '$timeout', '$window', 
         return 'ACTIVE';
     };
 
-    $scope.getValidityClass = function(validUntil) {
+    $scope.getValidityClass = function (validUntil) {
         var status = $scope.getValidityStatus(validUntil);
-        switch(status) {
+        switch (status) {
             case 'ACTIVE': return 'validity-active';
             case 'EXPIRING SOON': return 'validity-expiring';
             case 'EXPIRED': return 'validity-expired';

@@ -1,6 +1,9 @@
 var app = angular.module('catalogApp', ['ngCookies']);
 
 app.controller('catalogController', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // API Configuration
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/catalog';

@@ -1,6 +1,9 @@
 var app = angular.module('examListingApp', ['ngCookies']);
 
 app.controller('examListingController', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
     
     // Initialize scope variables
     $scope.profileData = {

@@ -2,6 +2,9 @@
 var courseViewApp = angular.module('courseViewApp', []);
 
 courseViewApp.controller('courseViewController', ['$scope', '$timeout', '$http', function($scope, $timeout, $http) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/course';

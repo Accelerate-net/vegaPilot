@@ -6,6 +6,9 @@ angular.module('questionBankApp', ['ngCookies'])
 
 
 .controller('questionBankController', function($scope, $http, $interval, $cookies, $sce, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
       // //Check if logged in
       // if($cookies.get("vegaPilotAdminToken")){

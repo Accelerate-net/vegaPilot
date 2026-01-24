@@ -6,6 +6,9 @@
 var app = angular.module('BunnyAdminApp', []);
 
 app.controller('BunnyAdminController', ['$scope', '$http', '$timeout', '$sce', function($scope, $http, $timeout, $sce) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Data =====
     $scope.folders = [];

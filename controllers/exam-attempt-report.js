@@ -1,7 +1,10 @@
 // Exam Attempt Report Controller - Displays rank list and analytics for exams
 var examReportApp = angular.module('examReportApp', []);
 
-examReportApp.controller('examReportController', ['$scope', '$window', function($scope, $window) {
+examReportApp.controller('examReportController', ['$scope', '$timeout', '$window', function($scope, $timeout, $window) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Scope Variables =====
     $scope.exam = null;
@@ -880,7 +883,7 @@ examReportApp.controller('examReportController', ['$scope', '$window', function(
 
         // For demo purposes, we'll show a success alert
         setTimeout(function() {
-            alert('Successfully re-evaluated ' + attemptCount + ' response(s).\n\nScores and rankings have been updated based on the current answer keys.');
+            $scope.showToaster('success', 'Success', 'Successfully re-evaluated ' + attemptCount + ' response(s).\n\nScores and rankings have been updated based on the current answer keys.');
 
             // Recalculate rankings (simulated)
             $scope.$apply(function() {
@@ -982,7 +985,7 @@ examReportApp.controller('examReportController', ['$scope', '$window', function(
         var filteredData = $scope.getFilteredRankings();
 
         if (filteredData.length === 0) {
-            alert('No data to export. Please adjust your filters.');
+            $scope.showToaster('info', 'Notification', 'No data to export. Please adjust your filters.');
             return;
         }
 

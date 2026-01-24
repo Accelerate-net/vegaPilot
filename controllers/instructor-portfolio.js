@@ -6,6 +6,9 @@
 var app = angular.module('InstructorPortfolioApp', ['ngCookies']);
 
 app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== API Configuration =====
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
@@ -464,7 +467,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
             })
             .catch(function(error) {
                 console.error('Error loading instructor profile:', error);
-                alert('Failed to load instructor profile. Please try again.');
+                $scope.showToaster('error', 'Error', 'Failed to load instructor profile. Please try again.');
                 $scope.hideLoading();
             });
     };
@@ -505,7 +508,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
             !$scope.currentInstructor.expertSubject ||
             !$scope.currentInstructor.qualifications ||
             (!$scope.currentInstructor.experienceYears && !$scope.currentInstructor.experience)) {
-            alert('Please fill in all required fields');
+            $scope.showToaster('info', 'Notification', 'Please fill in all required fields');
             return;
         }
 
@@ -563,13 +566,13 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
                 alert($scope.editMode ? 'Instructor updated successfully!' : 'Instructor created successfully!');
             } else {
                 console.error('Failed to save instructor:', response.data);
-                alert('Failed to save instructor: ' + (response.data.message || response.data.error || 'Unknown error'));
+                $scope.showToaster('error', 'Error', 'Failed to save instructor: ' + (response.data.message || response.data.error || 'Unknown error'));
             }
             $scope.hideLoading();
         })
         .catch(function(error) {
             console.error('Error saving instructor:', error);
-            alert('Error saving instructor. Please try again.');
+            $scope.showToaster('error', 'Error', 'Error saving instructor. Please try again.');
             $scope.hideLoading();
         });
     };
@@ -608,13 +611,13 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
 
         // Check file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File size must be less than 2MB');
+            $scope.showToaster('info', 'Notification', 'File size must be less than 2MB');
             return;
         }
 
         // Check file type
         if (!file.type.match('image.*')) {
-            alert('Please select an image file');
+            $scope.showToaster('info', 'Notification', 'Please select an image file');
             return;
         }
 

@@ -1,7 +1,10 @@
 // Quiz Listing Controller - Manages quiz listing and attempts
 var quizListingApp = angular.module('quizListingApp', []);
 
-quizListingApp.controller('quizListingController', ['$scope', function($scope) {
+quizListingApp.controller('quizListingController', ['$scope', '$timeout', function ($scope, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Scope Variables =====
     $scope.allQuizzes = [];
@@ -23,11 +26,11 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     $scope.sortReverse = false;
 
     // ===== Toggle Kebab Menu =====
-    $scope.toggleKebabMenu = function(quiz, $event) {
+    $scope.toggleKebabMenu = function (quiz, $event) {
         $event.stopPropagation();
 
         // Close all other kebab menus first
-        $scope.allQuizzes.forEach(function(q) {
+        $scope.allQuizzes.forEach(function (q) {
             if (q !== quiz) {
                 q.showKebabMenu = false;
             }
@@ -38,22 +41,22 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // Close kebab menus when clicking outside
-    angular.element(document).on('click', function(event) {
-        $scope.$apply(function() {
-            $scope.allQuizzes.forEach(function(quiz) {
+    angular.element(document).on('click', function (event) {
+        $scope.$apply(function () {
+            $scope.allQuizzes.forEach(function (quiz) {
                 quiz.showKebabMenu = false;
             });
         });
     });
 
     // ===== Initialize Controller =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.loadQuizzes();
         $scope.loadSampleAttempts(); // For demonstration - you can remove this in production
     };
 
     // ===== Load Quizzes from LocalStorage =====
-    $scope.loadQuizzes = function() {
+    $scope.loadQuizzes = function () {
         // Load published quizzes
         var publishedQuizzes = localStorage.getItem('publishedQuizzes');
         if (publishedQuizzes) {
@@ -87,10 +90,10 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Load Sample Attempts (For Demonstration) =====
-    $scope.loadSampleAttempts = function() {
+    $scope.loadSampleAttempts = function () {
         // Add sample attempts to quizzes for demonstration
         // In production, this would come from a backend API
-        $scope.allQuizzes.forEach(function(quiz, index) {
+        $scope.allQuizzes.forEach(function (quiz, index) {
             if (!quiz.attempts) {
                 quiz.attempts = [];
             }
@@ -126,17 +129,17 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
         });
 
         // Update the separate arrays too
-        $scope.publishedQuizzes = $scope.allQuizzes.filter(function(q) { return q.status === 'published'; });
-        $scope.draftQuizzes = $scope.allQuizzes.filter(function(q) { return q.status === 'draft'; });
+        $scope.publishedQuizzes = $scope.allQuizzes.filter(function (q) { return q.status === 'published'; });
+        $scope.draftQuizzes = $scope.allQuizzes.filter(function (q) { return q.status === 'draft'; });
     };
 
     // ===== Switch Tab =====
-    $scope.switchTab = function(tab) {
+    $scope.switchTab = function (tab) {
         $scope.currentTab = tab;
     };
 
     // ===== Get Displayed Quizzes Based on Current Tab =====
-    $scope.getDisplayedQuizzes = function() {
+    $scope.getDisplayedQuizzes = function () {
         if ($scope.currentTab === 'all') {
             return $scope.allQuizzes;
         } else if ($scope.currentTab === 'published') {
@@ -148,7 +151,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Get Filtered Quizzes (with Search) =====
-    $scope.getFilteredQuizzes = function() {
+    $scope.getFilteredQuizzes = function () {
         var quizzes = $scope.getDisplayedQuizzes();
 
         if (!$scope.quizSearchQuery || $scope.quizSearchQuery.trim() === '') {
@@ -156,7 +159,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
         }
 
         var query = $scope.quizSearchQuery.toLowerCase();
-        return quizzes.filter(function(quiz) {
+        return quizzes.filter(function (quiz) {
             var titleMatch = quiz.title && quiz.title.toLowerCase().indexOf(query) !== -1;
             var descMatch = quiz.description && quiz.description.toLowerCase().indexOf(query) !== -1;
             return titleMatch || descMatch;
@@ -164,7 +167,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Get Filtered Attempts (with Search) =====
-    $scope.getFilteredAttempts = function() {
+    $scope.getFilteredAttempts = function () {
         if (!$scope.selectedQuiz || !$scope.selectedQuiz.attempts) {
             return [];
         }
@@ -176,7 +179,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
         }
 
         var query = $scope.attemptSearchQuery.toLowerCase();
-        return attempts.filter(function(attempt) {
+        return attempts.filter(function (attempt) {
             var nameMatch = attempt.studentName && attempt.studentName.toLowerCase().indexOf(query) !== -1;
             var emailMatch = attempt.studentEmail && attempt.studentEmail.toLowerCase().indexOf(query) !== -1;
             return nameMatch || emailMatch;
@@ -184,33 +187,33 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Show Attempts Modal =====
-    $scope.showAttempts = function(quiz) {
+    $scope.showAttempts = function (quiz) {
         $scope.selectedQuiz = quiz;
         $scope.attemptSearchQuery = '';
         $scope.showAttemptsModal = true;
     };
 
     // ===== Close Attempts Modal =====
-    $scope.closeAttemptsModal = function() {
+    $scope.closeAttemptsModal = function () {
         $scope.showAttemptsModal = false;
         $scope.selectedQuiz = null;
         $scope.attemptSearchQuery = '';
     };
 
     // ===== Show View Modal =====
-    $scope.viewQuiz = function(quiz) {
+    $scope.viewQuiz = function (quiz) {
         $scope.selectedQuiz = quiz;
         $scope.showViewModal = true;
     };
 
     // ===== Close View Modal =====
-    $scope.closeViewModal = function() {
+    $scope.closeViewModal = function () {
         $scope.showViewModal = false;
         $scope.selectedQuiz = null;
     };
 
     // ===== View Report =====
-    $scope.viewReport = function(quiz) {
+    $scope.viewReport = function (quiz) {
         // Store quiz data for the report page
         localStorage.setItem('reportQuizData', JSON.stringify(quiz));
         // Navigate to report page with quiz ID
@@ -218,29 +221,29 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Show Delete Modal =====
-    $scope.deleteQuiz = function(quiz) {
+    $scope.deleteQuiz = function (quiz) {
         $scope.quizToDelete = quiz;
         $scope.showDeleteModal = true;
     };
 
     // ===== Close Delete Modal =====
-    $scope.closeDeleteModal = function() {
+    $scope.closeDeleteModal = function () {
         $scope.showDeleteModal = false;
         $scope.quizToDelete = null;
     };
 
     // ===== Confirm Delete =====
-    $scope.confirmDelete = function() {
+    $scope.confirmDelete = function () {
         var quiz = $scope.quizToDelete;
 
         // Remove from appropriate array
         if (quiz.status === 'published') {
-            $scope.publishedQuizzes = $scope.publishedQuizzes.filter(function(q) {
+            $scope.publishedQuizzes = $scope.publishedQuizzes.filter(function (q) {
                 return q.id !== quiz.id;
             });
             localStorage.setItem('publishedQuizzes', JSON.stringify($scope.publishedQuizzes));
         } else {
-            $scope.draftQuizzes = $scope.draftQuizzes.filter(function(q) {
+            $scope.draftQuizzes = $scope.draftQuizzes.filter(function (q) {
                 return q.id !== quiz.id;
             });
             localStorage.setItem('quizDrafts', JSON.stringify($scope.draftQuizzes));
@@ -253,24 +256,24 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Show Publish Modal =====
-    $scope.publishQuiz = function(quiz) {
+    $scope.publishQuiz = function (quiz) {
         $scope.quizToPublish = quiz;
         $scope.showPublishModal = true;
     };
 
     // ===== Close Publish Modal =====
-    $scope.closePublishModal = function() {
+    $scope.closePublishModal = function () {
         $scope.showPublishModal = false;
         $scope.quizToPublish = null;
     };
 
     // ===== Confirm Publish =====
-    $scope.confirmPublish = function() {
+    $scope.confirmPublish = function () {
         var quiz = $scope.quizToPublish;
         quiz.status = 'published';
 
         // Remove from drafts
-        $scope.draftQuizzes = $scope.draftQuizzes.filter(function(q) {
+        $scope.draftQuizzes = $scope.draftQuizzes.filter(function (q) {
             return q.id !== quiz.id;
         });
 
@@ -288,26 +291,26 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Get Completed Count =====
-    $scope.getCompletedCount = function(attempts) {
+    $scope.getCompletedCount = function (attempts) {
         if (!attempts) return 0;
-        return attempts.filter(function(a) { return a.status === 'completed'; }).length;
+        return attempts.filter(function (a) { return a.status === 'completed'; }).length;
     };
 
     // ===== Get In Progress Count =====
-    $scope.getInProgressCount = function(attempts) {
+    $scope.getInProgressCount = function (attempts) {
         if (!attempts) return 0;
-        return attempts.filter(function(a) { return a.status === 'in-progress'; }).length;
+        return attempts.filter(function (a) { return a.status === 'in-progress'; }).length;
     };
 
     // ===== Get Percentage =====
-    $scope.getPercentage = function(score, maxMarks) {
+    $scope.getPercentage = function (score, maxMarks) {
         if (!maxMarks || maxMarks === 0) return 0;
         return Math.round((score / maxMarks) * 100);
     };
 
 
     // ===== Format Date =====
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         if (!timestamp) return 'N/A';
         var date = new Date(timestamp);
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -315,7 +318,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Format Date Time =====
-    $scope.formatDateTime = function(dateTimeStr) {
+    $scope.formatDateTime = function (dateTimeStr) {
         if (!dateTimeStr) return 'Not set';
 
         var date;
@@ -342,7 +345,7 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // ===== Sort By Column =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
         } else {
@@ -353,10 +356,10 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
         // Get the current displayed quizzes and sort them
         var quizzesToSort = $scope.getDisplayedQuizzes();
 
-        quizzesToSort.sort(function(a, b) {
+        quizzesToSort.sort(function (a, b) {
             var aVal, bVal;
 
-            switch(column) {
+            switch (column) {
                 case 'title':
                     aVal = a.title ? a.title.toLowerCase() : '';
                     bVal = b.title ? b.title.toLowerCase() : '';

@@ -2,6 +2,9 @@
 var quizCreationApp = angular.module('quizCreationApp', []);
 
 quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', function($scope, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Scope Variables =====
     $scope.currentStep = 1;
@@ -186,13 +189,13 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
 
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
-                    alert('File "' + file.name + '" is not an image. Only image files are allowed.');
+                    $scope.showToaster('info', 'Notification', 'File "' + file.name + '" is not an image. Only image files are allowed.');
                     continue;
                 }
 
                 // Validate file size (10MB max)
                 if (file.size > 10 * 1024 * 1024) {
-                    alert('File "' + file.name + '" is too large. Maximum size is 10MB.');
+                    $scope.showToaster('info', 'Notification', 'File "' + file.name + '" is too large. Maximum size is 10MB.');
                     continue;
                 }
 
@@ -292,7 +295,7 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
     $scope.validateCurrentStep = function() {
         if ($scope.currentStep === 1) {
             if ($scope.getSelectedBatches().length === 0) {
-                alert('Please select at least one batch to continue.');
+                $scope.showToaster('info', 'Notification', 'Please select at least one batch to continue.');
                 return false;
             }
         }
@@ -340,7 +343,7 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
     $scope.copyQuizUrl = function() {
         if (navigator.clipboard) {
             navigator.clipboard.writeText($scope.quizUrl).then(function() {
-                alert('Quiz URL copied to clipboard!');
+                $scope.showToaster('info', 'Notification', 'Quiz URL copied to clipboard!');
             }).catch(function(err) {
                 console.error('Error copying URL:', err);
                 $scope.fallbackCopyUrl();
@@ -360,7 +363,7 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
         textArea.select();
         try {
             document.execCommand('copy');
-            alert('Quiz URL copied to clipboard!');
+            $scope.showToaster('info', 'Notification', 'Quiz URL copied to clipboard!');
         } catch (err) {
             alert('Failed to copy URL. Please copy manually: ' + $scope.quizUrl);
         }
@@ -435,18 +438,18 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
         drafts.push(quiz);
         localStorage.setItem('quizDrafts', JSON.stringify(drafts));
 
-        alert('Quiz saved as draft successfully!\n\nYou can publish it later from the drafts section.');
+        $scope.showToaster('success', 'Success', 'Quiz saved as draft successfully!\n\nYou can publish it later from the drafts section.');
     };
 
     // ===== Publish Quiz =====
     $scope.publishQuiz = function() {
         if (!$scope.isQuizConfigValid()) {
-            alert('Please fill in all required quiz configuration fields.');
+            $scope.showToaster('info', 'Notification', 'Please fill in all required quiz configuration fields.');
             return;
         }
 
         if ($scope.getTotalQuestions() === 0) {
-            alert('Please add at least one question to the quiz.');
+            $scope.showToaster('info', 'Notification', 'Please add at least one question to the quiz.');
             return;
         }
 
@@ -459,7 +462,7 @@ quizCreationApp.controller('quizCreationController', ['$scope', '$timeout', func
             quizzes.push(quiz);
             localStorage.setItem('publishedQuizzes', JSON.stringify(quizzes));
 
-            alert('Quiz published successfully!\n\nQuiz URL: ' + $scope.quizUrl + '\n\nShare this URL with your students.');
+            $scope.showToaster('success', 'Success', 'Quiz published successfully!\n\nQuiz URL: ' + $scope.quizUrl + '\n\nShare this URL with your students.');
 
             // Redirect to quiz management page (or stay on current page)
             // window.location.href = 'quiz-management.html';

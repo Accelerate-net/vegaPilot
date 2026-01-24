@@ -1,6 +1,9 @@
 var app = angular.module('courseManagementApp', ['ngCookies']);
 
 app.controller('courseManagementController', function($scope, $http, $cookies, $timeout, $sce) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
     
     // Initialize scope variables
     $scope.createView = false;

@@ -6,6 +6,9 @@ angular.module('AdminLoginApp', ['ngCookies'])
 }])
 
 .controller('adminloginController', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     $scope.username = "";
     $scope.password = "";

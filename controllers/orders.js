@@ -6,6 +6,9 @@
 var app = angular.module('ordersApp', ['ngCookies']);
 
 app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Data =====
     $scope.orders = [];

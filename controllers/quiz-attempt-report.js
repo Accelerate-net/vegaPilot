@@ -1,7 +1,10 @@
 // Quiz Attempt Report Controller - Displays rank list and analytics
 var quizReportApp = angular.module('quizReportApp', []);
 
-quizReportApp.controller('quizReportController', ['$scope', '$window', function($scope, $window) {
+quizReportApp.controller('quizReportController', ['$scope', '$timeout', '$window', function($scope, $timeout, $window) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Scope Variables =====
     $scope.quiz = null;
@@ -856,7 +859,7 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
 
         // For demo purposes, we'll show a success alert
         setTimeout(function() {
-            alert('Successfully re-evaluated ' + attemptCount + ' response(s).\n\nScores and rankings have been updated based on the current answer keys.');
+            $scope.showToaster('success', 'Success', 'Successfully re-evaluated ' + attemptCount + ' response(s).\n\nScores and rankings have been updated based on the current answer keys.');
 
             // Recalculate rankings (simulated)
             $scope.$apply(function() {
@@ -958,7 +961,7 @@ quizReportApp.controller('quizReportController', ['$scope', '$window', function(
         var filteredData = $scope.getFilteredRankings();
 
         if (filteredData.length === 0) {
-            alert('No data to export. Please adjust your filters.');
+            $scope.showToaster('info', 'Notification', 'No data to export. Please adjust your filters.');
             return;
         }
 

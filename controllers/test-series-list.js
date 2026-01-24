@@ -6,6 +6,9 @@
 var app = angular.module('testSeriesApp', ['ngCookies']);
 
 app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // ===== Initialize Data =====
     $scope.profileData = {
@@ -385,7 +388,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     // ===== Save Test Series =====
     $scope.saveTestSeries = function() {
         if (!$scope.canSaveTestSeries()) {
-            alert('Please fill in all required fields and select at least one exam.');
+            $scope.showToaster('info', 'Notification', 'Please fill in all required fields and select at least one exam.');
             return;
         }
 
@@ -438,7 +441,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
                     $scope.testSeriesList.splice(index, 1);
                 }
                 $scope.hideLoading();
-                alert('Test series deleted successfully!');
+                $scope.showToaster('success', 'Success', 'Test series deleted successfully!');
             }, 500);
         }
     };

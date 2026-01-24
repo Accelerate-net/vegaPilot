@@ -1,6 +1,9 @@
 var app = angular.module('batchApp', ['ngCookies']);
 
 app.controller('batchController', function($scope, $http, $cookies, $timeout) {
+    // Initialize Toaster Service
+    if (typeof initToaster === 'function') initToaster($scope, $timeout);
+
 
     // Initialize scope variables
     $scope.batches = [];
@@ -139,12 +142,12 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
     $scope.saveBatch = function() {
         // Validate required fields
         if (!$scope.newBatch.batchName || !$scope.newBatch.numberOfStudents) {
-            alert('Please fill in all required fields');
+            $scope.showToaster('info', 'Notification', 'Please fill in all required fields');
             return;
         }
 
         if ($scope.newBatch.numberOfStudents < 1) {
-            alert('Number of students must be at least 1');
+            $scope.showToaster('info', 'Notification', 'Number of students must be at least 1');
             return;
         }
 
@@ -222,7 +225,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
 
         // Check if course is already enrolled
         if ($scope.selectedBatch.enrolledCourses && $scope.selectedBatch.enrolledCourses.indexOf($scope.selectedCourse) !== -1) {
-            alert('This course is already enrolled to the batch');
+            $scope.showToaster('info', 'Notification', 'This course is already enrolled to the batch');
             return;
         }
 
@@ -379,7 +382,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         var selectedCount = $scope.getSelectedStudentsCount();
 
         if (selectedCount === 0) {
-            alert('Please select at least one student to add.');
+            $scope.showToaster('info', 'Notification', 'Please select at least one student to add.');
             return;
         }
 
@@ -546,7 +549,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
         var selectedCount = $scope.getSelectedBatchStudentsCount();
 
         if (selectedCount === 0) {
-            alert('Please select at least one student to remove.');
+            $scope.showToaster('info', 'Notification', 'Please select at least one student to remove.');
             return;
         }
 
@@ -735,7 +738,7 @@ app.controller('batchController', function($scope, $http, $cookies, $timeout) {
                 ? 'Batch "' + batch.batchName + '" has been frozen successfully.'
                 : 'Batch "' + batch.batchName + '" has been unfrozen successfully.';
 
-            alert(successMsg);
+            $scope.showToaster('info', 'Notification', successMsg);
         }, 500);
     };
 
