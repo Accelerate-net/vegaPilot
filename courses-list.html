@@ -389,6 +389,53 @@
       #wrapper {
          padding: 0 !important;
       }
+
+      /* Pagination */
+      .pagination-container {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         padding: 20px;
+         background: white;
+         border-top: 1px solid #e9ecef;
+      }
+
+      .pagination-info {
+         font-size: 14px;
+         color: #6c757d;
+      }
+
+      .pagination-controls {
+         display: flex;
+         gap: 5px;
+      }
+
+      .pagination-btn {
+         padding: 8px 12px;
+         border: 1px solid #dee2e6;
+         background: white;
+         cursor: pointer;
+         border-radius: 4px;
+         font-size: 13px;
+         transition: all 0.2s ease;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+         background: #006073;
+         color: white;
+         border-color: #006073;
+      }
+
+      .pagination-btn:disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+      }
+
+      .pagination-btn.active {
+         background: #006073;
+         color: white;
+         border-color: #006073;
+      }
    </style>
 </head>
 
@@ -596,24 +643,22 @@
                      </div>
 
                      <!-- Pagination Controls -->
-                     <div ng-if="courses.length > 0"
-                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px 20px; background: white; border-radius: 8px;">
-                        <div style="color: #6c757d; font-size: 14px;">
+                     <div class="pagination-container">
+                        <div class="pagination-info">
                            Showing {{(currentPage - 1) * itemsPerPage + 1}} to {{Math.min(currentPage * itemsPerPage,
                            totalItems)}} of {{totalItems}} courses
                         </div>
-                        <div style="display: flex; gap: 5px;">
-                           <button class="btn btn-sm" ng-click="previousPage()" ng-disabled="currentPage === 1"
-                              style="padding: 6px 12px;">
-                              <i class="ti ti-chevron-left"></i> Previous
+                        <div class="pagination-controls">
+                           <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
+                              <i class="ti ti-angle-left"></i> Previous
                            </button>
-                           <button class="btn btn-sm" ng-repeat="page in getPageNumbers()" ng-click="goToPage(page)"
-                              ng-class="{active: page === currentPage}" style="padding: 6px 12px; min-width: 40px;">
+                           <button class="pagination-btn" ng-repeat="page in getPageNumbers()" ng-click="goToPage(page)"
+                              ng-class="{active: page === currentPage}">
                               {{page}}
                            </button>
-                           <button class="btn btn-sm" ng-click="nextPage()" ng-disabled="currentPage === totalPages"
-                              style="padding: 6px 12px;">
-                              Next <i class="ti ti-chevron-right"></i>
+                           <button class="pagination-btn" ng-click="nextPage()"
+                              ng-disabled="currentPage === totalPages">
+                              Next <i class="ti ti-angle-right"></i>
                            </button>
                         </div>
                      </div>
@@ -969,29 +1014,30 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/courses-list.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 
