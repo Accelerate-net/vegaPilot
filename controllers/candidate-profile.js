@@ -11,7 +11,7 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage (same pattern as instructor-portfolio.js)
-    
+
 
     // ===== Initialize Data =====
     $scope.students = [];
@@ -40,24 +40,24 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -640,6 +640,41 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
             case 'EXPIRED': return 'validity-expired';
             default: return '';
         }
+    };
+
+    // ===== Kebab Menu & Blacklist =====
+
+    // Kebab Menu Toggle
+    $scope.toggleKebabMenu = function (student, event) {
+        if (event) event.stopPropagation();
+
+        // Close other open menus
+        if ($scope.paginatedStudents) {
+            $scope.paginatedStudents.forEach(function (s) {
+                if (s.id !== student.id) s.showKebabMenu = false;
+            });
+        }
+
+        student.showKebabMenu = !student.showKebabMenu;
+    };
+
+    // Close kebab menu when clicking elsewhere
+    $(document).click(function () {
+        $scope.$apply(function () {
+            if ($scope.paginatedStudents) {
+                $scope.paginatedStudents.forEach(function (s) {
+                    s.showKebabMenu = false;
+                });
+            }
+        });
+    });
+
+    // Toggle Blacklist
+    $scope.toggleBlacklist = function (student) {
+        if (!student) return;
+        alert('Blacklist functionality for ' + student.name + ' will be implemented soon.');
+        // Implement actual blacklist logic here
+        student.showKebabMenu = false;
     };
 
     // ===== Initialize on Load =====
