@@ -38,19 +38,14 @@ app.controller('examListingController', function($scope, $http, $cookies, $timeo
     };
 
     // Close kebab menus when clicking outside
-    angular.element(document).on('click', function(e) {
-        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
-            var hasOpenMenu = $scope.filteredExams && $scope.filteredExams.some(function(exam) {
-                return exam.showKebabMenu;
-            });
-            if (hasOpenMenu) {
-                $scope.$applyAsync(function() {
-                    $scope.filteredExams.forEach(function(exam) {
-                        exam.showKebabMenu = false;
-                    });
+    angular.element(document).on('click', function(event) {
+        $scope.$apply(function() {
+            if ($scope.filteredExams) {
+                $scope.filteredExams.forEach(function(exam) {
+                    exam.showKebabMenu = false;
                 });
             }
-        }
+        });
     });
     
     // Summary data for tiles

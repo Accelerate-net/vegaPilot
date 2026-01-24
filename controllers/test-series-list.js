@@ -24,6 +24,10 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     $scope.currentSeries = null;
     $scope.examSearchQuery = '';
 
+    // Exam pagination
+    $scope.examCurrentPage = 1;
+    $scope.examPageSize = 6;
+
     // Loading state
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
@@ -48,19 +52,14 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // Close kebab menus when clicking outside
-    angular.element(document).on('click', function(e) {
-        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
-            var hasOpenMenu = $scope.testSeriesList && $scope.testSeriesList.some(function(series) {
-                return series.showKebabMenu;
-            });
-            if (hasOpenMenu) {
-                $scope.$applyAsync(function() {
-                    $scope.testSeriesList.forEach(function(series) {
-                        series.showKebabMenu = false;
-                    });
+    angular.element(document).on('click', function(event) {
+        $scope.$apply(function() {
+            if ($scope.testSeriesList) {
+                $scope.testSeriesList.forEach(function(series) {
+                    series.showKebabMenu = false;
                 });
             }
-        }
+        });
     });
 
     // ===== Initialize App =====
@@ -190,7 +189,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
                     id: 1,
                     name: 'IAT 2026 - Full Mock Tests',
                     description: 'Complete mock test series for IISER Aptitude Test 2026 with 10 full-length tests',
-                    status: 'active',
+                    status: 1,
                     exams: [
                         { examId: 50000, examTitle: 'IAT Mock Test - 1', accessType: 'free' },
                         { examId: 50001, examTitle: 'IAT Mock Test - 2', accessType: 'free' },
@@ -205,7 +204,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
                     id: 2,
                     name: 'Subject-wise Tests - Physics',
                     description: 'Specialized physics test series for focused preparation',
-                    status: 'active',
+                    status: 0,
                     exams: [
                         { examId: 50005, examTitle: 'Physics Full Test - 1', accessType: 'premium' }
                     ],
@@ -223,11 +222,12 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         $scope.currentSeries = {
             name: '',
             description: '',
-            status: 'active',
+            status: 1,
             exams: []
         };
         $scope.selectedExamsMap = {};
         $scope.examSearchQuery = '';
+        $scope.examCurrentPage = 1;
         $scope.createModalOpen = true;
     };
 
@@ -237,12 +237,14 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
             $scope.currentSeries = null;
             $scope.selectedExamsMap = {};
             $scope.examSearchQuery = '';
+            $scope.examCurrentPage = 1;
         }, 300);
     };
 
     $scope.editSeries = function(series) {
         $scope.editMode = true;
         $scope.currentSeries = angular.copy(series);
+        $scope.examCurrentPage = 1;
 
         // Rebuild selectedExamsMap from series.exams
         $scope.selectedExamsMap = {};
@@ -301,7 +303,47 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
                        (exam.brief && exam.brief.toLowerCase().indexOf(searchLower) !== -1);
             });
         }
+        // Reset to first page when search changes
+        $scope.examCurrentPage = 1;
     });
+
+    // ===== Exam Pagination Functions =====
+    $scope.getPaginatedExams = function() {
+        var startIndex = ($scope.examCurrentPage - 1) * $scope.examPageSize;
+        return $scope.filteredAvailableExams.slice(startIndex, startIndex + $scope.examPageSize);
+    };
+
+    $scope.getExamTotalPages = function() {
+        return Math.ceil($scope.filteredAvailableExams.length / $scope.examPageSize);
+    };
+
+    $scope.getExamPageNumbers = function() {
+        var totalPages = $scope.getExamTotalPages();
+        var pages = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.goToExamPage = function(page) {
+        var totalPages = $scope.getExamTotalPages();
+        if (page >= 1 && page <= totalPages) {
+            $scope.examCurrentPage = page;
+        }
+    };
+
+    $scope.prevExamPage = function() {
+        if ($scope.examCurrentPage > 1) {
+            $scope.examCurrentPage--;
+        }
+    };
+
+    $scope.nextExamPage = function() {
+        if ($scope.examCurrentPage < $scope.getExamTotalPages()) {
+            $scope.examCurrentPage++;
+        }
+    };
 
     // ===== Summary Functions =====
     $scope.getSelectedExamsCount = function() {

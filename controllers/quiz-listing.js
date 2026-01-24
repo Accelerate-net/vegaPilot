@@ -38,19 +38,12 @@ quizListingApp.controller('quizListingController', ['$scope', function($scope) {
     };
 
     // Close kebab menus when clicking outside
-    angular.element(document).on('click', function(e) {
-        if (!angular.element(e.target).closest('.kebab-menu-container').length) {
-            var hasOpenMenu = $scope.allQuizzes.some(function(quiz) {
-                return quiz.showKebabMenu;
+    angular.element(document).on('click', function(event) {
+        $scope.$apply(function() {
+            $scope.allQuizzes.forEach(function(quiz) {
+                quiz.showKebabMenu = false;
             });
-            if (hasOpenMenu) {
-                $scope.$applyAsync(function() {
-                    $scope.allQuizzes.forEach(function(quiz) {
-                        quiz.showKebabMenu = false;
-                    });
-                });
-            }
-        }
+        });
     });
 
     // ===== Initialize Controller =====

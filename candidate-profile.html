@@ -1,994 +1,1079 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <title>Student Management - VegaPilot</title>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-touch-fullscreen" content="yes">
-      <meta name="description" content="VegaPilot Student Management">
-      <meta name="author" content="VegaPilot">
-      <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600' rel='stylesheet'>
-      <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-      <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
-      <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
-      <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
 
-      <style type="text/css">
-         /* Page Container */
-         .students-container {
-            padding: 20px 0;
+<head>
+   <meta charset="utf-8">
+   <title>Student Management - VegaPilot</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+   <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-touch-fullscreen" content="yes">
+   <meta name="description" content="VegaPilot Student Management">
+   <meta name="author" content="VegaPilot">
+   <link type='text/css' href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+      rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+
+   <style type="text/css">
+      /* Page Container */
+      .students-container {
+         padding: 20px 0;
+      }
+
+      /* Header Section */
+      .page-header-section {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 30px;
+         padding: 20px;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+         border-radius: 8px;
+         color: white;
+      }
+
+      .page-header-section h2 {
+         margin: 0;
+         color: white;
+         font-size: 28px;
+         font-weight: 600;
+      }
+
+      .page-header-section p {
+         margin: 5px 0 0 0;
+         color: rgba(255, 255, 255, 0.9);
+         font-size: 14px;
+      }
+
+      /* Stats Cards */
+      .stats-row {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+         gap: 20px;
+         margin-bottom: 30px;
+      }
+
+      .stat-card {
+         background: white;
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         display: flex;
+         align-items: center;
+         gap: 15px;
+      }
+
+      .stat-icon {
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-size: 24px;
+         color: white;
+      }
+
+      .stat-icon.teal {
+         background: #006073;
+      }
+
+      .stat-icon.green {
+         background: #28a745;
+      }
+
+      .stat-icon.orange {
+         background: #fd7e14;
+      }
+
+      .stat-icon.purple {
+         background: #6f42c1;
+      }
+
+      .stat-info h3 {
+         margin: 0;
+         font-size: 28px;
+         font-weight: 600;
+         color: #2c3e50;
+      }
+
+      .stat-info p {
+         margin: 5px 0 0 0;
+         font-size: 13px;
+         color: #6c757d;
+      }
+
+      /* Search and Filter Bar */
+      .filter-bar {
+         display: flex;
+         gap: 15px;
+         margin-bottom: 25px;
+         flex-wrap: wrap;
+         align-items: center;
+      }
+
+      .search-wrapper {
+         flex: 1;
+         min-width: 300px;
+         position: relative;
+      }
+
+      .search-wrapper i {
+         position: absolute;
+         left: 15px;
+         top: 50%;
+         transform: translateY(-50%);
+         color: #999;
+      }
+
+      .search-input {
+         width: 100%;
+         padding: 12px 15px 12px 45px;
+         border: 1px solid #ddd;
+         border-radius: 6px;
+         font-size: 14px;
+      }
+
+      .search-input:focus {
+         outline: none;
+         border-color: #006073;
+         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+      }
+
+      .filter-select {
+         padding: 12px 15px;
+         border: 1px solid #ddd;
+         border-radius: 6px;
+         font-size: 14px;
+         background: white;
+         cursor: pointer;
+      }
+
+      .filter-select:focus {
+         outline: none;
+         border-color: #006073;
+      }
+
+      /* Students Table */
+      .students-table-container {
+         background: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+      }
+
+      .students-table {
+         width: 100%;
+         border-collapse: collapse;
+      }
+
+      .students-table thead {
+         background: #f8f9fa;
+      }
+
+      .students-table th {
+         padding: 15px;
+         text-align: left;
+         font-weight: 600;
+         color: #2c3e50;
+         font-size: 13px;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+         border-bottom: 2px solid #e9ecef;
+         position: relative;
+      }
+
+      .students-table th.sortable {
+         cursor: pointer;
+         user-select: none;
+         position: relative;
+         padding-right: 30px;
+      }
+
+      /* Resizable Column Styles */
+      .students-table th .resizer {
+         position: absolute;
+         top: 0;
+         right: 0;
+         width: 5px;
+         cursor: col-resize;
+         user-select: none;
+         height: 100%;
+         z-index: 1;
+      }
+
+      .students-table th .resizer:hover {
+         background: #006073;
+         opacity: 0.5;
+      }
+
+      .students-table th .resizer.resizing {
+         background: #006073;
+         opacity: 0.8;
+      }
+
+      .students-table th.sortable:hover {
+         background: #e9ecef;
+      }
+
+      .students-table th.sortable .sort-icon {
+         position: absolute;
+         right: 10px;
+         top: 50%;
+         transform: translateY(-50%);
+         opacity: 0.3;
+         font-size: 12px;
+      }
+
+      .students-table th.sortable.active .sort-icon {
+         opacity: 1;
+         color: #006073;
+      }
+
+      .students-table td {
+         padding: 15px;
+         border-bottom: 1px solid #f1f3f5;
+         vertical-align: middle;
+      }
+
+      .students-table tbody tr {
+         cursor: pointer;
+         transition: all 0.2s ease;
+      }
+
+      .students-table tbody tr:hover {
+         background: #f8f9fa;
+         transform: scale(1.005);
+      }
+
+      .student-avatar {
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         object-fit: cover;
+         border: 2px solid #e9ecef;
+      }
+
+      .student-avatar-placeholder {
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         background: #006073;
+         color: white;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         font-weight: 600;
+         font-size: 14px;
+      }
+
+      .student-name-cell {
+         display: flex;
+         align-items: center;
+         gap: 12px;
+      }
+
+      .student-name {
+         font-weight: 600;
+         color: #2c3e50;
+         font-size: 14px;
+      }
+
+      .student-id {
+         font-size: 11px;
+         color: #6c757d;
+         font-family: monospace;
+      }
+
+      .contact-info {
+         font-size: 13px;
+         color: #6c757d;
+      }
+
+      .contact-info i {
+         margin-right: 5px;
+         color: #adb5bd;
+      }
+
+      .courses-badge {
+         display: inline-block;
+         padding: 4px 10px;
+         background: #e7f5f7;
+         color: #006073;
+         border-radius: 12px;
+         font-size: 12px;
+         font-weight: 500;
+      }
+
+      .status-badge {
+         display: inline-block;
+         padding: 4px 10px;
+         border-radius: 12px;
+         font-size: 11px;
+         font-weight: 500;
+         text-transform: uppercase;
+      }
+
+      .status-badge.active {
+         background: #d4edda;
+         color: #155724;
+      }
+
+      .status-badge.inactive {
+         background: #f8d7da;
+         color: #721c24;
+      }
+
+      .enrollment-date {
+         font-size: 12px;
+         color: #6c757d;
+      }
+
+      /* Empty State */
+      .empty-state {
+         text-align: center;
+         padding: 60px 20px;
+         color: #6c757d;
+      }
+
+      .empty-state i {
+         font-size: 64px;
+         color: #dee2e6;
+         margin-bottom: 20px;
+      }
+
+      .empty-state h3 {
+         color: #495057;
+         margin-bottom: 10px;
+      }
+
+      .empty-state p {
+         color: #6c757d;
+      }
+
+      /* Loading Overlay */
+      .loading-overlay {
+         display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: rgba(255, 255, 255, 0.9);
+         z-index: 99999;
+         align-items: center;
+         justify-content: center;
+      }
+
+      .loading-overlay.active {
+         display: flex;
+      }
+
+      .loading-content {
+         text-align: center;
+      }
+
+      .spinner {
+         width: 50px;
+         height: 50px;
+         border: 4px solid #f3f3f3;
+         border-top: 4px solid #006073;
+         border-radius: 50%;
+         animation: spin 1s linear infinite;
+         margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+         0% {
+            transform: rotate(0deg);
          }
 
-         /* Header Section */
-         .page-header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
-            border-radius: 8px;
-            color: white;
+         100% {
+            transform: rotate(360deg);
          }
+      }
 
-         .page-header-section h2 {
-            margin: 0;
-            color: white;
-            font-size: 28px;
-            font-weight: 600;
-         }
+      .loading-text {
+         color: #495057;
+         font-size: 16px;
+         font-weight: 500;
+      }
 
-         .page-header-section p {
-            margin: 5px 0 0 0;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-         }
+      /* Pagination */
+      .pagination-container {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         padding: 20px;
+         background: white;
+         border-top: 1px solid #e9ecef;
+      }
 
-         /* Stats Cards */
+      .pagination-info {
+         font-size: 14px;
+         color: #6c757d;
+      }
+
+      .pagination-controls {
+         display: flex;
+         gap: 5px;
+      }
+
+      .pagination-btn {
+         padding: 8px 12px;
+         border: 1px solid #dee2e6;
+         background: white;
+         cursor: pointer;
+         border-radius: 4px;
+         font-size: 13px;
+         transition: all 0.2s ease;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+         background: #006073;
+         color: white;
+         border-color: #006073;
+      }
+
+      .pagination-btn:disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+      }
+
+      .pagination-btn.active {
+         background: #006073;
+         color: white;
+         border-color: #006073;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
          .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr;
          }
 
-         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-         }
-
-         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-         }
-
-         .stat-icon.teal { background: #006073; }
-         .stat-icon.green { background: #28a745; }
-         .stat-icon.orange { background: #fd7e14; }
-         .stat-icon.purple { background: #6f42c1; }
-
-         .stat-info h3 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-            color: #2c3e50;
-         }
-
-         .stat-info p {
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            color: #6c757d;
-         }
-
-         /* Search and Filter Bar */
          .filter-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            align-items: center;
+            flex-direction: column;
          }
 
-         .search-wrapper {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-         }
-
-         .search-wrapper i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-         }
-
-         .search-input {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-         }
-
-         .search-input:focus {
-            outline: none;
-            border-color: #006073;
-            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-         }
-
-         .filter-select {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-         }
-
-         .filter-select:focus {
-            outline: none;
-            border-color: #006073;
-         }
-
-         /* Students Table */
          .students-table-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            overflow-x: auto;
          }
 
          .students-table {
-            width: 100%;
-            border-collapse: collapse;
+            min-width: 800px;
          }
+      }
+   </style>
+</head>
 
-         .students-table thead {
-            background: #f8f9fa;
-         }
+<body class="animated-content" ng-app="StudentManagementApp" ng-controller="StudentManagementController" ng-cloak>
+   <!-- Top Navbar -->
+   <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+      <div class="logo-area">
+         <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+               <span class="icon-bg">
+                  <i class="ti ti-menu"></i>
+               </span>
+            </a>
+         </span>
+         <span class="navbar-brand" style="width: 125px">VegaPilot</span>
+      </div>
+      <ul class="nav navbar-nav toolbar pull-right">
+         <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
+         </li>
+         <li class="dropdown toolbar-icon-bg">
+            <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+            </a>
+            <ul class="dropdown-menu userinfo arrow">
+               <li><a href="catalog.html"><i class="ti ti-shift-right"></i><span>Back to Catalog</span></a></li>
+            </ul>
+         </li>
+      </ul>
+   </header>
 
-         .students-table th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #e9ecef;
-            position: relative;
-         }
+   <!-- Main Wrapper -->
+   <div id="wrapper">
+      <div id="layout-static">
+         <!-- Sidebar -->
+         <div class="static-sidebar-wrapper sidebar-default">
+            <div class="static-sidebar">
+               <div class="sidebar">
+                  <div class="widget stay-on-collapse" id="widget-sidebar">
+                     <nav role="navigation" class="widget-body">
+                        <ul class="acc-menu">
 
-         .students-table th.sortable {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-            padding-right: 30px;
-         }
+                           <li class="nav-separator"><span>Programs</span></li>
+                           <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
+                           <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a>
+                           </li>
+                           <li><a href="candidate-profile.html" class="active"><i
+                                    class="ti ti-user"></i><span>Students</span></a></li>
+                           <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
 
-         /* Resizable Column Styles */
-         .students-table th .resizer {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 5px;
-            cursor: col-resize;
-            user-select: none;
-            height: 100%;
-            z-index: 1;
-         }
+                           <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                           <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a>
+                           </li>
+                           <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
 
-         .students-table th .resizer:hover {
-            background: #006073;
-            opacity: 0.5;
-         }
+                           <li class="nav-separator"><span>Content Library</span></li>
+                           <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a>
+                           </li>
+                           <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                    Library</span></a></li>
+                           <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                    Questions</span></a></li>
+                           <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a>
+                           </li>
 
-         .students-table th .resizer.resizing {
-            background: #006073;
-            opacity: 0.8;
-         }
+                           <li class="nav-separator"><span>Commerce</span></li>
+                           <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                           <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
+                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
+                                    Manager</span></a></li>
 
-         .students-table th.sortable:hover {
-            background: #e9ecef;
-         }
+                           <li class="nav-separator"><span>People</span></li>
+                           <li><a href="instructor-portfolio.html"><i
+                                    class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                           <li><a href="mentor-profiles.html"><i
+                                    class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                        </ul>
+                     </nav>
+                  </div>
+               </div>
+            </div>
+         </div>
 
-         .students-table th.sortable .sort-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.3;
-            font-size: 12px;
-         }
+         <!-- Main Content Area -->
+         <div class="static-content-wrapper">
+            <div class="static-content">
+               <div class="page-content">
+                  <div class="container-fluid">
+                     <div class="students-container">
 
-         .students-table th.sortable.active .sort-icon {
-            opacity: 1;
-            color: #006073;
-         }
-
-         .students-table td {
-            padding: 15px;
-            border-bottom: 1px solid #f1f3f5;
-            vertical-align: middle;
-         }
-
-         .students-table tbody tr {
-            cursor: pointer;
-            transition: all 0.2s ease;
-         }
-
-         .students-table tbody tr:hover {
-            background: #f8f9fa;
-            transform: scale(1.005);
-         }
-
-         .student-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e9ecef;
-         }
-
-         .student-avatar-placeholder {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #006073;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-         }
-
-         .student-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-         }
-
-         .student-name {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
-         }
-
-         .student-id {
-            font-size: 11px;
-            color: #6c757d;
-            font-family: monospace;
-         }
-
-         .contact-info {
-            font-size: 13px;
-            color: #6c757d;
-         }
-
-         .contact-info i {
-            margin-right: 5px;
-            color: #adb5bd;
-         }
-
-         .courses-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            background: #e7f5f7;
-            color: #006073;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-         }
-
-         .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-            text-transform: uppercase;
-         }
-
-         .status-badge.active {
-            background: #d4edda;
-            color: #155724;
-         }
-
-         .status-badge.inactive {
-            background: #f8d7da;
-            color: #721c24;
-         }
-
-         .enrollment-date {
-            font-size: 12px;
-            color: #6c757d;
-         }
-
-         /* Empty State */
-         .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-         }
-
-         .empty-state i {
-            font-size: 64px;
-            color: #dee2e6;
-            margin-bottom: 20px;
-         }
-
-         .empty-state h3 {
-            color: #495057;
-            margin-bottom: 10px;
-         }
-
-         .empty-state p {
-            color: #6c757d;
-         }
-
-         /* Loading Overlay */
-         .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            z-index: 99999;
-            align-items: center;
-            justify-content: center;
-         }
-
-         .loading-overlay.active {
-            display: flex;
-         }
-
-         .loading-content {
-            text-align: center;
-         }
-
-         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #006073;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-         }
-
-         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-         }
-
-         .loading-text {
-            color: #495057;
-            font-size: 16px;
-            font-weight: 500;
-         }
-
-         /* Pagination */
-         .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
-         }
-
-         .pagination-info {
-            font-size: 14px;
-            color: #6c757d;
-         }
-
-         .pagination-controls {
-            display: flex;
-            gap: 5px;
-         }
-
-         .pagination-btn {
-            padding: 8px 12px;
-            border: 1px solid #dee2e6;
-            background: white;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 13px;
-            transition: all 0.2s ease;
-         }
-
-         .pagination-btn:hover:not(:disabled) {
-            background: #006073;
-            color: white;
-            border-color: #006073;
-         }
-
-         .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-         }
-
-         .pagination-btn.active {
-            background: #006073;
-            color: white;
-            border-color: #006073;
-         }
-
-         /* Responsive */
-         @media (max-width: 768px) {
-            .stats-row {
-               grid-template-columns: 1fr;
-            }
-
-            .filter-bar {
-               flex-direction: column;
-            }
-
-            .students-table-container {
-               overflow-x: auto;
-            }
-
-            .students-table {
-               min-width: 800px;
-            }
-         }
-      </style>
-   </head>
-
-   <body class="animated-content" ng-app="StudentManagementApp" ng-controller="StudentManagementController" ng-cloak>
-     <!-- Top Navbar -->
-     <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
-        <div class="logo-area">
-           <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
-           <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
-           <span class="icon-bg">
-            <i class="ti ti-menu"></i>
-           </span>
-           </a>
-           </span>
-           <span class="navbar-brand" style="width: 125px">VegaPilot</span>
-        </div>
-        <ul class="nav navbar-nav toolbar pull-right">
-           <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
-              <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
-           </li>
-           <li class="dropdown toolbar-icon-bg">
-              <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
-              <img class="img-circle" src="assets/img/default_user.png" alt="" />
-              </a>
-              <ul class="dropdown-menu userinfo arrow">
-                 <li><a href="catalog.html"><i class="ti ti-shift-right"></i><span>Back to Catalog</span></a></li>
-              </ul>
-           </li>
-        </ul>
-     </header>
-
-      <!-- Main Wrapper -->
-      <div id="wrapper">
-         <div id="layout-static">
-           <!-- Sidebar -->
-           <div class="static-sidebar-wrapper sidebar-default">
-              <div class="static-sidebar">
-                 <div class="sidebar">
-                    <div class="widget stay-on-collapse" id="widget-sidebar">
-                       <nav role="navigation" class="widget-body">
-                           <ul class="acc-menu">
-
-                              <li class="nav-separator"><span>Programs</span></li>
-                              <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
-                              <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a></li>
-                              <li><a href="candidate-profile.html" class="active"><i class="ti ti-user"></i><span>Students</span></a></li>
-                              <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
-
-                              <li class="nav-separator"><span>Exams & Quizzes</span></li>
-                              <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a></li>
-                              <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
-
-                              <li class="nav-separator"><span>Content Library</span></li>
-                              <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a></li>
-                              <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a></li>
-                              <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a></li>
-                              <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a></li>
-
-                              <li class="nav-separator"><span>Commerce</span></li>
-                              <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
-                              <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                              <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
-
-                              <li class="nav-separator"><span>People</span></li>
-                              <li><a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a></li>
-                              <li><a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
-                           </ul>
-                       </nav>
-                    </div>
-                 </div>
-              </div>
-           </div>
-
-            <!-- Main Content Area -->
-            <div class="static-content-wrapper">
-               <div class="static-content">
-                  <div class="page-content">
-                     <div class="container-fluid">
-                        <div class="students-container">
-
-                           <!-- Page Header -->
-                           <div class="page-header-section">
-                              <div>
-                                 <h2><i class="ti ti-user"></i> Student Management</h2>
-                                 <p>View and manage all student profiles, enrollments, and performance</p>
-                              </div>
+                        <!-- Page Header -->
+                        <div class="page-header-section">
+                           <div>
+                              <h2><i class="ti ti-user"></i> Student Management</h2>
+                              <p>View and manage all student profiles, enrollments, and performance</p>
                            </div>
-
-                           <!-- Filter Bar -->
-                           <div class="filter-bar">
-                              <div class="search-wrapper">
-                                 <i class="ti ti-search"></i>
-                                 <input type="text"
-                                        class="search-input"
-                                        placeholder="Search by name, email, mobile number, or enrolled courses..."
-                                        ng-model="searchQuery"
-                                        ng-change="filterStudents()">
-                              </div>
-                              <select class="filter-select" ng-model="filterStatus" ng-change="filterStudents()">
-                                 <option value="">All Status</option>
-                                 <option value="active">Active</option>
-                                 <option value="inactive">Inactive</option>
-                              </select>
-                           </div>
-
-                           <!-- Students Table -->
-                           <div class="students-table-container" ng-if="paginatedStudents.length > 0">
-                              <table class="students-table">
-                                 <thead>
-                                    <tr>
-                                       <th class="sortable" ng-click="sortByColumn('name')" ng-class="{active: sortColumn === 'name'}">
-                                          Student
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                          <div class="resizer" onmousedown="initResize(event)"></div>
-                                       </th>
-                                       <th class="sortable" ng-click="sortByColumn('email')" ng-class="{active: sortColumn === 'email'}">
-                                          Email
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'email' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                          <div class="resizer" onmousedown="initResize(event)"></div>
-                                       </th>
-                                       <th class="sortable" ng-click="sortByColumn('mobile')" ng-class="{active: sortColumn === 'mobile'}">
-                                          Mobile
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'mobile' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                          <div class="resizer" onmousedown="initResize(event)"></div>
-                                       </th>
-                                       <th class="sortable" ng-click="sortByColumn('coursesCount')" ng-class="{active: sortColumn === 'coursesCount'}">
-                                          Enrolled Courses
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'coursesCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                          <div class="resizer" onmousedown="initResize(event)"></div>
-                                       </th>
-                                       <th class="sortable" ng-click="sortByColumn('enrollmentDate')" ng-class="{active: sortColumn === 'enrollmentDate'}">
-                                          Enrollment Date
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'enrollmentDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                          <div class="resizer" onmousedown="initResize(event)"></div>
-                                       </th>
-                                       <th class="sortable" ng-click="sortByColumn('status')" ng-class="{active: sortColumn === 'status'}">
-                                          Status
-                                          <i class="sort-icon ti" ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
-                                       </th>
-                                    </tr>
-                                 </thead>
-                                 <tbody>
-                                    <tr ng-repeat="student in paginatedStudents" ng-click="viewStudentDetail(student)">
-                                       <td>
-                                          <div class="student-name-cell">
-                                             <img ng-if="student.avatar"
-                                                  ng-src="{{student.avatar}}"
-                                                  alt="{{student.name}}"
-                                                  class="student-avatar">
-                                             <div ng-if="!student.avatar" class="student-avatar-placeholder">
-                                                {{getInitials(student.name)}}
-                                             </div>
-                                             <div>
-                                                <div class="student-name">{{student.name}}</div>
-                                                <div class="student-id">ID: {{student.id}}</div>
-                                             </div>
-                                          </div>
-                                       </td>
-                                       <td>
-                                          <div class="contact-info">
-                                             <i class="ti ti-email"></i>{{student.email}}
-                                          </div>
-                                       </td>
-                                       <td>
-                                          <div class="contact-info">
-                                             <i class="ti ti-mobile"></i>{{student.mobile}}
-                                          </div>
-                                       </td>
-                                       <td>
-                                          <span class="courses-badge clickable" ng-click="viewEnrolledCourses(student); $event.stopPropagation()" title="Click to view courses">
-                                             {{student.totalCourseEnrollments || 0}} Course{{student.totalCourseEnrollments !== 1 ? 's' : ''}}
-                                          </span>
-                                       </td>
-                                       <td>
-                                          <div class="enrollment-date">{{student.enrollmentDate | date:'MMM d, y'}}</div>
-                                       </td>
-                                       <td>
-                                          <span class="status-badge" ng-class="{active: student.status === 'active', inactive: student.status !== 'active'}">
-                                             {{student.status}}
-                                          </span>
-                                       </td>
-                                    </tr>
-                                 </tbody>
-                              </table>
-
-                              <!-- Pagination -->
-                              <div class="pagination-container">
-                                 <div class="pagination-info">
-                                    Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalStudents}} students
-                                 </div>
-                                 <div class="pagination-controls">
-                                    <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
-                                       <i class="ti ti-angle-left"></i> Previous
-                                    </button>
-                                    <button class="pagination-btn"
-                                            ng-repeat="page in getPageNumbers()"
-                                            ng-class="{active: page === currentPage}"
-                                            ng-click="goToPage(page)">
-                                       {{page}}
-                                    </button>
-                                    <button class="pagination-btn" ng-click="nextPage()" ng-disabled="currentPage === getTotalPages()">
-                                       Next <i class="ti ti-angle-right"></i>
-                                    </button>
-                                 </div>
-                              </div>
-                           </div>
-
-                           <!-- Empty State -->
-                           <div class="students-table-container" ng-if="paginatedStudents.length === 0">
-                              <div class="empty-state">
-                                 <i class="ti ti-user"></i>
-                                 <h3>No Students Found</h3>
-                                 <p>{{searchQuery || filterCourse || filterStatus ? 'No students match your search criteria.' : 'Get started by adding your first student.'}}</p>
-                              </div>
-                           </div>
-
                         </div>
+
+                        <!-- Filter Bar -->
+                        <div class="filter-bar">
+                           <div class="search-wrapper">
+                              <i class="ti ti-search"></i>
+                              <input type="text" class="search-input"
+                                 placeholder="Search by name, email, mobile number, or enrolled courses..."
+                                 ng-model="searchQuery" ng-change="filterStudents()">
+                           </div>
+                           <select class="filter-select" ng-model="filterStatus" ng-change="filterStudents()">
+                              <option value="">All Status</option>
+                              <option value="active">Active</option>
+                              <option value="inactive">Inactive</option>
+                           </select>
+                        </div>
+
+                        <!-- Students Table -->
+                        <div class="students-table-container" ng-if="paginatedStudents.length > 0">
+                           <table class="students-table">
+                              <thead>
+                                 <tr>
+                                    <th class="sortable" ng-click="sortByColumn('name')"
+                                       ng-class="{active: sortColumn === 'name'}">
+                                       Student
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'name' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       <div class="resizer" onmousedown="initResize(event)"></div>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('email')"
+                                       ng-class="{active: sortColumn === 'email'}">
+                                       Email
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'email' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       <div class="resizer" onmousedown="initResize(event)"></div>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('mobile')"
+                                       ng-class="{active: sortColumn === 'mobile'}">
+                                       Mobile
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'mobile' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       <div class="resizer" onmousedown="initResize(event)"></div>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('coursesCount')"
+                                       ng-class="{active: sortColumn === 'coursesCount'}">
+                                       Enrolled Courses
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'coursesCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       <div class="resizer" onmousedown="initResize(event)"></div>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('enrollmentDate')"
+                                       ng-class="{active: sortColumn === 'enrollmentDate'}">
+                                       Enrollment Date
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'enrollmentDate' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                       <div class="resizer" onmousedown="initResize(event)"></div>
+                                    </th>
+                                    <th class="sortable" ng-click="sortByColumn('status')"
+                                       ng-class="{active: sortColumn === 'status'}">
+                                       Status
+                                       <i class="sort-icon ti"
+                                          ng-class="sortColumn === 'status' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
+                                    </th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr ng-repeat="student in paginatedStudents" ng-click="viewStudentDetail(student)">
+                                    <td>
+                                       <div class="student-name-cell">
+                                          <img ng-if="student.avatar" ng-src="{{student.avatar}}" alt="{{student.name}}"
+                                             class="student-avatar">
+                                          <div ng-if="!student.avatar" class="student-avatar-placeholder">
+                                             {{getInitials(student.name)}}
+                                          </div>
+                                          <div>
+                                             <div class="student-name">{{student.name}}</div>
+                                             <div class="student-id">ID: {{student.id}}</div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="contact-info">
+                                          <i class="ti ti-email"></i>{{student.email}}
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="contact-info">
+                                          <i class="ti ti-mobile"></i>{{student.mobile}}
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <span class="courses-badge clickable"
+                                          ng-click="viewEnrolledCourses(student); $event.stopPropagation()"
+                                          title="Click to view courses">
+                                          {{student.totalCourseEnrollments || 0}} Course{{student.totalCourseEnrollments
+                                          !== 1 ? 's' : ''}}
+                                       </span>
+                                    </td>
+                                    <td>
+                                       <div class="enrollment-date">{{student.enrollmentDate | date:'MMM d, y'}}</div>
+                                    </td>
+                                    <td>
+                                       <span class="status-badge"
+                                          ng-class="{active: student.status === 'active', inactive: student.status !== 'active'}">
+                                          {{student.status}}
+                                       </span>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
+
+                           <!-- Pagination -->
+                           <div class="pagination-container">
+                              <div class="pagination-info">
+                                 Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalStudents}} students
+                              </div>
+                              <div class="pagination-controls">
+                                 <button class="pagination-btn" ng-click="previousPage()"
+                                    ng-disabled="currentPage === 1">
+                                    <i class="ti ti-angle-left"></i> Previous
+                                 </button>
+                                 <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                    ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                    {{page}}
+                                 </button>
+                                 <button class="pagination-btn" ng-click="nextPage()"
+                                    ng-disabled="currentPage === getTotalPages()">
+                                    Next <i class="ti ti-angle-right"></i>
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div class="students-table-container" ng-if="paginatedStudents.length === 0">
+                           <div class="empty-state">
+                              <i class="ti ti-user"></i>
+                              <h3>No Students Found</h3>
+                              <p>{{searchQuery || filterCourse || filterStatus ? 'No students match your search
+                                 criteria.' : 'Get started by adding your first student.'}}</p>
+                           </div>
+                        </div>
+
                      </div>
                   </div>
                </div>
             </div>
          </div>
       </div>
+   </div>
 
-      <!-- Enrolled Courses Modal -->
-      <div class="modal-backdrop" ng-class="{active: coursesModalOpen}" ng-style="{'display': coursesModalOpen ? 'flex' : 'none'}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-         <div class="modal-dialog" style="background: white; border-radius: 8px; max-width: 900px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
-               <h3 style="margin: 0; font-size: 20px; color: white;">
-                  <i class="ti ti-book"></i> Enrolled Courses - {{selectedStudentForCourses.name}}
-               </h3>
-               <button class="modal-close" ng-click="closeCoursesModal()" style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
-            <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
-               <!-- Candidate Info Header -->
-               <div ng-if="selectedStudentForCourses" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; gap: 15px;">
-                  <img ng-if="selectedStudentForCourses.avatar" ng-src="{{selectedStudentForCourses.avatar}}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #006073;">
-                  <div ng-if="!selectedStudentForCourses.avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; border: 2px solid #006073;">
-                     {{getInitials(selectedStudentForCourses.name)}}
-                  </div>
-                  <div style="flex: 1;">
-                     <div style="font-weight: 600; font-size: 16px; color: #333;">{{selectedStudentForCourses.name}}</div>
-                     <div style="font-size: 13px; color: #6c757d;">{{selectedStudentForCourses.email}}</div>
-                  </div>
-                  <div style="text-align: right;">
-                     <div style="font-size: 24px; font-weight: 700; color: #006073;">{{selectedStudentForCourses.totalCourseEnrollments || 0}}</div>
-                     <div style="font-size: 12px; color: #6c757d; text-transform: uppercase;">Total Enrollments</div>
-                  </div>
+   <!-- Enrolled Courses Modal -->
+   <div class="modal-backdrop" ng-class="{active: coursesModalOpen}"
+      ng-style="{'display': coursesModalOpen ? 'flex' : 'none'}"
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+      <div class="modal-dialog"
+         style="background: white; border-radius: 8px; max-width: 900px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
+         <div class="modal-header"
+            style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
+            <h3 style="margin: 0; font-size: 20px; color: white;">
+               <i class="ti ti-book"></i> Enrolled Courses - {{selectedStudentForCourses.name}}
+            </h3>
+            <button class="modal-close" ng-click="closeCoursesModal()"
+               style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
+            <!-- Candidate Info Header -->
+            <div ng-if="selectedStudentForCourses"
+               style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; gap: 15px;">
+               <img ng-if="selectedStudentForCourses.avatar" ng-src="{{selectedStudentForCourses.avatar}}"
+                  style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #006073;">
+               <div ng-if="!selectedStudentForCourses.avatar"
+                  style="width: 50px; height: 50px; border-radius: 50%; background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; border: 2px solid #006073;">
+                  {{getInitials(selectedStudentForCourses.name)}}
                </div>
+               <div style="flex: 1;">
+                  <div style="font-weight: 600; font-size: 16px; color: #333;">{{selectedStudentForCourses.name}}</div>
+                  <div style="font-size: 13px; color: #6c757d;">{{selectedStudentForCourses.email}}</div>
+               </div>
+               <div style="text-align: right;">
+                  <div style="font-size: 24px; font-weight: 700; color: #006073;">
+                     {{selectedStudentForCourses.totalCourseEnrollments || 0}}</div>
+                  <div style="font-size: 12px; color: #6c757d; text-transform: uppercase;">Total Enrollments</div>
+               </div>
+            </div>
 
-               <div ng-if="selectedStudentForCourses && selectedStudentForCourses.enrolledCourses && selectedStudentForCourses.enrolledCourses.length > 0">
+            <div
+               ng-if="selectedStudentForCourses && selectedStudentForCourses.enrolledCourses && selectedStudentForCourses.enrolledCourses.length > 0">
+               <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                     <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th
+                           style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                           Course Name
+                        </th>
+                        <th
+                           style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                           Active Till
+                        </th>
+                        <th
+                           style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                           Status
+                        </th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr ng-repeat="course in selectedStudentForCourses.enrolledCourses"
+                        style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;"
+                        onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                        <td style="padding: 15px;">
+                           <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}</div>
+                           <div style="font-size: 12px; color: #6c757d;">{{course.courseCode}}</div>
+                           <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                              Enrolled: {{course.enrollmentDate * 1000 | date:'MMM d, y'}}
+                           </div>
+                        </td>
+                        <td style="padding: 15px;">
+                           <div style="color: #333; font-size: 14px;">{{course.validUntil * 1000 | date:'MMM d, y'}}
+                           </div>
+                           <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">
+                              {{getDaysRemaining(course.validUntil)}} days {{getValidityStatus(course.validUntil) ===
+                              'EXPIRED' ? 'expired' : 'remaining'}}
+                           </div>
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                           <span class="validity-badge" ng-class="getValidityClass(course.validUntil)"
+                              style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                              {{course.enrollmentStatusText || getValidityStatus(course.validUntil)}}
+                           </span>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+            <div
+               ng-if="selectedStudentForCourses && (!selectedStudentForCourses.enrolledCourses || selectedStudentForCourses.enrolledCourses.length === 0)"
+               style="text-align: center; padding: 40px; color: #6c757d;">
+               <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
+               <p style="font-size: 16px; margin: 0;">No courses enrolled</p>
+            </div>
+         </div>
+         <div class="modal-footer"
+            style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; background: white; border-radius: 0 0 8px 8px;">
+            <button class="btn btn-success" ng-click="openEnrollCourseModal()"
+               style="display: inline-flex; align-items: center; gap: 5px;">
+               <i class="ti ti-plus"></i> <span>Enroll Course</span>
+            </button>
+            <button class="btn btn-default" ng-click="closeCoursesModal()"
+               style="display: inline-flex; align-items: center; gap: 5px;">
+               <i class="ti ti-close"></i> <span>Close</span>
+            </button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Enroll Course Modal -->
+   <div class="modal-backdrop" ng-class="{active: enrollCourseModalOpen}"
+      ng-style="{'display': enrollCourseModalOpen ? 'flex' : 'none'}"
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+      <div class="modal-dialog"
+         style="background: white; border-radius: 8px; max-width: 1000px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
+         <div class="modal-header"
+            style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
+            <h3 style="margin: 0; font-size: 20px; color: white;">
+               <i class="ti ti-book"></i> Enroll Course - {{selectedStudentForCourses.name}}
+            </h3>
+            <button class="modal-close" ng-click="closeEnrollCourseModal()"
+               style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
+            <!-- Search Bar -->
+            <div style="margin-bottom: 20px;">
+               <div class="input-group">
+                  <span class="input-group-addon"
+                     style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
+                     <i class="ti ti-search"></i>
+                  </span>
+                  <input type="text" class="form-control" placeholder="Search courses by name or code..."
+                     ng-model="courseSearchQuery" style="border-left: none;">
+                  <span class="input-group-btn" ng-if="courseSearchQuery">
+                     <button class="btn btn-default" ng-click="courseSearchQuery = ''"
+                        style="border: 1px solid #dee2e6; border-left: none;">
+                        <i class="ti ti-close"></i>
+                     </button>
+                  </span>
+               </div>
+            </div>
+
+            <div ng-if="filteredAvailableCoursesForEnrollment.length > 0">
+               <p style="color: #6c757d; margin-bottom: 20px;">
+                  Showing <strong>{{filteredAvailableCoursesForEnrollment.length}}</strong> available course(s).
+               </p>
+
+               <div style="max-height: 500px; overflow-y: auto;">
                   <table style="width: 100%; border-collapse: collapse;">
                      <thead>
-                        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                           <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                        <tr
+                           style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 10;">
+                           <th
+                              style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
                               Course Name
                            </th>
-                           <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                              Active Till
+                           <th
+                              style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                              Code
                            </th>
-                           <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                           <th
+                              style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                              Duration
+                           </th>
+                           <th
+                              style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                              Price
+                           </th>
+                           <th
+                              style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
                               Status
+                           </th>
+                           <th
+                              style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
+                              Action
                            </th>
                         </tr>
                      </thead>
                      <tbody>
-                        <tr ng-repeat="course in selectedStudentForCourses.enrolledCourses" style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                        <tr ng-repeat="course in filteredAvailableCoursesForEnrollment"
+                           style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;"
+                           onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                            <td style="padding: 15px;">
-                              <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}</div>
-                              <div style="font-size: 12px; color: #6c757d;">{{course.courseCode}}</div>
-                              <div style="font-size: 11px; color: #999; margin-top: 4px;">
-                                 Enrolled: {{course.enrollmentDate * 1000 | date:'MMM d, y'}}
+                              <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}
                               </div>
+                              <div style="font-size: 12px; color: #6c757d;">{{course.modules || 0}} modules</div>
                            </td>
                            <td style="padding: 15px;">
-                              <div style="color: #333; font-size: 14px;">{{course.validUntil * 1000 | date:'MMM d, y'}}</div>
-                              <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">
-                                 {{getDaysRemaining(course.validUntil)}} days {{getValidityStatus(course.validUntil) === 'EXPIRED' ? 'expired' : 'remaining'}}
+                              <div style="color: #333; font-size: 13px;">{{course.courseCode}}</div>
+                           </td>
+                           <td style="padding: 15px; text-align: center;">
+                              <div style="color: #333; font-size: 13px;">
+                                 <i class="ti ti-calendar"
+                                    style="margin-right: 5px; color: #6c757d;"></i>{{course.duration || 'N/A'}}
                               </div>
                            </td>
                            <td style="padding: 15px; text-align: center;">
-                              <span class="validity-badge" ng-class="getValidityClass(course.validUntil)" style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                                 {{course.enrollmentStatusText || getValidityStatus(course.validUntil)}}
+                              <div style="font-weight: 600; color: #006073; font-size: 14px;">
+                                 ${{course.price || 0}}
+                              </div>
+                           </td>
+                           <td style="padding: 15px; text-align: center;">
+                              <span
+                                 style="display: inline-block; padding: 4px 10px; background: #d4edda; color: #155724; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
+                                 {{course.status || 'Active'}}
                               </span>
+                           </td>
+                           <td style="padding: 15px; text-align: center;">
+                              <button class="btn btn-sm btn-success" ng-click="enrollStudentToCourse(course)"
+                                 style="padding: 6px 15px; font-size: 12px;">
+                                 <i class="ti ti-plus"></i> Enroll
+                              </button>
                            </td>
                         </tr>
                      </tbody>
                   </table>
                </div>
-               <div ng-if="selectedStudentForCourses && (!selectedStudentForCourses.enrolledCourses || selectedStudentForCourses.enrolledCourses.length === 0)" style="text-align: center; padding: 40px; color: #6c757d;">
-                  <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
-                  <p style="font-size: 16px; margin: 0;">No courses enrolled</p>
-               </div>
             </div>
-            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; background: white; border-radius: 0 0 8px 8px;">
-               <button class="btn btn-success" ng-click="openEnrollCourseModal()" style="display: inline-flex; align-items: center; gap: 5px;">
-                  <i class="ti ti-plus"></i> <span>Enroll Course</span>
-               </button>
-               <button class="btn btn-default" ng-click="closeCoursesModal()" style="display: inline-flex; align-items: center; gap: 5px;">
-                  <i class="ti ti-close"></i> <span>Close</span>
-               </button>
+
+            <div ng-if="filteredAvailableCoursesForEnrollment.length === 0"
+               style="text-align: center; padding: 40px; color: #6c757d;">
+               <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
+               <p style="font-size: 16px; margin: 0;" ng-if="!courseSearchQuery">No courses available for enrollment</p>
+               <p style="font-size: 16px; margin: 0;" ng-if="courseSearchQuery">No courses found matching
+                  "{{courseSearchQuery}}"</p>
             </div>
          </div>
-      </div>
-
-      <!-- Enroll Course Modal -->
-      <div class="modal-backdrop" ng-class="{active: enrollCourseModalOpen}" ng-style="{'display': enrollCourseModalOpen ? 'flex' : 'none'}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
-         <div class="modal-dialog" style="background: white; border-radius: 8px; max-width: 1000px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-            <div class="modal-header" style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
-               <h3 style="margin: 0; font-size: 20px; color: white;">
-                  <i class="ti ti-book"></i> Enroll Course - {{selectedStudentForCourses.name}}
-               </h3>
-               <button class="modal-close" ng-click="closeEnrollCourseModal()" style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
-            <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
-               <!-- Search Bar -->
-               <div style="margin-bottom: 20px;">
-                  <div class="input-group">
-                     <span class="input-group-addon" style="background: #f8f9fa; border: 1px solid #dee2e6; border-right: none;">
-                        <i class="ti ti-search"></i>
-                     </span>
-                     <input type="text"
-                            class="form-control"
-                            placeholder="Search courses by name or code..."
-                            ng-model="courseSearchQuery"
-                            style="border-left: none;">
-                     <span class="input-group-btn" ng-if="courseSearchQuery">
-                        <button class="btn btn-default"
-                                ng-click="courseSearchQuery = ''"
-                                style="border: 1px solid #dee2e6; border-left: none;">
-                           <i class="ti ti-close"></i>
-                        </button>
-                     </span>
-                  </div>
-               </div>
-
-               <div ng-if="filteredAvailableCoursesForEnrollment.length > 0">
-                  <p style="color: #6c757d; margin-bottom: 20px;">
-                     Showing <strong>{{filteredAvailableCoursesForEnrollment.length}}</strong> available course(s).
-                  </p>
-
-                  <div style="max-height: 500px; overflow-y: auto;">
-                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                           <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 10;">
-                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Course Name
-                              </th>
-                              <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Code
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Duration
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Price
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Status
-                              </th>
-                              <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #006073; font-size: 13px; text-transform: uppercase;">
-                                 Action
-                              </th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                           <tr ng-repeat="course in filteredAvailableCoursesForEnrollment"
-                               style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;"
-                               onmouseover="this.style.background='#f8f9fa'"
-                               onmouseout="this.style.background='white'">
-                              <td style="padding: 15px;">
-                                 <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{course.courseName}}</div>
-                                 <div style="font-size: 12px; color: #6c757d;">{{course.modules || 0}} modules</div>
-                              </td>
-                              <td style="padding: 15px;">
-                                 <div style="color: #333; font-size: 13px;">{{course.courseCode}}</div>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <div style="color: #333; font-size: 13px;">
-                                    <i class="ti ti-calendar" style="margin-right: 5px; color: #6c757d;"></i>{{course.duration || 'N/A'}}
-                                 </div>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <div style="font-weight: 600; color: #006073; font-size: 14px;">
-                                    ${{course.price || 0}}
-                                 </div>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <span style="display: inline-block; padding: 4px 10px; background: #d4edda; color: #155724; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
-                                    {{course.status || 'Active'}}
-                                 </span>
-                              </td>
-                              <td style="padding: 15px; text-align: center;">
-                                 <button class="btn btn-sm btn-success"
-                                         ng-click="enrollStudentToCourse(course)"
-                                         style="padding: 6px 15px; font-size: 12px;">
-                                    <i class="ti ti-plus"></i> Enroll
-                                 </button>
-                              </td>
-                           </tr>
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-
-               <div ng-if="filteredAvailableCoursesForEnrollment.length === 0" style="text-align: center; padding: 40px; color: #6c757d;">
-                  <i class="ti ti-book" style="font-size: 48px; color: #dee2e6; margin-bottom: 15px;"></i>
-                  <p style="font-size: 16px; margin: 0;" ng-if="!courseSearchQuery">No courses available for enrollment</p>
-                  <p style="font-size: 16px; margin: 0;" ng-if="courseSearchQuery">No courses found matching "{{courseSearchQuery}}"</p>
-               </div>
-            </div>
-            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;">
-               <button class="btn btn-default" ng-click="closeEnrollCourseModal()">
-                  <i class="ti ti-close"></i> Close
-               </button>
-            </div>
+         <div class="modal-footer"
+            style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;">
+            <button class="btn btn-default" ng-click="closeEnrollCourseModal()">
+               <i class="ti ti-close"></i> Close
+            </button>
          </div>
       </div>
+   </div>
 
-      <style>
-         .courses-badge.clickable {
-            cursor: pointer;
-            transition: all 0.2s ease;
-         }
-         .courses-badge.clickable:hover {
-            background: #006073 !important;
-            color: white !important;
-            transform: scale(1.05);
-         }
+   <style>
+      .courses-badge.clickable {
+         cursor: pointer;
+         transition: all 0.2s ease;
+      }
 
-         .validity-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-         }
-         .validity-badge.validity-active {
-            background: #d4edda;
-            color: #155724;
-         }
-         .validity-badge.validity-expiring {
-            background: #fff3cd;
-            color: #856404;
-         }
-         .validity-badge.validity-expired {
-            background: #f8d7da;
-            color: #721c24;
-         }
+      .courses-badge.clickable:hover {
+         background: #006073 !important;
+         color: white !important;
+         transform: scale(1.05);
+      }
 
-         @keyframes modalSlideDown {
-            from {
-               transform: translateY(-50px);
-               opacity: 0;
-            }
-            to {
-               transform: translateY(0);
-               opacity: 1;
-            }
-         }
+      .validity-badge {
+         padding: 6px 12px;
+         border-radius: 20px;
+         font-size: 11px;
+         font-weight: 600;
+      }
 
-         .modal-backdrop.active {
-            display: flex !important;
+      .validity-badge.validity-active {
+         background: #d4edda;
+         color: #155724;
+      }
+
+      .validity-badge.validity-expiring {
+         background: #fff3cd;
+         color: #856404;
+      }
+
+      .validity-badge.validity-expired {
+         background: #f8d7da;
+         color: #721c24;
+      }
+
+      @keyframes modalSlideDown {
+         from {
+            transform: translateY(-50px);
+            opacity: 0;
          }
 
-         .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
+         to {
+            transform: translateY(0);
+            opacity: 1;
          }
-      </style>
+      }
 
-      <!-- Loading Overlay -->
-      <div class="loading-overlay" ng-class="{active: isLoading}">
-         <div class="loading-content">
-            <div class="spinner"></div>
-            <div class="loading-text">{{loadingMessage}}</div>
-         </div>
+      .modal-backdrop.active {
+         display: flex !important;
+      }
+
+      .modal-close:hover {
+         background: rgba(255, 255, 255, 0.2) !important;
+      }
+   </style>
+
+   <!-- Loading Overlay -->
+   <div class="loading-overlay" ng-class="{active: isLoading}">
+      <div class="loading-content">
+         <div class="spinner"></div>
+         <div class="loading-text">{{loadingMessage}}</div>
       </div>
+   </div>
 
-      <!-- Scripts -->
-      <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
-      <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
-      <script type="text/javascript" src="assets/js/angular.min.js"></script>
-      <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="assets/js/enquire.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
-      <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
-      <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
-      <script type="text/javascript" src="assets/js/application.js"></script>
-      <script type="text/javascript" src="assets/demo/demo.js"></script>
-      <script src="controllers/candidate-profile.js"></script>
+   <!-- Scripts -->
+   <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+   <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+   <script type="text/javascript" src="assets/js/angular.min.js"></script>
+   <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+   <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+   <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+   <script type="text/javascript" src="assets/js/application.js"></script>
+   <script type="text/javascript" src="assets/demo/demo.js"></script>
+   <script src="controllers/candidate-profile.js"></script>
 
-      <!-- Column Resize Script -->
-      <script>
-         // Column resize functionality
-         var currentResizer;
-         var currentTh;
-         var startX;
-         var startWidth;
+   <!-- Column Resize Script -->
+   <script>
+      // Column resize functionality
+      var currentResizer;
+      var currentTh;
+      var startX;
+      var startWidth;
 
-         function initResize(e) {
-            e.preventDefault();
-            e.stopPropagation(); // Prevent triggering sort when clicking on resizer
+      function initResize(e) {
+         e.preventDefault();
+         e.stopPropagation(); // Prevent triggering sort when clicking on resizer
 
-            currentResizer = e.target;
-            currentTh = currentResizer.parentElement;
-            startX = e.pageX;
-            startWidth = currentTh.offsetWidth;
+         currentResizer = e.target;
+         currentTh = currentResizer.parentElement;
+         startX = e.pageX;
+         startWidth = currentTh.offsetWidth;
 
-            currentResizer.classList.add('resizing');
+         currentResizer.classList.add('resizing');
 
-            document.addEventListener('mousemove', doResize);
-            document.addEventListener('mouseup', stopResize);
-         }
+         document.addEventListener('mousemove', doResize);
+         document.addEventListener('mouseup', stopResize);
+      }
 
-         function doResize(e) {
-            if (currentTh) {
-               var width = startWidth + (e.pageX - startX);
-               if (width > 50) { // Minimum width of 50px
-                  currentTh.style.width = width + 'px';
-                  currentTh.style.minWidth = width + 'px';
-                  currentTh.style.maxWidth = width + 'px';
-               }
+      function doResize(e) {
+         if (currentTh) {
+            var width = startWidth + (e.pageX - startX);
+            if (width > 50) { // Minimum width of 50px
+               currentTh.style.width = width + 'px';
+               currentTh.style.minWidth = width + 'px';
+               currentTh.style.maxWidth = width + 'px';
             }
          }
+      }
 
-         function stopResize() {
-            if (currentResizer) {
-               currentResizer.classList.remove('resizing');
-            }
-            currentResizer = null;
-            currentTh = null;
-
-            document.removeEventListener('mousemove', doResize);
-            document.removeEventListener('mouseup', stopResize);
+      function stopResize() {
+         if (currentResizer) {
+            currentResizer.classList.remove('resizing');
          }
-      </script>
-   </body>
+         currentResizer = null;
+         currentTh = null;
+
+         document.removeEventListener('mousemove', doResize);
+         document.removeEventListener('mouseup', stopResize);
+      }
+   </script>
+</body>
+
 </html>
