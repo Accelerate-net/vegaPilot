@@ -18,6 +18,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
 
    <style>
       /* Page Header Section */
@@ -83,81 +84,26 @@
          background: white;
       }
 
-      /* Quiz Table */
-      .quiz-table {
+      /* Quiz Table styles are now handled by crispr-table.css (students-table class) */
+      .quiz-table-container {
          background: white;
          border-radius: 0 0 8px 8px;
          overflow: visible;
          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
-      .quiz-table table {
-         width: 100%;
-         border-collapse: collapse;
+
+
+      /* Students Table Container Override */
+      .students-table-container {
+         overflow: visible !important;
       }
 
-      .quiz-table thead {
-         background: #f8f9fa;
-      }
-
-      .quiz-table th {
-         padding: 15px;
-         text-align: left;
-         font-size: 11px;
-         font-weight: 600;
-         text-transform: uppercase;
-         color: #495057;
-         border-bottom: 2px solid #dee2e6;
-      }
-
-      .quiz-table td {
-         padding: 15px;
-         border-bottom: 1px solid #e9ecef;
-         vertical-align: top;
-         font-size: 13px;
-         color: #333;
-      }
-
-      .quiz-table tbody tr {
-         position: relative;
-      }
-
-      .quiz-table tbody tr:hover {
-         background: #f8f9fa;
-      }
-
-      .quiz-table tbody tr:has(.kebab-dropdown.active) {
-         z-index: 100;
-      }
-
-      .quiz-table tbody tr:last-child td {
-         border-bottom: none;
-      }
-
-      /* Sortable Columns */
-      .quiz-table th.sortable {
-         cursor: pointer;
-         user-select: none;
-         position: relative;
-         padding-right: 30px;
-      }
-
-      .quiz-table th.sortable:hover {
-         background: #e9ecef;
-      }
-
-      .quiz-table th.sortable .sort-icon {
-         position: absolute;
-         right: 10px;
-         top: 50%;
-         transform: translateY(-50%);
-         opacity: 0.3;
-         font-size: 12px;
-      }
-
-      .quiz-table th.sortable.active .sort-icon {
-         opacity: 1;
-         color: #006073;
+      .students-table,
+      .students-table tbody,
+      .students-table tr,
+      .students-table td {
+         overflow: visible !important;
       }
 
       /* Badges */
@@ -397,27 +343,7 @@
          margin: 0;
       }
 
-      /* Search Bar */
-      .search-bar {
-         padding: 20px;
-         background: white;
-         border-bottom: 1px solid #e9ecef;
-      }
 
-      .search-input {
-         width: 100%;
-         padding: 10px 15px;
-         border: 1px solid #dee2e6;
-         border-radius: 6px;
-         font-size: 14px;
-         transition: all 0.2s;
-      }
-
-      .search-input:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
 
       /* View Quiz Modal */
       .quiz-info-grid {
@@ -510,111 +436,7 @@
          transition: all 0.2s;
       }
 
-      /* Kebab Menu Styles */
-      .kebab-menu-container {
-         position: relative;
-         display: inline-block;
-         z-index: 1;
-      }
 
-      .kebab-menu-container:has(.kebab-dropdown.active) {
-         z-index: 100;
-      }
-
-      .kebab-button {
-         background: transparent;
-         border: none;
-         cursor: pointer;
-         padding: 8px 12px;
-         border-radius: 6px;
-         transition: all 0.2s ease;
-         color: #495057;
-      }
-
-      .kebab-button:hover {
-         background: #f0f0f0;
-         color: #006073;
-      }
-
-      .kebab-button i {
-         font-size: 18px;
-      }
-
-      .kebab-dropdown {
-         position: absolute;
-         right: 0;
-         top: 100%;
-         background: white;
-         border: 1px solid #e0e0e0;
-         border-radius: 8px;
-         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-         min-width: 180px;
-         z-index: 1000;
-         opacity: 0;
-         transform: translateY(-10px);
-         pointer-events: none;
-         transition: all 0.2s ease;
-      }
-
-      .kebab-dropdown.active {
-         opacity: 1;
-         transform: translateY(0);
-         pointer-events: auto;
-      }
-
-      .kebab-dropdown-item {
-         padding: 12px 16px;
-         cursor: pointer;
-         display: flex;
-         align-items: center;
-         gap: 12px;
-         border-bottom: 1px solid #f0f0f0;
-         transition: all 0.2s ease;
-         font-size: 13px;
-         color: #333;
-      }
-
-      .kebab-dropdown-item:last-child {
-         border-bottom: none;
-      }
-
-      .kebab-dropdown-item:hover {
-         background: #f8f9fa;
-      }
-
-      .kebab-dropdown-item:first-child {
-         border-radius: 8px 8px 0 0;
-      }
-
-      .kebab-dropdown-item:last-child {
-         border-radius: 0 0 8px 8px;
-      }
-
-      .kebab-dropdown-item i {
-         font-size: 16px;
-         width: 20px;
-         text-align: center;
-      }
-
-      .kebab-dropdown-item.view-action i {
-         color: #495057;
-      }
-
-      .kebab-dropdown-item.report-action i {
-         color: #006073;
-      }
-
-      .kebab-dropdown-item.publish-action i {
-         color: #28a745;
-      }
-
-      .kebab-dropdown-item.delete-action i {
-         color: #dc3545;
-      }
-
-      .kebab-dropdown-item.delete-action:hover {
-         background: #fff5f5;
-      }
 
       /* Navbar Styling - Match other pages */
       #topnav {
@@ -782,29 +604,33 @@
                <div class="page-content">
                   <div class="container-fluid" style="padding-top: 1%;">
 
-                     <!-- Tabs -->
-                     <div class="tabs">
-                        <button class="tab" ng-class="{active: currentTab === 'all'}" ng-click="switchTab('all')">
-                           All Quizzes ({{allQuizzes.length}})
-                        </button>
-                        <button class="tab" ng-class="{active: currentTab === 'published'}"
-                           ng-click="switchTab('published')">
-                           Published ({{publishedQuizzes.length}})
-                        </button>
-                        <button class="tab" ng-class="{active: currentTab === 'draft'}" ng-click="switchTab('draft')">
-                           Drafts ({{draftQuizzes.length}})
-                        </button>
-                     </div>
-
-                     <!-- Search Bar -->
-                     <div class="search-bar" ng-if="getDisplayedQuizzes().length > 0">
-                        <input type="text" class="search-input" ng-model="quizSearchQuery"
-                           placeholder="Search quizzes by title or description...">
+                     <!-- Filter Bar -->
+                     <div class="filter-bar" ng-if="getDisplayedQuizzes().length > 0 || isLoading">
+                        <div class="search-wrapper">
+                           <i class="ti" ng-class="{'ti-search': !quizSearchQuery, 'ti-close': quizSearchQuery}"
+                              ng-click="quizSearchQuery = ''"></i>
+                           <input type="text" class="search-input" ng-model="quizSearchQuery"
+                              placeholder="Search quizzes by title or description...">
+                        </div>
+                        <div class="filter-dropdown dropdown">
+                           <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown"
+                              aria-haspopup="true" aria-expanded="false">
+                              {{currentTab === 'published' ? 'Published' : (currentTab === 'draft' ? 'Drafts' : 'All
+                              Quizzes')}}
+                              <i class="ti ti-angle-down"></i>
+                           </button>
+                           <ul class="dropdown-menu dropdown-menu-right">
+                              <li><a href="#" ng-click="switchTab('all'); $event.preventDefault()">All Quizzes</a></li>
+                              <li><a href="#" ng-click="switchTab('published'); $event.preventDefault()">Published</a>
+                              </li>
+                              <li><a href="#" ng-click="switchTab('draft'); $event.preventDefault()">Drafts</a></li>
+                           </ul>
+                        </div>
                      </div>
 
                      <!-- Quiz Table -->
-                     <div class="quiz-table" ng-if="getFilteredQuizzes().length > 0">
-                        <table>
+                     <div class="students-table-container" ng-if="getFilteredQuizzes().length > 0 || isLoading">
+                        <table class="students-table">
                            <thead>
                               <tr>
                                  <th class="sortable" ng-click="sortByColumn('title')"
@@ -850,11 +676,35 @@
                                     <i class="sort-icon ti"
                                        ng-class="sortColumn === 'createdAt' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                  </th>
-                                 <th>Actions</th>
+                                 <th style="width: 60px; text-align: center;">Actions</th>
                               </tr>
                            </thead>
-                           <tbody>
-                              <tr ng-repeat="quiz in getFilteredQuizzes()">
+                           <!-- Skeleton Body -->
+                           <tbody ng-if="isLoading">
+                              <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                 <td>
+                                    <div class="skeleton-col text-long"
+                                       style="position: relative; overflow: hidden; background: #f0f0f0; border-radius: 4px; height: 16px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                    <div class="skeleton-col text-medium"
+                                       style="position: relative; overflow: hidden; background: #f0f0f0; border-radius: 4px; height: 14px; margin-top: 5px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td ng-repeat="j in [1,2,3,4,5,6,7]">
+                                    <div class="skeleton-col text-short"
+                                       style="position: relative; overflow: hidden; background: #f0f0f0; border-radius: 4px; height: 16px;">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </td>
+                                 <td></td>
+                              </tr>
+                           </tbody>
+                           <!-- Data Body -->
+                           <tbody ng-if="!isLoading">
+                              <tr ng-repeat="quiz in getPaginatedQuizzes()"
+                                 ng-class="{'row-active-menu': quiz.showKebabMenu}">
                                  <td>
                                     <strong style="color: #333;">{{quiz.title}}</strong>
                                     <div style="font-size: 12px; color: #6c757d; margin-top: 3px;"
@@ -889,7 +739,8 @@
                                     {{formatDate(quiz.createdAt)}}<br>
                                     <span style="color: #6c757d;">by {{quiz.createdBy}}</span>
                                  </td>
-                                 <td>
+                                 <td style="text-align: center; width: 60px;"
+                                    ng-class="{'cell-active-menu': quiz.showKebabMenu}">
                                     <div class="kebab-menu-container">
                                        <button class="kebab-button" ng-click="toggleKebabMenu(quiz, $event)">
                                           <i class="ti ti-more-alt"></i>
@@ -919,10 +770,39 @@
                               </tr>
                            </tbody>
                         </table>
+
+                        <!-- Pagination Container -->
+                        <div class="pagination-container" ng-if="totalItems > 0 || isLoading">
+                           <div class="pagination-info">
+                              <span>Showing {{(currentPage-1)*pageSize + 1}} to
+                                 {{Math.min(currentPage*pageSize, totalItems)}} of
+                                 {{totalItems}} entries</span>
+                              <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()">
+                                 <option value="10">Show 10</option>
+                                 <option value="20">Show 20</option>
+                                 <option value="50">Show 50</option>
+                                 <option value="100">Show 100</option>
+                              </select>
+                           </div>
+                           <div class="pagination-controls">
+                              <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
+                                 <i class="ti ti-angle-left"></i> Previous
+                              </button>
+                              <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                 ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                 {{page}}
+                              </button>
+                              <button class="pagination-btn" ng-click="nextPage()"
+                                 ng-disabled="currentPage === totalPages">
+                                 Next <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
+                        </div>
+
                      </div>
 
                      <!-- Empty State -->
-                     <div class="empty-state" ng-if="getDisplayedQuizzes().length === 0">
+                     <div class="empty-state" ng-if="!isLoading && getDisplayedQuizzes().length === 0">
                         <i class="ti ti-clipboard"></i>
                         <h4>No Quizzes Found</h4>
                         <p ng-if="currentTab === 'all'">You haven't created any quizzes yet.</p>
@@ -1149,29 +1029,30 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/quiz-listing.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

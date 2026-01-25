@@ -6,24 +6,24 @@ quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$time
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -47,6 +47,17 @@ quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$time
     // Sorting variables
     $scope.sortColumn = '';
     $scope.sortReverse = false;
+
+    // Pagination
+    $scope.currentPage = 1;
+    $scope.itemsPerPage = 10;
+    $scope.pageSize = "10";
+    $scope.totalItems = 0;
+    $scope.totalPages = 0;
+    $scope.Math = window.Math;
+
+    // Loading State
+    $scope.isLoading = false;
 
     // ===== Toggle Kebab Menu =====
     $scope.toggleKebabMenu = function (quiz, $event) {
@@ -74,8 +85,61 @@ quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$time
 
     // ===== Initialize Controller =====
     $scope.init = function () {
-        $scope.loadQuizzes();
-        $scope.loadSampleAttempts(); // For demonstration - you can remove this in production
+        $scope.isLoading = true;
+        // Simulate loading delay for shimmer effect
+        $timeout(function () {
+            $scope.loadQuizzes();
+            $scope.loadSampleAttempts(); // For demonstration - you can remove this in production
+            $scope.isLoading = false;
+        }, 1500);
+    };
+
+    // ===== Pagination Functions =====
+    $scope.changePageSize = function () {
+        $scope.itemsPerPage = parseInt($scope.pageSize);
+        $scope.currentPage = 1;
+    };
+
+    $scope.previousPage = function () {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+        }
+    };
+
+    $scope.nextPage = function () {
+        if ($scope.currentPage < $scope.totalPages) {
+            $scope.currentPage++;
+        }
+    };
+
+    $scope.goToPage = function (page) {
+        $scope.currentPage = page;
+    };
+
+    $scope.getPageNumbers = function () {
+        var pages = [];
+        for (var i = 1; i <= $scope.totalPages; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.getPaginatedQuizzes = function () {
+        var filtered = $scope.getFilteredQuizzes();
+        $scope.totalItems = filtered.length;
+        $scope.totalPages = Math.ceil($scope.totalItems / $scope.itemsPerPage);
+
+        // Ensure current page is valid
+        if ($scope.currentPage > $scope.totalPages && $scope.totalPages > 0) {
+            $scope.currentPage = $scope.totalPages;
+        }
+
+        var start = ($scope.currentPage - 1) * $scope.itemsPerPage;
+        return filtered.slice(start, start + $scope.itemsPerPage);
+    };
+
+    $scope.getSkeletonRows = function () {
+        return new Array($scope.itemsPerPage);
     };
 
     // ===== Load Quizzes from LocalStorage =====

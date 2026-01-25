@@ -896,7 +896,7 @@
                             </div>
 
                             <!-- Empty State -->
-                            <div ng-if="testSeriesList.length === 0" class="empty-state">
+                            <div ng-if="!isLoading && testSeriesList.length === 0" class="empty-state">
                                 <i class="ti ti-clipboard"></i>
                                 <h3>No Test Series Found</h3>
                                 <p style="color: #adb5bd;">Create your first test series to get started</p>

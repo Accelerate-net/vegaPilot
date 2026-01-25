@@ -34,6 +34,14 @@
     white-space: nowrap;
 }
 
+.crispr-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.crispr-table th:last-child {
+    border-top-right-radius: 8px;
+}
+
 /* Sortable Headers */
 .crispr-table th.sortable {
     cursor: pointer;
@@ -133,6 +141,14 @@
     letter-spacing: 0.5px;
     position: relative;
     white-space: nowrap;
+}
+
+.students-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.students-table th:last-child {
+    border-top-right-radius: 8px;
 }
 
 .students-table th.sortable {

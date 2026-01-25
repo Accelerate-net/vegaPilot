@@ -538,12 +538,10 @@
                      <!-- Filter Bar -->
                      <div class="filter-bar">
                         <div class="search-wrapper">
-                           <i class="ti ti-search"></i>
+                           <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                              ng-click="searchQuery = ''" style="cursor: pointer;"></i>
                            <input type="text" class="search-input" ng-model="searchQuery"
                               placeholder="Search batches by name, course, or status...">
-                           <button class="search-clear-btn" ng-show="searchQuery" ng-click="searchQuery = ''">
-                              <i class="ti ti-close"></i>
-                           </button>
                         </div>
                      </div>
 
@@ -731,7 +729,7 @@
                         </table>
 
                         <!-- Pagination Container -->
-                        <div class="pagination-container" ng-if="batches.length > 0 && !isLoading">
+                        <div class="pagination-container" ng-if="batches.length > 0 || isLoading">
                            <div class="pagination-info">
                               <span>Showing {{(currentPage-1)*itemsPerPage + 1}} to
                                  {{Math.min(currentPage*itemsPerPage, batches.length)}} of
