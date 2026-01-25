@@ -17,6 +17,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
 
@@ -53,124 +54,9 @@
       }
 
       /* Search and Filter Bar */
-      .filter-bar {
-         display: flex;
-         gap: 15px;
-         margin-bottom: 25px;
-         flex-wrap: wrap;
-         align-items: center;
-      }
+      /* Filter Bar styles handled by crispr-table.css */
 
-      .search-wrapper {
-         flex: 1;
-         min-width: 300px;
-         position: relative;
-      }
-
-      .search-wrapper i {
-         position: absolute;
-         left: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         color: #999;
-      }
-
-      .search-input {
-         width: 100%;
-         padding: 12px 15px 12px 45px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-      }
-
-      .search-input:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
-
-      .filter-select {
-         padding: 12px 15px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-         background: white;
-         cursor: pointer;
-      }
-
-      .filter-select:focus {
-         outline: none;
-         border-color: #006073;
-      }
-
-      /* Instructors Table */
-      .instructors-table-container {
-         background: white;
-         border-radius: 8px;
-         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-         overflow: hidden;
-      }
-
-      .instructors-table {
-         width: 100%;
-         border-collapse: collapse;
-      }
-
-      .instructors-table thead {
-         background: #f8f9fa;
-      }
-
-      .instructors-table th {
-         padding: 15px;
-         text-align: left;
-         font-weight: 600;
-         color: #2c3e50;
-         font-size: 13px;
-         text-transform: uppercase;
-         letter-spacing: 0.5px;
-         border-bottom: 2px solid #e9ecef;
-      }
-
-      .instructors-table th.sortable {
-         cursor: pointer;
-         user-select: none;
-         position: relative;
-         padding-right: 30px;
-      }
-
-      .instructors-table th.sortable:hover {
-         background: #e9ecef;
-      }
-
-      .instructors-table th.sortable .sort-icon {
-         position: absolute;
-         right: 10px;
-         top: 50%;
-         transform: translateY(-50%);
-         opacity: 0.3;
-         font-size: 12px;
-      }
-
-      .instructors-table th.sortable.active .sort-icon {
-         opacity: 1;
-         color: #006073;
-      }
-
-      .instructors-table td {
-         padding: 15px;
-         border-bottom: 1px solid #f1f3f5;
-         vertical-align: middle;
-      }
-
-      .instructors-table tbody tr {
-         cursor: pointer;
-         transition: all 0.2s ease;
-      }
-
-      .instructors-table tbody tr:hover {
-         background: #f8f9fa;
-         transform: scale(1.01);
-      }
+      /* Table Styles handled by crispr-table.css */
 
       .instructor-photo {
          width: 50px;
@@ -220,41 +106,7 @@
          line-height: 1.6;
       }
 
-      .action-buttons {
-         display: flex;
-         gap: 8px;
-      }
-
-      .btn-icon {
-         padding: 8px 12px;
-         border: none;
-         border-radius: 6px;
-         cursor: pointer;
-         font-size: 14px;
-         transition: all 0.2s ease;
-      }
-
-      .btn-icon:hover {
-         transform: translateY(-2px);
-      }
-
-      .btn-edit {
-         background: #007bff;
-         color: white;
-      }
-
-      .btn-edit:hover {
-         background: #0056b3;
-      }
-
-      .btn-delete {
-         background: #dc3545;
-         color: white;
-      }
-
-      .btn-delete:hover {
-         background: #bd2130;
-      }
+      /* Action buttons styles replaced by Kebab Menu (crispr-table.css) */
 
       /* Empty State */
       .empty-state {
@@ -701,65 +553,7 @@
          font-weight: 600;
       }
 
-      /* Pagination Styles */
-      .pagination-container {
-         display: flex;
-         justify-content: space-between;
-         align-items: center;
-         padding: 20px 25px;
-         background: #f8f9fa;
-         border-top: 1px solid #e9ecef;
-         border-radius: 0 0 8px 8px;
-      }
-
-      .pagination-info {
-         font-size: 14px;
-         color: #6c757d;
-         font-weight: 500;
-      }
-
-      .pagination-controls {
-         display: flex;
-         gap: 6px;
-      }
-
-      .pagination-btn {
-         padding: 8px 14px;
-         border: 2px solid #e2e8f0;
-         background: white;
-         color: #475569;
-         border-radius: 8px;
-         cursor: pointer;
-         font-size: 14px;
-         font-weight: 600;
-         transition: all 0.2s ease;
-         min-width: 40px;
-         display: inline-flex;
-         align-items: center;
-         justify-content: center;
-         gap: 4px;
-      }
-
-      .pagination-btn:hover:not(:disabled) {
-         background: #006073;
-         color: white;
-         border-color: #006073;
-         transform: translateY(-1px);
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
-      }
-
-      .pagination-btn:disabled {
-         opacity: 0.4;
-         cursor: not-allowed;
-         background: #f8f9fa;
-      }
-
-      .pagination-btn.active {
-         background: #006073;
-         color: white;
-         border-color: #006073;
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
-      }
+      /* Pagination styles handled by crispr-table.css */
 
       /* Loading Overlay */
       .loading-overlay {
@@ -1014,20 +808,32 @@
                         <!-- Filter Bar -->
                         <div class="filter-bar">
                            <div class="search-wrapper">
-                              <i class="ti ti-search"></i>
+                              <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                                 ng-click="searchQuery = ''; filterInstructors()"></i>
                               <input type="text" class="search-input"
                                  placeholder="Search by name, subject, or qualifications..." ng-model="searchQuery"
                                  ng-change="filterInstructors()">
                            </div>
-                           <select class="filter-select" ng-model="filterSubject" ng-change="filterInstructors()">
-                              <option value="">All Subjects</option>
-                              <option ng-repeat="subject in subjectList" value="{{subject}}">{{subject}}</option>
-                           </select>
+                           <div class="filter-dropdown dropdown">
+                              <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown"
+                                 aria-haspopup="true" aria-expanded="false">
+                                 {{filterSubject || 'All Subjects'}}
+                                 <i class="ti ti-angle-down"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-right">
+                                 <li><a href="#" ng-click="selectSubject(''); $event.preventDefault()">All Subjects</a>
+                                 </li>
+                                 <li ng-repeat="subject in subjectList">
+                                    <a href="#"
+                                       ng-click="selectSubject(subject); $event.preventDefault()">{{subject}}</a>
+                                 </li>
+                              </ul>
+                           </div>
                         </div>
 
                         <!-- Instructors Table -->
-                        <div class="instructors-table-container" ng-if="filteredInstructors.length > 0">
-                           <table class="instructors-table">
+                        <div class="students-table-container" ng-if="filteredInstructors.length > 0">
+                           <table class="students-table">
                               <thead>
                                  <tr>
                                     <th class="sortable" ng-click="sortByColumn('name')"
@@ -1056,53 +862,110 @@
                                        <i class="sort-icon ti"
                                           ng-class="sortColumn === 'lessonCount' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                     </th>
-                                    <th>Actions</th>
+                                    <th style="width: 50px;"></th>
                                  </tr>
                               </thead>
-                              <tbody>
-                                 <tr ng-repeat="instructor in paginatedInstructors"
-                                    ng-click="viewInstructor(instructor)">
+                              <!-- Skeleton Body -->
+                              <tbody ng-if="isLoading">
+                                 <tr ng-repeat="i in getSkeletonRows() track by $index">
                                     <td>
-                                       <div class="instructor-name-cell">
-                                          <img ng-if="instructor.photo" ng-src="{{instructor.photo}}"
-                                             alt="{{instructor.name}}" class="instructor-photo">
-                                          <div ng-if="!instructor.photo" class="instructor-photo"
-                                             style="background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">
-                                             {{getInitials(instructor.name)}}
+                                       <div style="display: flex; align-items: center; gap: 12px;">
+                                          <div class="skeleton-col avatar">
+                                             <div class="skeleton-shimmer"></div>
                                           </div>
                                           <div>
-                                             <div class="instructor-name">{{instructor.name}}</div>
+                                             <div class="skeleton-col text-medium" style="margin-bottom: 5px;">
+                                                <div class="skeleton-shimmer"></div>
+                                             </div>
                                           </div>
                                        </div>
                                     </td>
                                     <td>
-                                       <div class="instructor-brief">{{instructor.brief}}</div>
+                                       <div class="skeleton-col text-long">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
                                     </td>
                                     <td>
-                                       <span class="subject-badge">{{instructor.expertSubject}}</span>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
                                     </td>
                                     <td>
-                                       <div class="qualifications-list">{{instructor.qualifications}}</div>
+                                       <div class="skeleton-col text-medium">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
                                     </td>
-                                    <td>{{instructor.experience}} years</td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td></td>
+                                 </tr>
+                              </tbody>
+                              <tbody ng-if="!isLoading">
+                                 <tr ng-repeat="instructor in paginatedInstructors">
+                                    <td>
+                                       <div class="profile-cell">
+                                          <img ng-if="instructor.photo" ng-src="{{instructor.photo}}"
+                                             alt="{{instructor.name}}" class="avatar">
+                                          <div ng-if="!instructor.photo" class="avatar-placeholder">
+                                             {{getInitials(instructor.name)}}
+                                          </div>
+                                          <div>
+                                             <div class="profile-name">{{instructor.name}}</div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div
+                                          style="font-size: 13px; color: #6c757d; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                          {{instructor.brief}}</div>
+                                    </td>
+                                    <td>
+                                       <span class="crispr-badge">{{instructor.expertSubject}}</span>
+                                    </td>
+                                    <td>
+                                       <div
+                                          style="font-size: 13px; color: #6c757d; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                          {{instructor.qualifications}}</div>
+                                    </td>
+                                    <td><span style="font-weight: 500; color: #2c3e50;">{{instructor.experience}}
+                                          years</span></td>
                                     <td ng-click="$event.stopPropagation()">
                                        <button class="btn"
-                                          style="padding: 6px 12px; background: #e7f5f7; color: #006073; border: none; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer;"
+                                          style="padding: 4px 10px; background: #e7f5f7; color: #006073; border: none; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer;"
                                           ng-click="viewInstructorLessons(instructor)"
                                           title="View lessons taught by this instructor">
                                           {{instructor.lessons ? instructor.lessons.length : 0}} Lessons
                                        </button>
                                     </td>
-                                    <td>
-                                       <div class="action-buttons" ng-click="$event.stopPropagation()">
-                                          <button class="btn-icon btn-edit" ng-click="openEditModal(instructor)"
-                                             title="Edit Instructor">
-                                             <i class="ti ti-pencil"></i>
+                                    <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                       <div class="kebab-menu-container">
+                                          <button class="kebab-button" ng-click="toggleKebabMenu(instructor, $event)">
+                                             <i class="ti ti-more-alt"></i>
                                           </button>
-                                          <button class="btn-icon btn-delete" ng-click="confirmDelete(instructor)"
-                                             title="Delete Instructor">
-                                             <i class="ti ti-trash"></i>
-                                          </button>
+                                          <div class="kebab-dropdown" ng-class="{active: instructor.showKebabMenu}">
+                                             <div class="kebab-dropdown-item" ng-click="viewInstructor(instructor)">
+                                                <i class="ti ti-user"></i>
+                                                <span>View Profile</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item edit-action"
+                                                ng-click="openEditModal(instructor)">
+                                                <i class="ti ti-pencil"></i>
+                                                <span>Edit Instructor</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item delete-action"
+                                                ng-click="confirmDelete(instructor)">
+                                                <i class="ti ti-trash"></i>
+                                                <span>Delete Instructor</span>
+                                             </div>
+                                          </div>
                                        </div>
                                     </td>
                                  </tr>
@@ -1110,10 +973,13 @@
                            </table>
 
                            <!-- Pagination -->
-                           <div class="pagination-container">
+                           <div class="pagination-container" style="border-top: 1px solid #e9ecef; margin-top: 0;">
                               <div class="pagination-info">
-                                 Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{totalInstructors}}
-                                 instructors
+                                 <span>Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{totalInstructors}}
+                                    instructors</span>
+                                 <select class="page-size-select" ng-model="pageSize" ng-change="loadInstructors()"
+                                    ng-options="size as 'Show ' + size for size in [10, 20, 50, 100]">
+                                 </select>
                               </div>
                               <div class="pagination-controls">
                                  <button class="pagination-btn" ng-click="previousPage()"
@@ -1133,7 +999,7 @@
                         </div>
 
                         <!-- Empty State -->
-                        <div class="instructors-table-container" ng-if="filteredInstructors.length === 0">
+                        <div class="students-table-container" ng-if="filteredInstructors.length === 0">
                            <div class="empty-state">
                               <h4 style="opacity: .4; font-weight: 400;">No Portfolios Found</h4>
                               <p>{{searchQuery || filterSubject ? 'No Portfolios match your search criteria.' : 'No
@@ -1491,12 +1357,7 @@
    </div>
 
    <!-- Loading Overlay -->
-   <div class="loading-overlay" ng-class="{active: isLoading}">
-      <div class="loading-content">
-         <div class="spinner"></div>
-         <div class="loading-text">{{loadingMessage}}</div>
-      </div>
-   </div>
+
 
    <!-- Scripts -->
    <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
@@ -1510,29 +1371,30 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/instructor-portfolio.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

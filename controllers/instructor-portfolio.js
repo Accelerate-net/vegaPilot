@@ -5,29 +5,29 @@
 
 var app = angular.module('InstructorPortfolioApp', ['ngCookies']);
 
-app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', '$cookies', function ($scope, $timeout, $http, $cookies) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -37,10 +37,10 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage or cookies
-    
+
 
     // HTTP Config with auth header
-    $scope.getHttpConfig = function() {
+    $scope.getHttpConfig = function () {
         return {
             headers: {
                 'X-Access-Token': getAdminTokenFromCookie(),
@@ -50,7 +50,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // HTTP Config for FormData
-    $scope.getFormDataConfig = function() {
+    $scope.getFormDataConfig = function () {
         return {
             headers: {
                 'X-Access-Token': getAdminTokenFromCookie(),
@@ -74,7 +74,6 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     // ===== Pagination =====
     $scope.currentPage = 1;
     $scope.pageSize = 10;
-    $scope.itemsPerPage = 10;
     $scope.totalInstructors = 0;
     $scope.totalPages = 0;
 
@@ -96,12 +95,12 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     $scope.loadingMessage = 'Loading...';
 
     // ===== Pagination Functions (Server-Side) =====
-    $scope.getTotalPages = function() {
+    $scope.getTotalPages = function () {
         // Use server-provided totalPages or calculate from totalInstructors
-        return $scope.totalPages || Math.ceil($scope.totalInstructors / $scope.itemsPerPage);
+        return $scope.totalPages || Math.ceil($scope.totalInstructors / $scope.pageSize);
     };
 
-    $scope.getPageNumbers = function() {
+    $scope.getPageNumbers = function () {
         var total = $scope.getTotalPages();
         var pages = [];
         var maxVisible = 5;
@@ -118,37 +117,62 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
         return pages;
     };
 
-    $scope.goToPage = function(page) {
+    $scope.goToPage = function (page) {
         if (page !== $scope.currentPage && page >= 1 && page <= $scope.getTotalPages()) {
             $scope.currentPage = page;
             $scope.loadInstructors(); // Reload from API with new page
         }
     };
 
-    $scope.previousPage = function() {
+    $scope.previousPage = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.loadInstructors(); // Reload from API
         }
     };
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function () {
         if ($scope.currentPage < $scope.getTotalPages()) {
             $scope.currentPage++;
             $scope.loadInstructors(); // Reload from API
         }
     };
 
-    $scope.getStartIndex = function() {
-        return ($scope.currentPage - 1) * $scope.itemsPerPage;
+    $scope.getStartIndex = function () {
+        return ($scope.currentPage - 1) * $scope.pageSize;
     };
 
-    $scope.getEndIndex = function() {
-        return Math.min($scope.getStartIndex() + $scope.itemsPerPage, $scope.totalInstructors);
+    $scope.getEndIndex = function () {
+        return Math.min($scope.getStartIndex() + $scope.pageSize, $scope.totalInstructors);
     };
+
+    // ===== Kebab Menu Logic =====
+    $scope.toggleKebabMenu = function (instructor, $event) {
+        $event.stopPropagation();
+        var currentStatus = instructor.showKebabMenu;
+
+        // Close all other menus
+        $scope.instructors.forEach(function (i) {
+            i.showKebabMenu = false;
+        });
+
+        // Toggle current
+        instructor.showKebabMenu = !currentStatus;
+    };
+
+    // Close menus on click outside
+    angular.element(document).on('click', function () {
+        $timeout(function () {
+            if ($scope.instructors) {
+                $scope.instructors.forEach(function (i) {
+                    i.showKebabMenu = false;
+                });
+            }
+        });
+    });
 
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         // Check if token exists, if not set default for development
         var token = getAdminTokenFromCookie();
         if (!token) {
@@ -162,7 +186,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Load Instructors =====
-    $scope.loadInstructors = function() {
+    $scope.loadInstructors = function () {
         $scope.showLoading('Loading instructors...');
 
         // Build query parameters
@@ -185,13 +209,13 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
 
         // Build query string
         var queryString = Object.keys(params)
-            .map(function(key) {
+            .map(function (key) {
                 return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
             })
             .join('&');
 
         $http.get($scope.apiBaseUrl + '/list-instructors.php?' + queryString, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 // Handle both response formats: success: true or status: 'success'
                 var isSuccess = (response.data && (response.data.success === true || response.data.status === 'success'));
 
@@ -206,7 +230,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
                     }
 
                     // Map API fields to display fields
-                    $scope.instructors = $scope.instructors.map(function(instructor) {
+                    $scope.instructors = $scope.instructors.map(function (instructor) {
                         // Map experienceYears to experience for display
                         if (instructor.experienceYears && !instructor.experience) {
                             instructor.experience = instructor.experienceYears;
@@ -254,7 +278,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
                 }
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading instructors:', error);
                 $scope.instructors = [];
                 $scope.filteredInstructors = [];
@@ -266,8 +290,8 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Fallback Mock Data (for development) =====
-    $scope.loadMockData = function() {
-        $timeout(function() {
+    $scope.loadMockData = function () {
+        $timeout(function () {
             $scope.instructors = [
                 {
                     id: 1,
@@ -405,10 +429,10 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
 
             // For mock data, use client-side pagination
             $scope.totalInstructors = $scope.instructors.length;
-            $scope.totalPages = Math.ceil($scope.totalInstructors / $scope.itemsPerPage);
+            $scope.totalPages = Math.ceil($scope.totalInstructors / $scope.pageSize);
 
-            var start = ($scope.currentPage - 1) * $scope.itemsPerPage;
-            var end = start + $scope.itemsPerPage;
+            var start = ($scope.currentPage - 1) * $scope.pageSize;
+            var end = start + $scope.pageSize;
             $scope.filteredInstructors = $scope.instructors.slice();
             $scope.paginatedInstructors = $scope.instructors.slice(start, end);
 
@@ -417,7 +441,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Create New Instructor =====
-    $scope.openCreateModal = function() {
+    $scope.openCreateModal = function () {
         $scope.editMode = false;
         $scope.currentInstructor = {
             name: '',
@@ -437,7 +461,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Edit Instructor =====
-    $scope.openEditModal = function(instructor) {
+    $scope.openEditModal = function (instructor) {
         $scope.editMode = true;
         // Create a copy to avoid direct modification
         $scope.currentInstructor = angular.copy(instructor);
@@ -446,19 +470,19 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
         $scope.editModalOpen = true;
     };
 
-    $scope.closeEditModal = function() {
+    $scope.closeEditModal = function () {
         $scope.editModalOpen = false;
         $scope.currentInstructor = {};
     };
 
     // ===== Load Single Instructor Profile =====
-    $scope.loadInstructorProfile = function(instructorId) {
+    $scope.loadInstructorProfile = function (instructorId) {
         $scope.showLoading('Loading instructor profile...');
 
         var url = $scope.apiBaseUrl + '/get-instructor-profile.php?id=' + instructorId;
 
         $http.get(url, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 if (response.data && response.data.data) {
                     // API returns nested structure with profile and ratings
                     if (response.data.data.profile) {
@@ -477,7 +501,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
                 }
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading instructor profile:', error);
                 $scope.showToaster('error', 'Error', 'Failed to load instructor profile. Please try again.');
                 $scope.hideLoading();
@@ -485,24 +509,24 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== View Instructor Profile =====
-    $scope.viewInstructor = function(instructor) {
+    $scope.viewInstructor = function (instructor) {
         // Load full profile from API
         $scope.loadInstructorProfile(instructor.id);
     };
 
-    $scope.closeViewModal = function() {
+    $scope.closeViewModal = function () {
         $scope.viewModalOpen = false;
         $scope.selectedInstructor = {};
     };
 
-    $scope.editFromView = function() {
+    $scope.editFromView = function () {
         // Close view modal and open edit modal
         $scope.viewModalOpen = false;
         $scope.openEditModal($scope.selectedInstructor);
     };
 
     // ===== Star Rating Helper =====
-    $scope.getStarClass = function(rating, index) {
+    $scope.getStarClass = function (rating, index) {
         var starValue = index + 1;
         if (rating >= starValue) {
             return 'fa-star'; // Full star
@@ -514,7 +538,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Save Instructor =====
-    $scope.saveInstructor = function() {
+    $scope.saveInstructor = function () {
         if (!$scope.currentInstructor.name ||
             !$scope.currentInstructor.brief ||
             !$scope.currentInstructor.expertSubject ||
@@ -567,44 +591,44 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
             },
             transformRequest: angular.identity
         })
-        .then(function(response) {
-            // Handle both response formats: success: true or status: 'success'
-            var isSuccess = (response.data && (response.data.success === true || response.data.status === 'success'));
+            .then(function (response) {
+                // Handle both response formats: success: true or status: 'success'
+                var isSuccess = (response.data && (response.data.success === true || response.data.status === 'success'));
 
-            if (isSuccess) {
-                // Reload instructors list
-                $scope.loadInstructors();
-                $scope.closeEditModal();
-                alert($scope.editMode ? 'Instructor updated successfully!' : 'Instructor created successfully!');
-            } else {
-                console.error('Failed to save instructor:', response.data);
-                $scope.showToaster('error', 'Error', 'Failed to save instructor: ' + (response.data.message || response.data.error || 'Unknown error'));
-            }
-            $scope.hideLoading();
-        })
-        .catch(function(error) {
-            console.error('Error saving instructor:', error);
-            $scope.showToaster('error', 'Error', 'Error saving instructor. Please try again.');
-            $scope.hideLoading();
-        });
+                if (isSuccess) {
+                    // Reload instructors list
+                    $scope.loadInstructors();
+                    $scope.closeEditModal();
+                    alert($scope.editMode ? 'Instructor updated successfully!' : 'Instructor created successfully!');
+                } else {
+                    console.error('Failed to save instructor:', response.data);
+                    $scope.showToaster('error', 'Error', 'Failed to save instructor: ' + (response.data.message || response.data.error || 'Unknown error'));
+                }
+                $scope.hideLoading();
+            })
+            .catch(function (error) {
+                console.error('Error saving instructor:', error);
+                $scope.showToaster('error', 'Error', 'Error saving instructor. Please try again.');
+                $scope.hideLoading();
+            });
     };
 
     // ===== Delete Instructor =====
-    $scope.confirmDelete = function(instructor) {
+    $scope.confirmDelete = function (instructor) {
         $scope.instructorToDelete = instructor;
         $scope.deleteModalOpen = true;
     };
 
-    $scope.closeDeleteModal = function() {
+    $scope.closeDeleteModal = function () {
         $scope.deleteModalOpen = false;
         $scope.instructorToDelete = {};
     };
 
-    $scope.deleteInstructor = function() {
+    $scope.deleteInstructor = function () {
         $scope.showLoading('Deleting instructor...');
 
-        $timeout(function() {
-            var index = $scope.instructors.findIndex(function(i) {
+        $timeout(function () {
+            var index = $scope.instructors.findIndex(function (i) {
                 return i.id === $scope.instructorToDelete.id;
             });
             if (index !== -1) {
@@ -618,7 +642,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Photo Upload =====
-    $scope.handlePhotoSelect = function(file) {
+    $scope.handlePhotoSelect = function (file) {
         if (!file) return;
 
         // Check file size (max 2MB)
@@ -633,13 +657,13 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
             return;
         }
 
-        $scope.$apply(function() {
+        $scope.$apply(function () {
             $scope.currentInstructor.photoFile = file;
 
             // Create preview
             var reader = new FileReader();
-            reader.onload = function(e) {
-                $scope.$apply(function() {
+            reader.onload = function (e) {
+                $scope.$apply(function () {
                     $scope.currentInstructor.photoPreview = e.target.result;
                 });
             };
@@ -648,7 +672,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Remove Photo =====
-    $scope.removePhoto = function() {
+    $scope.removePhoto = function () {
         $scope.currentInstructor.photo = null;
         $scope.currentInstructor.photoPreview = null;
         $scope.currentInstructor.photoFile = null;
@@ -660,28 +684,37 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Filter & Sort (Server-Side) =====
+    $scope.selectSubject = function (subject) {
+        $scope.filterSubject = subject;
+        $scope.filterInstructors();
+    };
+
+    $scope.getSkeletonRows = function () {
+        return new Array($scope.pageSize || 10);
+    };
+
     var filterTimeout;
-    $scope.filterInstructors = function() {
+    $scope.filterInstructors = function () {
         // Cancel previous timeout if exists
         if (filterTimeout) {
             $timeout.cancel(filterTimeout);
         }
 
         // Set new timeout for debounce (500ms delay)
-        filterTimeout = $timeout(function() {
+        filterTimeout = $timeout(function () {
             // Reset to page 1 and reload from API with filters
             $scope.currentPage = 1;
             $scope.loadInstructors();
         }, 500);
     };
 
-    $scope.sortInstructors = function() {
+    $scope.sortInstructors = function () {
         // Reload from API with new sort order
         $scope.loadInstructors();
     };
 
     // ===== Sort by Column =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         // If clicking the same column, toggle sort direction
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
@@ -704,7 +737,7 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
     };
 
     // ===== Helper Functions =====
-    $scope.getInitials = function(name) {
+    $scope.getInitials = function (name) {
         if (!name) return '??';
         var parts = name.split(' ');
         if (parts.length >= 2) {
@@ -713,28 +746,28 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
         return name.substring(0, 2).toUpperCase();
     };
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 300);
     };
 
-    $scope.generateId = function() {
+    $scope.generateId = function () {
         return Date.now() + Math.random().toString(36).substr(2, 9);
     };
 
     // ===== View Instructor Lessons =====
-    $scope.viewInstructorLessons = function(instructor) {
+    $scope.viewInstructorLessons = function (instructor) {
         $scope.selectedInstructorForLessons = angular.copy(instructor);
         $scope.lessonsModalOpen = true;
     };
 
-    $scope.closeLessonsModal = function() {
+    $scope.closeLessonsModal = function () {
         $scope.lessonsModalOpen = false;
         $scope.selectedInstructorForLessons = {};
     };

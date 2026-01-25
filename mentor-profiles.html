@@ -17,6 +17,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
 
@@ -52,124 +53,9 @@
          font-size: 14px;
       }
 
-      /* Search and Filter Bar */
-      .filter-bar {
-         display: flex;
-         gap: 15px;
-         margin-bottom: 25px;
-         flex-wrap: wrap;
-      }
+      /* Filter Bar styles handled by crispr-table.css */
 
-      .search-wrapper {
-         flex: 1;
-         min-width: 250px;
-         position: relative;
-      }
-
-      .search-wrapper i {
-         position: absolute;
-         left: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         color: #999;
-      }
-
-      .search-input {
-         width: 100%;
-         padding: 12px 15px 12px 45px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-      }
-
-      .search-input:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
-
-      .filter-select {
-         padding: 12px 15px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-         background: white;
-         cursor: pointer;
-      }
-
-      .filter-select:focus {
-         outline: none;
-         border-color: #006073;
-      }
-
-      /* Mentors Table */
-      .mentors-table-container {
-         background: white;
-         border-radius: 8px;
-         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-         overflow: hidden;
-      }
-
-      .mentors-table {
-         width: 100%;
-         border-collapse: collapse;
-      }
-
-      .mentors-table thead {
-         background: #f8f9fa;
-      }
-
-      .mentors-table th {
-         padding: 15px;
-         text-align: left;
-         font-weight: 600;
-         color: #2c3e50;
-         font-size: 13px;
-         text-transform: uppercase;
-         letter-spacing: 0.5px;
-         border-bottom: 2px solid #e9ecef;
-      }
-
-      .mentors-table th.sortable {
-         cursor: pointer;
-         user-select: none;
-         position: relative;
-         padding-right: 30px;
-      }
-
-      .mentors-table th.sortable:hover {
-         background: #e9ecef;
-      }
-
-      .mentors-table th.sortable .sort-icon {
-         position: absolute;
-         right: 10px;
-         top: 50%;
-         transform: translateY(-50%);
-         opacity: 0.3;
-         font-size: 12px;
-      }
-
-      .mentors-table th.sortable.active .sort-icon {
-         opacity: 1;
-         color: #006073;
-      }
-
-      .mentors-table td {
-         padding: 15px;
-         border-bottom: 1px solid #f1f3f5;
-         vertical-align: middle;
-      }
-
-      .mentors-table tbody tr {
-         cursor: pointer;
-         transition: all 0.2s ease;
-      }
-
-      .mentors-table tbody tr:hover {
-         background: #f8f9fa;
-         transform: scale(1.01);
-      }
+      /* Table styles handled by crispr-table.css */
 
       .mentor-photo {
          width: 50px;
@@ -261,41 +147,7 @@
          line-height: 1.6;
       }
 
-      .action-buttons {
-         display: flex;
-         gap: 8px;
-      }
-
-      .btn-icon {
-         padding: 8px 12px;
-         border: none;
-         border-radius: 6px;
-         cursor: pointer;
-         font-size: 14px;
-         transition: all 0.2s ease;
-      }
-
-      .btn-icon:hover {
-         transform: translateY(-2px);
-      }
-
-      .btn-edit {
-         background: #007bff;
-         color: white;
-      }
-
-      .btn-edit:hover {
-         background: #0056b3;
-      }
-
-      .btn-delete {
-         background: #dc3545;
-         color: white;
-      }
-
-      .btn-delete:hover {
-         background: #bd2130;
-      }
+      /* Action buttons replaced by Kebab Menu */
 
       /* Empty State */
       .empty-state {
@@ -726,113 +578,11 @@
          font-weight: 600;
       }
 
-      /* Pagination Styles */
-      .pagination-container {
-         display: flex;
-         justify-content: space-between;
-         align-items: center;
-         padding: 20px 25px;
-         background: #f8f9fa;
-         border-top: 1px solid #e9ecef;
-         border-radius: 0 0 8px 8px;
-      }
+      /* Pagination styles handled by crispr-table.css */
 
-      .pagination-info {
-         font-size: 14px;
-         color: #6c757d;
-         font-weight: 500;
-      }
+      /* Loading Overlay removed */
 
-      .pagination-controls {
-         display: flex;
-         gap: 6px;
-      }
 
-      .pagination-btn {
-         padding: 8px 14px;
-         border: 2px solid #e2e8f0;
-         background: white;
-         color: #475569;
-         border-radius: 8px;
-         cursor: pointer;
-         font-size: 14px;
-         font-weight: 600;
-         transition: all 0.2s ease;
-         min-width: 40px;
-         display: inline-flex;
-         align-items: center;
-         justify-content: center;
-         gap: 4px;
-      }
-
-      .pagination-btn:hover:not(:disabled) {
-         background: #006073;
-         color: white;
-         border-color: #006073;
-         transform: translateY(-1px);
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
-      }
-
-      .pagination-btn:disabled {
-         opacity: 0.4;
-         cursor: not-allowed;
-         background: #f8f9fa;
-      }
-
-      .pagination-btn.active {
-         background: #006073;
-         color: white;
-         border-color: #006073;
-         box-shadow: 0 2px 8px rgba(0, 96, 115, 0.2);
-      }
-
-      /* Loading Overlay */
-      .loading-overlay {
-         display: none;
-         position: fixed;
-         top: 0;
-         left: 0;
-         width: 100%;
-         height: 100%;
-         background: rgba(255, 255, 255, 0.9);
-         z-index: 99999;
-         align-items: center;
-         justify-content: center;
-      }
-
-      .loading-overlay.active {
-         display: flex;
-      }
-
-      .loading-content {
-         text-align: center;
-      }
-
-      .spinner {
-         width: 50px;
-         height: 50px;
-         border: 4px solid #f3f3f3;
-         border-top: 4px solid #006073;
-         border-radius: 50%;
-         animation: spin 1s linear infinite;
-         margin: 0 auto 15px;
-      }
-
-      @keyframes spin {
-         0% {
-            transform: rotate(0deg);
-         }
-
-         100% {
-            transform: rotate(360deg);
-         }
-      }
-
-      .loading-text {
-         color: #495057;
-         font-size: 16px;
-         font-weight: 500;
-      }
 
       /* Responsive */
       @media (max-width: 768px) {
@@ -1039,16 +789,32 @@
                         <!-- Filter Bar -->
                         <div class="filter-bar">
                            <div class="search-wrapper">
-                              <i class="ti ti-search"></i>
+                              <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                                 ng-click="searchQuery = ''; filterMentors()"></i>
                               <input type="text" class="search-input"
                                  placeholder="Search by name, subject, or qualifications..." ng-model="searchQuery"
                                  ng-change="filterMentors()">
                            </div>
+                           <div class="filter-dropdown dropdown">
+                              <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown"
+                                 aria-haspopup="true" aria-expanded="false">
+                                 {{filterSpecialization || 'All Specializations'}}
+                                 <i class="ti ti-angle-down"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-right">
+                                 <li><a href="#" ng-click="selectSpecialization(''); $event.preventDefault()">All
+                                       Specializations</a></li>
+                                 <li ng-repeat="spec in specializationList">
+                                    <a href="#"
+                                       ng-click="selectSpecialization(spec); $event.preventDefault()">{{spec}}</a>
+                                 </li>
+                              </ul>
+                           </div>
                         </div>
 
                         <!-- Mentors Table -->
-                        <div class="mentors-table-container" ng-if="paginatedMentors.length > 0">
-                           <table class="mentors-table">
+                        <div class="students-table-container" ng-if="paginatedMentors.length > 0 || isLoading">
+                           <table class="students-table">
                               <thead>
                                  <tr>
                                     <th class="sortable" ng-click="sortByColumn('name')"
@@ -1071,26 +837,65 @@
                                           ng-class="sortColumn === 'specialization' ? (sortReverse ? 'ti-arrow-down' : 'ti-arrow-up') : 'ti-arrows-vertical'"></i>
                                     </th>
                                     <th>Students</th>
-                                    <th>Actions</th>
+                                    <th style="width: 50px;"></th>
                                  </tr>
                               </thead>
-                              <tbody>
-                                 <tr ng-repeat="mentor in paginatedMentors" ng-click="viewMentor(mentor)">
+                              <!-- Skeleton Body -->
+                              <tbody ng-if="isLoading">
+                                 <tr ng-repeat="i in getSkeletonRows() track by $index">
                                     <td>
-                                       <div class="mentor-name-cell">
-                                          <img ng-if="mentor.photo" ng-src="{{mentor.photo}}" alt="{{mentor.name}}"
-                                             class="mentor-photo">
-                                          <div ng-if="!mentor.photo" class="mentor-photo"
-                                             style="background: #006073; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px;">
-                                             {{getInitials(mentor.name)}}
+                                       <div style="display: flex; align-items: center; gap: 12px;">
+                                          <div class="skeleton-col avatar">
+                                             <div class="skeleton-shimmer"></div>
                                           </div>
                                           <div>
-                                             <div class="mentor-name">{{mentor.name}}</div>
+                                             <div class="skeleton-col text-medium" style="margin-bottom: 5px;">
+                                                <div class="skeleton-shimmer"></div>
+                                             </div>
                                           </div>
                                        </div>
                                     </td>
                                     <td>
-                                       <div class="mentor-brief">{{mentor.brief}}</div>
+                                       <div class="skeleton-col text-long">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-medium">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div class="skeleton-col text-short">
+                                          <div class="skeleton-shimmer"></div>
+                                       </div>
+                                    </td>
+                                    <td></td>
+                                 </tr>
+                              </tbody>
+                              <tbody ng-if="!isLoading">
+                                 <tr ng-repeat="mentor in paginatedMentors">
+                                    <td>
+                                       <div class="profile-cell">
+                                          <img ng-if="mentor.photo" ng-src="{{mentor.photo}}" alt="{{mentor.name}}"
+                                             class="avatar">
+                                          <div ng-if="!mentor.photo" class="avatar-placeholder">
+                                             {{getInitials(mentor.name)}}
+                                          </div>
+                                          <div>
+                                             <div class="profile-name">{{mentor.name}}</div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div
+                                          style="font-size: 13px; color: #6c757d; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                          {{mentor.brief}}</div>
                                     </td>
                                     <td>
                                        <div style="font-size: 13px; color: #333;">{{mentor.almaMater}}</div>
@@ -1098,77 +903,90 @@
                                           {{mentor.graduationYear}}</div>
                                     </td>
                                     <td>
-                                       <span class="mentor-brief">{{mentor.specialisation}}</span>
+                                       <span class="crispr-badge"
+                                          style="background: #e7f5f7; color: #006073;">{{mentor.specialisation}}</span>
                                     </td>
-                                    <td ng-click="$event.stopPropagation()">
-                                       <div class="students-count-badge" ng-if="mentor.numberOfMappedStudents > 0"
-                                          ng-click="viewMentoringStudents(mentor)" title="View mentoring students">
+                                    <td>
+                                       <div class="students-count-badge" ng-click="viewMentoringStudents(mentor)"
+                                          title="View Mapped Students">
                                           <i class="ti ti-user"></i>
-                                          Mentoring {{mentor.numberOfMappedStudents || mentor.studentCount || 0}}
-                                          Student{{(mentor.numberOfMappedStudents || mentor.studentCount || 0) !== 1 ?
-                                          's' : ''}}
+                                          <span>{{mentor.studentCount || 0}} Students</span>
                                        </div>
-                                       <div ng-if="mentor.numberOfMappedStudents < 1" class="mentor-brief">No Students
-                                          Assigned</div>
+                                    </td>
+                                    <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                                       <div class="kebab-menu-container">
+                                          <button class="kebab-button" ng-click="toggleKebabMenu(mentor, $event)">
+                                             <i class="ti ti-more-alt"></i>
+                                          </button>
+                                          <div class="kebab-dropdown" ng-class="{active: mentor.showKebabMenu}">
+                                             <div class="kebab-dropdown-item" ng-click="viewMentor(mentor)">
+                                                <i class="ti ti-user"></i>
+                                                <span>View Profile</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item edit-action"
+                                                ng-click="openEditModal(mentor)">
+                                                <i class="ti ti-pencil"></i>
+                                                <span>Edit Mentor</span>
+                                             </div>
+                                             <div class="kebab-dropdown-item delete-action"
+                                                ng-click="confirmDelete(mentor)">
+                                                <i class="ti ti-trash"></i>
+                                                <span>Delete Mentor</span>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
 
-                        </div>
-                        </td>
-                        <td>
-                           <div class="action-buttons" ng-click="$event.stopPropagation()">
-                              <button class="btn-icon btn-edit" ng-click="openEditModal(mentor)" title="Edit Mentor">
-                                 <i class="ti ti-pencil"></i>
-                              </button>
-                              <button class="btn-icon btn-delete" ng-click="confirmDelete(mentor)"
-                                 title="Delete Mentor">
-                                 <i class="ti ti-trash"></i>
-                              </button>
+                           <!-- Pagination -->
+                           <div class="pagination-container" style="border-top: 1px solid #e9ecef; margin-top: 0;">
+                              <div class="pagination-info">
+                                 <span>Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{totalMentors}}
+                                    mentors</span>
+                                 <select class="page-size-select" ng-model="pageSize" ng-change="loadMentors()"
+                                    ng-options="size as 'Show ' + size for size in [10, 20, 50, 100]">
+                                 </select>
+                              </div>
+                              <div class="pagination-controls">
+                                 <button class="pagination-btn" ng-click="previousPage()"
+                                    ng-disabled="currentPage === 1">
+                                    <i class="ti ti-angle-left"></i> Previous
+                                 </button>
+                                 <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                    ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                    {{page}}
+                                 </button>
+                                 <button class="pagination-btn" ng-click="nextPage()"
+                                    ng-disabled="currentPage === getTotalPages()">
+                                    Next <i class="ti ti-angle-right"></i>
+                                 </button>
+                              </div>
                            </div>
-                        </td>
-                        </tr>
-                        </tbody>
-                        </table>
+                        </div>
 
-                        <!-- Pagination -->
-                        <div class="pagination-container">
-                           <div class="pagination-info">
-                              Showing {{getStartIndex() + 1}} to {{getEndIndex()}} of {{totalMentors}} mentors
-                           </div>
-                           <div class="pagination-controls">
-                              <button class="pagination-btn" ng-click="previousPage()" ng-disabled="currentPage === 1">
-                                 <i class="ti ti-angle-left"></i> Previous
-                              </button>
-                              <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
-                                 ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
-                                 {{page}}
-                              </button>
-                              <button class="pagination-btn" ng-click="nextPage()"
-                                 ng-disabled="currentPage === getTotalPages()">
-                                 Next <i class="ti ti-angle-right"></i>
+                        <!-- Empty State -->
+                        <div class="mentors-table-container" ng-if="filteredMentors.length === 0">
+                           <div class="empty-state">
+                              <i class="ti ti-id-badge"></i>
+                              <h3>No Mentors Found</h3>
+                              <p>{{searchQuery || filterSubject ? 'No mentors match your search criteria.' : 'Get
+                                 started
+                                 by adding your first mentor.'}}</p>
+                              <button class="btn btn-success" ng-click="openCreateModal()"
+                                 ng-if="!searchQuery && !filterSubject">
+                                 <i class="ti ti-plus"></i> Add Your First Mentor
                               </button>
                            </div>
                         </div>
+
                      </div>
-
-                     <!-- Empty State -->
-                     <div class="mentors-table-container" ng-if="filteredMentors.length === 0">
-                        <div class="empty-state">
-                           <i class="ti ti-id-badge"></i>
-                           <h3>No Mentors Found</h3>
-                           <p>{{searchQuery || filterSubject ? 'No mentors match your search criteria.' : 'Get started
-                              by adding your first mentor.'}}</p>
-                           <button class="btn btn-success" ng-click="openCreateModal()"
-                              ng-if="!searchQuery && !filterSubject">
-                              <i class="ti ti-plus"></i> Add Your First Mentor
-                           </button>
-                        </div>
-                     </div>
-
                   </div>
                </div>
             </div>
          </div>
       </div>
-   </div>
    </div>
 
    <!-- Create/Edit Mentor Modal -->
@@ -1450,7 +1268,8 @@
                <!-- Search Bar -->
                <div style="margin-bottom: 20px;">
                   <div class="search-wrapper">
-                     <i class="ti ti-search"></i>
+                     <i class="ti" ng-class="{'ti-search': !studentsSearch.key, 'ti-close': studentsSearch.key}"
+                        ng-click="studentsSearch.key = ''; filterStudents()"></i>
                      <input type="text" class="search-input" placeholder="Search students by name or email..."
                         ng-model="studentsSearch.key" ng-keyup="filterStudents()">
                   </div>
@@ -1459,7 +1278,7 @@
                <!-- Students Table -->
                <div
                   ng-if="selectedMentorForStudents.mentoringStudents && selectedMentorForStudents.mentoringStudents.length > 0">
-                  <table class="mentors-table" style="margin-bottom: 0;">
+                  <table class="students-table" style="margin-bottom: 0;">
                      <thead>
                         <tr>
                            <th>Student Name</th>
@@ -1552,29 +1371,30 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/mentor-profiles.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

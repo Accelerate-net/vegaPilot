@@ -5,29 +5,29 @@
 
 var app = angular.module('MentorProfilesApp', ['ngCookies']);
 
-app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$cookies', function($scope, $timeout, $http, $cookies) {
+app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$cookies', function ($scope, $timeout, $http, $cookies) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -37,10 +37,10 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
 
     // Get token from localStorage or cookies
-    
+
 
     // HTTP Config with auth header
-    $scope.getHttpConfig = function() {
+    $scope.getHttpConfig = function () {
         return {
             headers: {
                 'X-Access-Token': getAdminTokenFromCookie(),
@@ -50,7 +50,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // HTTP Config for FormData
-    $scope.getFormDataConfig = function() {
+    $scope.getFormDataConfig = function () {
         return {
             headers: {
                 'X-Access-Token': getAdminTokenFromCookie(),
@@ -69,7 +69,6 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     $scope.filterSpecialization = '';
     $scope.currentPage = 1;
     $scope.pageSize = 10;
-    $scope.itemsPerPage = 10;
     $scope.totalMentors = 0;
     $scope.totalPages = 0;
     $scope.sortBy = 'name';
@@ -94,17 +93,17 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     $scope.loadingMessage = 'Loading...';
 
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.showLoading('Loading mentors...');
         $scope.loadMentors();
     };
 
     // ===== Pagination Functions =====
-    $scope.getTotalPages = function() {
-        return $scope.totalPages || Math.ceil($scope.totalMentors / $scope.itemsPerPage);
+    $scope.getTotalPages = function () {
+        return $scope.totalPages || Math.ceil($scope.totalMentors / $scope.pageSize);
     };
 
-    $scope.getPageNumbers = function() {
+    $scope.getPageNumbers = function () {
         var totalPages = $scope.getTotalPages();
         var currentPage = $scope.currentPage;
         var pages = [];
@@ -130,38 +129,48 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         return pages;
     };
 
-    $scope.goToPage = function(page) {
+    $scope.goToPage = function (page) {
         if (page !== $scope.currentPage && page >= 1 && page <= $scope.getTotalPages()) {
             $scope.currentPage = page;
             $scope.loadMentors();
         }
     };
 
-    $scope.previousPage = function() {
+    $scope.previousPage = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.loadMentors();
         }
     };
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function () {
         if ($scope.currentPage < $scope.getTotalPages()) {
             $scope.currentPage++;
             $scope.loadMentors();
         }
     };
 
-    $scope.getStartIndex = function() {
-        return ($scope.currentPage - 1) * $scope.itemsPerPage;
+    $scope.getStartIndex = function () {
+        return ($scope.currentPage - 1) * $scope.pageSize;
     };
 
-    $scope.getEndIndex = function() {
-        var end = $scope.currentPage * $scope.itemsPerPage;
+    $scope.getEndIndex = function () {
+        var end = $scope.currentPage * $scope.pageSize;
         return Math.min(end, $scope.totalMentors);
     };
 
+    // ===== Kebab Menu Logic =====
+    $scope.toggleKebabMenu = function (mentor, $event) {
+        $event.stopPropagation();
+        var currentStatus = mentor.showKebabMenu;
+        $scope.mentors.forEach(function (m) {
+            m.showKebabMenu = false;
+        });
+        mentor.showKebabMenu = !currentStatus;
+    };
+
     // ===== Load Mentors from API =====
-    $scope.loadMentors = function() {
+    $scope.loadMentors = function () {
         $scope.showLoading('Loading mentors...');
 
         // Build API URL with pagination, sorting, and search parameters
@@ -182,14 +191,14 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         }
 
         $http.get(url, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 console.log('API Response:', response.data);
 
                 if (response.data && response.data.data) {
                     $scope.mentors = response.data.data;
 
                     // Map API fields to display fields
-                    $scope.mentors = $scope.mentors.map(function(mentor) {
+                    $scope.mentors = $scope.mentors.map(function (mentor) {
                         if (!mentor.photo) {
                             mentor.photo = null;
                         }
@@ -226,7 +235,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
 
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading mentors:', error);
                 $scope.showToaster('error', 'Error', 'Failed to load mentors. Please try again.');
                 $scope.mentors = [];
@@ -237,13 +246,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Load Single Mentor Profile =====
-    $scope.loadMentorProfile = function(mentorId) {
+    $scope.loadMentorProfile = function (mentorId) {
         $scope.showLoading('Loading mentor profile...');
 
         var url = $scope.apiBaseUrl + '/get-mentor-profile.php?id=' + mentorId;
 
         $http.get(url, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 if (response.data && response.data.data) {
                     // API returns nested structure with profile and ratings
                     if (response.data.data.profile) {
@@ -262,7 +271,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                 }
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading mentor profile:', error);
                 $scope.showToaster('error', 'Error', 'Failed to load mentor profile. Please try again.');
                 $scope.hideLoading();
@@ -270,7 +279,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Create New Mentor =====
-    $scope.openCreateModal = function() {
+    $scope.openCreateModal = function () {
         $scope.editMode = false;
         $scope.currentMentor = {
             name: '',
@@ -289,7 +298,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Edit Mentor =====
-    $scope.openEditModal = function(mentor) {
+    $scope.openEditModal = function (mentor) {
         $scope.editMode = true;
         // Create a copy to avoid direct modification
         $scope.currentMentor = angular.copy(mentor);
@@ -298,30 +307,30 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         $scope.editModalOpen = true;
     };
 
-    $scope.closeEditModal = function() {
+    $scope.closeEditModal = function () {
         $scope.editModalOpen = false;
         $scope.currentMentor = {};
     };
 
     // ===== View Mentor Profile =====
-    $scope.viewMentor = function(mentor) {
+    $scope.viewMentor = function (mentor) {
         // Load full profile from API
         $scope.loadMentorProfile(mentor.id);
     };
 
-    $scope.closeViewModal = function() {
+    $scope.closeViewModal = function () {
         $scope.viewModalOpen = false;
         $scope.selectedMentor = {};
     };
 
-    $scope.editFromView = function() {
+    $scope.editFromView = function () {
         // Close view modal and open edit modal
         $scope.viewModalOpen = false;
         $scope.openEditModal($scope.selectedMentor);
     };
 
     // ===== Star Rating Helper =====
-    $scope.getStarClass = function(rating, index) {
+    $scope.getStarClass = function (rating, index) {
         var starValue = index + 1;
         if (rating >= starValue) {
             return 'fa-star'; // Full star
@@ -333,7 +342,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Save Mentor =====
-    $scope.saveMentor = function() {
+    $scope.saveMentor = function () {
         if (!$scope.currentMentor.name ||
             !$scope.currentMentor.brief ||
             !$scope.currentMentor.specialisation ||
@@ -383,44 +392,44 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             },
             transformRequest: angular.identity
         })
-        .then(function(response) {
-            console.log('Save response:', response.data);
+            .then(function (response) {
+                console.log('Save response:', response.data);
 
-            if (response.data.status) {
-                // Reload mentors list
-                $scope.loadMentors();
-                $scope.closeEditModal();
-            } else {
-                $scope.showToaster('error', 'Error', 'Error: ' + (response.data.error || 'Failed to save mentor'));
+                if (response.data.status) {
+                    // Reload mentors list
+                    $scope.loadMentors();
+                    $scope.closeEditModal();
+                } else {
+                    $scope.showToaster('error', 'Error', 'Error: ' + (response.data.error || 'Failed to save mentor'));
+                    $scope.hideLoading();
+                }
+            })
+            .catch(function (error) {
+                console.error('Error saving mentor:', error);
+                $scope.showToaster('error', 'Error', 'Failed to save mentor. Please try again.');
                 $scope.hideLoading();
-            }
-        })
-        .catch(function(error) {
-            console.error('Error saving mentor:', error);
-            $scope.showToaster('error', 'Error', 'Failed to save mentor. Please try again.');
-            $scope.hideLoading();
-        });
+            });
     };
 
     // ===== Delete Mentor =====
-    $scope.confirmDelete = function(mentor) {
+    $scope.confirmDelete = function (mentor) {
         $scope.mentorToDelete = mentor;
         $scope.deleteModalOpen = true;
     };
 
-    $scope.closeDeleteModal = function() {
+    $scope.closeDeleteModal = function () {
         $scope.deleteModalOpen = false;
         $scope.mentorToDelete = {};
     };
 
-    $scope.deleteMentor = function() {
+    $scope.deleteMentor = function () {
         $scope.showLoading('Deleting mentor...');
 
         // Note: You'll need to add delete API endpoint
         var url = $scope.apiBaseUrl + '/delete-mentor.php?id=' + $scope.mentorToDelete.id;
 
         $http.post(url, {}, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 if (response.data.status) {
                     $scope.loadMentors();
                     $scope.closeDeleteModal();
@@ -429,7 +438,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                     $scope.hideLoading();
                 }
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error deleting mentor:', error);
                 $scope.showToaster('error', 'Error', 'Failed to delete mentor. Please try again.');
                 $scope.hideLoading();
@@ -437,7 +446,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Photo Upload =====
-    $scope.handlePhotoSelect = function(file) {
+    $scope.handlePhotoSelect = function (file) {
         if (!file) return;
 
         // Check file size (max 2MB)
@@ -452,13 +461,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             return;
         }
 
-        $scope.$apply(function() {
+        $scope.$apply(function () {
             $scope.currentMentor.photoFile = file;
 
             // Create preview
             var reader = new FileReader();
-            reader.onload = function(e) {
-                $scope.$apply(function() {
+            reader.onload = function (e) {
+                $scope.$apply(function () {
                     $scope.currentMentor.photoPreview = e.target.result;
                 });
             };
@@ -467,7 +476,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Remove Photo =====
-    $scope.removePhoto = function() {
+    $scope.removePhoto = function () {
         $scope.currentMentor.photo = null;
         $scope.currentMentor.photoPreview = null;
         $scope.currentMentor.photoFile = null;
@@ -479,28 +488,37 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Filter & Sort (Server-Side) =====
+    $scope.selectSpecialization = function (spec) {
+        $scope.filterSpecialization = spec;
+        $scope.filterMentors();
+    };
+
+    $scope.getSkeletonRows = function () {
+        return new Array($scope.pageSize || 10);
+    };
+
     var filterTimeout;
-    $scope.filterMentors = function() {
+    $scope.filterMentors = function () {
         // Cancel previous timeout if exists
         if (filterTimeout) {
             $timeout.cancel(filterTimeout);
         }
 
         // Set new timeout for debounce (500ms delay)
-        filterTimeout = $timeout(function() {
+        filterTimeout = $timeout(function () {
             // Reset to page 1 and reload from API with filters
             $scope.currentPage = 1;
             $scope.loadMentors();
         }, 500);
     };
 
-    $scope.sortMentors = function() {
+    $scope.sortMentors = function () {
         // Reload from API with new sort order
         $scope.loadMentors();
     };
 
     // ===== Sort by Column =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         // If clicking the same column, toggle sort direction
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
@@ -521,7 +539,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
 
     // ===== Helper Functions =====
-    $scope.getInitials = function(name) {
+    $scope.getInitials = function (name) {
         if (!name) return '??';
         var parts = name.split(' ');
         if (parts.length >= 2) {
@@ -530,13 +548,13 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         return name.substring(0, 2).toUpperCase();
     };
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 300);
     };
@@ -551,7 +569,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     };
     var studentsSearchTimeout;
 
-    $scope.viewMentoringStudents = function(mentor) {
+    $scope.viewMentoringStudents = function (mentor) {
         $scope.selectedMentorForStudents = mentor;
         $scope.selectedMentorForStudents.mentoringStudents = []; // Initialize empty array
         $scope.studentsCurrentPage = 1;
@@ -562,7 +580,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         $scope.loadMappedStudents();
     };
 
-    $scope.loadMappedStudents = function() {
+    $scope.loadMappedStudents = function () {
         if (!$scope.selectedMentorForStudents) return;
 
         // Fetch mapped students from API with pagination and search
@@ -582,7 +600,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         console.log('Search key:', searchKey);
 
         $http.get(url, $scope.getHttpConfig())
-            .then(function(response) {
+            .then(function (response) {
                 if (response.data && response.data.data) {
                     $scope.selectedMentorForStudents.mentoringStudents = response.data.data;
 
@@ -601,7 +619,7 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
                 }
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading mapped students:', error);
                 $scope.selectedMentorForStudents.mentoringStudents = [];
                 $scope.studentsTotalCount = 0;
@@ -611,47 +629,47 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
             });
     };
 
-    $scope.filterStudents = function() {
+    $scope.filterStudents = function () {
         if (studentsSearchTimeout) {
             $timeout.cancel(studentsSearchTimeout);
         }
-        studentsSearchTimeout = $timeout(function() {
+        studentsSearchTimeout = $timeout(function () {
             $scope.studentsCurrentPage = 1;
             $scope.loadMappedStudents();
         }, 500);
     };
 
-    $scope.studentsGoToPage = function(page) {
+    $scope.studentsGoToPage = function (page) {
         if (page >= 1 && page <= $scope.studentsTotalPages) {
             $scope.studentsCurrentPage = page;
             $scope.loadMappedStudents();
         }
     };
 
-    $scope.studentsPreviousPage = function() {
+    $scope.studentsPreviousPage = function () {
         if ($scope.studentsCurrentPage > 1) {
             $scope.studentsCurrentPage--;
             $scope.loadMappedStudents();
         }
     };
 
-    $scope.studentsNextPage = function() {
+    $scope.studentsNextPage = function () {
         if ($scope.studentsCurrentPage < $scope.studentsTotalPages) {
             $scope.studentsCurrentPage++;
             $scope.loadMappedStudents();
         }
     };
 
-    $scope.getStudentsStartIndex = function() {
+    $scope.getStudentsStartIndex = function () {
         return ($scope.studentsCurrentPage - 1) * $scope.studentsPageSize;
     };
 
-    $scope.getStudentsEndIndex = function() {
+    $scope.getStudentsEndIndex = function () {
         var end = $scope.studentsCurrentPage * $scope.studentsPageSize;
         return Math.min(end, $scope.studentsTotalCount);
     };
 
-    $scope.getStudentsPageNumbers = function() {
+    $scope.getStudentsPageNumbers = function () {
         var pages = [];
         var maxPagesToShow = 5;
         var startPage = Math.max(1, $scope.studentsCurrentPage - Math.floor(maxPagesToShow / 2));
@@ -667,15 +685,15 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
         return pages;
     };
 
-    $scope.closeStudentsModal = function() {
+    $scope.closeStudentsModal = function () {
         $scope.studentsModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.selectedMentorForStudents = null;
         }, 300);
     };
 
     // ===== View Student Profile =====
-    $scope.viewStudentProfile = function(student) {
+    $scope.viewStudentProfile = function (student) {
         localStorage.setItem('selectedStudent', JSON.stringify(student));
         window.open('candidate-detail.html', '_blank');
         $scope.closeStudentsModal();
