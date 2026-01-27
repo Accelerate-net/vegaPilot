@@ -20,6 +20,8 @@
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
@@ -31,16 +33,71 @@
    <style type="text/css">
       /* Search & Filter Bar */
       .search-filter-bar {
-         background: #fff;
-         padding: 20px;
-         border-radius: 8px;
-         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-         margin-bottom: 25px;
-         display: flex;
-         gap: 15px;
-         flex-wrap: wrap;
-         align-items: center;
+         display: none;
+         /* Hidden in favor of crispr-filter-bar */
       }
+
+      /* Skeleton styles */
+      .skeleton-card {
+         background: white;
+         border-radius: 10px;
+         overflow: hidden;
+         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+         height: 280px;
+         display: flex;
+         flex-direction: column;
+      }
+
+      .skeleton-thumbnail {
+         height: 180px;
+         background: #f0f0f0;
+         position: relative;
+         overflow: hidden;
+      }
+
+      .skeleton-info {
+         padding: 15px;
+         flex: 1;
+      }
+
+      .skeleton-line {
+         height: 14px;
+         background: #f0f0f0;
+         border-radius: 4px;
+         margin-bottom: 8px;
+         position: relative;
+         overflow: hidden;
+      }
+
+      .skeleton-line.short {
+         width: 60%;
+      }
+
+      .skeleton-line.medium {
+         width: 80%;
+      }
+
+      .skeleton-shimmer {
+         position: absolute;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+         animation: shimmer 1.5s infinite;
+      }
+
+      @keyframes shimmer {
+         0% {
+            transform: translateX(-100%);
+         }
+
+         100% {
+            transform: translateX(100%);
+         }
+      }
+
+
 
       .search-input-wrapper {
          flex: 1;
@@ -937,24 +994,49 @@
                      </div>
 
                      <!-- Search & Filter Bar -->
-                     <div class="search-filter-bar">
-                        <div class="search-input-wrapper">
-                           <i class="ti ti-search"></i>
+                     <!-- Search & Filter Bar (Standardized) -->
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti ti-search" ng-if="!searchQuery" style="z-index: 10;"></i>
+                           <i class="ti ti-close" ng-if="searchQuery" ng-click="clearSearch()"
+                              style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; z-index: 20; font-size: 16px; transition: color 0.2s;"
+                              onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'"></i>
                            <input type="text" class="search-input"
                               placeholder="Search videos by name, folder, or tags..." ng-model="searchQuery"
                               ng-change="filterVideos()">
                         </div>
-                        <select class="filter-select" ng-model="sortBy" ng-change="sortVideos()">
-                           <option value="name">Sort by Name</option>
-                           <option value="date">Sort by Date</option>
-                           <option value="duration">Sort by Duration</option>
-                           <option value="size">Sort by Size</option>
-                        </select>
-                        <select class="filter-select" ng-model="sortOrder" ng-change="sortVideos()">
-                           <option value="asc">Ascending</option>
-                           <option value="desc">Descending</option>
-                        </select>
 
+                        <div class="filter-dropdown" ng-class="{open: showSortMenu}"
+                           click-outside="showSortMenu = false">
+                           <button class="filter-dropdown-btn" ng-click="showSortMenu = !showSortMenu">
+                              <span>{{getSortLabel(sortBy)}}</span>
+                              <i class="ti ti-angle-down"></i>
+                           </button>
+                           <ul class="dropdown-menu" ng-show="showSortMenu">
+                              <li><a href="" ng-click="sortBy='name'; sortVideos(); showSortMenu=false">Sort by Name</a>
+                              </li>
+                              <li><a href="" ng-click="sortBy='date'; sortVideos(); showSortMenu=false">Sort by Date</a>
+                              </li>
+                              <li><a href="" ng-click="sortBy='duration'; sortVideos(); showSortMenu=false">Sort by
+                                    Duration</a></li>
+                              <li><a href="" ng-click="sortBy='size'; sortVideos(); showSortMenu=false">Sort by Size</a>
+                              </li>
+                           </ul>
+                        </div>
+
+                        <div class="filter-dropdown" ng-class="{open: showOrderMenu}"
+                           click-outside="showOrderMenu = false">
+                           <button class="filter-dropdown-btn" ng-click="showOrderMenu = !showOrderMenu">
+                              <span>{{sortOrder === 'asc' ? 'Ascending' : 'Descending'}}</span>
+                              <i class="ti ti-angle-down"></i>
+                           </button>
+                           <ul class="dropdown-menu" ng-show="showOrderMenu">
+                              <li><a href="" ng-click="sortOrder='asc'; sortVideos(); showOrderMenu=false">Ascending</a>
+                              </li>
+                              <li><a href=""
+                                    ng-click="sortOrder='desc'; sortVideos(); showOrderMenu=false">Descending</a></li>
+                           </ul>
+                        </div>
                      </div>
 
                      <!-- Video Management Container -->
@@ -994,9 +1076,26 @@
 
                         <!-- Video Grid -->
                         <div class="video-main-content">
-                           <div class="video-grid" ng-if="filteredVideos.length > 0">
-                              <div class="video-card" ng-repeat="video in filteredVideos"
-                                 ng-click="openVideoPlayer(video)">
+                           <!-- Video Grid Content -->
+                           <div class="video-grid">
+                              <!-- Skeleton Loading State -->
+                              <div class="skeleton-card" ng-if="isLoading" ng-repeat="i in [1,2,3,4,5,6,7,8]">
+                                 <div class="skeleton-thumbnail">
+                                    <div class="skeleton-shimmer"></div>
+                                 </div>
+                                 <div class="skeleton-info">
+                                    <div class="skeleton-line medium">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                    <div class="skeleton-line short">
+                                       <div class="skeleton-shimmer"></div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <!-- Real Video Cards -->
+                              <div class="video-card" ng-repeat="video in paginatedVideos"
+                                 ng-click="openVideoPlayer(video)" ng-if="!isLoading">
                                  <div class="video-thumbnail">
                                     <img ng-if="video.thumbnail" ng-src="{{video.thumbnail}}" alt="{{video.name}}">
                                     <i ng-if="!video.thumbnail" class="ti ti-video-camera"></i>
@@ -1025,15 +1124,32 @@
                               </div>
                            </div>
 
+                           <!-- Pagination Controls -->
+                           <div class="pagination-container" ng-if="!isLoading && filteredVideos.length > 0" style="background: none; border: none; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 6px;">
+                              <div class="pagination-info">
+                                 <span>Showing {{getPageRange()}} of {{filteredVideos.length}} videos</span>
+                              </div>
+                              <div class="pagination-controls">
+                                 <button class="pagination-btn" ng-click="prevPage()" ng-disabled="currentPage === 1">
+                                    <i class="ti ti-angle-left"></i> Previous
+                                 </button>
+                                 <button class="pagination-btn" ng-repeat="page in getPagesArray()"
+                                    ng-click="setPage(page)" ng-class="{active: page === currentPage}">
+                                    {{page}}
+                                 </button>
+                                 <button class="pagination-btn" ng-click="nextPage()"
+                                    ng-disabled="currentPage >= getTotalPages()">
+                                    Next <i class="ti ti-angle-right"></i>
+                                 </button>
+                              </div>
+                           </div>
+
                            <!-- Empty State -->
-                           <div class="empty-state" ng-if="filteredVideos.length === 0">
+                           <div class="empty-state" ng-if="!isLoading && filteredVideos.length === 0">
                               <i class="ti ti-package"></i>
                               <h3>No Videos Found</h3>
                               <p ng-if="searchQuery">Try adjusting your search criteria</p>
                               <p ng-if="!searchQuery">Upload your first video to get started</p>
-                              <button class="btn btn-success" ng-click="openUploadModal()">
-                                 <i class="ti ti-upload"></i> Upload Videos
-                              </button>
                            </div>
                         </div>
                      </div>
@@ -1046,46 +1162,56 @@
    </div>
 
    <!-- Upload Modal -->
-   <div class="modal-backdrop" ng-class="{active: uploadModalOpen}">
-      <div class="modal-dialog">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: uploadModalOpen}">
+      <div class="crispr-modal-dialog">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-upload"></i> Upload Videos</h3>
-            <button class="modal-close" ng-click="closeUploadModal()">
+            <button class="crispr-modal-close" ng-click="closeUploadModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
+         <div class="crispr-modal-body">
             <div class="form-group">
-               <label>Select Folder</label>
-               <select class="form-input" ng-model="uploadFolder">
+               <label>Select Folder <span style="color: #ef4444;">*</span></label>
+               <select class="form-control" ng-model="uploadFolder">
                   <option value="">-- Select Folder --</option>
                   <option ng-repeat="folder in folders" value="{{folder.id}}">{{folder.name}}</option>
                </select>
             </div>
             <div class="upload-zone" ng-class="{dragover: isDragging}" ng-click="triggerFileInput()" file-dropzone
-               on-file-drop="handleFileDrop(files)">
-               <i class="ti ti-cloud-up"></i>
-               <h4>Drag & Drop Videos Here</h4>
-               <p>or click to browse files</p>
-               <button class="btn btn-primary">
+               on-file-drop="handleFileDrop(files)"
+               style="border: 2px dashed #cbd5e0; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s;">
+               <i class="ti ti-cloud-up"
+                  style="font-size: 48px; color: #94a3b8; margin-bottom: 15px; display: block;"></i>
+               <h4 style="margin: 0 0 5px 0; color: #334155; font-size: 16px; font-weight: 600;">Drag & Drop Videos Here
+               </h4>
+               <p style="margin: 0 0 15px 0; color: #64748b; font-size: 14px;">or click to browse files</p>
+               <button class="btn btn-primary-custom" style="pointer-events: none;">
                   <i class="ti ti-folder"></i> Browse Files
                </button>
                <input type="file" id="fileInput" class="file-input" multiple accept="video/*"
-                  onchange="angular.element(this).scope().handleFileSelect(this.files)">
+                  onchange="angular.element(this).scope().handleFileSelect(this.files)" style="display: none;">
             </div>
-            <div class="upload-list" ng-if="uploadQueue.length > 0">
-               <div class="upload-item" ng-repeat="item in uploadQueue">
-                  <div class="upload-item-header">
-                     <span class="upload-item-name">{{item.file.name}}</span>
-                     <span class="upload-item-size">{{formatFileSize(item.file.size)}}</span>
+            <div class="upload-list" ng-if="uploadQueue.length > 0" style="margin-top: 20px;">
+               <div class="upload-item" ng-repeat="item in uploadQueue"
+                  style="background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                  <div class="upload-item-header"
+                     style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                     <span class="upload-item-name"
+                        style="font-weight: 500; color: #334155; font-size: 13px;">{{item.file.name}}</span>
+                     <span class="upload-item-size"
+                        style="color: #64748b; font-size: 12px;">{{formatFileSize(item.file.size)}}</span>
                   </div>
-                  <div class="progress-bar">
-                     <div class="progress-fill" style="width: {{item.progress}}%"></div>
+                  <div class="progress-bar"
+                     style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                     <div class="progress-fill"
+                        style="width: {{item.progress}}%; height: 100%; background: #006073; transition: width 0.2s;">
+                     </div>
                   </div>
                </div>
             </div>
          </div>
-         <div class="modal-footer">
+         <div class="crispr-modal-footer">
             <button class="btn btn-default" ng-click="closeUploadModal()">Cancel</button>
             <button class="btn btn-success" ng-click="startUpload()"
                ng-disabled="!uploadFolder || uploadQueue.length === 0">
@@ -1094,18 +1220,21 @@
          </div>
       </div>
    </div>
+   </div>
 
    <!-- Video Player Modal -->
-   <div class="modal-backdrop" ng-class="{active: playerModalOpen}">
-      <div class="modal-dialog">
-         <div class="modal-header">
+   <!-- Video Player Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: playerModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 900px;">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-control-play"></i> {{currentVideo.name}}</h3>
-            <button class="modal-close" ng-click="closeVideoPlayer()">
+            <button class="crispr-modal-close" ng-click="closeVideoPlayer()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
-            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;"
+         <div class="crispr-modal-body">
+            <div
+               style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
                ng-if="currentVideo && currentVideo.id">
                <iframe ng-src="{{getBunnyEmbedUrl(currentVideo.id)}}" loading="lazy"
                   style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
@@ -1113,31 +1242,49 @@
                   allowfullscreen="true">
                </iframe>
             </div>
-            <div style="margin-top: 20px;" ng-if="currentVideo && currentVideo.id">
-               <p><strong>Folder:</strong> {{getFolderName(currentVideo.folderId)}}</p>
-               <p><strong>Upload Date:</strong> {{currentVideo.uploadDate | date:'MMMM d, y h:mm a'}}</p>
-               <p ng-if="currentVideo.duration"><strong>Duration:</strong> {{currentVideo.duration}}</p>
+            <div
+               style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;"
+               ng-if="currentVideo && currentVideo.id">
+               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                  <div style="display: flex; flex-direction: column;">
+                     <span
+                        style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Folder</span>
+                     <span
+                        style="font-size: 14px; color: #1e293b; font-weight: 500;">{{getFolderName(currentVideo.folderId)}}</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column;">
+                     <span style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Upload
+                        Date</span>
+                     <span style="font-size: 14px; color: #1e293b; font-weight: 500;">{{currentVideo.uploadDate |
+                        date:'MMMM d, y h:mm a'}}</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column;" ng-if="currentVideo.duration">
+                     <span
+                        style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase;">Duration</span>
+                     <span style="font-size: 14px; color: #1e293b; font-weight: 500;">{{currentVideo.duration}}</span>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
    </div>
 
    <!-- Rename Modal -->
-   <div class="modal-backdrop" ng-class="{active: renameModalOpen}">
-      <div class="modal-dialog" style="max-width: 500px;">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: renameModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-pencil"></i> Rename Video</h3>
-            <button class="modal-close" ng-click="closeRenameModal()">
+            <button class="crispr-modal-close" ng-click="closeRenameModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
+         <div class="crispr-modal-body">
             <div class="form-group">
                <label>Video Name</label>
-               <input type="text" class="form-input" ng-model="renameData.newName" placeholder="Enter new name">
+               <input type="text" class="form-control" ng-model="renameData.newName" placeholder="Enter new name">
             </div>
          </div>
-         <div class="modal-footer">
+         <div class="crispr-modal-footer">
             <button class="btn btn-default" ng-click="closeRenameModal()">Cancel</button>
             <button class="btn btn-success" ng-click="renameVideo()" ng-disabled="!renameData.newName">
                <i class="ti ti-check"></i> Rename
@@ -1147,19 +1294,25 @@
    </div>
 
    <!-- Delete Confirmation Modal -->
-   <div class="modal-backdrop" ng-class="{active: deleteModalOpen}">
-      <div class="modal-dialog" style="max-width: 500px;">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: deleteModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
             <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
-            <button class="modal-close" ng-click="closeDeleteModal()">
+            <button class="crispr-modal-close" ng-click="closeDeleteModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
-            <p>Are you sure you want to delete <strong>{{videoToDelete.name}}</strong>?</p>
-            <p style="color: #e51c23; margin-top: 10px;">This action cannot be undone.</p>
+         <div class="crispr-modal-body">
+            <div style="text-align: center; padding: 20px 0;">
+               <i class="ti ti-alert" style="font-size: 48px; color: #ef4444; margin-bottom: 20px; display: block;"></i>
+               <p style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">Are you sure you want to delete
+                  <strong>{{videoToDelete.name}}</strong>?
+               </p>
+               <p style="color: #6b7280; font-size: 14px;">This action cannot be undone and will permanently remove this
+                  video.</p>
+            </div>
          </div>
-         <div class="modal-footer">
+         <div class="crispr-modal-footer">
             <button class="btn btn-default" ng-click="closeDeleteModal()">Cancel</button>
             <button class="btn btn-danger" ng-click="deleteVideo()">
                <i class="ti ti-trash"></i> Delete Video
@@ -1169,28 +1322,30 @@
    </div>
 
    <!-- Create Folder Modal -->
-   <div class="modal-backdrop" ng-class="{active: createFolderModalOpen}">
-      <div class="modal-dialog" style="max-width: 500px;">
-         <div class="modal-header">
+   <!-- Create Folder Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: createFolderModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-folder"></i> Create New Folder</h3>
-            <button class="modal-close" ng-click="closeCreateFolderModal()">
+            <button class="crispr-modal-close" ng-click="closeCreateFolderModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
-            <div class="form-group">
-               <label>Folder Name</label>
-               <input type="text" class="form-input" ng-model="newFolderData.name"
-                  placeholder="Enter folder name (e.g., Marketing Videos)"
-                  ng-keypress="$event.keyCode == 13 && createFolder()">
-            </div>
-            <div class="form-group">
-               <label>Description (Optional)</label>
-               <textarea class="form-input" ng-model="newFolderData.description" placeholder="Enter folder description"
-                  rows="3"></textarea>
-            </div>
+         <div class="crispr-modal-body">
+            <form ng-submit="createFolder()">
+               <div class="form-group">
+                  <label>Folder Name <span style="color: #ef4444;">*</span></label>
+                  <input type="text" class="form-control" ng-model="newFolderData.name"
+                     placeholder="Enter folder name (e.g., Marketing Videos)" required>
+               </div>
+               <div class="form-group">
+                  <label>Description (Optional)</label>
+                  <textarea class="form-control" ng-model="newFolderData.description"
+                     placeholder="Enter folder description" rows="3"></textarea>
+               </div>
+            </form>
          </div>
-         <div class="modal-footer">
+         <div class="crispr-modal-footer">
             <button class="btn btn-default" ng-click="closeCreateFolderModal()">Cancel</button>
             <button class="btn btn-success" ng-click="createFolder()" ng-disabled="!newFolderData.name">
                <i class="ti ti-check"></i> Create Folder
@@ -1200,22 +1355,25 @@
    </div>
 
    <!-- Rename Folder Modal -->
-   <div class="modal-backdrop" ng-class="{active: renameFolderModalOpen}">
-      <div class="modal-dialog" style="max-width: 500px;">
-         <div class="modal-header">
+   <!-- Rename Folder Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: renameFolderModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-pencil"></i> Rename Folder</h3>
-            <button class="modal-close" ng-click="closeRenameFolderModal()">
+            <button class="crispr-modal-close" ng-click="closeRenameFolderModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
-            <div class="form-group">
-               <label>Folder Name</label>
-               <input type="text" class="form-input" ng-model="renameFolderData.newName"
-                  placeholder="Enter new folder name" ng-keypress="$event.keyCode == 13 && renameFolder()">
-            </div>
+         <div class="crispr-modal-body">
+            <form ng-submit="renameFolder()">
+               <div class="form-group">
+                  <label>Folder Name <span style="color: #ef4444;">*</span></label>
+                  <input type="text" class="form-control" ng-model="renameFolderData.newName"
+                     placeholder="Enter new folder name" required>
+               </div>
+            </form>
          </div>
-         <div class="modal-footer">
+         <div class="crispr-modal-footer">
             <button class="btn btn-default" ng-click="closeRenameFolderModal()">Cancel</button>
             <button class="btn btn-success" ng-click="renameFolder()" ng-disabled="!renameFolderData.newName">
                <i class="ti ti-check"></i> Rename Folder
@@ -1224,13 +1382,7 @@
       </div>
    </div>
 
-   <!-- Loading Overlay -->
-   <div class="loading-overlay" ng-class="{active: isLoading}">
-      <div class="loading-content">
-         <div class="spinner"></div>
-         <h3>{{loadingMessage}}</h3>
-      </div>
-   </div>
+   <!-- Loading Overlay Removed as per request -->
 
    <!-- Scripts -->
    <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>

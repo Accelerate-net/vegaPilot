@@ -5,29 +5,29 @@
 
 var app = angular.module('BunnyAdminApp', ['ngCookies']);
 
-app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout', '$sce', function($scope, $cookies, $http, $timeout, $sce) {
+app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout', '$sce', function ($scope, $cookies, $http, $timeout, $sce) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -40,7 +40,14 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     $scope.selectedFolder = null;
     $scope.searchQuery = '';
     $scope.sortBy = 'date';
+    $scope.searchQuery = '';
+    $scope.sortBy = 'date';
     $scope.sortOrder = 'desc';
+
+    // ===== Pagination =====
+    $scope.pageSize = 9;
+    $scope.currentPage = 1;
+    $scope.paginatedVideos = [];
 
     // ===== Modal States =====
     $scope.uploadModalOpen = false;
@@ -79,7 +86,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     var API_BASE = '/api/bunny';
 
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.showLoading('Loading folders and videos...');
         $scope.loadFolders();
         $scope.loadAllVideos();
@@ -90,13 +97,13 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Load all folders from Bunny.net
      */
-    $scope.loadFolders = function() {
+    $scope.loadFolders = function () {
         $http.get(API_BASE + '/folders')
-            .then(function(response) {
+            .then(function (response) {
                 $scope.folders = response.data;
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading folders:', error);
                 // Mock data for demo
                 $scope.folders = [
@@ -113,13 +120,13 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Load all videos from all folders
      */
-    $scope.loadAllVideos = function() {
+    $scope.loadAllVideos = function () {
         $http.get(API_BASE + '/videos')
-            .then(function(response) {
+            .then(function (response) {
                 $scope.videos = response.data;
                 $scope.filterVideos();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading videos:', error);
                 // Mock data for demo
                 $scope.videos = $scope.generateMockVideos();
@@ -130,15 +137,15 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Load videos for a specific folder
      */
-    $scope.loadFolderVideos = function(folderId) {
+    $scope.loadFolderVideos = function (folderId) {
         $scope.showLoading('Loading videos...');
         $http.get(API_BASE + '/videos?folderId=' + folderId)
-            .then(function(response) {
+            .then(function (response) {
                 $scope.videos = response.data;
                 $scope.filterVideos();
                 $scope.hideLoading();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Error loading folder videos:', error);
                 $scope.filterVideos();
                 $scope.hideLoading();
@@ -148,7 +155,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Upload video to Bunny.net
      */
-    $scope.uploadVideo = function(file, folderId) {
+    $scope.uploadVideo = function (file, folderId) {
         var formData = new FormData();
         formData.append('file', file);
         formData.append('folderId', folderId);
@@ -157,11 +164,11 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
             headers: { 'Content-Type': undefined },
             transformRequest: angular.identity,
             uploadEventHandlers: {
-                progress: function(e) {
+                progress: function (e) {
                     if (e.lengthComputable) {
                         var progress = Math.round((e.loaded / e.total) * 100);
-                        $scope.$apply(function() {
-                            var item = $scope.uploadQueue.find(function(i) {
+                        $scope.$apply(function () {
+                            var item = $scope.uploadQueue.find(function (i) {
                                 return i.file.name === file.name;
                             });
                             if (item) {
@@ -177,7 +184,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Rename video on Bunny.net
      */
-    $scope.renameVideoApi = function(videoId, newName) {
+    $scope.renameVideoApi = function (videoId, newName) {
         return $http.post(API_BASE + '/rename', {
             videoId: videoId,
             newName: newName
@@ -187,7 +194,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     /**
      * Delete video from Bunny.net
      */
-    $scope.deleteVideoApi = function(videoId) {
+    $scope.deleteVideoApi = function (videoId) {
         return $http.post(API_BASE + '/delete', {
             videoId: videoId
         });
@@ -195,7 +202,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Folder Selection =====
 
-    $scope.selectFolder = function(folderId) {
+    $scope.selectFolder = function (folderId) {
         $scope.selectedFolder = folderId;
         if (folderId === null) {
             $scope.loadAllVideos();
@@ -206,26 +213,31 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Video Filtering & Sorting =====
 
-    $scope.filterVideos = function() {
+    $scope.clearSearch = function () {
+        $scope.searchQuery = '';
+        $scope.filterVideos();
+    };
+
+    $scope.filterVideos = function () {
         var query = $scope.searchQuery.toLowerCase();
 
         if (!query) {
             $scope.filteredVideos = $scope.videos.slice();
         } else {
-            $scope.filteredVideos = $scope.videos.filter(function(video) {
+            $scope.filteredVideos = $scope.videos.filter(function (video) {
                 var folderName = $scope.getFolderName(video.folderId).toLowerCase();
                 var videoName = video.name.toLowerCase();
                 var tags = (video.tags || []).join(' ').toLowerCase();
 
                 return videoName.indexOf(query) !== -1 ||
-                       folderName.indexOf(query) !== -1 ||
-                       tags.indexOf(query) !== -1;
+                    folderName.indexOf(query) !== -1 ||
+                    tags.indexOf(query) !== -1;
             });
         }
 
         // Apply folder filter
         if ($scope.selectedFolder !== null) {
-            $scope.filteredVideos = $scope.filteredVideos.filter(function(video) {
+            $scope.filteredVideos = $scope.filteredVideos.filter(function (video) {
                 return video.folderId === $scope.selectedFolder;
             });
         }
@@ -233,14 +245,14 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $scope.sortVideos();
     };
 
-    $scope.sortVideos = function() {
+    $scope.sortVideos = function () {
         var sortBy = $scope.sortBy;
         var order = $scope.sortOrder;
 
-        $scope.filteredVideos.sort(function(a, b) {
+        $scope.filteredVideos.sort(function (a, b) {
             var aVal, bVal;
 
-            switch(sortBy) {
+            switch (sortBy) {
                 case 'name':
                     aVal = a.name.toLowerCase();
                     bVal = b.name.toLowerCase();
@@ -258,33 +270,112 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
                     bVal = b.size || 0;
                     break;
                 default:
-                    return 0;
+                    // Fallback to name or 0
+                    aVal = a.name.toLowerCase();
+                    bVal = b.name.toLowerCase();
             }
 
             if (aVal < bVal) return order === 'asc' ? -1 : 1;
             if (aVal > bVal) return order === 'asc' ? 1 : -1;
             return 0;
         });
+
+        $scope.updatePagination();
+    };
+
+    // ===== Pagination Logic =====
+    $scope.updatePagination = function () {
+        var totalPages = Math.ceil($scope.filteredVideos.length / $scope.pageSize);
+        if ($scope.currentPage > totalPages || $scope.currentPage < 1) {
+            $scope.currentPage = 1;
+        }
+
+        var start = ($scope.currentPage - 1) * $scope.pageSize;
+        var end = start + $scope.pageSize;
+        $scope.paginatedVideos = $scope.filteredVideos.slice(start, end);
+    };
+
+    $scope.prevPage = function () {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+            $scope.updatePagination();
+            window.scrollTo(0, 0); // Optional: scroll to top
+        }
+    };
+
+    $scope.nextPage = function () {
+        var totalPages = Math.ceil($scope.filteredVideos.length / $scope.pageSize);
+        if ($scope.currentPage < totalPages) {
+            $scope.currentPage++;
+            $scope.updatePagination();
+            window.scrollTo(0, 0);
+        }
+    };
+
+    $scope.getTotalPages = function () {
+        return Math.ceil($scope.filteredVideos.length / $scope.pageSize) || 1;
+    };
+
+    $scope.getPageRange = function () {
+        var start = ($scope.currentPage - 1) * $scope.pageSize + 1;
+        var end = Math.min(start + $scope.pageSize - 1, $scope.filteredVideos.length);
+        if ($scope.filteredVideos.length === 0) return '0-0';
+        return start + '-' + end;
+    };
+
+    $scope.getPagesArray = function () {
+        var pages = [];
+        var totalPages = $scope.getTotalPages();
+        var maxPagesToShow = 5;
+
+        if (totalPages <= maxPagesToShow) {
+            for (var i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Logic to show sliding window or just simple start/end
+            // Keeping it simple: show start, current surrounding, end?
+            // User just said "1 2 3", let's return all if small, or full list.
+            // If the user has many videos, this might break.
+            // But let's assume reasonable count or implement simple window.
+            var startPage = Math.max(1, $scope.currentPage - 2);
+            var endPage = Math.min(totalPages, startPage + 4);
+
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (var i = startPage; i <= endPage; i++) {
+                pages.push(i);
+            }
+        }
+        return pages;
+    };
+
+    $scope.setPage = function (page) {
+        if (page < 1 || page > $scope.getTotalPages()) return;
+        $scope.currentPage = page;
+        $scope.updatePagination();
     };
 
     // ===== Upload Modal =====
 
-    $scope.openUploadModal = function() {
+    $scope.openUploadModal = function () {
         $scope.uploadModalOpen = true;
         $scope.uploadQueue = [];
         $scope.uploadFolder = '';
     };
 
-    $scope.closeUploadModal = function() {
+    $scope.closeUploadModal = function () {
         $scope.uploadModalOpen = false;
         $scope.uploadQueue = [];
     };
 
-    $scope.triggerFileInput = function() {
+    $scope.triggerFileInput = function () {
         document.getElementById('fileInput').click();
     };
 
-    $scope.handleFileSelect = function(files) {
+    $scope.handleFileSelect = function (files) {
         for (var i = 0; i < files.length; i++) {
             $scope.uploadQueue.push({
                 file: files[i],
@@ -294,22 +385,22 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $scope.$apply();
     };
 
-    $scope.handleFileDrop = function(files) {
-        $scope.$apply(function() {
+    $scope.handleFileDrop = function (files) {
+        $scope.$apply(function () {
             $scope.handleFileSelect(files);
         });
     };
 
-    $scope.startUpload = function() {
+    $scope.startUpload = function () {
         if (!$scope.uploadFolder || $scope.uploadQueue.length === 0) {
             return;
         }
 
         $scope.showLoading('Uploading videos...');
 
-        var uploadPromises = $scope.uploadQueue.map(function(item) {
+        var uploadPromises = $scope.uploadQueue.map(function (item) {
             return $scope.uploadVideo(item.file, $scope.uploadFolder)
-                .then(function(response) {
+                .then(function (response) {
                     // Add uploaded video to the list
                     var newVideo = {
                         id: response.data.videoId || generateId(),
@@ -323,7 +414,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
                     $scope.videos.push(newVideo);
                     return newVideo;
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error('Upload failed for:', item.file.name, error);
                     // Simulate success for demo
                     var newVideo = {
@@ -341,8 +432,8 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
                 });
         });
 
-        Promise.all(uploadPromises).then(function() {
-            $scope.$apply(function() {
+        Promise.all(uploadPromises).then(function () {
+            $scope.$apply(function () {
                 $scope.hideLoading();
                 $scope.closeUploadModal();
                 $scope.filterVideos();
@@ -353,25 +444,25 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Video Player Modal =====
 
-    $scope.openVideoPlayer = function(video) {
+    $scope.openVideoPlayer = function (video) {
         $scope.currentVideo = video;
         $scope.playerModalOpen = true;
     };
 
-    $scope.closeVideoPlayer = function() {
+    $scope.closeVideoPlayer = function () {
         $scope.playerModalOpen = false;
         // Reset currentVideo to force iframe to unload and stop playback
-        $timeout(function() {
+        $timeout(function () {
             $scope.currentVideo = {};
         }, 300); // Small delay to allow modal close animation
     };
 
-    $scope.getVideoUrl = function(videoId) {
+    $scope.getVideoUrl = function (videoId) {
         // Return trusted URL for Angular
         return $sce.trustAsResourceUrl(API_BASE + '/stream?id=' + videoId);
     };
 
-    $scope.getBunnyEmbedUrl = function(videoId) {
+    $scope.getBunnyEmbedUrl = function (videoId) {
         // Bunny.net iframe embed URL format
         // https://iframe.mediadelivery.net/embed/{libraryId}/{videoId}
         var embedUrl = 'https://iframe.mediadelivery.net/embed/534211/' + videoId;
@@ -380,18 +471,18 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Rename Modal =====
 
-    $scope.openRenameModal = function(video) {
+    $scope.openRenameModal = function (video) {
         $scope.renameData.video = video;
         $scope.renameData.newName = video.name;
         $scope.renameModalOpen = true;
     };
 
-    $scope.closeRenameModal = function() {
+    $scope.closeRenameModal = function () {
         $scope.renameModalOpen = false;
         $scope.renameData = { video: null, newName: '' };
     };
 
-    $scope.renameVideo = function() {
+    $scope.renameVideo = function () {
         var video = $scope.renameData.video;
         var newName = $scope.renameData.newName;
 
@@ -400,13 +491,13 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $scope.showLoading('Renaming video...');
 
         $scope.renameVideoApi(video.id, newName)
-            .then(function(response) {
+            .then(function (response) {
                 video.name = newName;
                 $scope.hideLoading();
                 $scope.closeRenameModal();
                 $scope.filterVideos();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Rename failed:', error);
                 // Simulate success for demo
                 video.name = newName;
@@ -418,30 +509,30 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Delete Confirmation =====
 
-    $scope.confirmDelete = function(video) {
+    $scope.confirmDelete = function (video) {
         $scope.videoToDelete = video;
         $scope.deleteModalOpen = true;
     };
 
-    $scope.closeDeleteModal = function() {
+    $scope.closeDeleteModal = function () {
         $scope.deleteModalOpen = false;
         $scope.videoToDelete = {};
     };
 
-    $scope.deleteVideo = function() {
+    $scope.deleteVideo = function () {
         var video = $scope.videoToDelete;
 
         $scope.showLoading('Deleting video...');
 
         $scope.deleteVideoApi(video.id)
-            .then(function(response) {
+            .then(function (response) {
                 removeVideoFromList(video.id);
                 $scope.hideLoading();
                 $scope.closeDeleteModal();
                 $scope.filterVideos();
                 $scope.updateFolderCounts();
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Delete failed:', error);
                 // Simulate success for demo
                 removeVideoFromList(video.id);
@@ -454,7 +545,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Create Folder Modal =====
 
-    $scope.openCreateFolderModal = function() {
+    $scope.openCreateFolderModal = function () {
         $scope.newFolderData = {
             name: '',
             description: ''
@@ -462,7 +553,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $scope.createFolderModalOpen = true;
     };
 
-    $scope.closeCreateFolderModal = function() {
+    $scope.closeCreateFolderModal = function () {
         $scope.createFolderModalOpen = false;
         $scope.newFolderData = {
             name: '',
@@ -470,7 +561,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         };
     };
 
-    $scope.createFolder = function() {
+    $scope.createFolder = function () {
         if (!$scope.newFolderData.name) {
             return;
         }
@@ -482,36 +573,36 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
             name: $scope.newFolderData.name,
             description: $scope.newFolderData.description
         })
-        .then(function(response) {
-            // Add new folder to the list
-            var newFolder = {
-                id: response.data.folderId || generateId(),
-                name: $scope.newFolderData.name,
-                description: $scope.newFolderData.description,
-                videoCount: 0
-            };
-            $scope.folders.push(newFolder);
-            $scope.hideLoading();
-            $scope.closeCreateFolderModal();
-        })
-        .catch(function(error) {
-            console.error('Create folder failed:', error);
-            // Simulate success for demo mode
-            var newFolder = {
-                id: generateId(),
-                name: $scope.newFolderData.name,
-                description: $scope.newFolderData.description,
-                videoCount: 0
-            };
-            $scope.folders.push(newFolder);
-            $scope.hideLoading();
-            $scope.closeCreateFolderModal();
-        });
+            .then(function (response) {
+                // Add new folder to the list
+                var newFolder = {
+                    id: response.data.folderId || generateId(),
+                    name: $scope.newFolderData.name,
+                    description: $scope.newFolderData.description,
+                    videoCount: 0
+                };
+                $scope.folders.push(newFolder);
+                $scope.hideLoading();
+                $scope.closeCreateFolderModal();
+            })
+            .catch(function (error) {
+                console.error('Create folder failed:', error);
+                // Simulate success for demo mode
+                var newFolder = {
+                    id: generateId(),
+                    name: $scope.newFolderData.name,
+                    description: $scope.newFolderData.description,
+                    videoCount: 0
+                };
+                $scope.folders.push(newFolder);
+                $scope.hideLoading();
+                $scope.closeCreateFolderModal();
+            });
     };
 
     // ===== Rename Folder Modal =====
 
-    $scope.openRenameFolderModal = function(folder) {
+    $scope.openRenameFolderModal = function (folder) {
         $scope.renameFolderData = {
             folder: folder,
             newName: folder.name
@@ -519,7 +610,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $scope.renameFolderModalOpen = true;
     };
 
-    $scope.closeRenameFolderModal = function() {
+    $scope.closeRenameFolderModal = function () {
         $scope.renameFolderModalOpen = false;
         $scope.renameFolderData = {
             folder: null,
@@ -527,7 +618,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         };
     };
 
-    $scope.renameFolder = function() {
+    $scope.renameFolder = function () {
         if (!$scope.renameFolderData.newName || !$scope.renameFolderData.folder) {
             return;
         }
@@ -540,42 +631,42 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $http.put(API_BASE + '/folders/' + folder.id, {
             name: newName
         })
-        .then(function(response) {
-            folder.name = newName;
-            $scope.hideLoading();
-            $scope.closeRenameFolderModal();
-        })
-        .catch(function(error) {
-            console.error('Rename folder failed:', error);
-            // Simulate success for demo mode
-            folder.name = newName;
-            $scope.hideLoading();
-            $scope.closeRenameFolderModal();
-        });
+            .then(function (response) {
+                folder.name = newName;
+                $scope.hideLoading();
+                $scope.closeRenameFolderModal();
+            })
+            .catch(function (error) {
+                console.error('Rename folder failed:', error);
+                // Simulate success for demo mode
+                folder.name = newName;
+                $scope.hideLoading();
+                $scope.closeRenameFolderModal();
+            });
     };
 
     // ===== Helper Functions =====
 
-    $scope.getFolderName = function(folderId) {
-        var folder = $scope.folders.find(function(f) {
+    $scope.getFolderName = function (folderId) {
+        var folder = $scope.folders.find(function (f) {
             return f.id === folderId;
         });
         return folder ? folder.name : 'Unknown';
     };
 
-    $scope.getTotalVideoCount = function() {
+    $scope.getTotalVideoCount = function () {
         return $scope.videos.length;
     };
 
-    $scope.getTotalSize = function() {
-        var totalBytes = $scope.videos.reduce(function(sum, video) {
+    $scope.getTotalSize = function () {
+        var totalBytes = $scope.videos.reduce(function (sum, video) {
             return sum + (video.size || 0);
         }, 0);
         return $scope.formatFileSize(totalBytes);
     };
 
-    $scope.getTotalDuration = function() {
-        var totalSeconds = $scope.videos.reduce(function(sum, video) {
+    $scope.getTotalDuration = function () {
+        var totalSeconds = $scope.videos.reduce(function (sum, video) {
             return sum + $scope.parseDuration(video.duration);
         }, 0);
 
@@ -588,7 +679,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         return minutes + ' min';
     };
 
-    $scope.formatFileSize = function(bytes) {
+    $scope.formatFileSize = function (bytes) {
         if (!bytes) return '0 B';
         var k = 1024;
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -596,7 +687,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    $scope.parseDuration = function(duration) {
+    $scope.parseDuration = function (duration) {
         if (!duration) return 0;
         var parts = duration.split(':');
         var hours = parseInt(parts[0]) || 0;
@@ -605,27 +696,37 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         return hours * 3600 + minutes * 60 + seconds;
     };
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 500);
     };
 
-    $scope.updateFolderCounts = function() {
-        $scope.folders.forEach(function(folder) {
-            folder.videoCount = $scope.videos.filter(function(video) {
+    $scope.updateFolderCounts = function () {
+        $scope.folders.forEach(function (folder) {
+            folder.videoCount = $scope.videos.filter(function (video) {
                 return video.folderId === folder.id;
             }).length;
         });
     };
 
+    $scope.getSortLabel = function (key) {
+        var labels = {
+            'name': 'Name',
+            'date': 'Date',
+            'duration': 'Duration',
+            'size': 'Size'
+        };
+        return labels[key] || 'Date';
+    };
+
     function removeVideoFromList(videoId) {
-        var index = $scope.videos.findIndex(function(v) {
+        var index = $scope.videos.findIndex(function (v) {
             return v.id === videoId;
         });
         if (index !== -1) {
@@ -639,7 +740,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 
     // ===== Mock Data Generator =====
 
-    $scope.generateMockVideos = function() {
+    $scope.generateMockVideos = function () {
         var mockVideos = [];
         var videoNames = [
             'Product Launch 2024', 'How to Use Our Platform', 'Customer Success Story',
@@ -693,37 +794,62 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
 }]);
 
 // ===== File Dropzone Directive =====
-app.directive('fileDropzone', function() {
+app.directive('fileDropzone', function () {
     return {
         restrict: 'A',
         scope: {
             onFileDrop: '&'
         },
-        link: function(scope, element, attrs) {
-            element.on('dragover', function(e) {
+        link: function (scope, element, attrs) {
+            element.on('dragover', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                scope.$apply(function() {
+                scope.$apply(function () {
                     scope.$parent.isDragging = true;
                 });
             });
 
-            element.on('dragleave', function(e) {
+            element.on('dragleave', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                scope.$apply(function() {
+                scope.$apply(function () {
                     scope.$parent.isDragging = false;
                 });
             });
 
-            element.on('drop', function(e) {
+            element.on('drop', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                scope.$apply(function() {
+                scope.$apply(function () {
                     scope.$parent.isDragging = false;
                     var files = e.originalEvent.dataTransfer.files;
                     scope.onFileDrop({ files: files });
                 });
+            });
+        }
+    };
+});
+
+// ===== Click Outside Directive =====
+app.directive('clickOutside', function ($document) {
+    return {
+        restrict: 'A',
+        scope: {
+            clickOutside: '&'
+        },
+        link: function (scope, el, attr) {
+            var handler = function (e) {
+                if (el[0] && !el[0].contains(e.target)) {
+                    scope.$apply(function () {
+                        scope.clickOutside();
+                    });
+                }
+            };
+
+            $document.on('click', handler);
+
+            scope.$on('$destroy', function () {
+                $document.off('click', handler);
             });
         }
     };
