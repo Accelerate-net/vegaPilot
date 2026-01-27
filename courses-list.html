@@ -22,6 +22,7 @@
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
 
    <style type="text/css">
       /* Page Header Section */
@@ -550,21 +551,17 @@
 
 
    <!-- Students Modal -->
-   <div class="modal-backdrop" ng-class="{active: studentsModalOpen}"
-      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-      <div class="modal-dialog"
-         style="background: white; border-radius: 8px; max-width: 1000px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-         <div class="modal-header"
-            style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 20px; color: white;">
+   <div class="modal-backdrop" ng-class="{active: studentsModalOpen}">
+      <div class="modal-dialog" style="max-width: 1000px; max-height: 90vh;">
+         <div class="modal-header">
+            <h3>
                <i class="ti ti-user"></i> Enrolled Students - {{selectedCourseForStudents.title}}
             </h3>
-            <button class="modal-close" ng-click="closeStudentsModal()"
-               style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+            <button class="modal-close" ng-click="closeStudentsModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body" style="padding: 24px;">
+         <div class="modal-body">
             <!-- Search Bar -->
             <div style="margin-bottom: 20px;">
                <div class="search-wrapper">
@@ -576,7 +573,7 @@
 
             <!-- Students Table -->
             <div ng-if="selectedCourseForStudents && paginatedStudentsList.length > 0">
-               <table class="mentors-table" style="margin-bottom: 0;">
+               <table class="students-table" style="margin-bottom: 0;">
                   <thead>
                      <tr>
                         <th ng-click="changeStudentsSort('name')" style="cursor: pointer;">
@@ -673,26 +670,6 @@
    </div>
 
    <style>
-      @keyframes modalSlideDown {
-         from {
-            transform: translateY(-50px);
-            opacity: 0;
-         }
-
-         to {
-            transform: translateY(0);
-            opacity: 1;
-         }
-      }
-
-      .modal-backdrop.active {
-         display: flex !important;
-      }
-
-      .modal-close:hover {
-         background: rgba(255, 255, 255, 0.2) !important;
-      }
-
       /* Pagination styles */
       .btn-sm {
          background: white;
