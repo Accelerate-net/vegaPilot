@@ -20,6 +20,7 @@
     <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+    <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-cookies.js"></script>
 
@@ -186,222 +187,10 @@
             color: #856404;
         }
 
-        /* Modal Styles */
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            display: none;
-        }
-
-        .modal-backdrop.active {
-            display: flex !important;
-        }
-
-        .modal-dialog {
-            background: white;
-            border-radius: 8px;
-            max-width: 1200px;
-            width: 95%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: modalSlideDown 0.3s ease;
-        }
-
-        @keyframes modalSlideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-            flex-shrink: 0;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 20px;
-            color: white;
-        }
-
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s ease;
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-body {
-            padding: 25px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .modal-footer {
-            padding: 15px 25px;
-            border-top: 1px solid #e9ecef;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            flex-shrink: 0;
-            background: #f9fafb;
-        }
-
-        .form-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .form-section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #006073;
-            margin-bottom: 15px;
-        }
-
-        /* Exam Grid Styles */
-        .exam-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .exam-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .exam-card:hover {
-            border-color: #006073;
-            box-shadow: 0 2px 8px rgba(0, 96, 115, 0.15);
-        }
-
-        .exam-card.selected {
-            border-color: #006073;
-            background: #e7f5f7;
-        }
-
-        .exam-card-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .exam-checkbox {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .exam-info {
-            flex: 1;
-        }
-
-        .exam-title {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .exam-meta {
-            font-size: 12px;
-            color: #6c757d;
-            display: flex;
-            gap: 15px;
-            margin-top: 8px;
-        }
-
-        .access-type-selector {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #e5e7eb;
-            display: none;
-        }
-
-        .exam-card.selected .access-type-selector {
-            display: block;
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 15px;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .radio-option input[type="radio"] {
-            cursor: pointer;
-        }
-
-        .radio-option label {
-            cursor: pointer;
-            font-size: 13px;
-            color: #333;
-            margin: 0;
-        }
-
         /* Filter Bar styles moved to crispr-table.css */
 
-        .search-box {
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
+
+
 
         .empty-state {
             text-align: center;
@@ -422,149 +211,12 @@
             margin: 0 0 10px 0;
         }
 
-        .form-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
 
-        .selected-exams-summary {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .summary-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #495057;
-        }
-
-        .summary-item .summary-label {
-            font-weight: 500;
-            color: #6c757d;
-        }
-
-        .summary-item .summary-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 24px;
-            height: 24px;
-            padding: 0 8px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .summary-item .summary-badge.total {
-            background: #006073;
-            color: white;
-        }
-
-        .summary-item .summary-badge.free {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .summary-item .summary-badge.premium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .summary-divider {
-            width: 1px;
-            height: 16px;
-            background: #dee2e6;
-        }
-
-        /* Status Toggle Styles */
-        .status-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            background: #e9ecef;
-            border-radius: 6px;
-            padding: 3px;
-            height: 38px;
-        }
-
-        .status-toggle-btn {
-            flex: 1;
-            padding: 6px 16px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: #6c757d;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .status-toggle-btn.active {
-            background: white;
-            color: #006073;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-toggle-btn:hover:not(.active) {
-            color: #495057;
-        }
 
         /* Kebab Menu Styles moved to crispr-table.css */
 
-        /* Exam Pagination Styles */
-        .exam-pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #e9ecef;
-        }
+        /* Responsive Styles for Modals styles moved to crispr-modals.css */
 
-        .exam-pagination-btn {
-            width: 36px;
-            height: 36px;
-            border: 1px solid #dee2e6;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            color: #495057;
-        }
-
-        .exam-pagination-btn:hover:not(:disabled) {
-            background: #f8f9fa;
-            border-color: #006073;
-            color: #006073;
-        }
-
-        .exam-pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .exam-pagination-btn.active {
-            background: #006073;
-            border-color: #006073;
-            color: white;
-        }
-
-        .exam-pagination-info {
-            font-size: 13px;
-            color: #6c757d;
-            margin: 0 10px;
-        }
 
         /* Navbar Styling - Match courses-list.html */
         #topnav {
@@ -913,9 +565,8 @@
     </div>
 
     <!-- Create/Edit Test Series Modal -->
-    <div class="modal-backdrop" ng-class="{active: createModalOpen}"
-        ng-style="{'display': createModalOpen ? 'flex' : 'none'}">
-        <div class="modal-dialog">
+    <div class="modal-backdrop" ng-class="{active: createModalOpen}">
+        <div class="modal-dialog" style="max-width: 1200px;">
             <div class="modal-header">
                 <h3>
                     <i class="ti ti-plus"></i> {{editMode ? 'Edit Test Series' : 'Create Test Series'}}
@@ -1073,6 +724,29 @@
                 </button>
                 <button class="btn btn-success" ng-click="saveTestSeries()" ng-disabled="!canSaveTestSeries()">
                     <i class="ti ti-check"></i> {{editMode ? 'Update' : 'Create'}} Test Series
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-backdrop" ng-class="{active: confirmModalOpen}">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
+                <button class="modal-close" ng-click="closeConfirmModal()">
+                    <i class="ti ti-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 15px; color: #495057; line-height: 1.6;">
+                    {{confirmMessage}}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" ng-click="closeConfirmModal()">Cancel</button>
+                <button class="btn btn-danger" ng-click="confirmAction()">
+                    <i class="ti ti-trash"></i> Delete
                 </button>
             </div>
         </div>

@@ -669,12 +669,46 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
         });
     });
 
+    // ===== Blacklist Confirmation Modal =====
+    $scope.blacklistModalOpen = false;
+    $scope.blacklistConfirmMessage = '';
+    $scope.studentToBlacklist = null;
+
+    $scope.closeBlacklistModal = function () {
+        $scope.blacklistModalOpen = false;
+        $scope.studentToBlacklist = null;
+    };
+
     // Toggle Blacklist
     $scope.toggleBlacklist = function (student) {
         if (!student) return;
-        alert('Blacklist functionality for ' + student.name + ' will be implemented soon.');
-        // Implement actual blacklist logic here
+
+        $scope.studentToBlacklist = student;
+        $scope.blacklistConfirmMessage = "Do you really want to blacklist the profile of " + student.name + ". By doing this, the candidate won't be able to login to the application anymore. You can re-enable access anytime.";
+        $scope.blacklistModalOpen = true;
+
+        // Close kebab menu
         student.showKebabMenu = false;
+    };
+
+    $scope.confirmBlacklist = function () {
+        if (!$scope.studentToBlacklist) {
+            $scope.closeBlacklistModal();
+            return;
+        }
+
+        $scope.showLoading('Blacklisting student...');
+
+        $timeout(function () {
+            // Mock API call success
+            $scope.hideLoading();
+            $scope.showToaster('success', 'Profile Blacklisted', $scope.studentToBlacklist.name + ' has been successfully blacklisted.');
+
+            // Update local state if needed (e.g. change status)
+            // $scope.studentToBlacklist.status = 'blocked'; 
+
+            $scope.closeBlacklistModal();
+        }, 800);
     };
 
     // Change Page Size

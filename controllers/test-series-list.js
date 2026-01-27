@@ -5,29 +5,29 @@
 
 var app = angular.module('testSeriesApp', ['ngCookies']);
 
-app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout', function($scope, $http, $cookies, $timeout) {
+app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout', function ($scope, $http, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -63,11 +63,11 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     $scope.sortReverse = false;
 
     // Toggle Kebab Menu
-    $scope.toggleKebabMenu = function(series, $event) {
+    $scope.toggleKebabMenu = function (series, $event) {
         $event.stopPropagation();
 
         // Close all other kebab menus first
-        $scope.testSeriesList.forEach(function(s) {
+        $scope.testSeriesList.forEach(function (s) {
             if (s !== series) {
                 s.showKebabMenu = false;
             }
@@ -78,10 +78,10 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // Close kebab menus when clicking outside
-    angular.element(document).on('click', function(event) {
-        $scope.$apply(function() {
+    angular.element(document).on('click', function (event) {
+        $scope.$apply(function () {
             if ($scope.testSeriesList) {
-                $scope.testSeriesList.forEach(function(series) {
+                $scope.testSeriesList.forEach(function (series) {
                     series.showKebabMenu = false;
                 });
             }
@@ -89,15 +89,15 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     });
 
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.showLoading('Loading data...');
         $scope.loadExams();
         $scope.loadTestSeries();
     };
 
     // ===== Load Exams from exam-listing (dummy data matching exam-listing.js) =====
-    $scope.loadExams = function() {
-        $timeout(function() {
+    $scope.loadExams = function () {
+        $timeout(function () {
             $scope.availableExams = [
                 {
                     id: 50000,
@@ -207,9 +207,9 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // ===== Load Test Series =====
-    $scope.loadTestSeries = function() {
+    $scope.loadTestSeries = function () {
         // Sample data - replace with API call
-        $timeout(function() {
+        $timeout(function () {
             $scope.testSeriesList = [
                 {
                     id: 1,
@@ -243,7 +243,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // ===== Modal Functions =====
-    $scope.openCreateModal = function() {
+    $scope.openCreateModal = function () {
         $scope.editMode = false;
         $scope.currentSeries = {
             name: '',
@@ -257,9 +257,9 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         $scope.createModalOpen = true;
     };
 
-    $scope.closeCreateModal = function() {
+    $scope.closeCreateModal = function () {
         $scope.createModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.currentSeries = null;
             $scope.selectedExamsMap = {};
             $scope.examSearchQuery = '';
@@ -267,15 +267,15 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         }, 300);
     };
 
-    $scope.editSeries = function(series) {
+    $scope.editSeries = function (series) {
         $scope.editMode = true;
         $scope.currentSeries = angular.copy(series);
         $scope.examCurrentPage = 1;
 
         // Rebuild selectedExamsMap from series.exams
         $scope.selectedExamsMap = {};
-        series.exams.forEach(function(examInfo) {
-            var exam = $scope.availableExams.find(function(e) {
+        series.exams.forEach(function (examInfo) {
+            var exam = $scope.availableExams.find(function (e) {
                 return e.id === examInfo.examId;
             });
             if (exam) {
@@ -291,11 +291,11 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // ===== Exam Selection Functions =====
-    $scope.isExamSelected = function(exam) {
+    $scope.isExamSelected = function (exam) {
         return !!$scope.selectedExamsMap[exam.id];
     };
 
-    $scope.toggleExamSelection = function(exam) {
+    $scope.toggleExamSelection = function (exam) {
         if ($scope.selectedExamsMap[exam.id]) {
             // Deselect
             delete $scope.selectedExamsMap[exam.id];
@@ -308,25 +308,25 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         }
     };
 
-    $scope.getExamAccessType = function(exam) {
+    $scope.getExamAccessType = function (exam) {
         return $scope.selectedExamsMap[exam.id] ? $scope.selectedExamsMap[exam.id].accessType : 'premium';
     };
 
-    $scope.setExamAccessType = function(exam, accessType) {
+    $scope.setExamAccessType = function (exam, accessType) {
         if ($scope.selectedExamsMap[exam.id]) {
             $scope.selectedExamsMap[exam.id].accessType = accessType;
         }
     };
 
     // ===== Watch for search query changes =====
-    $scope.$watch('examSearchQuery', function(newVal) {
+    $scope.$watch('examSearchQuery', function (newVal) {
         if (!newVal) {
             $scope.filteredAvailableExams = angular.copy($scope.availableExams);
         } else {
             var searchLower = newVal.toLowerCase();
-            $scope.filteredAvailableExams = $scope.availableExams.filter(function(exam) {
+            $scope.filteredAvailableExams = $scope.availableExams.filter(function (exam) {
                 return exam.title.toLowerCase().indexOf(searchLower) !== -1 ||
-                       (exam.brief && exam.brief.toLowerCase().indexOf(searchLower) !== -1);
+                    (exam.brief && exam.brief.toLowerCase().indexOf(searchLower) !== -1);
             });
         }
         // Reset to first page when search changes
@@ -334,16 +334,16 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
     });
 
     // ===== Exam Pagination Functions =====
-    $scope.getPaginatedExams = function() {
+    $scope.getPaginatedExams = function () {
         var startIndex = ($scope.examCurrentPage - 1) * $scope.examPageSize;
         return $scope.filteredAvailableExams.slice(startIndex, startIndex + $scope.examPageSize);
     };
 
-    $scope.getExamTotalPages = function() {
+    $scope.getExamTotalPages = function () {
         return Math.ceil($scope.filteredAvailableExams.length / $scope.examPageSize);
     };
 
-    $scope.getExamPageNumbers = function() {
+    $scope.getExamPageNumbers = function () {
         var totalPages = $scope.getExamTotalPages();
         var pages = [];
         for (var i = 1; i <= totalPages; i++) {
@@ -352,64 +352,64 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         return pages;
     };
 
-    $scope.goToExamPage = function(page) {
+    $scope.goToExamPage = function (page) {
         var totalPages = $scope.getExamTotalPages();
         if (page >= 1 && page <= totalPages) {
             $scope.examCurrentPage = page;
         }
     };
 
-    $scope.prevExamPage = function() {
+    $scope.prevExamPage = function () {
         if ($scope.examCurrentPage > 1) {
             $scope.examCurrentPage--;
         }
     };
 
-    $scope.nextExamPage = function() {
+    $scope.nextExamPage = function () {
         if ($scope.examCurrentPage < $scope.getExamTotalPages()) {
             $scope.examCurrentPage++;
         }
     };
 
     // ===== Summary Functions =====
-    $scope.getSelectedExamsCount = function() {
+    $scope.getSelectedExamsCount = function () {
         return Object.keys($scope.selectedExamsMap).length;
     };
 
-    $scope.getSelectedFreeCount = function() {
-        return Object.values($scope.selectedExamsMap).filter(function(item) {
+    $scope.getSelectedFreeCount = function () {
+        return Object.values($scope.selectedExamsMap).filter(function (item) {
             return item.accessType === 'free';
         }).length;
     };
 
-    $scope.getSelectedPremiumCount = function() {
-        return Object.values($scope.selectedExamsMap).filter(function(item) {
+    $scope.getSelectedPremiumCount = function () {
+        return Object.values($scope.selectedExamsMap).filter(function (item) {
             return item.accessType === 'premium';
         }).length;
     };
 
-    $scope.getFreeExamsCount = function(series) {
-        return series.exams.filter(function(e) {
+    $scope.getFreeExamsCount = function (series) {
+        return series.exams.filter(function (e) {
             return e.accessType === 'free';
         }).length;
     };
 
-    $scope.getPremiumExamsCount = function(series) {
-        return series.exams.filter(function(e) {
+    $scope.getPremiumExamsCount = function (series) {
+        return series.exams.filter(function (e) {
             return e.accessType === 'premium';
         }).length;
     };
 
     // ===== Validation =====
-    $scope.canSaveTestSeries = function() {
+    $scope.canSaveTestSeries = function () {
         return $scope.currentSeries &&
-               $scope.currentSeries.name &&
-               $scope.currentSeries.name.trim().length > 0 &&
-               $scope.getSelectedExamsCount() > 0;
+            $scope.currentSeries.name &&
+            $scope.currentSeries.name.trim().length > 0 &&
+            $scope.getSelectedExamsCount() > 0;
     };
 
     // ===== Save Test Series =====
-    $scope.saveTestSeries = function() {
+    $scope.saveTestSeries = function () {
         if (!$scope.canSaveTestSeries()) {
             $scope.showToaster('info', 'Notification', 'Please fill in all required fields and select at least one exam.');
             return;
@@ -417,9 +417,9 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
 
         $scope.showLoading($scope.editMode ? 'Updating test series...' : 'Creating test series...');
 
-        $timeout(function() {
+        $timeout(function () {
             // Build exams array from selectedExamsMap
-            var examsArray = Object.values($scope.selectedExamsMap).map(function(item) {
+            var examsArray = Object.values($scope.selectedExamsMap).map(function (item) {
                 return {
                     examId: item.exam.id,
                     examTitle: item.exam.title,
@@ -431,7 +431,7 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
 
             if ($scope.editMode) {
                 // Update existing series
-                var index = $scope.testSeriesList.findIndex(function(s) {
+                var index = $scope.testSeriesList.findIndex(function (s) {
                     return s.id === $scope.currentSeries.id;
                 });
                 if (index !== -1) {
@@ -453,43 +453,65 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
         }, 800);
     };
 
+    // ===== Confirmation Modal Variables =====
+    $scope.confirmModalOpen = false;
+    $scope.confirmMessage = '';
+    $scope.seriesToDelete = null;
+
     // ===== Delete Test Series =====
-    $scope.deleteSeries = function(series) {
-        if (confirm('Are you sure you want to delete "' + series.name + '"? This action cannot be undone.')) {
+    $scope.deleteSeries = function (series) {
+        $scope.seriesToDelete = series;
+        $scope.confirmMessage = 'Are you sure you want to delete "' + series.name + '"? This action cannot be undone.';
+        $scope.confirmModalOpen = true;
+
+        // Close kebab menu if open
+        if (series) series.showKebabMenu = false;
+    };
+
+    $scope.closeConfirmModal = function () {
+        $scope.confirmModalOpen = false;
+        $scope.seriesToDelete = null;
+    };
+
+    $scope.confirmAction = function () {
+        if ($scope.seriesToDelete) {
             $scope.showLoading('Deleting test series...');
 
-            $timeout(function() {
-                var index = $scope.testSeriesList.indexOf(series);
+            $timeout(function () {
+                var index = $scope.testSeriesList.indexOf($scope.seriesToDelete);
                 if (index !== -1) {
                     $scope.testSeriesList.splice(index, 1);
                 }
                 $scope.hideLoading();
                 $scope.showToaster('success', 'Success', 'Test series deleted successfully!');
+                $scope.closeConfirmModal();
             }, 500);
+        } else {
+            $scope.closeConfirmModal();
         }
     };
 
     // ===== View Series Details =====
-    $scope.viewSeriesDetails = function(series) {
+    $scope.viewSeriesDetails = function (series) {
         // Navigate to detail page or show detail modal
         console.log('View series details:', series);
         // TODO: Implement detail view
     };
 
     // ===== Loading State =====
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
-        $timeout(function() {
+    $scope.hideLoading = function () {
+        $timeout(function () {
             $scope.isLoading = false;
         }, 300);
     };
 
     // ===== Sortable Column Functionality =====
-    $scope.sortByColumn = function(column) {
+    $scope.sortByColumn = function (column) {
         if ($scope.sortColumn === column) {
             $scope.sortReverse = !$scope.sortReverse;
         } else {
@@ -497,10 +519,10 @@ app.controller('testSeriesController', ['$scope', '$http', '$cookies', '$timeout
             $scope.sortReverse = false;
         }
 
-        $scope.testSeriesList.sort(function(a, b) {
+        $scope.testSeriesList.sort(function (a, b) {
             var aVal, bVal;
 
-            switch(column) {
+            switch (column) {
                 case 'name':
                     aVal = a.name.toLowerCase();
                     bVal = b.name.toLowerCase();

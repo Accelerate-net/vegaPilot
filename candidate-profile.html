@@ -20,6 +20,7 @@
    <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
 
    <style type="text/css">
       /* Header Section */
@@ -702,22 +703,17 @@
    </div>
 
    <!-- Enrolled Courses Modal -->
-   <div class="modal-backdrop" ng-class="{active: coursesModalOpen}"
-      ng-style="{'display': coursesModalOpen ? 'flex' : 'none'}"
-      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-      <div class="modal-dialog"
-         style="background: white; border-radius: 8px; max-width: 900px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-         <div class="modal-header"
-            style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
-            <h3 style="margin: 0; font-size: 20px; color: white;">
+   <div class="modal-backdrop" ng-class="{active: coursesModalOpen}">
+      <div class="modal-dialog" style="max-width: 900px;">
+         <div class="modal-header">
+            <h3>
                <i class="ti ti-book"></i> Enrolled Courses - {{selectedStudentForCourses.name}}
             </h3>
-            <button class="modal-close" ng-click="closeCoursesModal()"
-               style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+            <button class="modal-close" ng-click="closeCoursesModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
+         <div class="modal-body">
             <!-- Candidate Info Header -->
             <div ng-if="selectedStudentForCourses"
                style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; display: flex; align-items: center; gap: 15px;">
@@ -793,37 +789,29 @@
                <p style="font-size: 16px; margin: 0;">No courses enrolled</p>
             </div>
          </div>
-         <div class="modal-footer"
-            style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; background: white; border-radius: 0 0 8px 8px;">
-            <button class="btn btn-success" ng-click="openEnrollCourseModal()"
-               style="display: inline-flex; align-items: center; gap: 5px;">
-               <i class="ti ti-plus"></i> <span>Enroll Course</span>
+         <div class="modal-footer">
+            <button class="btn btn-default" ng-click="closeCoursesModal()">
+               <i class="ti ti-close"></i> Close
             </button>
-            <button class="btn btn-default" ng-click="closeCoursesModal()"
-               style="display: inline-flex; align-items: center; gap: 5px;">
-               <i class="ti ti-close"></i> <span>Close</span>
+            <button class="btn btn-success" ng-click="openEnrollCourseModal()">
+               <i class="ti ti-plus"></i> Enroll Course
             </button>
          </div>
       </div>
    </div>
 
    <!-- Enroll Course Modal -->
-   <div class="modal-backdrop" ng-class="{active: enrollCourseModalOpen}"
-      ng-style="{'display': enrollCourseModalOpen ? 'flex' : 'none'}"
-      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
-      <div class="modal-dialog"
-         style="background: white; border-radius: 8px; max-width: 1000px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); animation: modalSlideDown 0.3s ease;">
-         <div class="modal-header"
-            style="padding: 20px 25px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #006073 0%, #005a6b 100%); color: white; border-radius: 8px 8px 0 0; flex-shrink: 0;">
-            <h3 style="margin: 0; font-size: 20px; color: white;">
+   <div class="modal-backdrop" ng-class="{active: enrollCourseModalOpen}">
+      <div class="modal-dialog" style="max-width: 1000px;">
+         <div class="modal-header">
+            <h3>
                <i class="ti ti-book"></i> Enroll Course - {{selectedStudentForCourses.name}}
             </h3>
-            <button class="modal-close" ng-click="closeEnrollCourseModal()"
-               style="background: transparent; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">
+            <button class="modal-close" ng-click="closeEnrollCourseModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body" style="padding: 25px; flex: 1; overflow-y: auto;">
+         <div class="modal-body">
             <!-- Search Bar -->
             <div style="margin-bottom: 20px;">
                <div class="input-group">
@@ -927,10 +915,32 @@
                   "{{courseSearchQuery}}"</p>
             </div>
          </div>
-         <div class="modal-footer"
-            style="padding: 15px 25px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0;">
+         <div class="modal-footer">
             <button class="btn btn-default" ng-click="closeEnrollCourseModal()">
                <i class="ti ti-close"></i> Close
+            </button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Blacklist Confirmation Modal -->
+   <div class="modal-backdrop" ng-class="{active: blacklistModalOpen}">
+      <div class="modal-dialog" style="max-width: 500px;">
+         <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            <h3><i class="ti ti-alert"></i> Confirm Blacklist</h3>
+            <button class="modal-close" ng-click="closeBlacklistModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body">
+            <p style="font-size: 15px; color: #495057; line-height: 1.6;">
+               {{blacklistConfirmMessage}}
+            </p>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-default" ng-click="closeBlacklistModal()">Cancel</button>
+            <button class="btn btn-danger" ng-click="confirmBlacklist()">
+               <i class="ti ti-na"></i> Blacklist Profile
             </button>
          </div>
       </div>
@@ -965,31 +975,9 @@
          color: #856404;
       }
 
-
-
       .validity-badge.validity-expired {
          background: #f8d7da;
          color: #721c24;
-      }
-
-      @keyframes modalSlideDown {
-         from {
-            transform: translateY(-50px);
-            opacity: 0;
-         }
-
-         to {
-            transform: translateY(0);
-            opacity: 1;
-         }
-      }
-
-      .modal-backdrop.active {
-         display: flex !important;
-      }
-
-      .modal-close:hover {
-         background: rgba(255, 255, 255, 0.2) !important;
       }
 
       /* Skeleton Loader */
