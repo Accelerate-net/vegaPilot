@@ -669,6 +669,29 @@
       </div>
    </div>
 
+   <!-- Confirmation Modal -->
+   <div class="modal-backdrop" ng-class="{active: confirmModalOpen}">
+      <div class="modal-dialog" style="max-width: 500px;">
+         <div class="modal-header" style="background: #006073;">
+            <h3><i class="ti ti-alert"></i> Confirm Action</h3>
+            <button class="modal-close" ng-click="closeConfirmModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="modal-body">
+            <p style="font-size: 15px; color: #495057; line-height: 1.6;">
+               {{confirmMessage}}
+            </p>
+         </div>
+         <div class="modal-footer">
+            <button class="btn btn-default" ng-click="closeConfirmModal()">Cancel</button>
+            <button class="btn btn-primary" ng-click="confirmAction()">
+               <i class="ti ti-check"></i> Confirm
+            </button>
+         </div>
+      </div>
+   </div>
+
    <style>
       /* Pagination styles */
       .btn-sm {

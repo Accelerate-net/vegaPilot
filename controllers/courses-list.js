@@ -564,18 +564,36 @@ coursesListApp.controller('coursesListController', ['$scope', '$cookies', '$time
         course.showKebabMenu = false;
     };
 
+    // ===== Confirmation Modal Variables =====
+    $scope.confirmModalOpen = false;
+    $scope.confirmMessage = '';
+    $scope.courseToUpdate = null;
+    $scope.newStatusToSet = '';
+
     // Toggle Course Status (Active/Draft)
     $scope.toggleCourseStatus = function (course) {
         var newStatus = course.status.toLowerCase() === 'active' ? 'Draft' : 'Active';
-        var confirmMsg = 'Are you sure you want to change the status to ' + newStatus + '?';
-
-        if (confirm(confirmMsg)) {
-            // TODO: Make API call to update course status
-            console.log('Toggling course status from', course.status, 'to', newStatus);
-            course.status = newStatus;
-            $scope.showToaster('success', 'Success', 'Course status updated to ' + newStatus);
-        }
+        $scope.courseToUpdate = course;
+        $scope.newStatusToSet = newStatus;
+        $scope.confirmMessage = 'Are you sure you want to change the status of "' + course.title + '" to ' + newStatus + '?';
+        $scope.confirmModalOpen = true;
         course.showKebabMenu = false;
+    };
+
+    $scope.closeConfirmModal = function () {
+        $scope.confirmModalOpen = false;
+        $scope.courseToUpdate = null;
+        $scope.newStatusToSet = '';
+    };
+
+    $scope.confirmAction = function () {
+        if ($scope.courseToUpdate && $scope.newStatusToSet) {
+            // TODO: Make API call to update course status
+            console.log('Toggling course status from', $scope.courseToUpdate.status, 'to', $scope.newStatusToSet);
+            $scope.courseToUpdate.status = $scope.newStatusToSet;
+            $scope.showToaster('success', 'Success', 'Course status updated to ' + $scope.newStatusToSet);
+        }
+        $scope.closeConfirmModal();
     };
 
     // Generate array for skeleton rows based on current page size
