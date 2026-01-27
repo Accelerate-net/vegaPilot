@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toasterContainer.innerHTML = '';
     }
 
-    window.showToaster = function(type, title, message) {
+    window.showToaster = function (type, title, message) {
         if (!toasterContainer) return;
 
         // Default title if missing
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const toaster = document.createElement('div');
         toaster.className = `toaster ${type}`;
-        
+
         let iconClass = 'ti-info-alt';
         if (type === 'success') iconClass = 'ti-check';
         if (type === 'error') iconClass = 'ti-alert';
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toaster.querySelector('.toaster-close').addEventListener('click', () => {
             toaster.classList.add('hiding');
             setTimeout(() => {
-                if(toaster.parentElement) toaster.parentElement.removeChild(toaster);
+                if (toaster.parentElement) toaster.parentElement.removeChild(toaster);
             }, 500);
         });
 
@@ -58,12 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (toaster.parentElement) {
                 toaster.classList.add('hiding');
                 setTimeout(() => {
-                    if(toaster.parentElement) toaster.parentElement.removeChild(toaster);
+                    if (toaster.parentElement) toaster.parentElement.removeChild(toaster);
                 }, 500);
             }
         }, 5000);
     };
-    
+
 
     // Helper to get token
     function getAdminTokenFromCookie() {
@@ -955,6 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Rendering
+    // Rendering
     function renderSelectedCourses() {
         console.log('renderSelectedCourses called');
         console.log('config.autoEnroll.courses:', config.autoEnroll.courses);
@@ -983,33 +984,39 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFixed = settings.type === 'fixed';
 
             return `
-            <div class="course-card" style="cursor: default; border-color: #e5e7eb; background: white; flex-direction: column; gap: 15px; align-items: stretch;">
-                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                    <div class="course-icon" style="background: #006073; color: white;">
+            <div class="course-card" style="cursor: default; border-color: #e5e7eb; background: white; flex-direction: column; gap: 0; align-items: stretch; padding: 0; overflow: hidden;">
+                <!-- Card Header -->
+                <div style="padding: 15px; display: flex; gap: 12px; align-items: flex-start; border-bottom: 1px solid #f1f5f9;">
+                    <div class="course-icon" style="background: #006073; color: white; width: 36px; height: 36px; font-size: 16px;">
                         <i class="ti ti-book"></i>
                     </div>
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${course.title}</div>
-                        <div style="font-size: 0.85rem; color: #6b7280;">${course.category} • ${course.code}</div>
+                        <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px; font-size: 14px; line-height: 1.3;">${course.title}</div>
+                        <div style="font-size: 11px; color: #6b7280; font-family: monospace;">${course.category} • ${course.code}</div>
                     </div>
-                    <button class="btn btn-sm" onclick="removeCourse('${course.code}')" style="background: none; border: none; color: #991b1b; cursor: pointer;">
+                    <button class="btn btn-sm" onclick="removeCourse('${course.code}')" style="background: none; border: none; color: #991b1b; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
                         <i class="ti ti-close"></i>
                     </button>
                 </div>
                 
-                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                    <label style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px; display: block; text-transform: uppercase;">Validity Period</label>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select class="form-control input-sm" onchange="updateValidityType('${course.code}', this.value)" style="width: 120px;">
-                            <option value="duration" ${!isFixed ? 'selected' : ''}>Duration</option>
+                <!-- Validity Settings -->
+                <div style="background: #f8fafc; padding: 12px 15px;">
+                    <label style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; text-transform: uppercase;">
+                        <i class="ti ti-calendar" style="font-size: 12px;"></i> Validity
+                    </label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <select class="form-control input-sm" onchange="updateValidityType('${course.code}', this.value)" style="width: 100%; border-color: #e2e8f0; font-size: 13px; padding: 6px 10px; height: auto;">
+                            <option value="duration" ${!isFixed ? 'selected' : ''}>Duration Based</option>
                             <option value="fixed" ${isFixed ? 'selected' : ''}>Fixed Date</option>
                         </select>
                         
                         ${!isFixed ? `
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <input type="number" class="form-control input-sm" value="${settings.value || 365}" min="1" style="width: 80px;" 
+                            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px;">
+                                <input type="number" class="form-control input-sm" value="${settings.value || 365}" min="1" 
+                                    style="border-color: #e2e8f0; font-size: 13px; padding: 6px 10px; height: auto;"
+                                    placeholder="Value"
                                     onchange="updateValidityValue('${course.code}', 'value', this.value)">
-                                <select class="form-control input-sm" style="width: 100px;"
+                                <select class="form-control input-sm" style="border-color: #e2e8f0; font-size: 13px; padding: 6px 10px; height: auto;"
                                     onchange="updateValidityValue('${course.code}', 'unit', this.value)">
                                     <option value="days" ${settings.unit === 'days' ? 'selected' : ''}>Days</option>
                                     <option value="months" ${settings.unit === 'months' ? 'selected' : ''}>Months</option>
@@ -1017,7 +1024,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </select>
                             </div>
                         ` : `
-                            <input type="date" class="form-control input-sm" value="${settings.value || ''}" style="width: auto;"
+                            <input type="date" class="form-control input-sm" value="${settings.value || ''}" 
+                                style="border-color: #e2e8f0; font-size: 13px; padding: 6px 10px; height: auto; width: 100%;"
                                 onchange="updateValidityValue('${course.code}', 'value', this.value)">
                         `}
                     </div>
@@ -1205,28 +1213,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span onclick="event.stopPropagation(); viewVoucherUsers(${discount.id}, '${discount.code}')" style="display: inline-block; background: #e0f2f1; color: #006073; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 5px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#b2dfdb'" onmouseout="this.style.background='#e0f2f1'">User Specific</span>`
                 : '';
 
-            // Revoke button - only shown for active vouchers (status = 1)
-            const revokeButton = discount.status === 1
-                ? `<button class="btn btn-danger" onclick="event.stopPropagation(); revokeDiscount(${discount.id}, '${discount.code}')" style="padding: 4px 10px; font-size: 12px; border-radius: 4px; background: #fee2e2; color: #991b1b; border: none; cursor: pointer; transition: all 0.2s;">
-                    <i class="ti ti-ban"></i> Revoke
-                </button>`
-                : '';
-
             return `
-                <tr onclick="viewVoucherDetails(${index})" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor=''">
-                    <td style="font-weight: 600; font-family: monospace; color: #006073;">${discount.code}${userSpecificBadge}</td>
+                <tr onclick="viewVoucherDetails(${index})">
+                    <td style="font-weight: 600; font-family: monospace; color: #2c3e50;">${discount.code}${userSpecificBadge}</td>
                     <td>${discount.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</td>
                     <td>${valueDisplay}</td>
                     <td>${validUntilDate ? validUntilDate.toLocaleDateString() : 'N/A'}</td>
                     <td>${discount.usageLimit || 'Unlimited'}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    <td style="text-align: right;">
-                        ${revokeButton}
+                    <td style="text-align: center;"><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td style="text-align: center;" onclick="event.stopPropagation()">
+                        <div class="kebab-menu-container">
+                            <button type="button" class="kebab-button" onclick="toggleDiscountKebabMenu(this, event)">
+                                <i class="ti ti-more-alt"></i>
+                            </button>
+                            <div class="kebab-dropdown">
+                                <div class="kebab-dropdown-item view-profile" onclick="viewVoucherDetails(${index})">
+                                    <i class="ti ti-eye"></i>
+                                    <span class="item-label">Voucher Details</span>
+                                </div>
+                                ${discount.status === 1 ? `
+                                <div class="kebab-dropdown-item delete-action" onclick="revokeDiscount(${discount.id}, '${discount.code}')">
+                                    <i class="ti ti-ban"></i>
+                                    <span class="item-label">Revoke Voucher</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
                     </td>
                 </tr>
             `;
         }).join('');
     }
+
+    // Kebab Menu Logic
+    window.toggleDiscountKebabMenu = function (button, event) {
+        event.stopPropagation();
+
+        // Close all other open menus
+        document.querySelectorAll('.kebab-dropdown.active').forEach(el => {
+            if (el !== button.nextElementSibling) {
+                el.classList.remove('active');
+                // Remove z-index override from row/cell
+                const row = el.closest('tr');
+                if (row) row.classList.remove('row-active-menu');
+                const cell = el.closest('td');
+                if (cell) cell.classList.remove('cell-active-menu');
+            }
+        });
+
+        const dropdown = button.nextElementSibling;
+        dropdown.classList.toggle('active');
+
+        // Toggle z-index override for row/cell to ensure menu shows over other rows
+        const row = button.closest('tr');
+        if (row) row.classList.toggle('row-active-menu');
+        const cell = button.closest('td');
+        if (cell) cell.classList.toggle('cell-active-menu');
+    };
+
+    // Close menus when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.kebab-dropdown.active').forEach(el => {
+            el.classList.remove('active');
+            const row = el.closest('tr');
+            if (row) row.classList.remove('row-active-menu');
+            const cell = el.closest('td');
+            if (cell) cell.classList.remove('cell-active-menu');
+        });
+    });
 
     function renderDiscountsPagination() {
         if (!config.discounts.length || discountsPagination.total === 0) {
