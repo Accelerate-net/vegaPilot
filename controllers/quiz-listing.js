@@ -54,6 +54,13 @@ quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$time
     $scope.pageSize = "10";
     $scope.totalItems = 0;
     $scope.totalPages = 0;
+
+    // Attempts Pagination
+    $scope.attemptsPage = 1;
+    $scope.attemptsPageSize = 5;
+    $scope.totalAttempts = 0;
+    $scope.totalAttemptsPages = 0;
+
     $scope.Math = window.Math;
 
     // Loading State
@@ -273,10 +280,58 @@ quizListingApp.controller('quizListingController', ['$scope', '$cookies', '$time
         });
     };
 
+    // ===== Get Paginated Attempts =====
+    $scope.getPaginatedAttempts = function () {
+        var filtered = $scope.getFilteredAttempts();
+        $scope.totalAttempts = filtered.length;
+        $scope.totalAttemptsPages = Math.ceil($scope.totalAttempts / $scope.attemptsPageSize);
+
+        if ($scope.attemptsPage > $scope.totalAttemptsPages && $scope.totalAttemptsPages > 0) {
+            $scope.attemptsPage = $scope.totalAttemptsPages;
+        }
+
+        var start = ($scope.attemptsPage - 1) * $scope.attemptsPageSize;
+        return filtered.slice(start, start + $scope.attemptsPageSize);
+    };
+
+    // Attempts Pagination Controls
+    $scope.changeAttemptsPage = function (page) {
+        $scope.attemptsPage = page;
+    };
+
+    $scope.nextAttemptsPage = function () {
+        if ($scope.attemptsPage < $scope.totalAttemptsPages) {
+            $scope.attemptsPage++;
+        }
+    };
+
+    $scope.prevAttemptsPage = function () {
+        if ($scope.attemptsPage > 1) {
+            $scope.attemptsPage--;
+        }
+    };
+
+    $scope.getAttemptsPageNumbers = function () {
+        var pages = [];
+        for (var i = 1; i <= $scope.totalAttemptsPages; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.getAttemptsStartIndex = function () {
+        return ($scope.attemptsPage - 1) * $scope.attemptsPageSize;
+    };
+
+    $scope.getAttemptsEndIndex = function () {
+        return Math.min($scope.attemptsPage * $scope.attemptsPageSize, $scope.totalAttempts);
+    };
+
     // ===== Show Attempts Modal =====
     $scope.showAttempts = function (quiz) {
         $scope.selectedQuiz = quiz;
         $scope.attemptSearchQuery = '';
+        $scope.attemptsPage = 1; // Reset to first page
         $scope.showAttemptsModal = true;
     };
 

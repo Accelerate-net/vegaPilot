@@ -21,6 +21,7 @@
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/gridforms/gridforms/gridforms.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/clockface/css/clockface.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/form-fseditor/fseditor.css" rel="stylesheet">
    <link type="text/css" href="assets/plugins/bootstrap-tokenfield/css/bootstrap-tokenfield.css" rel="stylesheet">
@@ -681,7 +682,7 @@
                               </tr>
                            </tbody>
                            <tbody ng-if="!isLoading">
-                              <tr ng-repeat="exam in filteredExams" ng-click="viewExam(exam)">
+                              <tr ng-repeat="exam in filteredExams">
                                  <td>
                                     <div class="exam-id" style="font-weight: 600; color: #006073;">{{exam.displayKey}}
                                     </div>
@@ -727,6 +728,10 @@
                                           <i class="ti ti-more-alt"></i>
                                        </button>
                                        <div class="kebab-dropdown" ng-class="{active: exam.showKebabMenu}">
+                                          <div class="kebab-dropdown-item" ng-click="viewExam(exam)">
+                                             <i class="ti ti-eye"></i>
+                                             <span>View Details</span>
+                                          </div>
                                           <div class="kebab-dropdown-item report-action" ng-click="viewAttempts(exam)">
                                              <i class="ti ti-bar-chart"></i>
                                              <span>View Attempts</span>
@@ -734,11 +739,6 @@
                                           <div class="kebab-dropdown-item edit-action" ng-click="editExam(exam)">
                                              <i class="ti ti-pencil"></i>
                                              <span>Edit Exam</span>
-                                          </div>
-                                          <div class="kebab-dropdown-item duplicate-action"
-                                             ng-click="duplicateExam(exam)">
-                                             <i class="ti ti-files"></i>
-                                             <span>Duplicate</span>
                                           </div>
                                           <div class="kebab-dropdown-item delete-action" ng-click="deleteExam(exam)">
                                              <i class="ti ti-trash"></i>
@@ -805,30 +805,27 @@
    </div>
 
    <!-- View Exam Modal -->
-   <div class="modal fade" id="viewExamModal" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-lg" role="document" style="max-width: 900px;">
-         <div class="modal-content">
-            <div class="modal-header" style="background-color: #006073; color: white;">
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                  style="color: white; opacity: 0.8;">
-                  <span aria-hidden="true">&times;</span>
-               </button>
-               <h4 class="modal-title">
-                  <i class="ti ti-eye"></i> Exam Details
-               </h4>
-            </div>
-            <div class="modal-body" ng-if="selectedExam">
+   <div class="crispr-modal-backdrop" ng-class="{active: showViewExamModal}" ng-click="closeViewModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 900px;">
+         <div class="crispr-modal-header">
+            <h3><i class="ti ti-eye"></i> Exam Details</h3>
+            <button class="crispr-modal-close" ng-click="closeViewModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <div ng-if="selectedExam">
                <!-- Exam Header -->
-               <div class="row" style="margin-bottom: 20px;">
-                  <div class="col-md-8">
-                     <h3 style="margin-top: 0; color: #333;">{{selectedExam.title}}</h3>
+               <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                  <div style="flex: 1;">
+                     <h3 style="margin: 0 0 10px 0; color: #333; font-size: 24px;">{{selectedExam.title}}</h3>
                      <p style="color: #666; margin-bottom: 10px;">{{selectedExam.brief}}</p>
-                     <p style="font-size: 12px; color: #999;">
+                     <p style="font-size: 12px; color: #999; margin: 0;">
                         <strong>Exam ID:</strong> {{selectedExam.displayKey}} |
                         <strong>Created:</strong> {{formatDate(selectedExam.createdOn)}}
                      </p>
                   </div>
-                  <div class="col-md-4 text-right">
+                  <div style="text-align: right;">
                      <span class="status-badge" ng-class="getStatusClass(selectedExam.status)"
                         style="font-size: 14px; padding: 6px 12px;">
                         {{getStatusLabel(selectedExam.status)}}
@@ -837,114 +834,134 @@
                </div>
 
                <!-- Exam Statistics -->
-               <div class="row" style="margin-bottom: 25px;">
-                  <div class="col-md-12">
-                     <div style="background: #f8f9fa; border-radius: 8px; padding: 15px;">
-                        <div class="row">
-                           <div class="col-md-3 text-center">
-                              <div style="font-size: 28px; font-weight: bold; color: #006073;">
-                                 {{selectedExam.duration}}
-                              </div>
-                              <div style="font-size: 12px; color: #666;">Minutes</div>
-                           </div>
-                           <div class="col-md-3 text-center">
-                              <div style="font-size: 28px; font-weight: bold; color: #28a745;">
-                                 {{selectedExam.totalQuestions}}</div>
-                              <div style="font-size: 12px; color: #666;">Questions</div>
-                           </div>
-                           <div class="col-md-3 text-center">
-                              <div style="font-size: 28px; font-weight: bold; color: #007bff;">
-                                 {{selectedExam.numberOfSections}}</div>
-                              <div style="font-size: 12px; color: #666;">Sections</div>
-                           </div>
-                           <div class="col-md-3 text-center">
-                              <div style="font-size: 28px; font-weight: bold; color: #fd7e14;">
-                                 {{selectedExam.challengeQuestionAllowed ? 'Yes' : 'No'}}</div>
-                              <div style="font-size: 12px; color: #666;">Challenges</div>
-                           </div>
+               <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                  <div style="display: flex; gap: 20px; justify-content: space-between;">
+                     <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 28px; font-weight: bold; color: #006073;">
+                           {{selectedExam.duration}}
                         </div>
+                        <div style="font-size: 12px; color: #666;">Minutes</div>
+                     </div>
+                     <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 28px; font-weight: bold; color: #28a745;">
+                           {{selectedExam.totalQuestions}}</div>
+                        <div style="font-size: 12px; color: #666;">Questions</div>
+                     </div>
+                     <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 28px; font-weight: bold; color: #007bff;">
+                           {{selectedExam.numberOfSections}}</div>
+                        <div style="font-size: 12px; color: #666;">Sections</div>
+                     </div>
+                     <div style="text-align: center; flex: 1;">
+                        <div style="font-size: 28px; font-weight: bold; color: #fd7e14;">
+                           {{selectedExam.challengeQuestionAllowed ? 'Yes' : 'No'}}</div>
+                        <div style="font-size: 12px; color: #666;">Challenges</div>
                      </div>
                   </div>
                </div>
 
                <!-- Exam Sections -->
-               <div class="row" style="margin-bottom: 20px;">
-                  <div class="col-md-12">
-                     <h5 style="color: #006073; margin-bottom: 15px;"><i class="ti ti-layout"></i> Exam Sections</h5>
-                     <div ng-repeat="section in selectedExam.sectionsData"
-                        style="background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
-                        <div class="row">
-                           <div class="col-md-8">
-                              <h6 style="margin: 0 0 8px 0; color: #333;">
-                                 <span
-                                    style="background: #006073; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 8px;">{{section.order}}</span>
-                                 {{section.name}}
-                              </h6>
-                              <div style="font-size: 12px; color: #666;">
-                                 <i class="ti ti-clock"></i> {{section.duration}} min &nbsp;|&nbsp;
-                                 <i class="ti ti-help-alt"></i> {{section.totalQuestions}} questions &nbsp;|&nbsp;
-                                 <i class="ti ti-timer"></i> {{section.enableSectionWiseTimer ? 'Section Timer
-                                 Enabled'
-                                 : 'No Section Timer'}}
-                              </div>
+               <div style="margin-bottom: 20px;">
+                  <h5 style="color: #006073; margin-bottom: 15px; font-size: 16px;"><i class="ti ti-layout"></i> Exam
+                     Sections</h5>
+                  <div ng-repeat="section in selectedExam.sectionsData"
+                     style="background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
+                     <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                           <h6 style="margin: 0 0 8px 0; color: #333; font-size: 14px; font-weight: 600;">
+                              <span
+                                 style="background: #006073; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 8px;">{{section.order}}</span>
+                              {{section.name}}
+                           </h6>
+                           <div style="font-size: 12px; color: #666;">
+                              <i class="ti ti-clock"></i> {{section.duration}} min &nbsp;|&nbsp;
+                              <i class="ti ti-help-alt"></i> {{section.totalQuestions}} questions &nbsp;|&nbsp;
+                              <i class="ti ti-timer"></i> {{section.enableSectionWiseTimer ? 'Section Timer Enabled'
+                              : 'No Section Timer'}}
                            </div>
-                           <div class="col-md-4 text-right">
-                              <button class="btn btn-xs btn-default" ng-click="viewSectionQuestions(section)">
-                                 <i class="ti ti-eye"></i> View Questions ({{section.questions.length}})
-                              </button>
-                           </div>
+                        </div>
+                        <div style="text-align: right;">
+                           <button class="btn btn-xs btn-default" ng-click="viewSectionQuestions(section)">
+                              <i class="ti ti-eye"></i> View Questions ({{section.questions.length}})
+                           </button>
                         </div>
                      </div>
                   </div>
                </div>
 
                <!-- Special Terms -->
-               <div class="row" ng-if="selectedExam.specialTerms">
-                  <div class="col-md-12">
-                     <h5 style="color: #006073; margin-bottom: 10px;"><i class="ti ti-info"></i> Special Terms &
-                        Conditions</h5>
-                     <div
-                        style="background: #f8f9fa; border-left: 3px solid #006073; padding: 12px; border-radius: 4px;"
-                        ng-bind-html="selectedExam.specialTerms"></div>
-                  </div>
+               <div style="margin-bottom: 20px;" ng-if="selectedExam.specialTerms">
+                  <h5 style="color: #006073; margin-bottom: 10px; font-size: 16px;"><i class="ti ti-info"></i> Special
+                     Terms &
+                     Conditions</h5>
+                  <div style="background: #f8f9fa; border-left: 3px solid #006073; padding: 12px; border-radius: 4px;"
+                     ng-bind-html="selectedExam.specialTerms"></div>
                </div>
 
                <!-- Exam Settings -->
-               <div class="row" style="margin-top: 20px;">
-                  <div class="col-md-12">
-                     <h5 style="color: #006073; margin-bottom: 10px;"><i class="ti ti-settings"></i> Exam Settings
-                     </h5>
-                     <table class="table table-condensed" style="margin-bottom: 0;">
-                        <tr>
-                           <td style="width: 50%; padding: 8px; border-top: none;"><strong>Switch Sections
-                                 Allowed:</strong></td>
-                           <td style="padding: 8px; border-top: none;">{{selectedExam.switchSectionsAllowed ? 'Yes' :
-                              'No'}}</td>
-                        </tr>
-                        <tr>
-                           <td style="padding: 8px;"><strong>Challenge Questions Allowed:</strong></td>
-                           <td style="padding: 8px;">{{selectedExam.challengeQuestionAllowed ? 'Yes' : 'No'}}</td>
-                        </tr>
-                        <tr>
-                           <td style="padding: 8px;"><strong>Marking Scheme:</strong></td>
-                           <td style="padding: 8px;">{{getMarkingSchemeLabel(selectedExam.markingSchemeOverall)}}
-                           </td>
-                        </tr>
-                     </table>
-                  </div>
+               <div style="margin-top: 20px;">
+                  <h5 style="color: #006073; margin-bottom: 15px; font-size: 16px;"><i class="ti ti-settings"></i> Exam
+                     Settings
+                  </h5>
+                  <table style="width: 100%; border-collapse: collapse;">
+                     <tr style="border-bottom: 1px solid #e9ecef;">
+                        <td style="width: 50%; padding: 10px 0; font-weight: 600;">Switch Sections Allowed:</td>
+                        <td style="padding: 10px 0;">{{selectedExam.switchSectionsAllowed ? 'Yes' : 'No'}}</td>
+                     </tr>
+                     <tr style="border-bottom: 1px solid #e9ecef;">
+                        <td style="padding: 10px 0; font-weight: 600;">Challenge Questions Allowed:</td>
+                        <td style="padding: 10px 0;">{{selectedExam.challengeQuestionAllowed ? 'Yes' : 'No'}}</td>
+                     </tr>
+                     <tr>
+                        <td style="padding: 10px 0; font-weight: 600;">Marking Scheme:</td>
+                        <td style="padding: 10px 0;">{{getMarkingSchemeLabel(selectedExam.markingSchemeOverall)}}</td>
+                     </tr>
+                  </table>
                </div>
             </div>
-            <div class="modal-footer">
-               <button type="button" class="btn btn-primary" ng-click="editExamFromView()">
-                  <i class="ti ti-pencil"></i> Edit Exam
-               </button>
-               <button type="button" class="btn btn-success" ng-click="duplicateExamFromView()">
-                  <i class="ti ti-files"></i> Duplicate
-               </button>
-               <button type="button" class="btn btn-default" data-dismiss="modal">
-                  <i class="ti ti-close"></i> Close
-               </button>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-primary" ng-click="editExamFromView()">
+               <i class="ti ti-pencil"></i> Edit Exam
+            </button>
+            <button class="btn btn-success" ng-click="duplicateExamFromView()">
+               <i class="ti ti-files"></i> Duplicate
+            </button>
+            <button class="btn btn-default" ng-click="closeViewModal()">
+               <i class="ti ti-close"></i> Close
+            </button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Delete Confirmation Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: showDeleteModal}" ng-click="closeDeleteModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
+            <button class="crispr-modal-close" ng-click="closeDeleteModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+               <div
+                  style="width: 50px; height: 50px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #dc2626; flex-shrink: 0;">
+                  <i class="ti ti-alert" style="font-size: 24px;"></i>
+               </div>
+               <div>
+                  <h4 style="margin: 0 0 10px 0; color: #1e293b; font-weight: 600; font-size: 16px;">Delete
+                     "{{examToDelete.title}}"?</h4>
+                  <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.5;">Are you sure you want to
+                     delete the exam "{{examToDelete.title}}"? This action cannot be undone.</p>
+               </div>
             </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" ng-click="confirmDelete()">
+               <i class="ti ti-trash"></i> Delete Exam
+            </button>
          </div>
       </div>
    </div>

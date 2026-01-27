@@ -574,7 +574,16 @@ app.controller('examListingController', function ($scope, $http, $cookies, $time
     // View exam
     $scope.viewExam = function (exam) {
         $scope.selectedExam = angular.copy(exam);
-        $('#viewExamModal').modal('show');
+        $scope.showViewExamModal = true;
+    };
+
+    // Close view modal
+    $scope.closeViewModal = function () {
+        $scope.showViewExamModal = false;
+        // Wait for animation to finish before clearing selection if needed
+        $timeout(function () {
+            $scope.selectedExam = null;
+        }, 300);
     };
 
     // View exam attempts (rank list / report)
@@ -586,13 +595,13 @@ app.controller('examListingController', function ($scope, $http, $cookies, $time
 
     // Edit exam from view modal
     $scope.editExamFromView = function () {
-        $('#viewExamModal').modal('hide');
+        $scope.closeViewModal();
         $scope.editExam($scope.selectedExam);
     };
 
     // Duplicate exam from view modal
     $scope.duplicateExamFromView = function () {
-        $('#viewExamModal').modal('hide');
+        $scope.closeViewModal();
         $scope.duplicateExam($scope.selectedExam);
     };
 
@@ -635,24 +644,39 @@ app.controller('examListingController', function ($scope, $http, $cookies, $time
         });
     }
 
-    // Delete exam
+    // Delete exam (Open Modal)
     $scope.deleteExam = function (exam) {
-        if (confirm('Are you sure you want to delete the exam "' + exam.title + '"? This action cannot be undone.')) {
-            var index = $scope.exams.findIndex(function (e) {
-                return e.id === exam.id;
+        $scope.examToDelete = exam;
+        $scope.showDeleteModal = true;
+    };
+
+    // Close Delete Modal
+    $scope.closeDeleteModal = function () {
+        $scope.showDeleteModal = false;
+        $scope.examToDelete = null;
+    };
+
+    // Confirm Delete
+    $scope.confirmDelete = function () {
+        if (!$scope.examToDelete) return;
+
+        var exam = $scope.examToDelete;
+        var index = $scope.exams.findIndex(function (e) {
+            return e.id === exam.id;
+        });
+
+        if (index !== -1) {
+            $scope.exams.splice(index, 1);
+            $scope.filteredExams = $scope.filteredExams.filter(function (e) {
+                return e.id !== exam.id;
             });
 
-            if (index !== -1) {
-                $scope.exams.splice(index, 1);
-                $scope.filteredExams = $scope.filteredExams.filter(function (e) {
-                    return e.id !== exam.id;
-                });
-
-                $scope.showToaster('Exam "' + exam.title + '" deleted successfully!', 'success');
-                $scope.loadSummaryData();
-                $scope.updatePagination();
-            }
+            $scope.showToaster('Exam "' + exam.title + '" deleted successfully!', 'success');
+            $scope.loadSummaryData();
+            $scope.updatePagination();
         }
+
+        $scope.closeDeleteModal();
     };
 
     // Show full terms

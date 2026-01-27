@@ -47,6 +47,8 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
     };
 
     // Modal control variables
+    $scope.batchModalOpen = false;
+    $scope.enrollCourseModalOpen = false;
     $scope.studentsModalOpen = false;
     $scope.selectedBatchForStudents = null;
     $scope.studentSearchQuery = '';
@@ -62,6 +64,8 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
     $scope.availableStudentsForBatch = [];
     $scope.filteredAvailableStudents = [];
     $scope.selectedStudentsToAdd = {}; // Map of student IDs to be added
+    $scope.freezeModalOpen = false;
+    $scope.batchToFreeze = null;
 
     // Sorting state
     $scope.sortColumn = 'batchName';
@@ -171,7 +175,12 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
             endDate: null,
             active: 1
         };
-        $('#batchModal').modal('show');
+        $scope.batchModalOpen = true;
+    };
+
+    // Close create/edit batch modal
+    $scope.closeBatchModal = function () {
+        $scope.batchModalOpen = false;
     };
 
     // Edit batch
@@ -180,8 +189,13 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
         batch.showKebabMenu = false;
 
         $scope.editingBatch = true;
-        $scope.newBatch = angular.copy(batch);
-        $('#batchModal').modal('show');
+        // Parse dates for input fields
+        var batchCopy = angular.copy(batch);
+        if (batchCopy.startDate) batchCopy.startDate = new Date(batchCopy.startDate);
+        if (batchCopy.endDate) batchCopy.endDate = new Date(batchCopy.endDate);
+
+        $scope.newBatch = batchCopy;
+        $scope.batchModalOpen = true;
     };
 
     // Save batch (create or update)
@@ -217,7 +231,7 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
             }
 
             $scope.isLoading = false;
-            $('#batchModal').modal('hide');
+            $scope.batchModalOpen = false;
         }, 500);
     };
 
@@ -260,7 +274,13 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
         if (!$scope.selectedBatch.enrolledCourses) {
             $scope.selectedBatch.enrolledCourses = [];
         }
-        $('#enrollCourseModal').modal('show');
+        $scope.enrollCourseModalOpen = true;
+    };
+
+    // Close manage courses modal
+    $scope.closeEnrollCourseModal = function () {
+        $scope.enrollCourseModalOpen = false;
+        $scope.selectedBatch = null;
     };
 
     // Add course to batch
@@ -761,31 +781,38 @@ app.controller('batchController', function ($scope, $http, $cookies, $timeout) {
 
     // ===== Freeze/Unfreeze Batch Functionality =====
     $scope.toggleFreezeBatch = function (batch) {
-        var action = batch.isFrozen ? 'unfreeze' : 'freeze';
-        var confirmMsg = batch.isFrozen
-            ? 'Are you sure you want to unfreeze "' + batch.batchName + '"? Students will be able to access the batch again.'
-            : 'Are you sure you want to freeze "' + batch.batchName + '"? Students will not be able to access this batch while it is frozen.';
-
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-
-        $scope.isLoading = true;
-        $scope.loadingMessage = (batch.isFrozen ? 'Unfreezing' : 'Freezing') + ' batch...';
-
         // Close the kebab menu
         batch.showKebabMenu = false;
 
+        $scope.batchToFreeze = batch;
+        $scope.freezeModalOpen = true;
+    };
+
+    $scope.closeFreezeModal = function () {
+        $scope.freezeModalOpen = false;
+        $scope.batchToFreeze = null;
+    };
+
+    $scope.confirmFreeze = function () {
+        var batch = $scope.batchToFreeze;
+        if (!batch) return;
+
+        $scope.isLoading = true;
+        $scope.loadingMessage = (batch.isFrozen ? 'Unfreezing' : 'Freezing') + ' batch...';
+        $scope.freezeModalOpen = false;
+
         $timeout(function () {
+            // Update the batch object in the array
             batch.isFrozen = !batch.isFrozen;
             $scope.isLoading = false;
+            $scope.batchToFreeze = null;
 
             var successMsg = batch.isFrozen
                 ? 'Batch "' + batch.batchName + '" has been frozen successfully.'
                 : 'Batch "' + batch.batchName + '" has been unfrozen successfully.';
 
             $scope.showToaster('info', 'Notification', successMsg);
-        }, 500);
+        }, 800);
     };
 
     // Generate array for skeleton rows

@@ -19,6 +19,7 @@
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
    <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
 
    <style>
       /* Page Header Section */
@@ -821,15 +822,15 @@
    </div>
 
    <!-- View Quiz Modal -->
-   <div class="modal-overlay" ng-if="showViewModal" ng-click="closeViewModal()">
-      <div class="modal-content" ng-click="$event.stopPropagation()">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: showViewModal}" ng-click="closeViewModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-eye"></i> Quiz Details</h3>
-            <button class="modal-close" ng-click="closeViewModal()">
+            <button class="crispr-modal-close" ng-click="closeViewModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
+         <div class="crispr-modal-body">
             <h4 style="margin: 0 0 15px 0; color: #333; font-size: 20px;">{{selectedQuiz.title}}</h4>
 
             <div class="quiz-description" ng-if="selectedQuiz.description">
@@ -887,81 +888,113 @@
                </div>
             </div>
          </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeViewModal()">Close</button>
+         </div>
       </div>
    </div>
 
    <!-- Delete Confirmation Modal -->
-   <div class="modal-overlay" ng-if="showDeleteModal" ng-click="closeDeleteModal()">
-      <div class="modal-content" ng-click="$event.stopPropagation()" style="max-width: 500px;">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: showDeleteModal}" ng-click="closeDeleteModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
             <h3><i class="ti ti-trash"></i> Confirm Delete</h3>
-            <button class="modal-close" ng-click="closeDeleteModal()">
+            <button class="crispr-modal-close" ng-click="closeDeleteModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="confirm-modal-body">
-            <div class="confirm-icon">
-               <i class="ti ti-alert"></i>
+         <div class="crispr-modal-body">
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+               <div
+                  style="width: 50px; height: 50px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #dc2626; flex-shrink: 0;">
+                  <i class="ti ti-alert" style="font-size: 24px;"></i>
+               </div>
+               <div>
+                  <h4 style="margin: 0 0 10px 0; color: #1e293b; font-weight: 600; font-size: 16px;">Delete
+                     "{{quizToDelete.title}}"?</h4>
+                  <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.5;">This action cannot be undone.
+                     All quiz data and attempts will be permanently deleted.</p>
+               </div>
             </div>
-            <div class="confirm-text">
-               <h4>Delete "{{quizToDelete.title}}"?</h4>
-               <p>This action cannot be undone. All quiz data and attempts will be permanently deleted.</p>
-            </div>
-            <div class="confirm-actions">
-               <button ng-click="closeDeleteModal()" style="background: #e9ecef; color: #495057;">
-                  Cancel
-               </button>
-               <button ng-click="confirmDelete()" style="background: #dc3545; color: white;">
-                  Delete Quiz
-               </button>
-            </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" ng-click="confirmDelete()">
+               <i class="ti ti-trash"></i> Delete Quiz
+            </button>
          </div>
       </div>
    </div>
 
    <!-- Publish Confirmation Modal -->
-   <div class="modal-overlay" ng-if="showPublishModal" ng-click="closePublishModal()">
-      <div class="modal-content" ng-click="$event.stopPropagation()" style="max-width: 500px;">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: showPublishModal}" ng-click="closePublishModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%);">
             <h3><i class="ti ti-check"></i> Confirm Publish</h3>
-            <button class="modal-close" ng-click="closePublishModal()">
+            <button class="crispr-modal-close" ng-click="closePublishModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="confirm-modal-body">
-            <div class="confirm-icon" style="background: #28a745;">
-               <i class="ti ti-check"></i>
+         <div class="crispr-modal-body">
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+               <div
+                  style="width: 50px; height: 50px; background: #d4edda; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #155724; flex-shrink: 0;">
+                  <i class="ti ti-check" style="font-size: 24px;"></i>
+               </div>
+               <div>
+                  <h4 style="margin: 0 0 10px 0; color: #1e293b; font-weight: 600; font-size: 16px;">Publish
+                     "{{quizToPublish.title}}"?</h4>
+                  <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.5;">Once published, students will
+                     be able to access this quiz during the scheduled time window.</p>
+               </div>
             </div>
-            <div class="confirm-text">
-               <h4>Publish "{{quizToPublish.title}}"?</h4>
-               <p>Once published, students will be able to access this quiz during the scheduled time window.</p>
-            </div>
-            <div class="confirm-actions">
-               <button ng-click="closePublishModal()" style="background: #e9ecef; color: #495057;">
-                  Cancel
-               </button>
-               <button ng-click="confirmPublish()" style="background: #28a745; color: white;">
-                  Publish Quiz
-               </button>
-            </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closePublishModal()">Cancel</button>
+            <button class="btn btn-success" ng-click="confirmPublish()">
+               <i class="ti ti-check"></i> Publish Quiz
+            </button>
          </div>
       </div>
    </div>
 
    <!-- Attempts Modal -->
-   <div class="modal-overlay" ng-if="showAttemptsModal" ng-click="closeAttemptsModal()">
-      <div class="modal-content" ng-click="$event.stopPropagation()">
-         <div class="modal-header">
+   <div class="crispr-modal-backdrop" ng-class="{active: showAttemptsModal}" ng-click="closeAttemptsModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-user"></i> Quiz Attempts: {{selectedQuiz.title}}</h3>
-            <button class="modal-close" ng-click="closeAttemptsModal()">
+            <button class="crispr-modal-close" ng-click="closeAttemptsModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
-            <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-               <strong>Total Attempts:</strong> {{selectedQuiz.attempts.length}} |
-               <strong>Completed:</strong> {{getCompletedCount(selectedQuiz.attempts)}} |
-               <strong>In Progress:</strong> {{getInProgressCount(selectedQuiz.attempts)}}
+         <div class="crispr-modal-body">
+            <!-- Stats Cards -->
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px;">
+               <div
+                  style="flex: 1; padding: 15px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: center;">
+                  <div
+                     style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 5px;">
+                     Total Attempts</div>
+                  <div style="font-size: 24px; font-weight: 700; color: #006073;">{{selectedQuiz.attempts.length}}</div>
+               </div>
+
+               <div
+                  style="flex: 1; padding: 15px; border-radius: 8px; background: #dcfce7; border: 1px solid #22c55e; text-align: center;">
+                  <div
+                     style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #166534; margin-bottom: 5px;">
+                     Completed</div>
+                  <div style="font-size: 24px; font-weight: 700; color: #166534;">
+                     {{getCompletedCount(selectedQuiz.attempts)}}</div>
+               </div>
+
+               <div
+                  style="flex: 1; padding: 15px; border-radius: 8px; background: #e0f2f1; border: 1px solid #009688; text-align: center;">
+                  <div
+                     style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #00695c; margin-bottom: 5px;">
+                     In Progress</div>
+                  <div style="font-size: 24px; font-weight: 700; color: #00695c;">
+                     {{getInProgressCount(selectedQuiz.attempts)}}</div>
+               </div>
             </div>
 
             <!-- Search Bar for Attempts -->
@@ -982,7 +1015,7 @@
                   </tr>
                </thead>
                <tbody>
-                  <tr ng-repeat="attempt in getFilteredAttempts()">
+                  <tr ng-repeat="attempt in getPaginatedAttempts()">
                      <td><strong>{{attempt.studentName}}</strong></td>
                      <td style="color: #6c757d; font-size: 13px;">{{attempt.studentEmail}}</td>
                      <td>
@@ -1008,11 +1041,34 @@
                </tbody>
             </table>
 
+            <!-- Attempts Pagination Controls -->
+            <div ng-if="totalAttempts > 0" class="pagination-container" style="margin-top: 20px;">
+               <div class="pagination-info">
+                  Showing {{getAttemptsStartIndex() + 1}} to {{getAttemptsEndIndex()}} of {{totalAttempts}} attempts
+               </div>
+               <div class="pagination-controls">
+                  <button class="pagination-btn" ng-click="prevAttemptsPage()" ng-disabled="attemptsPage === 1">
+                     <i class="ti ti-angle-left"></i> Previous
+                  </button>
+                  <button class="pagination-btn" ng-repeat="page in getAttemptsPageNumbers()"
+                     ng-class="{active: page === attemptsPage}" ng-click="changeAttemptsPage(page)">
+                     {{page}}
+                  </button>
+                  <button class="pagination-btn" ng-click="nextAttemptsPage()"
+                     ng-disabled="attemptsPage === totalAttemptsPages">
+                     Next <i class="ti ti-angle-right"></i>
+                  </button>
+               </div>
+            </div>
+
             <div ng-if="getFilteredAttempts().length === 0"
                style="text-align: center; padding: 40px 20px; color: #6c757d;">
                <i class="ti ti-search" style="font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
                <p>No attempts found matching your search.</p>
             </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeAttemptsModal()">Close</button>
          </div>
       </div>
    </div>
