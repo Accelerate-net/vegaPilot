@@ -708,9 +708,255 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
 
     // ===== View Student Profile =====
     $scope.viewStudentProfile = function (student) {
+        // Only view profile if we are not in selection mode or clicking on the name
+        // But for now, let's keep it simple: clicking the row selects it?
+        // No, clicking row navigates, checkbox selects.
         localStorage.setItem('selectedStudent', JSON.stringify(student));
         window.open('candidate-detail.html', '_blank');
-        $scope.closeStudentsModal();
+        // $scope.closeStudentsModal(); // Optional: close modal or keep open?
+    };
+
+    // ===== Mapped Student Selection Logic =====
+    $scope.selectedMappedStudents = {};
+
+    $scope.toggleMappedStudentSelection = function (student) {
+        if ($scope.selectedMappedStudents[student.id]) {
+            delete $scope.selectedMappedStudents[student.id];
+        } else {
+            $scope.selectedMappedStudents[student.id] = student;
+        }
+    };
+
+    $scope.isMappedStudentSelected = function (student) {
+        return !!$scope.selectedMappedStudents[student.id];
+    };
+
+    $scope.getSelectedMappedStudentsCount = function () {
+        return Object.keys($scope.selectedMappedStudents).length;
+    };
+
+    $scope.isAllMappedStudentsSelected = function () {
+        if (!$scope.selectedMentorForStudents || !$scope.selectedMentorForStudents.mentoringStudents) {
+            return false;
+        }
+        // Check only visible students (paginated)
+        // Or all? Batch modal seems to check filtered.
+        // Let's check based on current page or all loaded.
+        // batch.js checks filtered students. Here we load simplisticly, let's check current viewed list.
+        var students = $scope.selectedMentorForStudents.mentoringStudents;
+        if (!students || students.length === 0) return false;
+
+        var allSelected = true;
+        students.forEach(function (student) {
+            if (!$scope.selectedMappedStudents[student.id]) {
+                allSelected = false;
+            }
+        });
+        return allSelected;
+    };
+
+    $scope.selectAllMappedStudents = function ($event) {
+        $event.stopPropagation();
+        var checkbox = $event.target;
+
+        var students = $scope.selectedMentorForStudents.mentoringStudents;
+        // Note: this selects only currently loaded students if we are paginating on server... 
+        // But here we might be paginating on server. 
+        // In viewMentoringStudents we fetch page by page. 
+        // So select all usually implies selecting all on current page or all available locally.
+        // batch.js selects filtered students.
+
+        if (checkbox.checked) {
+            students.forEach(function (student) {
+                $scope.selectedMappedStudents[student.id] = student;
+            });
+        } else {
+            // Deselect only those in current list? or all?
+            students.forEach(function (student) {
+                if ($scope.selectedMappedStudents[student.id]) {
+                    delete $scope.selectedMappedStudents[student.id];
+                }
+            });
+            // Or just clear all? 
+            // $scope.selectedMappedStudents = {}; 
+        }
+    };
+
+    $scope.removeSelectedStudents = function () {
+        var selectedCount = $scope.getSelectedMappedStudentsCount();
+        if (selectedCount === 0) return;
+
+        if (!confirm('Are you sure you want to remove ' + selectedCount + ' student(s) from ' + $scope.selectedMentorForStudents.name + '?')) {
+            return;
+        }
+
+        $scope.showLoading('Removing ' + selectedCount + ' students...');
+
+        // Simulating API call
+        $timeout(function () {
+            var selectedIds = Object.keys($scope.selectedMappedStudents);
+
+            // Remove from local list
+            $scope.selectedMentorForStudents.mentoringStudents = $scope.selectedMentorForStudents.mentoringStudents.filter(function (s) {
+                return selectedIds.indexOf(s.id) === -1;
+            });
+
+            // Update counts locally
+            $scope.studentsTotalCount = Math.max(0, $scope.studentsTotalCount - selectedCount);
+            if ($scope.selectedMentorForStudents.studentCount) {
+                $scope.selectedMentorForStudents.studentCount = Math.max(0, $scope.selectedMentorForStudents.studentCount - selectedCount);
+            }
+
+            $scope.selectedMappedStudents = {};
+            $scope.isLoading = false;
+            $scope.showToaster('success', 'Success', 'Removed ' + selectedCount + ' students successfully.');
+
+            // Reload page if empty
+            if ($scope.selectedMentorForStudents.mentoringStudents.length === 0 && $scope.studentsCurrentPage > 1) {
+                $scope.studentsPreviousPage();
+            } else if ($scope.selectedMentorForStudents.mentoringStudents.length === 0) {
+                // reload to potential get next page items
+                $scope.loadMappedStudents();
+            }
+
+        }, 800);
+    };
+
+    // Update viewMentoringStudents to reset selection
+    var originalViewMentoringStudents = $scope.viewMentoringStudents;
+    $scope.viewMentoringStudents = function (mentor) {
+        $scope.selectedMappedStudents = {};
+        // Call original logic - but wait, I can't easily chain it if I don't reference it.
+        // I'll just rewrite the function start in the original block if I could, but I am appending/replacing here.
+        // Actually, let's just make sure we clear it inside the original function or here. 
+        // I will rely on replacing the whole function if needed, but the Tool only replaces chunks.
+        // I will replace previous viewMentoringStudents function start.
+
+        $scope.selectedMentorForStudents = mentor;
+        $scope.selectedMentorForStudents.mentoringStudents = [];
+        $scope.studentsCurrentPage = 1;
+        $scope.studentsSearch.key = '';
+        $scope.studentsModalOpen = true;
+
+        $scope.loadMappedStudents();
+    };
+
+    // ===== Manage Mentees Modal =====
+    $scope.manageMenteesModalOpen = false;
+    $scope.selectedMentorForManagement = null;
+    $scope.menteeSearchQuery = '';
+    $scope.filteredAvailableMentees = [];
+    $scope.selectedMenteesToAdd = {};
+
+    // Generate pool of available students (using same dummy logic as batch.js if not available)
+    // In a real app this would come from an API.
+    $scope.allAvailableStudents = [];
+    for (var i = 1; i <= 100; i++) {
+        $scope.allAvailableStudents.push({
+            id: 'AVAIL-STU-' + i,
+            name: 'Available Student ' + i,
+            email: 'available' + i + '@example.com',
+            phone: '+91 ' + (9000000000 + i),
+            status: i % 5 === 0 ? 'inactive' : 'active',
+            registrationDate: Date.now() - (Math.random() * 90 * 24 * 60 * 60 * 1000)
+        });
+    }
+
+    $scope.manageMentees = function (mentor) {
+        // Close kebab menu
+        mentor.showKebabMenu = false;
+
+        $scope.selectedMentorForManagement = mentor;
+        $scope.selectedMenteesToAdd = {};
+        $scope.menteeSearchQuery = '';
+
+        // Filter out students already mapped to this mentor (if we had that list locally)
+        // For now, just show all available students as we don't have the full list of mapped students locally loaded
+        // In a real implementation, we might want to fetch the mapped students first or send the exclusion list to API
+
+        $scope.filteredAvailableMentees = angular.copy($scope.allAvailableStudents);
+        $scope.manageMenteesModalOpen = true;
+    };
+
+    $scope.closeManageMenteesModal = function () {
+        $scope.manageMenteesModalOpen = false;
+        $timeout(function () {
+            $scope.selectedMentorForManagement = null;
+            $scope.selectedMenteesToAdd = {};
+            $scope.menteeSearchQuery = '';
+            $scope.filteredAvailableMentees = [];
+        }, 300);
+    };
+
+    $scope.toggleMenteeSelection = function (student) {
+        if ($scope.selectedMenteesToAdd[student.id]) {
+            delete $scope.selectedMenteesToAdd[student.id];
+        } else {
+            $scope.selectedMenteesToAdd[student.id] = student;
+        }
+    };
+
+    $scope.isMenteeSelected = function (student) {
+        return !!$scope.selectedMenteesToAdd[student.id];
+    };
+
+    $scope.getSelectedMenteesCount = function () {
+        return Object.keys($scope.selectedMenteesToAdd).length;
+    };
+
+    $scope.selectAllMentees = function ($event) {
+        $event.stopPropagation();
+        var checkbox = $event.target;
+
+        if (checkbox.checked) {
+            $scope.filteredAvailableMentees.forEach(function (student) {
+                $scope.selectedMenteesToAdd[student.id] = student;
+            });
+        } else {
+            $scope.selectedMenteesToAdd = {};
+        }
+    };
+
+    // Watch for search query changes
+    $scope.$watch('menteeSearchQuery', function (newVal) {
+        if (!$scope.allAvailableStudents || $scope.allAvailableStudents.length === 0) {
+            return;
+        }
+
+        if (!newVal) {
+            $scope.filteredAvailableMentees = angular.copy($scope.allAvailableStudents);
+        } else {
+            var searchLower = newVal.toLowerCase();
+            $scope.filteredAvailableMentees = $scope.allAvailableStudents.filter(function (student) {
+                return student.name.toLowerCase().indexOf(searchLower) !== -1 ||
+                    student.email.toLowerCase().indexOf(searchLower) !== -1 ||
+                    student.phone.indexOf(searchLower) !== -1;
+            });
+        }
+    });
+
+    $scope.confirmAddMentees = function () {
+        var selectedCount = $scope.getSelectedMenteesCount();
+
+        if (selectedCount === 0) {
+            $scope.showToaster('info', 'Notification', 'Please select at least one student to add.');
+            return;
+        }
+
+        $scope.showLoading('Adding ' + selectedCount + ' mentee(s)...');
+
+        // In a real app, call API to map students to mentor
+        $timeout(function () {
+            // Mock success
+            $scope.isLoading = false;
+            // Update the student count locally for immediate feedback if possible
+            if ($scope.selectedMentorForManagement) {
+                $scope.selectedMentorForManagement.studentCount = ($scope.selectedMentorForManagement.studentCount || 0) + selectedCount;
+            }
+
+            $scope.closeManageMenteesModal();
+            $scope.showToaster('success', 'Success', selectedCount + ' student(s) added successfully!');
+        }, 800);
     };
 
     // ===== Initialize on Load =====

@@ -508,6 +508,11 @@
                                                 <i class="ti ti-user"></i>
                                                 <span>View Profile</span>
                                              </div>
+                                             <div class="kebab-dropdown-item manage-students"
+                                                ng-click="manageMentees(mentor)">
+                                                <i class="ti ti-user"></i>
+                                                <span>Manage Mentees</span>
+                                             </div>
                                              <div class="kebab-dropdown-item edit-action"
                                                 ng-click="openEditModal(mentor)">
                                                 <i class="ti ti-pencil"></i>
@@ -565,6 +570,112 @@
                      </div>
                   </div>
                </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Manage Mentees Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: manageMenteesModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 900px; max-height: 90vh;">
+         <div class="crispr-modal-header">
+            <h3>
+               <i class="ti ti-user"></i> Manage Mentees - {{selectedMentorForManagement.name}}
+            </h3>
+            <button class="crispr-modal-close" ng-click="closeManageMenteesModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <!-- Selection Summary -->
+            <div ng-if="getSelectedMenteesCount() > 0"
+               style="background: #e7f5f7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #006073;">
+               <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 600; color: #006073; font-size: 14px;">
+                     <i class="ti ti-check"></i> {{getSelectedMenteesCount()}} student(s) selected
+                  </span>
+               </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="form-group">
+               <div class="input-group">
+                  <span class="input-group-addon" style="background: white;">
+                     <i class="ti ti-search"></i>
+                  </span>
+                  <input type="text" class="form-control" placeholder="Search by name, email, or phone..."
+                     ng-model="menteeSearchQuery">
+                  <span class="input-group-btn" ng-if="menteeSearchQuery">
+                     <button class="btn btn-default" ng-click="menteeSearchQuery = ''">
+                        <i class="ti ti-close"></i>
+                     </button>
+                  </span>
+               </div>
+            </div>
+
+            <div ng-if="filteredAvailableMentees.length > 0">
+               <p style="color: #64748b; margin-bottom: 15px; font-size: 13px;">
+                  Showing <strong>{{filteredAvailableMentees.length}}</strong> available student(s).
+               </p>
+
+               <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                  <table class="students-table" style="margin: 0;">
+                     <thead>
+                        <tr>
+                           <th style="width: 50px; text-align: center; padding: 12px;">
+                              <input type="checkbox" ng-click="selectAllMentees($event)"
+                                 style="cursor: pointer; width: 16px; height: 16px;">
+                           </th>
+                           <th>Student</th>
+                           <th>Email</th>
+                           <th>Phone</th>
+                           <th style="text-align: center;">Status</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr ng-repeat="student in filteredAvailableMentees"
+                           ng-class="{'selected-row': isMenteeSelected(student)}"
+                           ng-click="toggleMenteeSelection(student)" style="cursor: pointer;">
+                           <td style="text-align: center;" ng-click="$event.stopPropagation()">
+                              <input type="checkbox" ng-checked="isMenteeSelected(student)"
+                                 ng-click="toggleMenteeSelection(student)"
+                                 style="cursor: pointer; width: 16px; height: 16px;">
+                           </td>
+                           <td>
+                              <div style="font-weight: 600; color: #334155;">{{student.name}}</div>
+                              <div style="font-size: 11px; color: #94a3b8;">ID: {{student.id}}</div>
+                           </td>
+                           <td style="color: #475569; font-size: 13px;">{{student.email}}</td>
+                           <td style="color: #475569; font-size: 13px;">{{student.phone}}</td>
+                           <td style="text-align: center;">
+                              <span ng-if="student.status === 'active' || student.status === 1"
+                                 class="badge badge-success" style="font-size: 10px;">Active</span>
+                              <span ng-if="student.status !== 'active' && student.status !== 1" class="badge"
+                                 style="background: #e2e8f0; color: #64748b; font-size: 10px;">Inactive</span>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+
+            <div ng-if="filteredAvailableMentees.length === 0" class="crispr-empty-state">
+               <i class="ti ti-user"></i>
+               <h3>No Students Found</h3>
+               <p ng-if="menteeSearchQuery">Try adjusting your search criteria</p>
+               <p ng-if="!menteeSearchQuery">No available students found</p>
+            </div>
+         </div>
+         <div class="crispr-modal-footer" style="justify-content: space-between;">
+            <div style="color: #64748b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+
+            </div>
+            <div style="display: flex; gap: 10px;">
+               <button class="btn btn-default" ng-click="closeManageMenteesModal()">Cancel</button>
+               <button class="btn btn-success" ng-click="confirmAddMentees()"
+                  ng-disabled="getSelectedMenteesCount() === 0">
+                  <i class="ti ti-plus"></i> Add {{getSelectedMenteesCount()}} Mentee(s)
+               </button>
             </div>
          </div>
       </div>
@@ -836,42 +947,63 @@
    </div>
 
    <!-- Mentoring Students Modal -->
-   <div class="modal-backdrop" ng-class="{active: studentsModalOpen}">
-      <div class="modal-dialog" style="max-width: 900px;">
-         <div class="modal-header">
+   <!-- Students Mentored by Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: studentsModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 900px; max-height: 90vh;">
+         <div class="crispr-modal-header">
             <h3><i class="ti ti-user"></i> Students Mentored by {{selectedMentorForStudents.name}}</h3>
-            <button class="modal-close" ng-click="closeStudentsModal()">
+            <button class="crispr-modal-close" ng-click="closeStudentsModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body" style="padding: 24px;">
-            <div ng-if="selectedMentorForStudents">
-               <!-- Search Bar -->
-               <div style="margin-bottom: 20px;">
-                  <div class="search-wrapper">
-                     <i class="ti" ng-class="{'ti-search': !studentsSearch.key, 'ti-close': studentsSearch.key}"
-                        ng-click="studentsSearch.key = ''; filterStudents()"></i>
-                     <input type="text" class="search-input" placeholder="Search students by name or email..."
-                        ng-model="studentsSearch.key" ng-keyup="filterStudents()">
-                  </div>
-               </div>
 
-               <!-- Students Table -->
+         <!-- Search Section -->
+         <div style="padding: 12px 20px; background: white; flex-shrink: 0;">
+            <div class="form-group" style="margin-bottom: 0;">
+               <div class="input-group">
+                  <span class="input-group-addon" style="background: white;">
+                     <i class="ti ti-search"></i>
+                  </span>
+                  <input type="text" class="form-control" placeholder="Search students by name or email..."
+                     ng-model="studentsSearch.key" ng-change="filterStudents()">
+                  <span class="input-group-btn" ng-if="studentsSearch.key">
+                     <button class="btn btn-default" ng-click="studentsSearch.key = ''; filterStudents()">
+                        <i class="ti ti-close"></i>
+                     </button>
+                  </span>
+               </div>
+            </div>
+         </div>
+
+         <div class="crispr-modal-body" style="padding: 0 20px">
+            <div style="max-height: 650px; overflow-y: auto;">
                <div
                   ng-if="selectedMentorForStudents.mentoringStudents && selectedMentorForStudents.mentoringStudents.length > 0">
-                  <table class="students-table" style="margin-bottom: 0;">
-                     <thead>
+                  <table class="students-table" style="margin: 0;">
+                     <thead style="position: sticky; top: 0; z-index: 10;">
                         <tr>
+                           <th style="width: 50px; text-align: center; padding: 12px 15px;">
+                              <input type="checkbox" ng-click="selectAllMappedStudents($event)"
+                                 ng-checked="isAllMappedStudentsSelected()"
+                                 style="cursor: pointer; width: 16px; height: 16px;">
+                           </th>
                            <th>Student Name</th>
                            <th>Email</th>
                            <th>Phone</th>
-                           <th>Enrolled Courses</th>
-                           <th>Status</th>
+                           <th>Courses</th>
+                           <th style="text-align: center;">Status</th>
                         </tr>
                      </thead>
                      <tbody>
                         <tr ng-repeat="student in selectedMentorForStudents.mentoringStudents"
-                           ng-click="viewStudentProfile(student)" style="cursor: pointer;">
+                           ng-class="{'selected-row': isMappedStudentSelected(student)}"
+                           ng-click="toggleMappedStudentSelection(student)"
+                           style="cursor: pointer; border-bottom: 1px solid #f1f5f9;">
+                           <td style="text-align: center; padding: 12px 15px;" ng-click="$event.stopPropagation()">
+                              <input type="checkbox" ng-checked="isMappedStudentSelected(student)"
+                                 ng-click="toggleMappedStudentSelection(student)"
+                                 style="cursor: pointer; width: 16px; height: 16px;">
+                           </td>
                            <td>
                               <div style="font-weight: 500; color: #333;">{{student.name}}</div>
                               <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">ID: {{student.id}}</div>
@@ -884,9 +1016,10 @@
                               </div>
                            </td>
                            <td>
-                              <span class="subject-badge">{{student.enrolledCourses || 0}} course(s)</span>
+                              <span class="subject-badge" style="font-size: 11px;">{{student.enrolledCourses || 0}}
+                                 course(s)</span>
                            </td>
-                           <td>
+                           <td style="text-align: center;">
                               <span class="status-badge"
                                  ng-class="{'status-active': student.status === 'Active', 'status-inactive': student.status !== 'Active'}">
                                  {{student.status || 'Active'}}
@@ -897,7 +1030,7 @@
                   </table>
 
                   <!-- Pagination -->
-                  <div class="pagination-container" style="margin-top: 20px;">
+                  <div class="pagination-container" style="border-top: 1px solid #e9ecef;">
                      <div class="pagination-info">
                         Showing {{getStudentsStartIndex() + 1}} to {{getStudentsEndIndex()}} of {{studentsTotalCount}}
                         students
@@ -922,11 +1055,28 @@
                <!-- Empty State -->
                <div
                   ng-if="!selectedMentorForStudents.mentoringStudents || selectedMentorForStudents.mentoringStudents.length === 0"
-                  class="empty-state">
+                  class="empty-state" style="padding: 40px 20px;">
                   <i class="ti ti-users"></i>
                   <h3>No Students Assigned Yet</h3>
                   <p>This mentor hasn't been assigned any students yet.</p>
                </div>
+            </div>
+         </div>
+
+         <!-- Footer with Remove Action -->
+         <div class="crispr-modal-footer" style="justify-content: space-between; padding: 20px 32px;">
+            <div ng-if="getSelectedMappedStudentsCount() > 0"
+               style="background: #fffbeb; color: #92400e; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+               <i class="ti ti-check"></i> {{getSelectedMappedStudentsCount()}} student(s) selected
+            </div>
+            <div ng-if="getSelectedMappedStudentsCount() === 0"></div>
+
+            <div style="display: flex; gap: 12px;">
+               <button class="btn btn-danger" ng-if="getSelectedMappedStudentsCount() > 0"
+                  ng-click="removeSelectedStudents()" style="padding: 8px 16px;">
+                  <i class="ti ti-trash"></i> Remove Mentee(s)
+               </button>
+               <button class="btn btn-default" ng-click="closeStudentsModal()" style="padding: 8px 16px;">Close</button>
             </div>
          </div>
       </div>
