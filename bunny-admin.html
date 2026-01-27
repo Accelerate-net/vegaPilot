@@ -1044,13 +1044,22 @@
                         <!-- Folder Sidebar -->
                         <div class="folder-sidebar">
                            <div
-                              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                               <h3 style="margin: 0;">Video Folders</h3>
                               <button class="btn btn-sm btn-primary" ng-click="openCreateFolderModal()"
                                  title="Create New Folder">
                                  <i class="ti ti-plus"></i>
                               </button>
                            </div>
+
+                           <!-- Folder Search -->
+                           <div class="search-wrapper" style="margin-bottom: 15px;">
+                              <i class="ti ti-search" style="left: 10px; font-size: 12px;"></i>
+                              <input type="text" class="search-input" placeholder="Search folders..."
+                                 ng-model="folderSearchQuery" ng-change="filterFolders()"
+                                 style="padding: 8px 10px 8px 30px; font-size: 13px; height: 36px;">
+                           </div>
+
                            <ul class="folder-list">
                               <li class="folder-item" ng-class="{active: selectedFolder === null}"
                                  ng-click="selectFolder(null)">
@@ -1058,7 +1067,7 @@
                                  <span>All Videos</span>
                                  <span class="folder-count">{{getTotalVideoCount()}}</span>
                               </li>
-                              <li class="folder-item" ng-repeat="folder in folders"
+                              <li class="folder-item" ng-repeat="folder in paginatedFolders"
                                  ng-class="{active: selectedFolder === folder.id}">
                                  <i class="ti ti-folder" ng-click="selectFolder(folder.id)"></i>
                                  <span class="folder-name" ng-click="selectFolder(folder.id)">{{folder.name}}</span>
@@ -1072,6 +1081,22 @@
                                  </div>
                               </li>
                            </ul>
+
+                           <!-- Folder Pagination -->
+                           <div class="pagination-controls"
+                              style="justify-content: center; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;"
+                              ng-if="filteredFolders.length > folderPageSize">
+                              <button class="pagination-btn" ng-click="prevFolderPage()"
+                                 ng-disabled="currentFolderPage === 1" style="padding: 4px 8px;">
+                                 <i class="ti ti-angle-left"></i>
+                              </button>
+                              <span style="font-size: 12px; color: #666; padding: 0 10px;">{{currentFolderPage}} /
+                                 {{getFolderTotalPages()}}</span>
+                              <button class="pagination-btn" ng-click="nextFolderPage()"
+                                 ng-disabled="currentFolderPage >= getFolderTotalPages()" style="padding: 4px 8px;">
+                                 <i class="ti ti-angle-right"></i>
+                              </button>
+                           </div>
                         </div>
 
                         <!-- Video Grid -->
@@ -1125,7 +1150,8 @@
                            </div>
 
                            <!-- Pagination Controls -->
-                           <div class="pagination-container" ng-if="!isLoading && filteredVideos.length > 0" style="background: none; border: none; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 6px;">
+                           <div class="pagination-container" ng-if="!isLoading && filteredVideos.length > 0"
+                              style="background: none; border: none; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 6px;">
                               <div class="pagination-info">
                                  <span>Showing {{getPageRange()}} of {{filteredVideos.length}} videos</span>
                               </div>

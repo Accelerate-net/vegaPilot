@@ -40,7 +40,6 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     $scope.selectedFolder = null;
     $scope.searchQuery = '';
     $scope.sortBy = 'date';
-    $scope.searchQuery = '';
     $scope.sortBy = 'date';
     $scope.sortOrder = 'desc';
 
@@ -48,6 +47,13 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     $scope.pageSize = 9;
     $scope.currentPage = 1;
     $scope.paginatedVideos = [];
+
+    // ===== Folder Pagination & Search =====
+    $scope.folderSearchQuery = '';
+    $scope.filteredFolders = [];
+    $scope.paginatedFolders = [];
+    $scope.folderPageSize = 10;
+    $scope.currentFolderPage = 1;
 
     // ===== Modal States =====
     $scope.uploadModalOpen = false;
@@ -101,6 +107,7 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
         $http.get(API_BASE + '/folders')
             .then(function (response) {
                 $scope.folders = response.data;
+                $scope.filterFolders(); // Initialize filtered list
                 $scope.hideLoading();
             })
             .catch(function (error) {
@@ -113,8 +120,48 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
                     { id: '4', name: 'Webinars', videoCount: 6 },
                     { id: '5', name: 'Customer Testimonials', videoCount: 10 }
                 ];
+                $scope.filterFolders(); // Initialize filtered list
                 $scope.hideLoading();
             });
+    };
+
+    // ===== Folder Logic =====
+    $scope.filterFolders = function () {
+        var query = $scope.folderSearchQuery.toLowerCase();
+        if (!query) {
+            $scope.filteredFolders = $scope.folders.slice();
+        } else {
+            $scope.filteredFolders = $scope.folders.filter(function (folder) {
+                return folder.name.toLowerCase().indexOf(query) !== -1;
+            });
+        }
+        $scope.currentFolderPage = 1;
+        $scope.updateFolderPagination();
+    };
+
+    $scope.updateFolderPagination = function () {
+        var start = ($scope.currentFolderPage - 1) * $scope.folderPageSize;
+        var end = start + $scope.folderPageSize;
+        $scope.paginatedFolders = $scope.filteredFolders.slice(start, end);
+    };
+
+    $scope.prevFolderPage = function () {
+        if ($scope.currentFolderPage > 1) {
+            $scope.currentFolderPage--;
+            $scope.updateFolderPagination();
+        }
+    };
+
+    $scope.nextFolderPage = function () {
+        var totalPages = Math.ceil($scope.filteredFolders.length / $scope.folderPageSize);
+        if ($scope.currentFolderPage < totalPages) {
+            $scope.currentFolderPage++;
+            $scope.updateFolderPagination();
+        }
+    };
+
+    $scope.getFolderTotalPages = function () {
+        return Math.ceil($scope.filteredFolders.length / $scope.folderPageSize) || 1;
     };
 
     /**
