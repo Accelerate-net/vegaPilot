@@ -19,6 +19,7 @@
    <!-- Themify Icons -->
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <!-- Core CSS with all styles -->
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <!-- Code Prettifier -->
@@ -104,11 +105,7 @@
          padding: 0 !important;
       }
    </style>
-   <style type="text/css">
-      .studentRow:hover {
-         cursor: pointer;
-      }
-   </style>
+
 
    <!-- Controller -->
    <script src="assets/js/jquery.js"></script>
@@ -219,88 +216,634 @@
 
                   <div class="container-fluid" style="padding-top: 1%;">
 
-
-                     <!-- Summary Tiles -->
-                     <div class="row" ng-show="!createView">
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-info quickFilterDisabled quickFilter"
-                              ng-click="quickFilterQuestionBank('ALL')" title="Show All Questions"
-                              ng-class="{'filterAppliedTile':questionBankFilterApplied == 'ALL'}">
-                              <div class="tile-icon"><i class="ti ti-view-list-alt"></i></div>
-                              <div class="tile-heading"><span>Total Questions</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.total}}</span></div>
-                              <div class="tile-footer"><span class="text-grey tileBottom">{{summaryTileData.totalPYQ}}
-                                    PYQs</span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-orange quickFilterDisabled quickFilter"
-                              ng-click="quickFilterQuestionBank('UNVERIFIED')" title="Filter Unverified Questions"
-                              ng-class="{'filterAppliedTile':questionBankFilterApplied == 'UNVERIFIED'}">
-                              <div class="tile-icon"><i class="ti ti-help"></i></div>
-                              <div class="tile-heading"><span>Unverified Questions</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalUnverified}}</span></div>
-                              <div class="tile-footer"><span
-                                    class="text-grey tileBottom">{{summaryTileData.unverifiedPercentage}}% to be
-                                    Verified</span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-danger quickFilterDisabled quickFilter"
-                              ng-click="quickFilterQuestionBank('CHALLENGED')" title="Filter Challenged Questions"
-                              ng-class="{'filterAppliedTile':questionBankFilterApplied == 'CHALLENGED'}">
-                              <div class="tile-icon"><i class="ti ti-alert"></i></div>
-                              <div class="tile-heading"><span>Challenged Questions</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.totalChallenged}}</span></div>
-                              <div class="tile-footer"><span class="text-default tileBottom"><span
-                                       ng-if="summaryTileData.lastChallengeTime > 1">Last Challenged
-                                       {{formatEpoch(summaryTileData.lastChallengeTime)}}</span></span></div>
-                           </div>
-                        </div>
-                        <div class="col-md-3">
-                           <div class="info-tile info-tile-alt tile-indigo quickFilterDisabled">
-                              <div class="tile-icon"><i class="ti ti-bar-chart-alt"></i></div>
-                              <div class="tile-heading"><span>Level Ratio</span></div>
-                              <div class="tile-body"><span>{{summaryTileData.ratio}}</span></div>
-                              <div class="tile-footer"><span class="text-default tileBottom">Easy : Medium : Hard</span>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-
-
-
                      <!-- All Questions Table -->
                      <div data-widget-group="all-question-table" ng-show="!createView">
                         <div class="row" ng-show="listData.length > 0">
                            <div class="col-md-12">
-                              <div class="panel panel-default">
-                                 <div class="panel-heading">
-                                    <h2>All Questions
-                                       <span>
-                                          <span class="button-icon titleIconx" ng-click="addNewQuestion()"><i
-                                                class="ti ti-plus"></i></span>
-                                          <span class="button-icon titleIconx"
-                                             ng-class="{'filterAppliedBank':questionBankFilterApplied != ''}"
-                                             ng-click="removeFilterOnQuestionBank()"><i class="ti ti-filter"></i></span>
-                                       </span>
-                                    </h2>
-                                    <div class="panel-ctrls">
-                                       <span style="position: absolute; right: 12px; top: 14px;">
-                                          <div class="btn-group">
-                                             <button ng-click="goLeft()" type="button" class="btn btn-default"><i
-                                                   style="margin: 0;" class="ti ti-angle-left"></i></button>
-                                             <button type="button" class="btn btn-default"> Page {{currentPage}} of
-                                                {{totalPages}} </button>
-                                             <button ng-click="goRight()" type="button" class="btn btn-default"><i
-                                                   style="margin: 0;" class="ti ti-angle-right"></i></button>
-                                          </div>
-                                       </span>
+                              <div class="students-container">
+                                 <!-- Filter Bar -->
+                                 <div class="filter-bar">
+                                    <div class="search-wrapper">
+                                       <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                                          ng-click="searchQuery = ''; searchQuestions()"></i>
+                                       <input type="text" class="search-input" placeholder="Search question..."
+                                          ng-model="searchQuery" ng-change="searchQuestions()">
+                                    </div>
+                                    <div class="filter-dropdown dropdown" style="margin-right: 10px;">
+                                       <button class="filter-dropdown-btn dropdown-toggle" type="button"
+                                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                          {{filterSubject ? filterSubject : 'All Subjects'}}
+                                          <i class="ti ti-angle-down"></i>
+                                       </button>
+                                       <ul class="dropdown-menu dropdown-menu-right">
+                                          <li ng-class="{'active': !filterSubject}"><a href="#"
+                                                ng-click="filterSubject = ''; filterChapter = ''; filterQuestions(); $event.preventDefault()">All
+                                                Subjects</a></li>
+                                          <li ng-class="{'active': filterSubject === 'Biology'}"><a href="#"
+                                                ng-click="filterSubject = 'Biology'; filterChapter = ''; filterQuestions(); $event.preventDefault()">Biology</a>
+                                          </li>
+                                          <li ng-class="{'active': filterSubject === 'Chemistry'}"><a href="#"
+                                                ng-click="filterSubject = 'Chemistry'; filterChapter = ''; filterQuestions(); $event.preventDefault()">Chemistry</a>
+                                          </li>
+                                          <li ng-class="{'active': filterSubject === 'Mathematics'}"><a href="#"
+                                                ng-click="filterSubject = 'Mathematics'; filterChapter = ''; filterQuestions(); $event.preventDefault()">Mathematics</a>
+                                          </li>
+                                          <li ng-class="{'active': filterSubject === 'Physics'}"><a href="#"
+                                                ng-click="filterSubject = 'Physics'; filterChapter = ''; filterQuestions(); $event.preventDefault()">Physics</a>
+                                          </li>
+                                       </ul>
+                                    </div>
+
+                                    <div class="filter-dropdown dropdown" style="margin-right: 10px;"
+                                       ng-if="filterSubject">
+                                       <button class="filter-dropdown-btn dropdown-toggle" type="button"
+                                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                          ng-disabled="!filterSubject"
+                                          style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                          {{filterChapter ? 'Chapter ' + filterChapter.substr(2) : 'All Chapters'}}
+                                          <i class="ti ti-angle-down"></i>
+                                       </button>
+                                       <ul class="dropdown-menu dropdown-menu-right"
+                                          style="max-height: 400px; overflow-y: auto;">
+                                          <li ng-class="{'active': !filterChapter}"><a href="#"
+                                                ng-click="filterChapter = ''; filterQuestions(); $event.preventDefault()">All
+                                                Chapters</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Physics'">Physics - Plus
+                                             One</li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P01'}"><a href="#"
+                                                ng-click="filterChapter = '1P01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Physical World</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P02'}"><a href="#"
+                                                ng-click="filterChapter = '1P02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Units and Measurements</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P03'}"><a href="#"
+                                                ng-click="filterChapter = '1P03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Motion in a Straight Line</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P04'}"><a href="#"
+                                                ng-click="filterChapter = '1P04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Motion in a Plane</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P05'}"><a href="#"
+                                                ng-click="filterChapter = '1P05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Laws of Motion</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P06'}"><a href="#"
+                                                ng-click="filterChapter = '1P06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Work, Energy and Power</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P07'}"><a href="#"
+                                                ng-click="filterChapter = '1P07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Rotational Motion</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P08'}"><a href="#"
+                                                ng-click="filterChapter = '1P08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Gravitation</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P09'}"><a href="#"
+                                                ng-click="filterChapter = '1P09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Mech. Properties Solids</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P10'}"><a href="#"
+                                                ng-click="filterChapter = '1P10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Mech. Properties Fluids</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P11'}"><a href="#"
+                                                ng-click="filterChapter = '1P11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Thermal Properties</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P12'}"><a href="#"
+                                                ng-click="filterChapter = '1P12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Thermodynamics</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P13'}"><a href="#"
+                                                ng-click="filterChapter = '1P13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Kinetic Theory</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P14'}"><a href="#"
+                                                ng-click="filterChapter = '1P14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Oscillations</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '1P15'}"><a href="#"
+                                                ng-click="filterChapter = '1P15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Waves</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Physics'">Physics - Plus
+                                             Two</li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P01'}"><a href="#"
+                                                ng-click="filterChapter = '2P01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Electric Charges & Fields</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P02'}"><a href="#"
+                                                ng-click="filterChapter = '2P02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Electrostatic Potential</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P03'}"><a href="#"
+                                                ng-click="filterChapter = '2P03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Current Electricity</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P04'}"><a href="#"
+                                                ng-click="filterChapter = '2P04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Moving Charges & Mag.</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P05'}"><a href="#"
+                                                ng-click="filterChapter = '2P05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Magnetism and Matter</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P06'}"><a href="#"
+                                                ng-click="filterChapter = '2P06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Electromagnetic Induction</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P07'}"><a href="#"
+                                                ng-click="filterChapter = '2P07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Alternating Current</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P08'}"><a href="#"
+                                                ng-click="filterChapter = '2P08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Electromagnetic Waves</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P09'}"><a href="#"
+                                                ng-click="filterChapter = '2P09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Ray Optics</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P10'}"><a href="#"
+                                                ng-click="filterChapter = '2P10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Wave Optics</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P11'}"><a href="#"
+                                                ng-click="filterChapter = '2P11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Dual Nature of Radiation</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P12'}"><a href="#"
+                                                ng-click="filterChapter = '2P12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Atoms</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P13'}"><a href="#"
+                                                ng-click="filterChapter = '2P13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Nuclei</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P14'}"><a href="#"
+                                                ng-click="filterChapter = '2P14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Semiconductor</a></li>
+                                          <li ng-if="filterSubject == 'Physics'"
+                                             ng-class="{'active': filterChapter === '2P15'}"><a href="#"
+                                                ng-click="filterChapter = '2P15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Communication Systems</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Chemistry'">Chemistry -
+                                             Plus One</li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C01'}"><a href="#"
+                                                ng-click="filterChapter = '1C01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Basic Concepts</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C02'}"><a href="#"
+                                                ng-click="filterChapter = '1C02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Structure of Atom</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C03'}"><a href="#"
+                                                ng-click="filterChapter = '1C03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Classification of Elements</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C04'}"><a href="#"
+                                                ng-click="filterChapter = '1C04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Chemical Bonding</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C05'}"><a href="#"
+                                                ng-click="filterChapter = '1C05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: States of Matter</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C06'}"><a href="#"
+                                                ng-click="filterChapter = '1C06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Thermodynamics</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C07'}"><a href="#"
+                                                ng-click="filterChapter = '1C07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Equilibrium</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C08'}"><a href="#"
+                                                ng-click="filterChapter = '1C08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Redox Reactions</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C09'}"><a href="#"
+                                                ng-click="filterChapter = '1C09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Hydrogen</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C10'}"><a href="#"
+                                                ng-click="filterChapter = '1C10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: s-Block</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C11'}"><a href="#"
+                                                ng-click="filterChapter = '1C11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: p-Block</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C12'}"><a href="#"
+                                                ng-click="filterChapter = '1C12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Organic Chem Basics</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C13'}"><a href="#"
+                                                ng-click="filterChapter = '1C13'; filterQuestions(); $event.event.preventDefault()">Ch
+                                                13: Hydrocarbons</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '1C14'}"><a href="#"
+                                                ng-click="filterChapter = '1C14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Environmental Chem</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Chemistry'">Chemistry -
+                                             Plus Two</li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C01'}"><a href="#"
+                                                ng-click="filterChapter = '2C01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Solid State</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C02'}"><a href="#"
+                                                ng-click="filterChapter = '2C02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Solutions</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C03'}"><a href="#"
+                                                ng-click="filterChapter = '2C03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Electrochemistry</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C04'}"><a href="#"
+                                                ng-click="filterChapter = '2C04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Chemical Kinetics</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C05'}"><a href="#"
+                                                ng-click="filterChapter = '2C05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Surface Chemistry</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C06'}"><a href="#"
+                                                ng-click="filterChapter = '2C06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Isolation of Elements</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C07'}"><a href="#"
+                                                ng-click="filterChapter = '2C07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: p-Block Elements</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C08'}"><a href="#"
+                                                ng-click="filterChapter = '2C08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: d- and f- Block</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C09'}"><a href="#"
+                                                ng-click="filterChapter = '2C09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Coordination Compounds</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C10'}"><a href="#"
+                                                ng-click="filterChapter = '2C10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Haloalkanes</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C11'}"><a href="#"
+                                                ng-click="filterChapter = '2C11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Alcohols, Phenols</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C12'}"><a href="#"
+                                                ng-click="filterChapter = '2C12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Aldehydes, Ketones</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C13'}"><a href="#"
+                                                ng-click="filterChapter = '2C13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Amines</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C14'}"><a href="#"
+                                                ng-click="filterChapter = '2C14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Biomolecules</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C15'}"><a href="#"
+                                                ng-click="filterChapter = '2C15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Polymers</a></li>
+                                          <li ng-if="filterSubject == 'Chemistry'"
+                                             ng-class="{'active': filterChapter === '2C16'}"><a href="#"
+                                                ng-click="filterChapter = '2C16'; filterQuestions(); $event.preventDefault()">Ch
+                                                16: Chemistry Everyday</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Mathematics'">Mathematics
+                                             - Plus One</li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M01'}"><a href="#"
+                                                ng-click="filterChapter = '1M01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Sets</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M02'}"><a href="#"
+                                                ng-click="filterChapter = '1M02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Relations & Functions</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M03'}"><a href="#"
+                                                ng-click="filterChapter = '1M03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Trigonometric Functions</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M04'}"><a href="#"
+                                                ng-click="filterChapter = '1M04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Mathematical Induction</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M05'}"><a href="#"
+                                                ng-click="filterChapter = '1M05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Complex Numbers</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M06'}"><a href="#"
+                                                ng-click="filterChapter = '1M06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Linear Inequalities</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M07'}"><a href="#"
+                                                ng-click="filterChapter = '1M07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Permutations & Comb.</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M08'}"><a href="#"
+                                                ng-click="filterChapter = '1M08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Binomial Theorem</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M09'}"><a href="#"
+                                                ng-click="filterChapter = '1M09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Sequence and Series</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M10'}"><a href="#"
+                                                ng-click="filterChapter = '1M10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Straight Lines</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M11'}"><a href="#"
+                                                ng-click="filterChapter = '1M11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Conic Sections</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M12'}"><a href="#"
+                                                ng-click="filterChapter = '1M12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: 3D Geometry</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M13'}"><a href="#"
+                                                ng-click="filterChapter = '1M13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Limits and Derivatives</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M14'}"><a href="#"
+                                                ng-click="filterChapter = '1M14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Mathematical Reasoning</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M15'}"><a href="#"
+                                                ng-click="filterChapter = '1M15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Statistics</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '1M16'}"><a href="#"
+                                                ng-click="filterChapter = '1M16'; filterQuestions(); $event.preventDefault()">Ch
+                                                16: Probability</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Mathematics'">Mathematics
+                                             - Plus Two</li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M01'}"><a href="#"
+                                                ng-click="filterChapter = '2M01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Relations & Functions</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M02'}"><a href="#"
+                                                ng-click="filterChapter = '2M02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Inverse Trig. Functions</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M03'}"><a href="#"
+                                                ng-click="filterChapter = '2M03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Matrices</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M04'}"><a href="#"
+                                                ng-click="filterChapter = '2M04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Determinants</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M05'}"><a href="#"
+                                                ng-click="filterChapter = '2M05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Continuity</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M06'}"><a href="#"
+                                                ng-click="filterChapter = '2M06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: App. of Derivatives</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M07'}"><a href="#"
+                                                ng-click="filterChapter = '2M07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Integrals</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M08'}"><a href="#"
+                                                ng-click="filterChapter = '2M08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: App. of Integrals</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M09'}"><a href="#"
+                                                ng-click="filterChapter = '2M09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Differential Eq.</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M10'}"><a href="#"
+                                                ng-click="filterChapter = '2M10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Vector Algebra</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M11'}"><a href="#"
+                                                ng-click="filterChapter = '2M11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: 3D Geometry</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M12'}"><a href="#"
+                                                ng-click="filterChapter = '2M12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Linear Programming</a></li>
+                                          <li ng-if="filterSubject == 'Mathematics'"
+                                             ng-class="{'active': filterChapter === '2M13'}"><a href="#"
+                                                ng-click="filterChapter = '2M13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Probability</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Biology'">Biology - Plus
+                                             One</li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B01'}"><a href="#"
+                                                ng-click="filterChapter = '1B01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Diversity Living World</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B02'}"><a href="#"
+                                                ng-click="filterChapter = '1B02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Biological Classification</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B03'}"><a href="#"
+                                                ng-click="filterChapter = '1B03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Plant Kingdom</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B04'}"><a href="#"
+                                                ng-click="filterChapter = '1B04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Animal Kingdom</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B05'}"><a href="#"
+                                                ng-click="filterChapter = '1B05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Morphology Plants</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B06'}"><a href="#"
+                                                ng-click="filterChapter = '1B06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Anatomy Plants</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B07'}"><a href="#"
+                                                ng-click="filterChapter = '1B07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Structural Org. Animals</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B08'}"><a href="#"
+                                                ng-click="filterChapter = '1B08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Cell Unit of Life</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B09'}"><a href="#"
+                                                ng-click="filterChapter = '1B09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Biomolecules</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B10'}"><a href="#"
+                                                ng-click="filterChapter = '1B10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Cell Cycle</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B11'}"><a href="#"
+                                                ng-click="filterChapter = '1B11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Transport in Plants</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B12'}"><a href="#"
+                                                ng-click="filterChapter = '1B12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Mineral Nutrition</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B13'}"><a href="#"
+                                                ng-click="filterChapter = '1B13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Photosynthesis</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B14'}"><a href="#"
+                                                ng-click="filterChapter = '1B14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Respiration</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B15'}"><a href="#"
+                                                ng-click="filterChapter = '1B15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Plant Growth</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B16'}"><a href="#"
+                                                ng-click="filterChapter = '1B16'; filterQuestions(); $event.preventDefault()">Ch
+                                                16: Digestion</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B17'}"><a href="#"
+                                                ng-click="filterChapter = '1B17'; filterQuestions(); $event.preventDefault()">Ch
+                                                17: Breathing</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B18'}"><a href="#"
+                                                ng-click="filterChapter = '1B18'; filterQuestions(); $event.preventDefault()">Ch
+                                                18: Body Fluids</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B19'}"><a href="#"
+                                                ng-click="filterChapter = '1B19'; filterQuestions(); $event.preventDefault()">Ch
+                                                19: Excretory Products</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B20'}"><a href="#"
+                                                ng-click="filterChapter = '1B20'; filterQuestions(); $event.preventDefault()">Ch
+                                                20: Locomotion</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B21'}"><a href="#"
+                                                ng-click="filterChapter = '1B21'; filterQuestions(); $event.preventDefault()">Ch
+                                                21: Neural Control</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '1B22'}"><a href="#"
+                                                ng-click="filterChapter = '1B22'; filterQuestions(); $event.preventDefault()">Ch
+                                                22: Chemical Coordination</a></li>
+
+                                          <li class="dropdown-header" ng-if="filterSubject == 'Biology'">Biology - Plus
+                                             Two</li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B01'}"><a href="#"
+                                                ng-click="filterChapter = '2B01'; filterQuestions(); $event.preventDefault()">Ch
+                                                1: Reproduction Organisms</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B02'}"><a href="#"
+                                                ng-click="filterChapter = '2B02'; filterQuestions(); $event.preventDefault()">Ch
+                                                2: Sexual Reproduction</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B03'}"><a href="#"
+                                                ng-click="filterChapter = '2B03'; filterQuestions(); $event.preventDefault()">Ch
+                                                3: Human Reproduction</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B04'}"><a href="#"
+                                                ng-click="filterChapter = '2B04'; filterQuestions(); $event.preventDefault()">Ch
+                                                4: Reproductive Health</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B05'}"><a href="#"
+                                                ng-click="filterChapter = '2B05'; filterQuestions(); $event.preventDefault()">Ch
+                                                5: Inheritance & Var.</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B06'}"><a href="#"
+                                                ng-click="filterChapter = '2B06'; filterQuestions(); $event.preventDefault()">Ch
+                                                6: Molecular Basis</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B07'}"><a href="#"
+                                                ng-click="filterChapter = '2B07'; filterQuestions(); $event.preventDefault()">Ch
+                                                7: Evolution</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B08'}"><a href="#"
+                                                ng-click="filterChapter = '2B08'; filterQuestions(); $event.preventDefault()">Ch
+                                                8: Human Health</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B09'}"><a href="#"
+                                                ng-click="filterChapter = '2B09'; filterQuestions(); $event.preventDefault()">Ch
+                                                9: Food Production</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B10'}"><a href="#"
+                                                ng-click="filterChapter = '2B10'; filterQuestions(); $event.preventDefault()">Ch
+                                                10: Microbes</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B11'}"><a href="#"
+                                                ng-click="filterChapter = '2B11'; filterQuestions(); $event.preventDefault()">Ch
+                                                11: Biotech Principles</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B12'}"><a href="#"
+                                                ng-click="filterChapter = '2B12'; filterQuestions(); $event.preventDefault()">Ch
+                                                12: Biotech Applications</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B13'}"><a href="#"
+                                                ng-click="filterChapter = '2B13'; filterQuestions(); $event.preventDefault()">Ch
+                                                13: Organisms & Pop.</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B14'}"><a href="#"
+                                                ng-click="filterChapter = '2B14'; filterQuestions(); $event.preventDefault()">Ch
+                                                14: Ecosystem</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B15'}"><a href="#"
+                                                ng-click="filterChapter = '2B15'; filterQuestions(); $event.preventDefault()">Ch
+                                                15: Biodiversity</a></li>
+                                          <li ng-if="filterSubject == 'Biology'"
+                                             ng-class="{'active': filterChapter === '2B16'}"><a href="#"
+                                                ng-click="filterChapter = '2B16'; filterQuestions(); $event.preventDefault()">Ch
+                                                16: Env. Issues</a></li>
+                                       </ul>
+                                    </div>
+
+                                    <div class="filter-dropdown dropdown">
+                                       <button class="filter-dropdown-btn dropdown-toggle" type="button"
+                                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                          {{questionBankFilterApplied === 'UNVERIFIED' ? 'Unverified Only' :
+                                          (questionBankFilterApplied === 'VERIFIED' ? 'Verified Only' :
+                                          (questionBankFilterApplied === 'CHALLENGED' ? 'Challenged Questions' :
+                                          (questionBankFilterApplied === 'PYQ' ? 'PYQs Only' :
+                                          (questionBankFilterApplied === 'NOSOLUTION' ? 'Questions without Solution'
+                                          : 'All Questions'))))}}
+                                          <i class="ti ti-angle-down"></i>
+                                       </button>
+                                       <ul class="dropdown-menu dropdown-menu-right">
+                                          <li ng-class="{'active': !questionBankFilterApplied}"><a href="#"
+                                                ng-click="removeFilterOnQuestionBank(); $event.preventDefault()">All
+                                                Questions</a></li>
+                                          <li ng-class="{'active': questionBankFilterApplied === 'UNVERIFIED'}"><a
+                                                href="#"
+                                                ng-click="quickFilterQuestionBank('UNVERIFIED'); $event.preventDefault()">Unverified
+                                                Only</a></li>
+                                          <li ng-class="{'active': questionBankFilterApplied === 'VERIFIED'}"><a
+                                                href="#"
+                                                ng-click="quickFilterQuestionBank('VERIFIED'); $event.preventDefault()">Verified
+                                                Only</a></li>
+                                          <li ng-class="{'active': questionBankFilterApplied === 'NOSOLUTION'}"><a
+                                                href="#"
+                                                ng-click="quickFilterQuestionBank('NOSOLUTION'); $event.preventDefault()">Questions
+                                                without Solution</a></li>
+                                          <li ng-class="{'active': questionBankFilterApplied === 'CHALLENGED'}"><a
+                                                href="#"
+                                                ng-click="quickFilterQuestionBank('CHALLENGED'); $event.preventDefault()">Challenged
+                                                Questions</a></li>
+                                          <li ng-class="{'active': questionBankFilterApplied === 'PYQ'}"><a href="#"
+                                                ng-click="quickFilterQuestionBank('PYQ'); $event.preventDefault()">PYQs
+                                                Only</a></li>
+                                       </ul>
                                     </div>
                                  </div>
-                                 <div class="panel-body no-padding">
-                                    <table id="example1" class="table table-striped table-bordered" cellspacing="0"
-                                       width="100%">
+
+                                 <!-- Table Container -->
+                                 <div class="students-table-container">
+                                    <table class="students-table">
                                        <thead>
                                           <tr>
                                              <th>Question ID</th>
@@ -308,57 +851,141 @@
                                              <th>Subject</th>
                                              <th>Chapter</th>
                                              <th>Level</th>
-                                             <th>Details</th>
+                                             <th></th>
                                              <th>Actions</th>
                                           </tr>
                                        </thead>
-                                       <tbody>
-                                          <tr class="odd gradeX" ng-repeat="questionData in listData track by $index"
+                                       <!-- Skeleton Body -->
+                                       <tbody ng-if="isLoading">
+                                          <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                             <td>
+                                                <div class="skeleton-col text-medium" style="margin-bottom: 5px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                                <div class="skeleton-col text-short" style="height: 12px; width: 60px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-medium">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-short">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-medium">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-short" style="width: 80px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-short" style="width: 60px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="skeleton-col text-short" style="width: 80px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </td>
+                                          </tr>
+                                       </tbody>
+                                       <!-- Data Body -->
+                                       <tbody ng-if="!isLoading">
+                                          <tr ng-repeat="questionData in listData track by $index"
                                              ng-click="openQuestion(questionData)">
-                                             <td>{{questionData.id}}
-                                                <i ng-if="questionData.verified"
-                                                   class="fa fa-check-circle verifiedQuestion" title="Verified"></i>
-                                                <i ng-if="questionData.hasSolution" class="fa fa-book verifiedQuestion"
-                                                   title="Solution Added"></i>
-                                                <i ng-if="questionData.challenged"
-                                                   class="fa fa-warning challengedQuestion" title="Challenged"></i>
+                                             <td>
+                                                <div class="profile-name">{{questionData.id}}</div>
+                                                <div style="margin-top: 5px;">
+                                                   <i ng-if="questionData.verified" class="fa fa-check-circle"
+                                                      style="color: #28a745; margin-right: 3px;" title="Verified"></i>
+                                                   <i ng-if="questionData.hasSolution" class="fa fa-book"
+                                                      style="color: #006073; margin-right: 3px;"
+                                                      title="Solution Added"></i>
+                                                   <i ng-if="questionData.challenged" class="fa fa-warning"
+                                                      style="color: #dc3545; margin-right: 3px;" title="Challenged"></i>
+                                                   <span class="copyQuestion" title="Copy"
+                                                      ng-click="copyToClipboard(questionData.id, $event)"
+                                                      style="color: #adb5bd; cursor: pointer;">
+                                                      <i class="fa fa-clone" aria-hidden="true"></i>
+                                                   </span>
+                                                </div>
+                                             </td>
+                                             <td>
+                                                <div class="profile-subtext" style="font-size: 13px;">
+                                                   {{questionData.displayKey}}</div>
                                                 <span class="copyQuestion" title="Copy"
-                                                   ng-click="copyToClipboard(questionData.id, $event)">
+                                                   ng-click="copyToClipboard(questionData.displayKey, $event)"
+                                                   style="color: #adb5bd; cursor: pointer; font-size: 11px;">
                                                    <i class="fa fa-clone" aria-hidden="true"></i>
-                                                   <i class="copiedMessage"
-                                                      style="display: none; position: absolute; font-size: 11px">Copied</i>
                                                 </span>
                                              </td>
-                                             <td>{{questionData.displayKey}}
-                                                <span class="copyQuestion" title="Copy"
-                                                   ng-click="copyToClipboard(questionData.displayKey, $event)">
-                                                   <i class="fa fa-clone" aria-hidden="true"></i>
-                                                   <i class="copiedMessage"
-                                                      style="display: none; position: absolute; font-size: 11px">Copied</i>
+                                             <td><span class="crispr-badge">{{questionData.subject}}</span></td>
+                                             <td class="profile-subtext">{{questionData.chapter}}</td>
+                                             <td>
+                                                <span class="crispr-status"
+                                                   ng-class="{'active': questionData.level === 'Easy', 'pending': questionData.level === 'Medium', 'inactive': questionData.level === 'Hard'}">
+                                                   {{questionData.level}}
                                                 </span>
                                              </td>
-                                             <td>{{questionData.subject}}</td>
-                                             <td>{{questionData.chapter}}</td>
                                              <td>
                                                 <span class="label"
-                                                   ng-class="getPYQLabelClass(questionData.level)">{{questionData.level}}</span>
+                                                   style="background: #e7f5f7; color: #006073; border-radius: 4px; padding: 4px 8px; font-weight: 500; font-size: 11px;">{{getPYQLabel(questionData)}}</span>
                                              </td>
                                              <td>
-                                                <span class="label label-primary">{{getPYQLabel(questionData)}}</span>
-                                             </td>
-                                             <td>
-                                                <button class="btn btn-inverse-alt btn-sm"
-                                                   ng-click="viewQuestionPhoto(questionData.url)"><i
-                                                      class="ti ti-eye"></i> View</button>
-                                                <button class="btn btn-inverse-alt btn-sm"
-                                                   ng-click="modifyQuestion(questionData.id)"><i
-                                                      class="ti ti-pencil"></i> Modify</button>
+                                                <div style="display: flex; gap: 5px;">
+                                                   <button class="btn btn-default btn-sm"
+                                                      ng-click="viewQuestionPhoto(questionData.url); $event.stopPropagation()"
+                                                      title="View"
+                                                      style="border: 1px solid #dee2e6; color: #495057; background: white;">
+                                                      <i class="ti ti-eye"></i>
+                                                   </button>
+                                                   <button class="btn btn-default btn-sm"
+                                                      ng-click="modifyQuestion(questionData.id); $event.stopPropagation()"
+                                                      title="Modify"
+                                                      style="border: 1px solid #dee2e6; color: #495057; background: white;">
+                                                      <i class="ti ti-pencil"></i>
+                                                   </button>
+                                                </div>
                                              </td>
                                           </tr>
                                        </tbody>
                                     </table>
+
+                                    <!-- Pagination -->
+                                    <div class="pagination-container">
+                                       <div class="pagination-info">
+                                          <span>Showing {{getStartIndex()}} to {{getEndIndex()}} of
+                                             {{summaryTileData.total}} questions</span>
+                                          <select class="page-size-select" ng-model="maxResultsShown"
+                                             ng-change="changePageSize()"
+                                             ng-options="size as 'Show ' + size for size in [10, 20, 50, 200]">
+                                          </select>
+                                       </div>
+                                       <div class="pagination-controls">
+                                          <button class="pagination-btn" ng-click="goLeft()"
+                                             ng-disabled="currentPage === 1">
+                                             <i class="ti ti-angle-left"></i> Previous
+                                          </button>
+                                          <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                             ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                             {{page}}
+                                          </button>
+                                          <button class="pagination-btn" ng-click="goRight()"
+                                             ng-disabled="currentPage === totalPages">
+                                             Next <i class="ti ti-angle-right"></i>
+                                          </button>
+                                       </div>
+                                    </div>
                                  </div>
-                                 <div class="panel-footer" id="all-questions-footer"></div>
                               </div>
                            </div>
                         </div>
@@ -380,7 +1007,8 @@
                            <!-- Question Details -->
                            <div class="panel panel-default">
                               <div class="panel-heading">
-                                 <h2>Modifying Question #<b style="font-size: 150%">{{modifyQuestionData.id}}</b></h2>
+                                 <h2>Modifying Question #<b style="font-size: 150%">{{modifyQuestionData.id}}</b>
+                                 </h2>
                                  <span style="float: right;">
                                     <span ng-show="modifyQuestionData.id">
                                        <span ng-click="removeChallengeOnQuestion(modifyQuestionData)"
@@ -417,7 +1045,8 @@
                               <div class="panel-body">
 
                                  <p ng-show="!modifyQuestionData.id"
-                                    style="margin: 80px; text-align: center; font-size: 18px; color: #c6c6c6;">No valid
+                                    style="margin: 80px; text-align: center; font-size: 18px; color: #c6c6c6;">No
+                                    valid
                                     question found.</p>
 
                                  <!-- Preview -->
@@ -431,7 +1060,8 @@
                                              <div class="scrollable-content" style="height: 400px; overflow-y: auto;">
                                                 <img ng-src="{{modifyQuestionData.url}}" width="70%"
                                                    ng-if="isPhotoAttached">
-                                                <p ng-if="!isPhotoAttached">No Image was uploaded against this Question
+                                                <p ng-if="!isPhotoAttached">No Image was uploaded against this
+                                                   Question
                                                 </p>
                                              </div>
                                           </div>
@@ -498,7 +1128,8 @@
                                              </div>
 
                                              <p ng-if="!isPhotoAttachedSolution && !modifyQuestionData.solutionURL && !modifyQuestionData.solutionStorePath"
-                                                style="padding: 50px 15px; text-align: center;">No Solution was uploaded
+                                                style="padding: 50px 15px; text-align: center;">No Solution was
+                                                uploaded
                                                 for this Question</p>
                                           </div>
                                        </div>
@@ -513,7 +1144,8 @@
                                              <tag
                                                 ng-class="{'questionWindowLabelNotCompleted': !modifyQuestionData.averageTimeTaken}">
                                                 Avg Time <span ng-if="modifyQuestionData.averageTimeTaken > 0">=
-                                                   {{(modifyQuestionData.averageTimeTaken/60).toFixed(1)}}m</span></tag>
+                                                   {{(modifyQuestionData.averageTimeTaken/60).toFixed(1)}}m</span>
+                                             </tag>
                                           </label>
                                           <input ng-model="modifyQuestionData.averageTimeTaken" type="text"
                                              class="form-control" placeholder="in seconds" maxlength="4"
@@ -629,10 +1261,12 @@
                                                 <option value="1P07">Chapter 7: System of Particles and Rotational
                                                    Motion</option>
                                                 <option value="1P08">Chapter 8: Gravitation</option>
-                                                <option value="1P09">Chapter 9: Mechanical Properties of Solids</option>
+                                                <option value="1P09">Chapter 9: Mechanical Properties of Solids
+                                                </option>
                                                 <option value="1P10">Chapter 10: Mechanical Properties of Fluids
                                                 </option>
-                                                <option value="1P11">Chapter 11: Thermal Properties of Matter</option>
+                                                <option value="1P11">Chapter 11: Thermal Properties of Matter
+                                                </option>
                                                 <option value="1P12">Chapter 12: Thermodynamics</option>
                                                 <option value="1P13">Chapter 13: Kinetic Theory of Gases</option>
                                                 <option value="1P14">Chapter 14: Oscillations</option>
@@ -646,7 +1280,8 @@
                                                 <option value="1C02">Chapter 2: Structure of Atom</option>
                                                 <option value="1C03">Chapter 3: Classification of Elements and
                                                    Periodicity in Properties</option>
-                                                <option value="1C04">Chapter 4: Chemical Bonding and Molecular Structure
+                                                <option value="1C04">Chapter 4: Chemical Bonding and Molecular
+                                                   Structure
                                                 </option>
                                                 <option value="1C05">Chapter 5: States of Matter: Gases and Liquids
                                                 </option>
@@ -670,10 +1305,12 @@
                                                 <option value="1M03">Chapter 3: Trigonometric Functions</option>
                                                 <option value="1M04">Chapter 4: Principle of Mathematical Induction
                                                 </option>
-                                                <option value="1M05">Chapter 5: Complex Numbers and Quadratic Equations
+                                                <option value="1M05">Chapter 5: Complex Numbers and Quadratic
+                                                   Equations
                                                 </option>
                                                 <option value="1M06">Chapter 6: Linear Inequalities</option>
-                                                <option value="1M07">Chapter 7: Permutations and Combinations</option>
+                                                <option value="1M07">Chapter 7: Permutations and Combinations
+                                                </option>
                                                 <option value="1M08">Chapter 8: Binomial Theorem</option>
                                                 <option value="1M09">Chapter 9: Sequence and Series</option>
                                                 <option value="1M10">Chapter 10: Straight Lines</option>
@@ -688,23 +1325,27 @@
 
                                              <optgroup label="Biology - Plus One"
                                                 ng-if="modifyQuestionData.subject == 'Biology'">
-                                                <option value="1B01">Chapter 1: Diversity of the Living World</option>
+                                                <option value="1B01">Chapter 1: Diversity of the Living World
+                                                </option>
                                                 <option value="1B02">Chapter 2: Biological Classification</option>
                                                 <option value="1B03">Chapter 3: Plant Kingdom</option>
                                                 <option value="1B04">Chapter 4: Animal Kingdom</option>
-                                                <option value="1B05">Chapter 5: Morphology of Flowering Plants</option>
+                                                <option value="1B05">Chapter 5: Morphology of Flowering Plants
+                                                </option>
                                                 <option value="1B06">Chapter 6: Anatomy of Flowering Plants</option>
                                                 <option value="1B07">Chapter 7: Structural Organisation in Animals
                                                 </option>
                                                 <option value="1B08">Chapter 8: Cell - The Unit of Life</option>
                                                 <option value="1B09">Chapter 9: Biomolecules</option>
-                                                <option value="1B10">Chapter 10: Cell Cycle and Cell Division</option>
+                                                <option value="1B10">Chapter 10: Cell Cycle and Cell Division
+                                                </option>
                                                 <option value="1B11">Chapter 11: Transport in Plants</option>
                                                 <option value="1B12">Chapter 12: Mineral Nutrition</option>
                                                 <option value="1B13">Chapter 13: Photosynthesis in Higher Plants
                                                 </option>
                                                 <option value="1B14">Chapter 14: Respiration in Plants</option>
-                                                <option value="1B15">Chapter 15: Plant Growth and Development</option>
+                                                <option value="1B15">Chapter 15: Plant Growth and Development
+                                                </option>
                                                 <option value="1B16">Chapter 16: Digestion and Absorption</option>
                                                 <option value="1B17">Chapter 17: Breathing and Exchange of Gases
                                                 </option>
@@ -714,14 +1355,16 @@
                                                 <option value="1B20">Chapter 20: Locomotion and Movement</option>
                                                 <option value="1B21">Chapter 21: Neural Control and Coordination
                                                 </option>
-                                                <option value="1B22">Chapter 22: Chemical Coordination and Integration
+                                                <option value="1B22">Chapter 22: Chemical Coordination and
+                                                   Integration
                                                 </option>
                                              </optgroup>
 
                                              <optgroup label="Physics - Plus Two"
                                                 ng-if="modifyQuestionData.subject == 'Physics'">
                                                 <option value="2P01">Chapter 1: Electric Charges and Fields</option>
-                                                <option value="2P02">Chapter 2: Electrostatic Potential and Capacitance
+                                                <option value="2P02">Chapter 2: Electrostatic Potential and
+                                                   Capacitance
                                                 </option>
                                                 <option value="2P03">Chapter 3: Current Electricity</option>
                                                 <option value="2P04">Chapter 4: Moving Charges and Magnetism</option>
@@ -736,7 +1379,8 @@
                                                 </option>
                                                 <option value="2P12">Chapter 12: Atoms</option>
                                                 <option value="2P13">Chapter 13: Nuclei</option>
-                                                <option value="2P14">Chapter 14: Semiconductor Electronics: Materials,
+                                                <option value="2P14">Chapter 14: Semiconductor Electronics:
+                                                   Materials,
                                                    Devices, and Simple Circuits</option>
                                                 <option value="2P15">Chapter 15: Communication Systems</option>
                                              </optgroup>
@@ -754,10 +1398,13 @@
                                                 <option value="2C08">Chapter 8: The d- and f-Block Element</option>
                                                 <option value="2C09">Chapter 9: Coordination Compounds</option>
                                                 <option value="2C10">Chapter 10: Haloalkanes and Haloarenes</option>
-                                                <option value="2C11">Chapter 11: Alcohols, Phenols and Ethers</option>
-                                                <option value="2C12">Chapter 12: Aldehydes, Ketones and Carboxylic Acids
+                                                <option value="2C11">Chapter 11: Alcohols, Phenols and Ethers
                                                 </option>
-                                                <option value="2C13">Chapter 13: Organic Compounds Containing Nitrogen
+                                                <option value="2C12">Chapter 12: Aldehydes, Ketones and Carboxylic
+                                                   Acids
+                                                </option>
+                                                <option value="2C13">Chapter 13: Organic Compounds Containing
+                                                   Nitrogen
                                                 </option>
                                                 <option value="2C14">Chapter 14: Biomolecules</option>
                                                 <option value="2C15">Chapter 15: Polymers</option>
@@ -767,7 +1414,8 @@
                                              <optgroup label="Mathematics - Plus Two"
                                                 ng-if="modifyQuestionData.subject == 'Mathematics'">
                                                 <option value="2M01">Chapter 1: Relations and Functions</option>
-                                                <option value="2M02">Chapter 2: Inverse Trigonometric Functions</option>
+                                                <option value="2M02">Chapter 2: Inverse Trigonometric Functions
+                                                </option>
                                                 <option value="2M03">Chapter 3: Matrices</option>
                                                 <option value="2M04">Chapter 4: Determinants</option>
                                                 <option value="2M05">Chapter 5: Continuity and Differentiability
@@ -785,25 +1433,30 @@
                                              <optgroup label="Biology - Plus Two"
                                                 ng-if="modifyQuestionData.subject == 'Biology'">
                                                 <option value="2B01">Chapter 1: Reproduction in Organisms</option>
-                                                <option value="2B02">Chapter 2: Sexual Reproduction in Flowering Plants
+                                                <option value="2B02">Chapter 2: Sexual Reproduction in Flowering
+                                                   Plants
                                                 </option>
                                                 <option value="2B03">Chapter 3: Human Reproduction</option>
                                                 <option value="2B04">Chapter 4: Reproductive Health</option>
-                                                <option value="2B05">Chapter 5: Principles of Inheritance and Variation
+                                                <option value="2B05">Chapter 5: Principles of Inheritance and
+                                                   Variation
                                                 </option>
-                                                <option value="2B06">Chapter 6: Molecular Basis of Inheritance</option>
+                                                <option value="2B06">Chapter 6: Molecular Basis of Inheritance
+                                                </option>
                                                 <option value="2B07">Chapter 7: Evolution</option>
                                                 <option value="2B08">Chapter 8: Human Health and Disease</option>
                                                 <option value="2B09">Chapter 9: Strategies for Enhancement in Food
                                                    Production</option>
                                                 <option value="2B10">Chapter 10: Microbes in Human Welfare</option>
-                                                <option value="2B11">Chapter 11: Biotechnology: Principles and Processes
+                                                <option value="2B11">Chapter 11: Biotechnology: Principles and
+                                                   Processes
                                                 </option>
                                                 <option value="2B12">Chapter 12: Biotechnology and Its Applications
                                                 </option>
                                                 <option value="2B13">Chapter 13: Organisms and Populations</option>
                                                 <option value="2B14">Chapter 14: Ecosystem</option>
-                                                <option value="2B15">Chapter 15: Biodiversity and Conservation</option>
+                                                <option value="2B15">Chapter 15: Biodiversity and Conservation
+                                                </option>
                                                 <option value="2B16">Chapter 16: Environmental Issues</option>
                                              </optgroup>
                                           </select>
@@ -866,16 +1519,19 @@
                                              <button ng-if="isPhotoAttached" ng-click="attachPhoto()"
                                                 class="btn-default btn pull-left btn-outline"> <i
                                                    class="fa fa-picture-o"
-                                                   style="padding-right: 5px; color: #bdc3c7"></i> Change Image</button>
+                                                   style="padding-right: 5px; color: #bdc3c7"></i> Change
+                                                Image</button>
 
                                              <button class="btn-default btn pull-left btn-outline"
-                                                ng-if="!isPhotoAttached" ng-click="attachPhoto()">Select Image</button>
+                                                ng-if="!isPhotoAttached" ng-click="attachPhoto()">Select
+                                                Image</button>
                                           </div>
                                           <div data-field-span="2">
                                              <label>Current Photo</label>
                                              <img ng-src="{{modifyQuestionData.url}}" width="240px"
                                                 style="border: 2px solid #27ae60" ng-if="isPhotoAttached">
-                                             <p ng-if="!isPhotoAttached">No Image was uploaded against this Question</p>
+                                             <p ng-if="!isPhotoAttached">No Image was uploaded against this Question
+                                             </p>
                                           </div>
                                        </div>
                                     </fieldset>
@@ -886,11 +1542,13 @@
                                              <button ng-if="isPhotoAttachedSolution" ng-click="attachPhotoSolution()"
                                                 class="btn-default btn pull-left btn-outline"> <i
                                                    class="fa fa-picture-o"
-                                                   style="padding-right: 5px; color: #bdc3c7"></i> Change Image</button>
+                                                   style="padding-right: 5px; color: #bdc3c7"></i> Change
+                                                Image</button>
                                              <button ng-if="isPhotoAttachedSolution"
                                                 ng-click="removeSolutionImage(modifyQuestionData.id)"
                                                 class="btn-default btn pull-right btn-outline"> <i class="fa fa-trash-o"
-                                                   style="padding-right: 5px; color: #bdc3c7"></i> Remove Image</button>
+                                                   style="padding-right: 5px; color: #bdc3c7"></i> Remove
+                                                Image</button>
 
                                              <button class="btn-default btn pull-left btn-outline"
                                                 ng-if="!isPhotoAttachedSolution" ng-click="attachPhotoSolution()">Select
@@ -900,7 +1558,8 @@
                                              <label>Current Photo</label>
                                              <img ng-src="{{modifyQuestionData.solutionURL}}" width="240px"
                                                 style="border: 2px solid #27ae60" ng-if="isPhotoAttachedSolution">
-                                             <p ng-if="!isPhotoAttachedSolution">No Image was uploaded as Solution</p>
+                                             <p ng-if="!isPhotoAttachedSolution">No Image was uploaded as Solution
+                                             </p>
                                           </div>
                                        </div>
                                     </fieldset>
