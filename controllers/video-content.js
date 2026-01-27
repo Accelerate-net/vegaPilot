@@ -5,24 +5,24 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -32,12 +32,19 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
     $scope.modifyVideoView = false;
     $scope.currentPage = 1;
     $scope.totalPages = 1;
+    $scope.maxResultsShown = 10; // Number of items per page
     $scope.videoFilterApplied = '';
     $scope.uploadProgress = 0;
     $scope.uploadInProgress = false;
     $scope.uploadStatus = null;
     $scope.videoPreview = null;
     $scope.isDragOver = false;
+    $scope.isLoading = true; // Add loading state
+
+    // Skeleton loader helper
+    $scope.getSkeletonRows = function () {
+        return new Array(5);
+    };
 
     // Summary data for tiles
     $scope.summaryTileData = {
@@ -50,7 +57,8 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
     // Video list data
     $scope.listData = [];
-    $scope.filteredVideos = [];
+    $scope.allFilteredVideos = []; // Store all filtered videos before pagination
+    $scope.filteredVideos = [];    // Store currently displayed page of videos
 
     // Filter settings
     $scope.showFilters = false;
@@ -92,6 +100,142 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
     // API Configuration - Use proxy server
     var API_BASE = '/api/bunny';
 
+    // Pagination helpers
+    $scope.getStartIndex = function () {
+        if ($scope.allFilteredVideos.length === 0) return 0;
+        return ($scope.currentPage - 1) * $scope.maxResultsShown + 1;
+    };
+
+    $scope.getEndIndex = function () {
+        var end = $scope.currentPage * $scope.maxResultsShown;
+        return end > $scope.allFilteredVideos.length ? $scope.allFilteredVideos.length : end;
+    };
+
+    // Apply filters to video list
+    $scope.applyFilters = function () {
+        console.log('Applying filters:', $scope.videoFilters);
+
+        var filtered = $scope.listData.slice(); // Start with all videos
+
+        // Apply search filter (title or video ID)
+        if ($scope.videoFilters.searchText) {
+            var searchLower = $scope.videoFilters.searchText.toLowerCase();
+            filtered = filtered.filter(function (video) {
+                var titleMatch = video.titleName && video.titleName.toLowerCase().indexOf(searchLower) !== -1;
+                var idMatch = video.videoId && video.videoId.toString().indexOf(searchLower) !== -1;
+                var displayKeyMatch = video.videoDisplayKey && video.videoDisplayKey.toLowerCase().indexOf(searchLower) !== -1;
+                return titleMatch || idMatch || displayKeyMatch;
+            });
+        }
+
+        // Apply subject filter
+        if ($scope.videoFilters.subject) {
+            filtered = filtered.filter(function (video) {
+                // Assuming you might add a subject field to your video data in the future
+                // or map it from modules/chapters. For now, we'll try to guess or use a placeholder logic
+                // If chapter IDs start with '1B' or '2B', it's Biology. '1P'/'2P' Physics, etc.
+                // This is an example, adjust to your actual data structure.
+                if (!video.chapterId) return false;
+
+                var prefix = video.chapterId.substring(1, 2); // 'B' from '1B01'
+                if ($scope.videoFilters.subject === 'Biology' && prefix === 'B') return true;
+                if ($scope.videoFilters.subject === 'Physics' && prefix === 'P') return true;
+                if ($scope.videoFilters.subject === 'Chemistry' && prefix === 'C') return true;
+                if ($scope.videoFilters.subject === 'Mathematics' && prefix === 'M') return true;
+
+                return false;
+            });
+        }
+
+        // Apply chapter filter
+        if ($scope.videoFilters.chapterId) {
+            filtered = filtered.filter(function (video) {
+                return video.chapterId === $scope.videoFilters.chapterId;
+            });
+        }
+
+        // Apply module filter
+        if ($scope.videoFilters.moduleId) {
+            filtered = filtered.filter(function (video) {
+                return video.moduleId === $scope.videoFilters.moduleId;
+            });
+        }
+
+        // Apply instructor filter
+        if ($scope.videoFilters.instructorId) {
+            filtered = filtered.filter(function (video) {
+                return video.instructorId === $scope.videoFilters.instructorId;
+            });
+        }
+
+        // Apply sorting
+        if ($scope.videoFilters.sortBy) {
+            var sortField = $scope.videoFilters.sortBy;
+            var isDescending = sortField.startsWith('-');
+            var field = isDescending ? sortField.substring(1) : sortField;
+
+            filtered.sort(function (a, b) {
+                var aVal = a[field];
+                var bVal = b[field];
+
+                // Handle string comparison
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal ? bVal.toLowerCase() : '';
+                }
+
+                // Handle null/undefined values
+                if (aVal === null || aVal === undefined) aVal = '';
+                if (bVal === null || bVal === undefined) bVal = '';
+
+                if (aVal < bVal) return isDescending ? 1 : -1;
+                if (aVal > bVal) return isDescending ? -1 : 1;
+                return 0;
+            });
+        }
+
+        // Store full filtered list
+        $scope.allFilteredVideos = filtered;
+
+        // Calculate total pages
+        $scope.totalPages = Math.ceil($scope.allFilteredVideos.length / $scope.maxResultsShown) || 1;
+
+        // Reset to first page
+        $scope.currentPage = 1;
+
+        // Apply pagination
+        $scope.paginateVideos();
+
+        console.log('Filtered results:', $scope.allFilteredVideos.length + ' videos, Total Pages:', $scope.totalPages);
+
+        // Update summary data
+        if (typeof $scope.updateFilteredSummary === 'function') {
+            $scope.updateFilteredSummary();
+        }
+    };
+
+    // Paginate videos based on current page
+    $scope.paginateVideos = function () {
+        var start = ($scope.currentPage - 1) * $scope.maxResultsShown;
+        var end = start + $scope.maxResultsShown;
+
+        $scope.filteredVideos = $scope.allFilteredVideos.slice(start, end);
+    };
+
+    // Pagination functions
+    $scope.goLeft = function () {
+        if ($scope.currentPage > 1) {
+            $scope.currentPage--;
+            $scope.paginateVideos();
+        }
+    };
+
+    $scope.goRight = function () {
+        if ($scope.currentPage < $scope.totalPages) {
+            $scope.currentPage++;
+            $scope.paginateVideos();
+        }
+    };
     // Dummy data for testing
     $scope.dummyVideos = [
         {
@@ -1453,122 +1597,7 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
         }, 3000);
     };
 
-    // ===== VIDEO FILTER FUNCTIONS =====
 
-    // Populate filter dropdowns
-    $scope.populateFilterOptions = function () {
-        // Extract unique chapters from video data
-        var chaptersMap = {};
-        var modulesMap = {};
-        var instructorsMap = {};
-
-        $scope.listData.forEach(function (video) {
-            // Extract chapter info (you'll need to add chapterId and chapterName to your video data)
-            if (video.chapterId && video.chapterName) {
-                chaptersMap[video.chapterId] = video.chapterName;
-            }
-
-            // Extract module info
-            if (video.moduleId && video.moduleName) {
-                modulesMap[video.moduleId] = video.moduleName;
-            }
-
-            // Extract instructor info
-            if (video.instructorId && video.instructorName) {
-                instructorsMap[video.instructorId] = video.instructorName;
-            }
-        });
-
-        // Convert maps to arrays
-        $scope.availableChapters = Object.keys(chaptersMap).map(function (id) {
-            return { id: id, name: chaptersMap[id] };
-        });
-
-        $scope.availableModules = Object.keys(modulesMap).map(function (id) {
-            return { id: id, name: modulesMap[id] };
-        });
-
-        $scope.availableInstructors = Object.keys(instructorsMap).map(function (id) {
-            return { id: id, name: instructorsMap[id] };
-        });
-
-        console.log('Filter options populated:', {
-            chapters: $scope.availableChapters.length,
-            modules: $scope.availableModules.length,
-            instructors: $scope.availableInstructors.length
-        });
-    };
-
-    // Apply filters to video list
-    $scope.applyFilters = function () {
-        console.log('Applying filters:', $scope.videoFilters);
-
-        var filtered = $scope.listData.slice(); // Start with all videos
-
-        // Apply search filter (title or video ID)
-        if ($scope.videoFilters.searchText) {
-            var searchLower = $scope.videoFilters.searchText.toLowerCase();
-            filtered = filtered.filter(function (video) {
-                var titleMatch = video.titleName && video.titleName.toLowerCase().indexOf(searchLower) !== -1;
-                var idMatch = video.videoId && video.videoId.toString().indexOf(searchLower) !== -1;
-                var displayKeyMatch = video.videoDisplayKey && video.videoDisplayKey.toLowerCase().indexOf(searchLower) !== -1;
-                return titleMatch || idMatch || displayKeyMatch;
-            });
-        }
-
-        // Apply chapter filter
-        if ($scope.videoFilters.chapterId) {
-            filtered = filtered.filter(function (video) {
-                return video.chapterId === $scope.videoFilters.chapterId;
-            });
-        }
-
-        // Apply module filter
-        if ($scope.videoFilters.moduleId) {
-            filtered = filtered.filter(function (video) {
-                return video.moduleId === $scope.videoFilters.moduleId;
-            });
-        }
-
-        // Apply instructor filter
-        if ($scope.videoFilters.instructorId) {
-            filtered = filtered.filter(function (video) {
-                return video.instructorId === $scope.videoFilters.instructorId;
-            });
-        }
-
-        // Apply sorting
-        if ($scope.videoFilters.sortBy) {
-            var sortField = $scope.videoFilters.sortBy;
-            var isDescending = sortField.startsWith('-');
-            var field = isDescending ? sortField.substring(1) : sortField;
-
-            filtered.sort(function (a, b) {
-                var aVal = a[field];
-                var bVal = b[field];
-
-                // Handle string comparison
-                if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal ? bVal.toLowerCase() : '';
-                }
-
-                // Handle null/undefined values
-                if (aVal === null || aVal === undefined) aVal = '';
-                if (bVal === null || bVal === undefined) bVal = '';
-
-                if (aVal < bVal) return isDescending ? 1 : -1;
-                if (aVal > bVal) return isDescending ? -1 : 1;
-                return 0;
-            });
-        }
-
-        $scope.filteredVideos = filtered;
-        console.log('Filtered results:', $scope.filteredVideos.length + ' videos');
-
-        // Update summary data
-        $scope.updateFilteredSummary();
-    };
 
     // Clear all filters
     $scope.clearFilters = function () {
@@ -1608,21 +1637,118 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
     // Update summary data for filtered results
     $scope.updateFilteredSummary = function () {
-        if ($scope.filteredVideos.length === 0) return;
+        if (!$scope.allFilteredVideos) return;
 
-        var totalDuration = $scope.filteredVideos.reduce(function (sum, video) {
+        var totalDuration = $scope.allFilteredVideos.reduce(function (sum, video) {
             return sum + (video.durationInSeconds || 0);
         }, 0);
 
         // Update summary tiles to reflect filtered data
-        $scope.summaryTileData.total = $scope.filteredVideos.length;
+        $scope.summaryTileData.total = $scope.allFilteredVideos.length;
         $scope.summaryTileData.totalDuration = Math.round(totalDuration / 60);
+    };
+
+    // Pagination UI Helpers
+    $scope.getPageNumbers = function () {
+        var pages = [];
+        var maxPagesToShow = 5;
+        var startPage = Math.max(1, $scope.currentPage - 2);
+        var endPage = Math.min($scope.totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.changePageSize = function () {
+        $scope.currentPage = 1;
+        $scope.paginateVideos();
+    };
+
+    $scope.goToPage = function (page) {
+        if (page >= 1 && page <= $scope.totalPages) {
+            $scope.currentPage = page;
+            $scope.paginateVideos();
+        }
     };
 
     // Logout function
     $scope.logoutNow = function () {
         $cookies.remove('userToken');
         window.location.href = 'login.html';
+    };
+
+    // Fetch all videos from Bunny.net
+    // Fetch all videos from Bunny.net
+    $scope.fetchAllVideos = function () {
+        $scope.isLoading = true; // Set loading state to true
+        $scope.listData = []; // Clear list data
+
+        // Check if running on file protocol or dummy mode is forced
+        var isFileProtocol = window.location.protocol === 'file:';
+        if (isFileProtocol) {
+            console.warn('Running on file protocol, using dummy data.');
+            $timeout(function () {
+                $scope.loadDummyData();
+                $scope.isLoading = false;
+            }, 1000); // Shimmer effect delay
+            return;
+        }
+
+        $http.get(API_BASE + '/videos').then(function (response) {
+            console.log('Fetched videos:', response.data);
+            if (response.data && Array.isArray(response.data)) {
+                $scope.listData = response.data.map(function (video) {
+                    return {
+                        videoId: video.guid,
+                        titleName: video.title,
+                        videoDisplayKey: video.guid,
+                        durationInSeconds: video.length,
+                        thumbnail: video.thumbnailUrl || (video.status === 3 ? 'assets/img/video-placeholder.png' : ''),
+                        status: video.status,
+                        classificationLevel1: video.metaTags ? video.metaTags.find(tag => tag.property === 'level1')?.value : '',
+                        classificationLevel2: video.metaTags ? video.metaTags.find(tag => tag.property === 'level2')?.value : '',
+                        collectionId: video.collectionId,
+                        chapterId: video.metaTags ? video.metaTags.find(tag => tag.property === 'chapterId')?.value : '',
+                    };
+                });
+
+                $scope.applyFilters();
+            }
+            $scope.isLoading = false;
+        }, function (error) {
+            console.error('Error fetching videos:', error);
+            $scope.showToaster('Failed to load videos due to API error. Loading demo data.', 'warning');
+            $scope.loadDummyData();
+            $scope.isLoading = false; // Set loading state to false
+        });
+    };
+
+    $scope.loadDummyData = function () {
+        $scope.availableInstructors = [
+            { id: 'inst001', name: 'Teacher 1' },
+            { id: 'inst002', name: 'Teacher 2' }
+        ];
+
+        $scope.listData = [
+            { videoId: 'v1001', titleName: 'Introduction to Biology', videoDisplayKey: 'BIO-101', durationInSeconds: 1200, status: 1, classificationLevel1: 'Beginner', classificationLevel2: 'Basic', thumbnail: 'assets/img/video-placeholder.png', chapterId: '1B01' },
+            { videoId: 'v1002', titleName: 'Chemical Bonding Basics', videoDisplayKey: 'CHEM-202', durationInSeconds: 3600, status: 1, classificationLevel1: 'Intermediate', classificationLevel2: 'Standard', thumbnail: 'assets/img/video-placeholder.png', chapterId: '1C04' },
+            { videoId: 'v1003', titleName: 'Newton\'s Laws of Motion', videoDisplayKey: 'PHY-305', durationInSeconds: 2400, status: 0, classificationLevel1: 'Advanced', classificationLevel2: 'Core', thumbnail: 'assets/img/video-placeholder.png', chapterId: '1P05' },
+            { videoId: 'v1004', titleName: 'Calculus: Derivatives', videoDisplayKey: 'MATH-401', durationInSeconds: 4500, status: 1, classificationLevel1: 'Expert', classificationLevel2: 'Premium', thumbnail: 'assets/img/video-placeholder.png', chapterId: '1M13' },
+            { videoId: 'v1005', titleName: 'Organic Chemistry Reactions', videoDisplayKey: 'CHEM-250', durationInSeconds: 5000, status: 1, classificationLevel1: 'Hard', classificationLevel2: 'Elite', thumbnail: 'assets/img/video-placeholder.png', chapterId: '2C10' }
+        ];
+        $scope.applyFilters();
+    };
+
+    $scope.init = function () {
+        console.log('Video Content Controller initialized');
+        $scope.fetchAllVideos();
+        // $scope.fetchCollections(); // Uncomment if needed
     };
 
     // Initialize controller
