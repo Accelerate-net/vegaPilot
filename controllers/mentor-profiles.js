@@ -96,7 +96,21 @@ app.controller('MentorProfilesController', ['$scope', '$timeout', '$http', '$coo
     $scope.init = function () {
         $scope.showLoading('Loading mentors...');
         $scope.loadMentors();
+
+        // Close kebab menu when clicking outside
+        $(document).click(function (event) {
+            $scope.$apply(function () {
+                $scope.mentors.forEach(function (m) {
+                    m.showKebabMenu = false;
+                });
+            });
+        });
     };
+
+    // Clean up event listener when controller is destroyed
+    $scope.$on('$destroy', function () {
+        $(document).off('click');
+    });
 
     // ===== Pagination Functions =====
     $scope.getTotalPages = function () {
