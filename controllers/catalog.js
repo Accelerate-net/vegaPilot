@@ -1,28 +1,50 @@
 var app = angular.module('catalogApp', ['ngCookies']);
 
-app.controller('catalogController', function($scope, $http, $cookies, $timeout) {
+// ===== Click Outside Directive =====
+app.directive('clickOutside', function ($document) {
+    return {
+        restrict: 'A',
+        scope: {
+            clickOutside: '&'
+        },
+        link: function (scope, el, attr) {
+            var handler = function (e) {
+                if (el[0] && !el[0].contains(e.target)) {
+                    scope.$apply(function () {
+                        scope.clickOutside();
+                    });
+                }
+            };
+            $document.on('click', handler);
+            scope.$on('$destroy', function () {
+                $document.off('click', handler);
+            });
+        }
+    };
+});
+app.controller('catalogController', function ($scope, $http, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -32,18 +54,18 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     $scope.apiBaseUrl = 'http://localhost:3000/restricted/catalog';
 
     // Get token from localStorage (same pattern as other controllers)
-    
+
 
     // Loading state
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
+    $scope.hideLoading = function () {
         $scope.isLoading = false;
     };
 
@@ -55,7 +77,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
 
     // Pagination
     $scope.currentPage = 1;
-    $scope.itemsPerPage = 15;
+    $scope.itemsPerPage = 8;
     $scope.totalItems = 0;
     $scope.totalPages = 0;
 
@@ -64,7 +86,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     $scope.filterType = '';
     $scope.filterStatus = '';
     $scope.activeFilters = [];
-    
+
     // Summary data for tiles
     $scope.summaryData = {
         totalItems: 0,
@@ -72,11 +94,11 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         totalExams: 0,
         totalActive: 0
     };
-    
+
     // Catalog data
     $scope.catalog = [];
     $scope.filteredCatalog = [];
-    
+
     // New catalog object
     $scope.newCatalog = {
         title: '',
@@ -99,11 +121,11 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         tagline: 'Enroll Now',
         taxItems: []
     };
-    
+
     // Modal state
     $scope.isEditing = false;
     $scope.editingId = null;
-    
+
     // Enhanced sample catalog data matching the image style
     $scope.dummyCatalog = [
         {
@@ -245,16 +267,16 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             tagline: 'Get Started'
         }
     ];
-    
+
     // Initialize the controller
-    $scope.init = function() {
+    $scope.init = function () {
         console.log('Catalog Controller Initialized');
         $scope.loadCatalog();
         $scope.loadSummaryData();
     };
-    
+
     // Load catalog from API
-    $scope.loadCatalog = function() {
+    $scope.loadCatalog = function () {
         $scope.showLoading('Loading catalog...');
 
         var url = $scope.apiBaseUrl + '/list-catalog.php';
@@ -283,14 +305,14 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
                 'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Catalog API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
                 var catalogData = response.data.data || [];
 
                 // Map API response to local data structure
-                $scope.catalog = catalogData.map(function(item) {
+                $scope.catalog = catalogData.map(function (item) {
                     return {
                         id: item.id,
                         code: item.code,
@@ -330,7 +352,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error loading catalog:', error);
             console.error('Error details:', error.data, error.status, error.statusText);
             $scope.catalog = [];
@@ -348,20 +370,20 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             $scope.showToaster(errorMsg, 'error');
         });
     };
-    
+
     // Load summary data for tiles
-    $scope.loadSummaryData = function() {
+    $scope.loadSummaryData = function () {
         var totalItems = $scope.catalog.length;
-        var totalCourses = $scope.catalog.filter(function(item) {
+        var totalCourses = $scope.catalog.filter(function (item) {
             return item.type === 1;
         }).length;
-        var totalExams = $scope.catalog.filter(function(item) {
+        var totalExams = $scope.catalog.filter(function (item) {
             return item.type === 2;
         }).length;
-        var totalActive = $scope.catalog.filter(function(item) {
+        var totalActive = $scope.catalog.filter(function (item) {
             return item.status === 1;
         }).length;
-        
+
         $scope.summaryData = {
             totalItems: totalItems,
             totalCourses: totalCourses,
@@ -369,9 +391,58 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             totalActive: totalActive
         };
     };
-    
+
+
+
+    // Pagination Helpers
+    $scope.setPage = function (page) {
+        if (page < 1 || page > $scope.totalPages) return;
+        $scope.currentPage = page;
+        $scope.loadCatalog();
+        window.scrollTo(0, 0);
+    };
+
+    $scope.prevPage = function () {
+        if ($scope.currentPage > 1) {
+            $scope.setPage($scope.currentPage - 1);
+        }
+    };
+
+    $scope.nextPage = function () {
+        if ($scope.currentPage < $scope.totalPages) {
+            $scope.setPage($scope.currentPage + 1);
+        }
+    };
+
+    $scope.getPageRange = function () {
+        var start = ($scope.currentPage - 1) * $scope.itemsPerPage + 1;
+        var end = Math.min(start + $scope.itemsPerPage - 1, $scope.totalItems);
+        if ($scope.totalItems === 0) return '0-0';
+        return start + '-' + end;
+    };
+
+    $scope.getPagesArray = function () {
+        var pages = [];
+        var maxPagesToShow = 5;
+        if ($scope.totalPages <= maxPagesToShow) {
+            for (var i = 1; i <= $scope.totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            var startPage = Math.max(1, $scope.currentPage - 2);
+            var endPage = Math.min($scope.totalPages, Number(startPage) + 4);
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            for (var i = startPage; i <= endPage; i++) {
+                pages.push(i);
+            }
+        }
+        return pages;
+    };
+
     // Apply filters (combining search, type, and status)
-    $scope.applyFilters = function() {
+    $scope.applyFilters = function () {
         // Reset to page 1 when filters change
         $scope.currentPage = 1;
 
@@ -383,7 +454,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
 
     // Update active filters display
-    $scope.updateActiveFilters = function() {
+    $scope.updateActiveFilters = function () {
         $scope.activeFilters = [];
 
         if ($scope.searchQuery) {
@@ -409,13 +480,13 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
 
     // Clear search (kept for backwards compatibility)
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
         $scope.searchQuery = '';
         $scope.applyFilters();
     };
-    
+
     // Clear all filters
-    $scope.clearAllFilters = function() {
+    $scope.clearAllFilters = function () {
         $scope.activeFilters = [];
         $scope.searchQuery = '';
         $scope.filterType = '';
@@ -424,7 +495,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
 
     // Remove filter
-    $scope.removeFilter = function(filter) {
+    $scope.removeFilter = function (filter) {
         if (filter.type === 'search') {
             $scope.searchQuery = '';
         } else if (filter.type === 'type') {
@@ -434,107 +505,107 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         }
         $scope.applyFilters();
     };
-    
+
     // Get type label
-    $scope.getTypeLabel = function(type) {
-        switch(parseInt(type)) {
+    $scope.getTypeLabel = function (type) {
+        switch (parseInt(type)) {
             case 1: return 'Course';
             case 2: return 'Exam';
             default: return 'Unknown';
         }
     };
-    
+
     // Get type class
-    $scope.getTypeClass = function(type) {
-        switch(parseInt(type)) {
+    $scope.getTypeClass = function (type) {
+        switch (parseInt(type)) {
             case 1: return 'type-course';
             case 2: return 'type-exam';
             default: return 'type-course';
         }
     };
-    
+
     // Get status label
-    $scope.getStatusLabel = function(status) {
-        switch(parseInt(status)) {
+    $scope.getStatusLabel = function (status) {
+        switch (parseInt(status)) {
             case 1: return 'Active';
             case 0: return 'Inactive';
             default: return 'Unknown';
         }
     };
-    
+
     // Get status class
-    $scope.getStatusClass = function(status) {
-        switch(parseInt(status)) {
+    $scope.getStatusClass = function (status) {
+        switch (parseInt(status)) {
             case 1: return 'status-active';
             case 0: return 'status-inactive';
             default: return 'status-active';
         }
     };
-    
+
     // Format price
-    $scope.formatPrice = function(price) {
+    $scope.formatPrice = function (price) {
         return (price / 100).toLocaleString('en-IN');
     };
-    
+
     // Get discount percentage
-    $scope.getDiscountPercentage = function(item) {
+    $scope.getDiscountPercentage = function (item) {
         if (!item.isDiscountApplicable) return 0;
         var discount = ((item.originalPrice - item.sellingPrice) / item.originalPrice) * 100;
         return Math.round(discount);
     };
-    
+
     // Format date
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         if (!timestamp) return 'Unknown';
         var date = new Date(timestamp * 1000);
         return date.toLocaleDateString();
     };
-    
+
     // Parse tax details
-    $scope.parseTaxDetails = function(taxDetails) {
+    $scope.parseTaxDetails = function (taxDetails) {
         try {
             return JSON.parse(taxDetails);
         } catch (e) {
             return [];
         }
     };
-    
+
     // Get badge class
-    $scope.getBadgeClass = function(item) {
-        switch(item.badgeType) {
+    $scope.getBadgeClass = function (item) {
+        switch (item.badgeType) {
             case 'admission': return 'badge-admission';
             case 'official': return 'badge-official';
             case 'offer': return 'badge-offer';
             default: return 'badge-admission';
         }
     };
-    
+
     // Get badge text
-    $scope.getBadgeText = function(item) {
-        switch(item.badgeType) {
+    $scope.getBadgeText = function (item) {
+        switch (item.badgeType) {
             case 'admission': return 'Admission Started';
             case 'official': return 'Official PYQs';
             case 'offer': return '50% OFF';
             default: return 'Admission Started';
         }
     };
-    
+
     // Add new catalog
-    $scope.addNewCatalog = function() {
+    $scope.addNewCatalog = function () {
         console.log('Add New Catalog button clicked');
         $scope.isEditing = false;
         $scope.editingId = null;
         $scope.resetNewCatalog();
 
         // Use timeout to ensure modal opens after Angular digest
-        $timeout(function() {
+        $timeout(function () {
             console.log('Opening catalog modal');
-            $('#catalogModal').modal('show');
+            $('#catalogModal').appendTo('body').modal('show');
         }, 0);
     };
-    
+
     // Edit catalog
-    $scope.editCatalog = function(item) {
+    $scope.editCatalog = function (item) {
         console.log('Editing catalog item:', item);
         $scope.isEditing = true;
         $scope.editingId = item.id;
@@ -565,7 +636,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         if (item.taxDetails) {
             try {
                 var taxData = Array.isArray(item.taxDetails) ? item.taxDetails : JSON.parse(item.taxDetails);
-                $scope.newCatalog.taxItems = taxData.map(function(tax) {
+                $scope.newCatalog.taxItems = taxData.map(function (tax) {
                     return {
                         type: tax.code || tax.type || 'SGST',
                         customName: tax.type === 'EXTRA' ? tax.label : '',
@@ -581,21 +652,23 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
 
         console.log('Mapped newCatalog for editing:', $scope.newCatalog);
 
-        $timeout(function() {
-            $('#catalogModal').modal('show');
+        $timeout(function () {
+            $('#catalogModal').appendTo('body').modal('show');
         }, 0);
     };
-    
+
     // Toggle catalog status
     $scope.selectedItemForToggle = null;
 
-    $scope.toggleCatalogStatus = function(item) {
+    $scope.toggleCatalogStatus = function (item) {
         console.log('Toggle status for:', item);
         $scope.selectedItemForToggle = item;
-        $('#statusToggleModal').modal('show');
+        $timeout(function () {
+            $('#statusToggleModal').appendTo('body').modal('show');
+        }, 0);
     };
 
-    $scope.confirmToggleStatus = function() {
+    $scope.confirmToggleStatus = function () {
         if (!$scope.selectedItemForToggle) return;
 
         var item = $scope.selectedItemForToggle;
@@ -642,7 +715,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
                 'Content-Type': undefined
             },
             transformRequest: angular.identity
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Status toggle API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
@@ -663,15 +736,15 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error updating status:', error);
             $scope.hideLoading();
             $scope.showToaster('Failed to update status. Please try again.', 'error');
         });
     };
-    
+
     // Save catalog
-    $scope.saveCatalog = function() {
+    $scope.saveCatalog = function () {
         console.log('saveCatalog called, newCatalog:', $scope.newCatalog);
 
         // Validation
@@ -706,7 +779,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
 
         // Add tax details - transform to API format
         if ($scope.newCatalog.taxItems && $scope.newCatalog.taxItems.length > 0) {
-            var transformedTaxItems = $scope.newCatalog.taxItems.map(function(item) {
+            var transformedTaxItems = $scope.newCatalog.taxItems.map(function (item) {
                 return {
                     type: item.customName ? 'EXTRA' : 'TAX',
                     mode: item.valueType === 'percentage' ? 'PERCENTAGE' : 'FIXED',
@@ -745,7 +818,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
                 'Content-Type': undefined
             },
             transformRequest: angular.identity
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Save catalog API response:', response.data);
 
             if (response.data && response.data.status === 'success') {
@@ -763,15 +836,15 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
             }
 
             $scope.hideLoading();
-        }, function(error) {
+        }, function (error) {
             console.error('Error saving catalog:', error);
             $scope.hideLoading();
             $scope.showToaster('Failed to save catalog item. Please try again.', 'error');
         });
     };
-    
+
     // Reset new catalog form
-    $scope.resetNewCatalog = function() {
+    $scope.resetNewCatalog = function () {
         $scope.newCatalog = {
             title: '',
             subtitle: '',
@@ -796,7 +869,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
 
     // Tax Management Functions
-    $scope.addTaxItem = function() {
+    $scope.addTaxItem = function () {
         if (!$scope.newCatalog.taxItems) {
             $scope.newCatalog.taxItems = [];
         }
@@ -808,19 +881,19 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         });
     };
 
-    $scope.removeTaxItem = function(index) {
+    $scope.removeTaxItem = function (index) {
         if ($scope.newCatalog.taxItems && $scope.newCatalog.taxItems.length > index) {
             $scope.newCatalog.taxItems.splice(index, 1);
         }
     };
 
-    $scope.calculateTotalTax = function() {
+    $scope.calculateTotalTax = function () {
         if (!$scope.newCatalog.taxItems || !$scope.newCatalog.sellingPrice) {
             return 0;
         }
 
         var total = 0;
-        $scope.newCatalog.taxItems.forEach(function(tax) {
+        $scope.newCatalog.taxItems.forEach(function (tax) {
             if (tax.value) {
                 if (tax.valueType === 'percentage') {
                     total += ($scope.newCatalog.sellingPrice * tax.value / 100);
@@ -833,13 +906,13 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
         return total.toFixed(2);
     };
 
-    $scope.calculateFinalAmount = function() {
+    $scope.calculateFinalAmount = function () {
         var sellingPrice = parseFloat($scope.newCatalog.sellingPrice) || 0;
         var totalTax = parseFloat($scope.calculateTotalTax()) || 0;
         return (sellingPrice + totalTax).toFixed(2);
     };
 
-    $scope.calculateDiscountPercentage = function() {
+    $scope.calculateDiscountPercentage = function () {
         if (!$scope.newCatalog.originalPrice || !$scope.newCatalog.sellingPrice) {
             return 0;
         }
@@ -851,7 +924,7 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
     };
 
     // Image Upload Handler
-    $scope.onImageSelect = function(event) {
+    $scope.onImageSelect = function (event) {
         var file = event.target.files[0];
         if (!file) return;
 
@@ -872,60 +945,60 @@ app.controller('catalogController', function($scope, $http, $cookies, $timeout) 
 
         // Read file and convert to base64 for preview
         var reader = new FileReader();
-        reader.onload = function(e) {
-            $scope.$apply(function() {
+        reader.onload = function (e) {
+            $scope.$apply(function () {
                 $scope.newCatalog.displayImage = e.target.result;
             });
         };
         reader.readAsDataURL(file);
     };
-    
+
     // Toaster notification system
     $scope.toasterVisible = false;
     $scope.toasterMessage = '';
     $scope.toasterType = 'info';
 
-    $scope.showToaster = function(message, type) {
+    $scope.showToaster = function (message, type) {
         console.log('Toaster:', type, message);
         $scope.toasterMessage = message;
         $scope.toasterType = type || 'info';
         $scope.toasterVisible = true;
 
-        $timeout(function() {
+        $timeout(function () {
             $scope.toasterVisible = false;
         }, 3000);
     };
-    
+
     // Logout function
-    $scope.logoutNow = function() {
+    $scope.logoutNow = function () {
         $cookies.remove('userToken');
         window.location.href = 'login.html';
     };
-    
+
     // Initialize controller
     // Pagination functions
-    $scope.previousPage = function() {
+    $scope.previousPage = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
             $scope.loadCatalog();
         }
     };
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function () {
         if ($scope.currentPage < $scope.totalPages) {
             $scope.currentPage++;
             $scope.loadCatalog();
         }
     };
 
-    $scope.goToPage = function(page) {
+    $scope.goToPage = function (page) {
         if (page >= 1 && page <= $scope.totalPages && page !== $scope.currentPage) {
             $scope.currentPage = page;
             $scope.loadCatalog();
         }
     };
 
-    $scope.getPageNumbers = function() {
+    $scope.getPageNumbers = function () {
         var pages = [];
         var startPage = Math.max(1, $scope.currentPage - 2);
         var endPage = Math.min($scope.totalPages, $scope.currentPage + 2);

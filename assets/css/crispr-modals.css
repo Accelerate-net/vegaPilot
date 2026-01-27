@@ -42,6 +42,14 @@
     animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
+    margin: auto;
+}
+
+/* Fix Bootstrap Modal Centering */
+.modal.in {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }
 
 @keyframes modalSlideUp {
