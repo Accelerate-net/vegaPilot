@@ -18,6 +18,7 @@
    <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
 
    <style type="text/css">
       /* Header Layout */
@@ -1238,16 +1239,69 @@
       </div>
    </div>
 
-   <!-- Export PDF Confirmation Modal -->
-   <div class="modal-backdrop" ng-class="{active: showExportModal}" ng-click="closeExportModal()">
-      <div class="modal-content" ng-click="$event.stopPropagation()">
-         <div class="modal-header">
-            <h4 style="color: #006073;"><i class="ti ti-download" style="color: #006073;"></i> Export Rank List</h4>
-            <button class="modal-close" ng-click="closeExportModal()">
+   <!-- Re-evaluate Confirmation Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: showReEvaluateModal}" ng-click="closeReEvaluateModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+            <h3><i class="ti ti-reload"></i> Confirm Re-evaluation</h3>
+            <button class="crispr-modal-close" ng-click="closeReEvaluateModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
-         <div class="modal-body">
+         <div class="crispr-modal-body">
+            <div style="text-align: center; padding: 20px 0;">
+               <div
+                  style="width: 70px; height: 70px; background: #fff3cd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                  <i class="ti ti-alert" style="font-size: 32px; color: #856404;"></i>
+               </div>
+               <h4 style="margin: 0 0 10px; color: #333; font-size: 18px;">Re-evaluate all student attempts?</h4>
+               <p style="color: #6c757d; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
+                  This will re-evaluate <strong style="color: #006073;">{{getFilteredRankings().length}}</strong>
+                  student response(s) based on the current answer keys.
+               </p>
+               <div
+                  style="background: #f8f9fa; border-radius: 8px; padding: 15px; text-align: left; margin-bottom: 20px;">
+                  <div style="font-size: 13px; color: #495057; margin-bottom: 8px;">
+                     <i class="ti ti-info-circle" style="color: #006073; margin-right: 5px;"></i>
+                     <strong>What this does:</strong>
+                  </div>
+                  <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #6c757d; line-height: 1.8;">
+                     <li>Recalculates scores for all filtered attempts</li>
+                     <li>Updates rankings based on new scores</li>
+                     <li>Reflects any changes made to answer keys</li>
+                  </ul>
+               </div>
+               <div
+                  style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; text-align: left;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                     <i class="ti ti-alert-circle" style="color: #856404; font-size: 18px; margin-top: 2px;"></i>
+                     <div style="font-size: 12px; color: #856404; line-height: 1.5;">
+                        <strong>Note:</strong> This action cannot be undone. Student notifications may be sent if scores
+                        change significantly.
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeReEvaluateModal()">Cancel</button>
+            <button class="btn btn-warning" ng-click="confirmReEvaluate()">
+               <i class="ti ti-check"></i> Yes, Re-evaluate
+            </button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Export PDF Confirmation Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: showExportModal}" ng-click="closeExportModal()">
+      <div class="crispr-modal-dialog" ng-click="$event.stopPropagation()" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #006073 0%, #005a6b 100%);">
+            <h3><i class="ti ti-download"></i> Export Rank List</h3>
+            <button class="crispr-modal-close" ng-click="closeExportModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
             <div style="text-align: center; padding: 20px 0;">
                <div
                   style="width: 70px; height: 70px; background: linear-gradient(135deg, #e3f2f5 0%, #d0e8ed 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
@@ -1374,14 +1428,9 @@
                </div>
             </div>
          </div>
-         <div class="modal-footer"
-            style="display: flex; justify-content: flex-end; gap: 10px; padding: 15px 20px; border-top: 1px solid #e9ecef;">
-            <button class="btn btn-default" ng-click="closeExportModal()"
-               style="padding: 10px 20px; border-radius: 6px; font-size: 14px;">
-               Cancel
-            </button>
-            <button class="btn" ng-click="confirmExportPDF()"
-               style="background: linear-gradient(135deg, #006073 0%, #008ba3 100%); border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: white;">
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeExportModal()">Cancel</button>
+            <button class="btn btn-primary" ng-click="confirmExportPDF()">
                <i class="ti ti-download"></i> Export PDF
             </button>
          </div>
@@ -1400,29 +1449,30 @@
    <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
    <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
    <script type="text/javascript" src="assets/js/application.js"></script>
-    <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
    <script type="text/javascript" src="assets/demo/demo.js"></script>
    <script src="controllers/exam-attempt-report.js"></script>
-    <!-- Toaster Container -->
-    <div class="toaster-container">
-       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-          <div class="toaster-icon">
-             <i class="ti" ng-class="{
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-          </div>
-          <div class="toaster-content">
-             <div class="toaster-title">{{toaster.title}}</div>
-             <div class="toaster-message">{{toaster.message}}</div>
-          </div>
-          <button class="toaster-close" ng-click="removeToaster($index)">
-             <i class="ti ti-close"></i>
-          </button>
-       </div>
-    </div>
+         </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 

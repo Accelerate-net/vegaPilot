@@ -565,17 +565,17 @@
     </div>
 
     <!-- Create/Edit Test Series Modal -->
-    <div class="modal-backdrop" ng-class="{active: createModalOpen}">
-        <div class="modal-dialog" style="max-width: 1200px;">
-            <div class="modal-header">
+    <div class="crispr-modal-backdrop" ng-class="{active: createModalOpen}">
+        <div class="crispr-modal-dialog" style="max-width: 1200px;">
+            <div class="crispr-modal-header">
                 <h3>
                     <i class="ti ti-plus"></i> {{editMode ? 'Edit Test Series' : 'Create Test Series'}}
                 </h3>
-                <button class="modal-close" ng-click="closeCreateModal()">
+                <button class="crispr-modal-close" ng-click="closeCreateModal()">
                     <i class="ti ti-close"></i>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="crispr-modal-body">
                 <!-- Basic Information -->
                 <div class="form-section">
                     <div class="form-section-title">Basic Information</div>
@@ -718,7 +718,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="crispr-modal-footer">
                 <button class="btn btn-default" ng-click="closeCreateModal()">
                     <i class="ti ti-close"></i> Cancel
                 </button>
@@ -730,20 +730,20 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div class="modal-backdrop" ng-class="{active: confirmModalOpen}">
-        <div class="modal-dialog" style="max-width: 500px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+    <div class="crispr-modal-backdrop" ng-class="{active: confirmModalOpen}">
+        <div class="crispr-modal-dialog" style="max-width: 500px;">
+            <div class="crispr-modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                 <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
-                <button class="modal-close" ng-click="closeConfirmModal()">
+                <button class="crispr-modal-close" ng-click="closeConfirmModal()">
                     <i class="ti ti-close"></i>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="crispr-modal-body">
                 <p style="font-size: 15px; color: #495057; line-height: 1.6;">
                     {{confirmMessage}}
                 </p>
             </div>
-            <div class="modal-footer">
+            <div class="crispr-modal-footer">
                 <button class="btn btn-default" ng-click="closeConfirmModal()">Cancel</button>
                 <button class="btn btn-danger" ng-click="confirmAction()">
                     <i class="ti ti-trash"></i> Delete
