@@ -248,6 +248,20 @@ angular.module('questionBankApp', ['ngCookies'])
       $scope.modifyQuestionView = false;
     }
 
+    $scope.closeModifyView = function () {
+      $scope.createView = false;
+      $scope.modifyQuestionView = false;
+      $scope.modifyQuestionData = {}; // Clear data
+
+      // Clear URL param
+      const url = new URL(window.location);
+      url.searchParams.delete("modifyId");
+      window.history.pushState({}, '', url);
+
+      // Refresh list if needed (always good to refresh to ensure state)
+      $scope.listQuestions($scope.currentPage, $scope.maxResultsShown);
+    }
+
 
     $scope.currentQuestionSequence = 1;
     $scope.grandTotalQuestions = $scope.summaryTileData.total;

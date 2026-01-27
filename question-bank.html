@@ -104,6 +104,45 @@
       #wrapper {
          padding: 0 !important;
       }
+
+      /* Page Header Styling for Modify View */
+      .page-header-section {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 20px;
+         padding: 20px;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+         border-radius: 8px;
+         color: white;
+         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .page-header-section h2 {
+         margin: 0;
+         color: white;
+         font-size: 24px;
+         font-weight: 600;
+      }
+
+      .page-header-section p {
+         margin: 5px 0 0 0;
+         color: rgba(255, 255, 255, 0.9);
+         font-size: 14px;
+      }
+
+      .dashed-header-input::placeholder {
+         color: rgba(255, 255, 255, 0.7) !important;
+         opacity: 1;
+      }
+
+      .dashed-header-input::-webkit-input-placeholder {
+         color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      .dashed-header-input::-moz-placeholder {
+         color: rgba(255, 255, 255, 0.7) !important;
+      }
    </style>
 
 
@@ -1003,45 +1042,52 @@
 
 
                         <!-- EDITING QUESTION -->
-                        <div ng-show="modifyQuestionView" style="margin-top: -25px;">
-                           <!-- Question Details -->
-                           <div class="panel panel-default">
-                              <div class="panel-heading">
-                                 <h2>Modifying Question #<b style="font-size: 150%">{{modifyQuestionData.id}}</b>
+                        <div ng-show="modifyQuestionView">
+                           <!-- Question Details Header -->
+                           <div class="page-header-section">
+                              <div>
+                                 <h2 style="font-weight: 300; font-size: 21px; display: flex; align-items: center;">
+                                    Modifying Question #
+                                    <input type="tel" ng-model="customNumberUserInput" class="dashed-header-input"
+                                       ng-change="seekCustomQuestionNumber(customNumberUserInput)"
+                                       placeholder="{{modifyQuestionData.id}}"
+                                       style="background: transparent; border: none; border-bottom: 2px dashed rgba(255,255,255,0.5); color: white; width: 80px; text-align: center; outline: none; font-weight: bold; margin-left: 5px; font-size: 21px;">
                                  </h2>
-                                 <span style="float: right;">
-                                    <span ng-show="modifyQuestionData.id">
-                                       <span ng-click="removeChallengeOnQuestion(modifyQuestionData)"
-                                          class="verifiedQuestionIcon"
-                                          ng-class="{'verifiedQuestionIconRed':modifyQuestionData.challenged}"
-                                          title="Remove Challeged"><i class="ti ti-alert"></i></span>
-                                       <span ng-click="toggleVerifiedStatus(modifyQuestionData)"
-                                          class="verifiedQuestionIcon"
-                                          ng-class="{'verifiedQuestionIconGreen':modifyQuestionData.verified}"
-                                          title="Mark as Verified" style="margin-right: 20px"><i
-                                             class="ti ti-check"></i></span>
-                                    </span>
-
-                                    <div class="btn-group" style="position: relative; margin-left: 10px;">
-                                       <input type="tel" ng-model="customNumberUserInput" class="form-control"
-                                          style="width: 100px; position: relative; float: left; margin-right: 12px;"
-                                          ng-change="seekCustomQuestionNumber(customNumberUserInput);"
-                                          placeholder="QN Number">
-                                       <button ng-click="updateAutoSwitching()" class="btn btn-default"
-                                          ng-class="{'autoSwitchEnabled':autoSwitching}" title="Auto Switching"
-                                          style="margin-right: 5px"><i style="margin: 0;"
-                                             class="ti ti-infinite"></i></button>
-                                       <button ng-click="seekPreviousQuestion()"
-                                          ng-dblclick="seekCustomSequenceNumber(1)" type="button"
-                                          class="btn btn-default"><i style="margin: 0;"
-                                             class="ti ti-angle-left"></i></button>
-                                       <button type="button" class="btn btn-default" style="text-transform: none;">
-                                          {{currentQuestionSequence}} of {{grandTotalQuestions}} </button>
-                                       <button ng-click="seekNextQuestion()" type="button" class="btn btn-default"><i
-                                             style="margin: 0;" class="ti ti-angle-right"></i></button>
-                                    </div>
-                                 </span>
                               </div>
+                              <div style="display: flex; align-items: center; gap: 10px;">
+
+                                 <span ng-show="modifyQuestionData.id">
+                                    <button ng-click="removeChallengeOnQuestion(modifyQuestionData)"
+                                       class="verifiedQuestionIcon"
+                                       ng-class="{'verifiedQuestionIconRed':modifyQuestionData.challenged}"
+                                       title="Remove Challeged"
+                                       style="border: none; padding: 0; font-size: 20px; cursor: pointer; margin-right: 10px;"><i
+                                          class="ti ti-alert"></i></button>
+                                    <button ng-click="toggleVerifiedStatus(modifyQuestionData)"
+                                       class="verifiedQuestionIcon"
+                                       ng-class="{'verifiedQuestionIconGreen':modifyQuestionData.verified}"
+                                       title="Mark as Verified"
+                                       style="border: none; padding: 0; margin-right: 20px; font-size: 20px; cursor: pointer;"><i
+                                          class="ti ti-check"></i></button>
+                                 </span>
+
+                                 <div class="btn-group" style="position: relative; margin-left: 10px;">
+                                    <button ng-click="updateAutoSwitching()" class="btn btn-default"
+                                       ng-class="{'autoSwitchEnabled':autoSwitching}" title="Auto Switching"
+                                       style="margin-right: 5px"><i style="margin: 0;"
+                                          class="ti ti-infinite"></i></button>
+                                    <button ng-click="seekPreviousQuestion()" ng-dblclick="seekCustomSequenceNumber(1)"
+                                       type="button" class="btn btn-default"><i style="margin: 0;"
+                                          class="ti ti-angle-left"></i></button>
+                                    <button type="button" class="btn btn-default" style="text-transform: none;">
+                                       {{currentQuestionSequence}} of {{grandTotalQuestions}} </button>
+                                    <button ng-click="seekNextQuestion()" type="button" class="btn btn-default"><i
+                                          style="margin: 0;" class="ti ti-angle-right"></i></button>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div class="panel panel-default" style="border-top: none;">
                               <div class="panel-body">
 
                                  <p ng-show="!modifyQuestionData.id"
