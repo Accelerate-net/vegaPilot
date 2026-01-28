@@ -84,73 +84,132 @@
       }
    </style>
    <style>
-      /* Combined Exam Header Card */
+      /* Combined Exam Header Card - Compact Design */
       .exam-header-card {
          background: white;
          border-radius: 8px;
          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-         margin-bottom: 30px;
+         margin-bottom: 20px;
          overflow: hidden;
       }
 
       .exam-header-top {
          background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
-         padding: 25px;
+         padding: 15px 20px;
          color: white;
          display: flex;
          justify-content: space-between;
-         align-items: flex-start;
+         align-items: center;
+         flex-wrap: wrap;
+         gap: 15px;
+      }
+
+      .exam-header-main {
+         flex: 2;
+         /* Takes more space */
+         min-width: 200px;
+         padding-right: 20px;
+         border-right: 1px solid rgba(255, 255, 255, 0.15);
+         margin-right: 20px;
       }
 
       .exam-header-top h2 {
-         margin: 0 0 8px 0;
-         font-size: 24px;
+         margin: 0 0 4px 0;
+         font-size: 20px;
          font-weight: 600;
+         display: flex;
+         align-items: center;
+         color: #fff;
       }
 
       .exam-header-top h2 i {
-         margin-right: 10px;
+         margin-right: 8px;
          opacity: 0.9;
+         font-size: 18px;
       }
 
       .exam-header-top .exam-description {
          margin: 0;
-         opacity: 0.9;
-         font-size: 14px;
+         opacity: 0.85;
+         font-size: 13px;
+         display: flex;
+         align-items: center;
+         gap: 5px;
       }
 
-      .exam-header-body {
-         padding: 25px;
-         background: #f8f9fa;
+      /* Compact Info Grid in Header - Redesigned */
+      .header-info-group {
+         display: flex;
+         gap: 12px;
+         flex: 3;
+         align-items: center;
+         flex-wrap: wrap;
       }
 
-      .exam-info-grid {
-         display: grid;
-         grid-template-columns: repeat(4, 1fr);
-         gap: 20px;
+      .header-info-item {
+         display: flex;
+         align-items: center;
+         padding: 8px 12px;
+         background: rgba(255, 255, 255, 0.1);
+         border-radius: 8px;
+         border: 1px solid rgba(255, 255, 255, 0.1);
+         backdrop-filter: blur(5px);
+         transition: background 0.2s;
+         min-width: 100px;
       }
 
-      .info-item {
+      .header-info-item:hover {
+         background: rgba(255, 255, 255, 0.2);
+         border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .header-info-icon {
+         font-size: 18px;
+         margin-right: 10px;
+         height: 32px;
+         width: 32px;
+         border-radius: 6px;
+         background: rgba(255, 255, 255, 0.15);
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         color: white;
+      }
+
+      .header-info-content {
          display: flex;
          flex-direction: column;
       }
 
-      .info-label {
-         font-size: 11px;
-         color: #6c757d;
+      .header-info-label {
+         font-size: 10px;
          text-transform: uppercase;
+         opacity: 0.7;
+         margin-bottom: 2px;
          font-weight: 600;
-         margin-bottom: 5px;
          letter-spacing: 0.5px;
+         color: white;
+         line-height: 1;
       }
 
-      .info-value {
-         font-size: 16px;
-         color: #333;
-         font-weight: 600;
+      .header-info-value {
+         font-size: 14px;
+         font-weight: 700;
+         color: white;
+         line-height: 1.2;
       }
 
-      /* Stats Cards */
+      .exam-header-actions {
+         flex: 0 0 auto;
+         margin-left: auto;
+      }
+
+      .exam-header-body {
+         padding: 15px 20px;
+         background: #f8f9fa;
+      }
+
+      /* Stats Cards - Compact */
       .stats-row {
          display: grid;
          grid-template-columns: repeat(4, 1fr);
@@ -159,7 +218,7 @@
 
       .stat-card {
          background: white;
-         padding: 15px;
+         padding: 12px 15px;
          border-radius: 8px;
          border: 1px solid #e9ecef;
          display: flex;
@@ -171,17 +230,20 @@
       .stat-card:hover {
          border-color: #006073;
          background: #f0f8fa;
+         transform: translateY(-2px);
+         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
 
       .stat-icon {
-         width: 50px;
-         height: 50px;
+         width: 42px;
+         height: 42px;
          border-radius: 50%;
          display: flex;
          align-items: center;
          justify-content: center;
-         font-size: 24px;
+         font-size: 20px;
          color: white;
+         flex-shrink: 0;
       }
 
       .stat-icon.indigo {
@@ -202,15 +264,19 @@
 
       .stat-info h3 {
          margin: 0;
-         font-size: 28px;
+         font-size: 20px;
          font-weight: 700;
          color: #333;
+         line-height: 1.1;
       }
 
       .stat-info p {
-         margin: 0;
-         font-size: 13px;
+         margin: 2px 0 0 0;
+         font-size: 11px;
          color: #666;
+         font-weight: 500;
+         text-transform: uppercase;
+         letter-spacing: 0.3px;
       }
 
       /* Search and Filter Bar */
@@ -809,45 +875,60 @@
                      <!-- Combined Exam Header Card -->
                      <div class="exam-header-card">
                         <div class="exam-header-top">
-                           <div>
+                           <div class="exam-header-main">
                               <h2><i class="ti ti-bar-chart"></i> {{exam.title}}</h2>
-                              <p class="exam-description">{{exam.brief}}</p>
+                              <p class="exam-description" style="margin-bottom: 8px;">{{exam.brief}}</p>
                               <!-- Sections Info -->
-                              <div ng-if="exam.sectionsData"
-                                 style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;">
+                              <div ng-if="exam.sectionsData" style="display: flex; flex-wrap: wrap; gap: 6px;">
                                  <span ng-repeat="section in exam.sectionsData" class="section-badge"
                                     style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
                                     {{section.name}}
                                  </span>
                               </div>
                            </div>
-                           <a href="exam-listing.html" class="btn btn-light"
-                              style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                              <i class="ti ti-arrow-left"></i> Back to Exams
-                           </a>
-                        </div>
-                        <div class="exam-header-body">
-                           <!-- Exam Info Row -->
-                           <div class="exam-info-grid"
-                              style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e9ecef;">
-                              <div class="info-item">
-                                 <div class="info-label">Questions</div>
-                                 <div class="info-value">{{exam.totalQuestions}}</div>
+
+                           <div class="header-info-group">
+                              <div class="header-info-item">
+                                 <div class="header-info-icon"><i class="ti ti-help-alt"></i></div>
+                                 <div class="header-info-content">
+                                    <div class="header-info-label">Questions</div>
+                                    <div class="header-info-value">{{exam.totalQuestions}}</div>
+                                 </div>
                               </div>
-                              <div class="info-item">
-                                 <div class="info-label">Duration</div>
-                                 <div class="info-value">{{exam.duration}} min</div>
+                              <div class="header-info-item">
+                                 <div class="header-info-icon"><i class="ti ti-timer"></i></div>
+                                 <div class="header-info-content">
+                                    <div class="header-info-label">Duration</div>
+                                    <div class="header-info-value">{{exam.duration}} min</div>
+                                 </div>
                               </div>
-                              <div class="info-item">
-                                 <div class="info-label">Sections</div>
-                                 <div class="info-value">{{exam.numberOfSections}}</div>
+                              <div class="header-info-item">
+                                 <div class="header-info-icon"><i class="ti ti-view-list"></i></div>
+                                 <div class="header-info-content">
+                                    <div class="header-info-label">Sections</div>
+                                    <div class="header-info-value">{{exam.numberOfSections}}</div>
+                                 </div>
                               </div>
-                              <div class="info-item">
-                                 <div class="info-label">Status</div>
-                                 <div class="info-value" style="text-transform: capitalize;">
-                                    {{getStatusLabel(exam.status)}}</div>
+                              <div class="header-info-item">
+                                 <div class="header-info-icon"><i class="ti ti-info-alt"></i></div>
+                                 <div class="header-info-content">
+                                    <div class="header-info-label">Status</div>
+                                    <div class="header-info-value" style="text-transform: capitalize;">
+                                       {{getStatusLabel(exam.status)}}
+                                    </div>
+                                 </div>
                               </div>
                            </div>
+
+                           <div class="exam-header-actions">
+                              <a href="exam-listing.html" class="btn btn-sm btn-light"
+                                 style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 13px; font-weight: 600;">
+                                 <i class="ti ti-arrow-left"></i> Back
+                              </a>
+                           </div>
+                        </div>
+
+                        <div class="exam-header-body">
                            <!-- Statistics Row -->
                            <div class="stats-row">
                               <div class="stat-card">
