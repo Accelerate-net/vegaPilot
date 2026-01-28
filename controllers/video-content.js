@@ -1729,10 +1729,216 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
         });
     };
 
+    // Link New Video Logic
+    $scope.onSubjectChange = function () {
+        var subject = $scope.newVideo.classificationLevel1;
+        $scope.availableChapters = [];
+        if (!subject) return;
+
+        // Dummy chapters data
+        var chaptersDB = {
+            'Biology': [
+                { id: '1B01', name: 'Ch 1: The Living World' },
+                { id: '1B02', name: 'Ch 2: Biological Classification' }
+            ],
+            'Chemistry': [
+                { id: '1C01', name: 'Ch 1: Basic Concepts' },
+                { id: '1C04', name: 'Ch 4: Chemical Bonding' }
+            ],
+            'Physics': [
+                { id: '1P05', name: 'Ch 5: Laws of Motion' },
+                { id: '2P09', name: 'Ch 9: Ray Optics' }
+            ],
+            'Mathematics': [
+                { id: '1M13', name: 'Ch 13: Limits & Derivatives' },
+                { id: '2M07', name: 'Ch 7: Integrals' }
+            ]
+        };
+
+        $scope.availableChapters = chaptersDB[subject] || [];
+        $scope.newVideo.classificationLevel2 = ''; // Reset chapter selection
+    };
+
+    $scope.videosInSelectedCollection = [];
+    $scope.loadingVideosInCollection = false;
+
+    $scope.onCollectionSelect = function () {
+        // Reset rows when collection changes
+        $scope.videoItems = [{ targetVideoId: '', titleName: '' }];
+        $scope.videosInSelectedCollection = [];
+
+        if (!$scope.newVideo.collectionName) {
+            return;
+        }
+
+        $scope.loadingVideosInCollection = true;
+
+        // Simulate API call to fetch videos in folder
+        $timeout(function () {
+            // Generate dummy videos for the selected folder
+            $scope.videosInSelectedCollection = [
+                { guid: 'vid-' + Math.floor(Math.random() * 10000), title: 'Lecture 1: Introduction', length: 1800 },
+                { guid: 'vid-' + Math.floor(Math.random() * 10000), title: 'Lecture 2: Advanced Concepts', length: 2400 },
+                { guid: 'vid-' + Math.floor(Math.random() * 10000), title: 'Problem Solving Session', length: 1200 },
+                { guid: 'vid-' + Math.floor(Math.random() * 10000), title: 'Exam Review', length: 3600 },
+                { guid: 'vid-' + Math.floor(Math.random() * 10000), title: 'Lab Demonstration', length: 900 }
+            ];
+            $scope.loadingVideosInCollection = false;
+        }, 800);
+    };
+
+    $scope.videoItems = [];
+
+    $scope.addVideoRow = function () {
+        // Find next available video
+        var availableVid = $scope.videosInSelectedCollection.find(function (vid) {
+            return !$scope.videoItems.some(function (item) { return item.targetVideoId === vid.guid; });
+        });
+
+        var newItem = { targetVideoId: '', titleName: '' };
+
+        if (availableVid) {
+            newItem.targetVideoId = availableVid.guid;
+            newItem.titleName = availableVid.title;
+        }
+
+        $scope.videoItems.push(newItem);
+
+        // Focus the new title input after render
+        $timeout(function () {
+            var inputs = document.querySelectorAll('.video-row-title');
+            if (inputs.length > 0) {
+                var input = inputs[inputs.length - 1];
+                input.focus();
+                input.select();
+            }
+        });
+    };
+
+    $scope.removeVideoRow = function (index) {
+        $scope.videoItems.splice(index, 1);
+    };
+
+    // Filter available videos for dropdown (exclude already selected)
+    $scope.getAvailableVideos = function (currentItem) {
+        return $scope.videosInSelectedCollection.filter(function (vid) {
+            // Include if it's the current item's selection OR if it's not selected by any other item
+            return vid.guid === currentItem.targetVideoId ||
+                !$scope.videoItems.some(function (item) { return item.targetVideoId === vid.guid; });
+        });
+    };
+
+    $scope.onVideoSelect = function (item, index) {
+        // Auto-fill title from selected video
+        if (item.targetVideoId) {
+            var selectedVid = $scope.videosInSelectedCollection.find(function (v) { return v.guid === item.targetVideoId; });
+            if (selectedVid) {
+                item.titleName = selectedVid.title;
+            }
+        }
+
+        // Focus and select title input
+        $timeout(function () {
+            // We need to target specific row input
+            var inputId = 'video-title-' + index;
+            var element = document.getElementById(inputId);
+            if (element) {
+                element.focus();
+                element.select();
+            }
+        });
+    };
+
+    $scope.isLinkFormComplete = function () {
+        var baseValid = $scope.newVideo.classificationLevel1 &&
+            $scope.newVideo.classificationLevel2 &&
+            $scope.newVideo.instructorId &&
+            $scope.newVideo.collectionName;
+
+        if (!baseValid) return false;
+        if ($scope.videoItems.length === 0) return false;
+
+        // Check if all rows are valid
+        return $scope.videoItems.every(function (item) {
+            return item.targetVideoId && item.titleName;
+        });
+    };
+
+    $scope.linkVideo = function () {
+        // 1. Construct the requested payload
+        var chapterObj = $scope.availableChapters.find(function (c) { return c.id === $scope.newVideo.classificationLevel2; });
+        var instructorObj = $scope.availableInstructors.find(function (i) { return i.id === $scope.newVideo.instructorId; });
+
+        var payload = {
+            "subject": $scope.newVideo.classificationLevel1,
+            "chapter": chapterObj ? chapterObj.name : $scope.newVideo.classificationLevel2,
+            "instructor": instructorObj ? instructorObj.name : $scope.newVideo.instructorId,
+            "videos": $scope.videoItems.map(function (item) {
+                return {
+                    "id": item.targetVideoId,
+                    "title": item.titleName
+                };
+            })
+        };
+
+        // Log the output as requested
+        console.log("Expected Output:", JSON.stringify(payload, null, 4));
+
+        // 2. Perform the UI update (internal logic to show rows in table)
+        var successCount = 0;
+        $scope.videoItems.forEach(function (item) {
+            if (!item.targetVideoId || !item.titleName) return;
+
+            var linkedVideo = {
+                videoId: $scope.generateUUID(),
+                titleName: item.titleName,
+                videoDisplayKey: 'LNK-' + Math.floor(Math.random() * 1000),
+                durationInSeconds: 0,
+                status: 1,
+                classificationLevel1: $scope.newVideo.classificationLevel1,
+                classificationLevel2: $scope.newVideo.classificationLevel2,
+                instructorId: $scope.newVideo.instructorId,
+                thumbnail: 'assets/img/video-placeholder.png',
+                collectionName: $scope.newVideo.collectionName
+            };
+
+            // Find duration
+            var selectedVid = $scope.videosInSelectedCollection.find(function (v) { return v.guid === item.targetVideoId; });
+            if (selectedVid) linkedVideo.durationInSeconds = selectedVid.length;
+
+            $scope.listData.unshift(linkedVideo);
+            successCount++;
+        });
+
+        $scope.applyFilters();
+        $scope.showToaster(successCount + ' videos linked successfully!', 'success');
+        $scope.cancelUpload(); // Close modal
+    };
+
+    $scope.resetNewVideo = function () {
+        $scope.newVideo = {
+            classificationLevel1: '',
+            classificationLevel2: '',
+            instructorId: '',
+            collectionName: ''
+        };
+        // Initialize with one empty row
+        $scope.videoItems = [{ targetVideoId: '', titleName: '' }];
+        $scope.videosInSelectedCollection = [];
+    };
+
+
     $scope.loadDummyData = function () {
         $scope.availableInstructors = [
             { id: 'inst001', name: 'Teacher 1' },
             { id: 'inst002', name: 'Teacher 2' }
+        ];
+
+        // Dummy Collections
+        $scope.bunnyCollections = [
+            { name: 'Biology_Lectures', videoCount: 15 },
+            { name: 'Physics_Mechanics', videoCount: 8 },
+            { name: 'Chem_Organic', videoCount: 12 }
         ];
 
         $scope.listData = [

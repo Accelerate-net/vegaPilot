@@ -20,6 +20,7 @@
    <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
    <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
    <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
    <!-- Core CSS with all styles -->
    <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
    <!-- Code Prettifier -->
@@ -1727,10 +1728,10 @@
          <li style="display: flex; align-items: center; margin-right: 10px;">
             <button class="btn"
                style="background: #ffb706; color: #006073; border: none; font-weight: 600; padding: 10px 20px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease; white-space: nowrap; margin-top: 7px;"
-               ng-click="createView = true" ng-hide="createView"
+               data-toggle="modal" data-target="#linkVideoModal" ng-hide="createView" ng-click="resetNewVideo()"
                onmouseover="this.style.background='#ffa500'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(255, 183, 6, 0.3)'"
                onmouseout="this.style.background='#ffb706'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-               <i class="ti ti-cloud-up"></i> Upload New Video
+               <i class="ti ti-plus"></i> Add New
             </button>
          </li>
          <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
@@ -1872,7 +1873,26 @@
                                              2: Biological Classification</a></li>
                                     </ul>
                                  </div>
-                                 
+
+                                 <!-- Instructor Filter -->
+                                 <div class="filter-dropdown dropdown" style="margin-right: 10px;">
+                                    <button class="filter-dropdown-btn dropdown-toggle" type="button"
+                                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                       <span>{{getInstructorName(videoFilters.instructorId) || 'All
+                                          Instructors'}}</span>
+                                       <i class="ti ti-angle-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                       <li><a href="#"
+                                             ng-click="videoFilters.instructorId = ''; applyFilters(); $event.preventDefault()">All
+                                             Instructors</a></li>
+                                       <li ng-repeat="instructor in availableInstructors">
+                                          <a href="#"
+                                             ng-click="videoFilters.instructorId = instructor.id; applyFilters(); $event.preventDefault()">{{instructor.name}}</a>
+                                       </li>
+                                    </ul>
+                                 </div>
+
                               </div>
 
                               <!-- Actions Row removed as it's merged into filter bar -->
@@ -1932,7 +1952,8 @@
                                           ng-click="openVideo(videoData)">
                                           <td>
                                              <img ng-src="{{videoData.thumbnail || 'assets/img/video-placeholder.png'}}"
-                                                class="video-thumbnail" alt="Video thumbnail">
+                                                class="video-thumbnail" alt="Video thumbnail"
+                                                onerror="this.onerror=null;this.src='assets/img/video-placeholder.png';">
                                           </td>
                                           <td>
                                              <div class="profile-name">{{videoData.titleName}}</div>
@@ -2016,419 +2037,325 @@
                                  </div>
                               </div>
                            </div>
+                        </div>
+                     </div>
 
-                           <!-- Video Upload/Edit Window -->
-                           <div data-widget-group="video-window" ng-show="createView">
+                     <!-- Video Upload/Edit Window -->
+                     <div data-widget-group="video-window" ng-show="createView">
 
-                              <!-- ADDING NEW VIDEO -->
-                              <div ng-show="!modifyVideoView">
-                                 <div class="panel panel-primary">
-                                    <div class="panel-heading">
-                                       <h2><i class="ti ti-plus"></i> Upload New Video
-                                          <span style="float: right;">
-                                             <button type="button" class="btn btn-default" ng-click="cancelUpload()">
-                                                <i class="ti ti-close"></i> Close
+
+
+                        <!-- EDITING VIDEO MODAL -->
+                        <div class="crispr-modal-backdrop" ng-class="{active: modifyVideoView}">
+                           <div class="crispr-modal-dialog" style="max-width: 960px;">
+                              <div class="crispr-modal-header">
+                                 <h3><i class="ti ti-pencil"></i> Edit Video #{{modifyVideoData.videoId}}</h3>
+                                 <button class="crispr-modal-close" ng-click="goBackToList()">
+                                    <i class="ti ti-close"></i>
+                                 </button>
+                              </div>
+                              <div class="crispr-modal-body" style="padding: 25px;">
+                                 <div class="row">
+                                    <div class="col-md-8">
+                                       <div
+                                          style="background: #000; border-radius: 8px; overflow: hidden; height: 0; padding-bottom: 56.25%; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                          <iframe ng-src="{{getBunnyEmbedUrl(modifyVideoData.videoId)}}" loading="lazy"
+                                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                                             allowfullscreen="true">
+                                          </iframe>
+                                       </div>
+
+                                       <div
+                                          style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                          <div class="row">
+                                             <div class="col-md-6">
+                                                <p style="margin-bottom: 8px; font-size: 14px; color: #334155;">
+                                                   <strong>Video ID:</strong> <span
+                                                      style="font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">{{modifyVideoData.videoId}}</span>
+                                                </p>
+                                                <p style="margin-bottom: 8px; font-size: 14px; color: #334155;">
+                                                   <strong>Collection:</strong> {{modifyVideoData.collectionName ||
+                                                   'N/A'}}
+                                                </p>
+                                             </div>
+                                             <div class="col-md-6">
+                                                <p style="margin-bottom: 8px; font-size: 14px; color: #334155;">
+                                                   <strong>Duration:</strong>
+                                                   {{formatDuration(modifyVideoData.durationInSeconds)}}
+                                                </p>
+                                                <p style="margin-bottom: 8px; font-size: 14px; color: #334155;">
+                                                   <strong>Key:</strong> <span
+                                                      style="font-family: monospace; font-size: 12px;">{{modifyVideoData.videoDisplayKey}}</span>
+                                                </p>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                       <div class="form-section"
+                                          style="background: white; border: none; padding: 0; margin: 0;">
+                                          <div class="form-group">
+                                             <label>Title Name</label>
+                                             <input type="text" class="form-control"
+                                                ng-model="modifyVideoData.titleName" maxlength="80"
+                                                placeholder="Enter video title">
+                                          </div>
+
+                                          <div class="form-group">
+                                             <label>Level 1 (Subject)</label>
+                                             <select class="form-control"
+                                                ng-model="modifyVideoData.classificationLevel1">
+                                                <option value="">Select Level 1</option>
+                                                <option value="Biology">Biology</option>
+                                                <option value="Chemistry">Chemistry</option>
+                                                <option value="Physics">Physics</option>
+                                                <option value="Mathematics">Mathematics</option>
+                                             </select>
+                                          </div>
+
+                                          <div class="form-group">
+                                             <label>Level 2 (Chapter)</label>
+                                             <select class="form-control"
+                                                ng-model="modifyVideoData.classificationLevel2">
+                                                <option value="">Select Level 2</option>
+                                                <option ng-repeat="chapter in availableChapters" value="{{chapter.id}}">
+                                                   {{chapter.name}}
+                                                </option>
+                                             </select>
+                                          </div>
+
+                                          <div class="form-group">
+                                             <label>Instructor</label>
+                                             <select class="form-control" ng-model="modifyVideoData.instructorId">
+                                                <option value="">Select Instructor</option>
+                                                <option ng-repeat="instr in availableInstructors" value="{{instr.id}}">
+                                                   {{instr.name}}
+                                                </option>
+                                             </select>
+                                          </div>
+
+                                          <div style="margin-top: 25px;">
+                                             <button type="button" class="btn btn-success btn-block"
+                                                ng-click="saveVideoChanges()" style="padding: 10px; font-weight: 600;">
+                                                <i class="ti ti-save"></i> Save Changes
                                              </button>
-                                          </span>
-                                       </h2>
-                                    </div>
-
-                                    <div class="panel-body">
-                                       <!-- Upload Progress -->
-                                       <div ng-if="uploadInProgress" class="alert alert-info">
-                                          <strong>Uploading... {{uploadProgress}}%</strong>
-                                          <div class="progress" style="margin-top: 10px;">
-                                             <div class="progress-bar progress-bar-striped active" role="progressbar"
-                                                ng-style="{'width': uploadProgress + '%'}"></div>
-                                          </div>
-                                       </div>
-
-                                       <!-- Error Display -->
-                                       <div ng-if="uploadStatus && uploadStatus.type === 'error'"
-                                          class="alert alert-danger">
-                                          <strong>Error!</strong> {{uploadStatus.message}}
-                                       </div>
-
-                                       <form class="form-horizontal" enctype="multipart/form-data">
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Video File</label>
-                                             <div class="col-sm-10">
-                                                <input type="file" id="videoFile" accept="video/*"
-                                                   onchange="angular.element(this).scope().onVideoFileSelect(event)"
-                                                   ng-disabled="uploadInProgress">
-                                                <p ng-if="newVideo.file" class="help-block">
-                                                   <strong>{{newVideo.file.name}}</strong> ({{(newVideo.file.size /
-                                                   (1024*1024)).toFixed(2)}} MB)
-                                                </p>
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Title</label>
-                                             <div class="col-sm-10">
-                                                <input type="text" class="form-control" ng-model="newVideo.titleName"
-                                                   placeholder="Enter video title" maxlength="80"
-                                                   ng-disabled="uploadInProgress">
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Number Code</label>
-                                             <div class="col-sm-10">
-                                                <input type="number" class="form-control" ng-model="newVideo.titleCode"
-                                                   placeholder="Index or Part Number" ng-disabled="uploadInProgress">
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Cloud Folder</label>
-                                             <div class="col-sm-10">
-                                                <div class="input-group">
-                                                   <select class="form-control" ng-model="newVideo.collectionName"
-                                                      ng-change="onCollectionChange()" ng-disabled="uploadInProgress">
-                                                      <option value="">Select folder</option>
-                                                      <option ng-repeat="collection in bunnyCollections"
-                                                         value="{{collection.name}}">
-                                                         {{collection.name}} ({{collection.videoCount}} videos)
-                                                      </option>
-                                                      <option value="__custom__">+ Create New</option>
-                                                   </select>
-                                                   <span class="input-group-btn">
-                                                      <button type="button" class="btn btn-default"
-                                                         ng-click="refreshCollections()"
-                                                         ng-disabled="loadingCollections || uploadInProgress">
-                                                         <i class="fa fa-refresh"
-                                                            ng-class="{'fa-spin': loadingCollections}"></i>
-                                                      </button>
-                                                   </span>
-                                                </div>
-                                                <p ng-if="loadingCollections" class="help-block">Loading folders...</p>
-                                                <p ng-if="!loadingCollections && bunnyCollections.length > 0"
-                                                   class="help-block text-success">
-                                                   {{bunnyCollections.length}} folders available
-                                                </p>
-                                             </div>
-                                          </div>
-
-                                          <div ng-if="newVideo.collectionName === '__custom__'" class="form-group">
-                                             <label class="col-sm-2 control-label">New Folder Name</label>
-                                             <div class="col-sm-10">
-                                                <div class="input-group">
-                                                   <input type="text" class="form-control"
-                                                      ng-model="newVideo.customCollectionName"
-                                                      placeholder="Enter folder name" maxlength="50"
-                                                      ng-disabled="uploadInProgress">
-                                                   <span class="input-group-btn">
-                                                      <button type="button" class="btn btn-success"
-                                                         ng-click="createCollection()"
-                                                         ng-disabled="!newVideo.customCollectionName || creatingCollection || uploadInProgress">
-                                                         <i class="ti ti-plus"></i> Create
-                                                      </button>
-                                                   </span>
-                                                </div>
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Classification Level 1</label>
-                                             <div class="col-sm-10">
-                                                <select class="form-control" ng-model="newVideo.classificationLevel1"
-                                                   ng-disabled="uploadInProgress">
-                                                   <option value="">Select Level 1</option>
-                                                   <option value="1">Level 1 - Beginner</option>
-                                                   <option value="2">Level 2 - Intermediate</option>
-                                                   <option value="3">Level 3 - Advanced</option>
-                                                   <option value="4">Level 4 - Expert</option>
-                                                   <option value="5">Level 5 - Master</option>
-                                                </select>
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <label class="col-sm-2 control-label">Classification Level 2</label>
-                                             <div class="col-sm-10">
-                                                <select class="form-control" ng-model="newVideo.classificationLevel2"
-                                                   ng-disabled="uploadInProgress">
-                                                   <option value="">Select Level 2</option>
-                                                   <option value="1">Level 1 - Basic</option>
-                                                   <option value="2">Level 2 - Standard</option>
-                                                   <option value="3">Level 3 - Enhanced</option>
-                                                   <option value="4">Level 4 - Premium</option>
-                                                   <option value="5">Level 5 - Elite</option>
-                                                </select>
-                                             </div>
-                                          </div>
-
-                                          <div class="form-group">
-                                             <div class="col-sm-offset-2 col-sm-10">
-                                                <button type="button" class="btn btn-primary btn-lg"
-                                                   ng-click="uploadVideo()"
-                                                   ng-disabled="!isFormComplete() || uploadInProgress">
-                                                   <i class="ti ti-cloud-up" ng-if="!uploadInProgress"></i>
-                                                   <i class="fa fa-spinner fa-spin" ng-if="uploadInProgress"></i>
-                                                   <span ng-if="!uploadInProgress">Upload to Cloud</span>
-                                                   <span ng-if="uploadInProgress">Uploading...
-                                                      {{uploadProgress}}%</span>
-                                                </button>
-                                             </div>
-                                          </div>
-                                       </form>
-                                    </div>
-                                 </div>
-                              </div>
-
-                              <!-- EDITING VIDEO -->
-                              <div ng-show="modifyVideoView" style="margin-top: -25px;">
-                                 <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                       <h2><i class="ti ti-pencil"></i> Editing Video #<b
-                                             style="font-size: 150%">{{modifyVideoData.videoId}}</b></h2>
-                                       <span style="float: right;">
-                                          <button type="button" class="btn btn-default" ng-click="goBackToList()">
-                                             <i class="ti ti-arrow-left"></i> Back to List
-                                          </button>
-                                       </span>
-                                    </div>
-                                    <div class="panel-body">
-                                       <p ng-show="!modifyVideoData.videoId"
-                                          style="margin: 80px; text-align: center; font-size: 18px; color: #c6c6c6;">No
-                                          valid
-                                          video found.</p>
-
-                                       <div class="row" ng-show="modifyVideoData.videoId">
-                                          <div class="col-md-8">
-                                             <div class="panel panel-info">
-                                                <div class="panel-heading">
-                                                   <h3><i class="ti ti-video-camera"></i> Video Preview</h3>
-                                                </div>
-                                                <div class="panel-body">
-                                                   <div
-                                                      style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-radius: 8px;">
-                                                      <iframe ng-src="{{getBunnyEmbedUrl(modifyVideoData.videoId)}}"
-                                                         loading="lazy"
-                                                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
-                                                         allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                                                         allowfullscreen="true">
-                                                      </iframe>
-                                                   </div>
-                                                   <div
-                                                      style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                                      <div class="row">
-                                                         <div class="col-md-6">
-                                                            <p style="margin: 0 0 8px 0;"><strong><i
-                                                                     class="ti ti-hash"></i>
-                                                                  Video ID:</strong> {{modifyVideoData.videoId}}</p>
-                                                            <p style="margin: 0 0 8px 0;"><strong><i
-                                                                     class="ti ti-key"></i>
-                                                                  Display Key:</strong>
-                                                               {{modifyVideoData.videoDisplayKey}}
-                                                            </p>
-                                                         </div>
-                                                         <div class="col-md-6">
-                                                            <p style="margin: 0 0 8px 0;"
-                                                               ng-if="modifyVideoData.durationInSeconds"><strong><i
-                                                                     class="ti ti-time"></i> Duration:</strong>
-                                                               {{formatDuration(modifyVideoData.durationInSeconds)}}</p>
-                                                            <p style="margin: 0 0 8px 0;"
-                                                               ng-if="modifyVideoData.collectionName"><strong><i
-                                                                     class="ti ti-folder"></i> Collection:</strong>
-                                                               {{modifyVideoData.collectionName}}</p>
-                                                         </div>
-                                                      </div>
-                                                   </div>
-                                                </div>
-                                             </div>
-                                          </div>
-
-                                          <div class="col-md-4">
-                                             <div class="panel panel-info">
-                                                <div class="panel-heading"
-                                                   style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border: none;">
-                                                   <h3
-                                                      style="color: white; margin: 0; font-size: 18px; font-weight: 600;">
-                                                      <i class="ti ti-settings"></i> Video Details
-                                                   </h3>
-                                                </div>
-                                                <div class="panel-body" style="padding: 25px;">
-                                                   <form>
-                                                      <div class="form-group" style="margin-bottom: 20px;">
-                                                         <label class="control-label"
-                                                            style="font-weight: 600; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                                            <i class="ti ti-text" style="color: #17a2b8;"></i>
-                                                            Title Name
-                                                         </label>
-                                                         <input type="text" class="form-control"
-                                                            ng-model="modifyVideoData.titleName" maxlength="80"
-                                                            placeholder="Enter video title"
-                                                            style="border-radius: 8px; border: 2px solid #e9ecef; padding: 10px 15px; transition: all 0.3s ease;"
-                                                            onfocus="this.style.borderColor='#17a2b8'; this.style.boxShadow='0 0 0 3px rgba(23, 162, 184, 0.1)'"
-                                                            onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
-                                                      </div>
-
-                                                      <div class="form-group" style="margin-bottom: 20px;">
-                                                         <label class="control-label"
-                                                            style="font-weight: 600; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                                            <i class="ti ti-hash" style="color: #17a2b8;"></i>
-                                                            Number Code
-                                                         </label>
-                                                         <input type="number" class="form-control"
-                                                            ng-model="modifyVideoData.titleCode"
-                                                            placeholder="Index or part number"
-                                                            style="border-radius: 8px; border: 2px solid #e9ecef; padding: 10px 15px; transition: all 0.3s ease;"
-                                                            onfocus="this.style.borderColor='#17a2b8'; this.style.boxShadow='0 0 0 3px rgba(23, 162, 184, 0.1)'"
-                                                            onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
-                                                      </div>
-
-                                                      <div class="form-group" style="margin-bottom: 20px;">
-                                                         <label class="control-label"
-                                                            style="font-weight: 600; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                                            <i class="ti ti-star" style="color: #17a2b8;"></i>
-                                                            Classification Level 1
-                                                         </label>
-                                                         <select class="form-control"
-                                                            ng-model="modifyVideoData.classificationLevel1"
-                                                            style="border-radius: 8px; border: 2px solid #e9ecef; padding: 10px 15px; transition: all 0.3s ease; background: white; cursor: pointer;"
-                                                            onfocus="this.style.borderColor='#17a2b8'; this.style.boxShadow='0 0 0 3px rgba(23, 162, 184, 0.1)'"
-                                                            onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
-                                                            <option value="">Select Level 1</option>
-                                                            <option value="1">Level 1 - Beginner</option>
-                                                            <option value="2">Level 2 - Intermediate</option>
-                                                            <option value="3">Level 3 - Advanced</option>
-                                                            <option value="4">Level 4 - Expert</option>
-                                                            <option value="5">Level 5 - Master</option>
-                                                         </select>
-                                                      </div>
-
-                                                      <div class="form-group" style="margin-bottom: 25px;">
-                                                         <label class="control-label"
-                                                            style="font-weight: 600; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                                                            <i class="ti ti-bookmark-alt" style="color: #17a2b8;"></i>
-                                                            Classification Level 2
-                                                         </label>
-                                                         <select class="form-control"
-                                                            ng-model="modifyVideoData.classificationLevel2"
-                                                            style="border-radius: 8px; border: 2px solid #e9ecef; padding: 10px 15px; transition: all 0.3s ease; background: white; cursor: pointer;"
-                                                            onfocus="this.style.borderColor='#17a2b8'; this.style.boxShadow='0 0 0 3px rgba(23, 162, 184, 0.1)'"
-                                                            onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'">
-                                                            <option value="">Select Level 2</option>
-                                                            <option value="1">Level 1 - Basic</option>
-                                                            <option value="2">Level 2 - Standard</option>
-                                                            <option value="3">Level 3 - Enhanced</option>
-                                                            <option value="4">Level 4 - Premium</option>
-                                                            <option value="5">Level 5 - Elite</option>
-                                                         </select>
-                                                      </div>
-
-                                                      <div
-                                                         style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                                                         <button type="button" class="btn btn-block"
-                                                            ng-click="saveVideoChanges()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                                                                  border: none;
-                                                                  color: white;
-                                                                  padding: 12px 20px;
-                                                                  border-radius: 8px;
-                                                                  font-weight: 600;
-                                                                  font-size: 16px;
-                                                                  transition: all 0.3s ease;
-                                                                  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);"
-                                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)'"
-                                                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.3)'">
-                                                            <i class="ti ti-save"
-                                                               style="margin-right: 8px; font-size: 18px;"></i> Save
-                                                            Changes
-                                                         </button>
-                                                      </div>
-                                                   </form>
-                                                </div>
-                                             </div>
                                           </div>
                                        </div>
                                     </div>
                                  </div>
                               </div>
-
                            </div>
+                        </div>
 
-                        </div> <!-- .container-fluid -->
-                     </div> <!-- #page-content -->
-                  </div>
-               </div>
+                     </div>
+
+                  </div> <!-- .container-fluid -->
+               </div> <!-- #page-content -->
             </div>
          </div>
+      </div>
+   </div>
 
-         <div ng-show="toasterVisible" class="appToaster"
-            ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}"
-            ng-bind-html="toasterMessage">
+   <!-- Link Video Modal -->
+   <div class="modal fade" id="linkVideoModal" tabindex="-1" role="dialog" aria-labelledby="linkVideoModalLabel"
+      aria-hidden="true" style="z-index: 100000;">
+      <div class="modal-dialog modal-lg" role="document">
+         <div class="modal-content"
+            style="display: flex; flex-direction: column; height: 100%; max-height: 100%; background: transparent; border: none; box-shadow: none; overflow: hidden;">
+            <div class="modal-header">
+               <h3><i class="ti ti-link"></i> Classify Video</h3>
+               <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
+                  <i class="ti ti-close"></i>
+               </button>
+            </div>
+            <div class="modal-body">
+               <form>
+                  <!-- Form Section: Video Details -->
+                  <div class="form-section">
+                     <div class="form-row">
+                        <div class="form-group">
+                           <label>Subject (L1) <span class="required" style="color: red;">*</span></label>
+                           <select class="form-control" ng-model="newVideo.classificationLevel1"
+                              ng-change="onSubjectChange()">
+                              <option value="">Select Level 1 (Subject)</option>
+                              <option value="Biology">Biology</option>
+                              <option value="Chemistry">Chemistry</option>
+                              <option value="Mathematics">Mathematics</option>
+                              <option value="Physics">Physics</option>
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Chapter (L2) <span class="required" style="color: red;">*</span></label>
+                           <select class="form-control" ng-model="newVideo.classificationLevel2"
+                              ng-disabled="!newVideo.classificationLevel1">
+                              <option value="">Select Level 2 (Chapter)</option>
+                              <option ng-repeat="chapter in availableChapters" value="{{chapter.id}}">
+                                 {{chapter.name}}
+                              </option>
+                           </select>
+                        </div>
+                     </div>
+
+                     <div class="form-row">
+                        <div class="form-group">
+                           <label>Instructor</label>
+                           <select class="form-control" ng-model="newVideo.instructorId">
+                              <option value="">Select Instructor Profile</option>
+                              <option ng-repeat="instructor in availableInstructors" value="{{instructor.id}}">
+                                 {{instructor.name}}
+                              </option>
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Source Folder</label>
+                           <select class="form-control" ng-model="newVideo.collectionName"
+                              ng-change="onCollectionSelect()" ng-disabled="loadingCollections">
+                              <option value="">Select Hosting Folder</option>
+                              <option ng-repeat="collection in bunnyCollections" value="{{collection.name}}">
+                                 {{collection.name}} ({{collection.videoCount}} items)
+                              </option>
+                           </select>
+                           <p ng-if="loadingCollections" style="font-size: 12px; color: #666; margin-top: 5px;">
+                              <i class="fa fa-spinner fa-spin"></i> Loading folders...
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="form-section" ng-if="newVideo.collectionName">
+                     <div class="form-section-title">Video Display Titles</div>
+
+                     <div class="form-row" ng-repeat="item in videoItems track by $index"
+                        style="border-bottom: 1px dashed #eee; margin-bottom: 12px; position: relative;"
+                        ng-style="$last && {'border-bottom': 'none', 'padding-bottom': '0'}">
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                           <label ng-if="$first">Select Video</label>
+                           <label ng-if="!$first"
+                              style="visibility: hidden; height: 0; margin: 0; display: block;">Select Video</label>
+                           <select class="form-control" ng-model="item.targetVideoId"
+                              ng-change="onVideoSelect(item, $index)"
+                              ng-disabled="!newVideo.collectionName || loadingVideosInCollection">
+                              <option value="">Select Video File</option>
+                              <option ng-repeat="vid in getAvailableVideos(item)" value="{{vid.guid}}">
+                                 {{vid.title}} ({{formatDuration(vid.length)}})
+                              </option>
+                           </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0; position: relative;">
+                           <label ng-if="$first">Title <span class="required" style="color: red;">*</span></label>
+                           <label ng-if="!$first"
+                              style="visibility: hidden; height: 0; margin: 0; display: block;">Title</label>
+                           <div style="display: flex; gap: 10px;">
+                              <input type="text" class="form-control video-row-title" id="video-title-{{$index}}"
+                                 ng-model="item.titleName" placeholder="Enter video title" maxlength="80"
+                                 ng-keyup="$event.keyCode == 13 && addVideoRow()">
+
+                              <button type="button" class="btn btn-danger btn-sm" ng-click="removeVideoRow($index)"
+                                 ng-show="videoItems.length > 1"
+                                 style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center;"
+                                 title="Remove Row">
+                                 <i class="ti ti-close"></i>
+                              </button>
+
+                              <button type="button" class="btn btn-primary btn-sm" ng-click="addVideoRow()"
+                                 ng-show="$last && videoItems.length < videosInSelectedCollection.length"
+                                 style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center; background: #006073; border-color: #006073;"
+                                 title="Add Row">
+                                 <i class="ti ti-plus"></i>
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+
+                  </div>
+               </form>
+            </div>
+
+            <div class="modal-footer">
+               <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+               <button type="button" class="btn btn-success" ng-click="linkVideo()" ng-disabled="!isLinkFormComplete()">
+                  <i class="ti ti-save"></i> Save
+               </button>
+            </div>
          </div>
+      </div>
+   </div>
 
-         <!-- Load site level scripts -->
-         <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> <!-- Load jQuery -->
-         <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> <!-- Load jQueryUI -->
-         <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> <!-- Load Bootstrap -->
-         <script type="text/javascript" src="assets/js/enquire.min.js"></script> <!-- Load Enquire -->
-         <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
-         <!-- Load Velocity for Animated Content -->
-         <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
-         <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script> <!-- Wijet -->
-         <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
-         <!-- Code Prettifier  -->
-         <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
-         <!-- Swith/Toggle Button -->
-         <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
-         <!-- Bootstrap Tabdrop -->
-         <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script> <!-- iCheck -->
-         <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
-         <!-- nano scroller -->
-         <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
-         <!-- Advanced Select Boxes -->
-         <script type="text/javascript" src="assets/js/application.js"></script>
-         <script type="text/javascript" src="assets/js/toaster.js"></script>
-         <script type="text/javascript" src="assets/demo/demo.js"></script>
-         <script type="text/javascript"
-            src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
-         <!-- DateTime Picker -->
-         <!-- End loading site level scripts -->
-         <!-- Load page level scripts-->
-         <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
-         <!-- Fullscreen Editor -->
-         <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script> <!-- Bootbox -->
-         <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
-         <!-- End loading page level scripts-->
+   <div ng-show="toasterVisible" class="appToaster"
+      ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage">
+   </div>
 
-         <!-- Quicksearch to go with Multisearch Plugin -->
-         <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>
-         <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
-         <script type="text/javascript" src="assets/plugins/datatables/dataTables.bootstrap.js"></script>
-         <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script> <!-- Stepy Plugin -->
-         <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
-         <!-- Tokenfield -->
-         <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
-         <!-- Moment.js Dependency -->
-         <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
-         <!-- Calendar Plugin -->
-         <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script> <!-- Dropzone -->
+   <!-- Load site level scripts -->
+   <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script> <!-- Load jQuery -->
+   <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script> <!-- Load jQueryUI -->
+   <script type="text/javascript" src="assets/js/bootstrap.min.js"></script> <!-- Load Bootstrap -->
+   <script type="text/javascript" src="assets/js/enquire.min.js"></script> <!-- Load Enquire -->
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+   <!-- Load Velocity for Animated Content -->
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script> <!-- Wijet -->
+   <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+   <!-- Code Prettifier  -->
+   <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+   <!-- Swith/Toggle Button -->
+   <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+   <!-- Bootstrap Tabdrop -->
+   <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script> <!-- iCheck -->
+   <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+   <!-- nano scroller -->
+   <script type="text/javascript" src="assets/plugins/form-select2/select2.min.js"></script>
+   <!-- Advanced Select Boxes -->
+   <script type="text/javascript" src="assets/js/application.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/demo/demo.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+   <!-- DateTime Picker -->
+   <!-- End loading site level scripts -->
+   <!-- Load page level scripts-->
+   <script type="text/javascript" src="assets/plugins/form-fseditor/jquery.fseditor-min.js"></script>
+   <!-- Fullscreen Editor -->
+   <script type="text/javascript" src="assets/plugins/bootbox/bootbox.js"></script> <!-- Bootbox -->
+   <script type="text/javascript" src="assets/demo/demo-profile.js"></script>
+   <!-- End loading page level scripts-->
 
-         <!-- Toaster Container -->
-         <div class="toaster-container">
-            <div class="toaster" ng-repeat="toaster in toasters track by $index"
-               ng-class="[toaster.type, {'hiding': toaster.hiding}]">
-               <div class="toaster-icon">
-                  <i class="ti" ng-class="{
+   <!-- Quicksearch to go with Multisearch Plugin -->
+   <script type="text/javascript" src="assets/plugins/form-typeahead/typeahead.bundle.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
+   <script type="text/javascript" src="assets/plugins/datatables/dataTables.bootstrap.js"></script>
+   <script type="text/javascript" src="assets/plugins/form-stepy/jquery.stepy.js"></script> <!-- Stepy Plugin -->
+   <script type="text/javascript" src="assets/plugins/bootstrap-tokenfield/bootstrap-tokenfield.min.js"></script>
+   <!-- Tokenfield -->
+   <script type="text/javascript" src="assets/plugins/fullcalendar/moment.min.js"></script>
+   <!-- Moment.js Dependency -->
+   <script type="text/javascript" src="assets/plugins/fullcalendar/fullcalendar.min.js"></script>
+   <!-- Calendar Plugin -->
+   <script type="text/javascript" src="assets/plugins/dropzone/dropzone.js"></script> <!-- Dropzone -->
+
+   <!-- Toaster Container -->
+   <div class="toaster-container">
+      <div class="toaster" ng-repeat="toaster in toasters track by $index"
+         ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+         <div class="toaster-icon">
+            <i class="ti" ng-class="{
                 'ti-check': toaster.type === 'success',
                 'ti-alert': toaster.type === 'error',
                 'ti-info-alt': toaster.type === 'info',
                 'ti-bell': toaster.type === 'warning'
              }"></i>
-               </div>
-               <div class="toaster-content">
-                  <div class="toaster-title">{{toaster.title}}</div>
-                  <div class="toaster-message">{{toaster.message}}</div>
-               </div>
-               <button class="toaster-close" ng-click="removeToaster($index)">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
          </div>
+         <div class="toaster-content">
+            <div class="toaster-title">{{toaster.title}}</div>
+            <div class="toaster-message">{{toaster.message}}</div>
+         </div>
+         <button class="toaster-close" ng-click="removeToaster($index)">
+            <i class="ti ti-close"></i>
+         </button>
+      </div>
+   </div>
 
 </body>
 
