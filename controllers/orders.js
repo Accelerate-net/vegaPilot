@@ -5,29 +5,29 @@
 
 var app = angular.module('ordersApp', ['ngCookies']);
 
-app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', function($scope, $http, $cookies, $timeout) {
+app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', function ($scope, $http, $cookies, $timeout) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
@@ -334,14 +334,14 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     ];
 
     // ===== Initialize App =====
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.loadOrders();
         $scope.calculateSummary();
     };
 
     // ===== Load Orders =====
-    $scope.loadOrders = function() {
-        $timeout(function() {
+    $scope.loadOrders = function () {
+        $timeout(function () {
             $scope.orders = $scope.dummyOrders;
             $scope.filteredOrders = $scope.orders;
             $scope.updatePagination();
@@ -349,17 +349,17 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Calculate Summary =====
-    $scope.calculateSummary = function() {
+    $scope.calculateSummary = function () {
         var totalOrders = $scope.orders.length;
-        var completedOrders = $scope.orders.filter(function(order) {
+        var completedOrders = $scope.orders.filter(function (order) {
             return order.status === 'completed';
         }).length;
-        var pendingOrders = $scope.orders.filter(function(order) {
+        var pendingOrders = $scope.orders.filter(function (order) {
             return order.status === 'pending';
         }).length;
         var totalRevenue = $scope.orders
-            .filter(function(order) { return order.status === 'completed'; })
-            .reduce(function(sum, order) { return sum + order.totalAmount; }, 0);
+            .filter(function (order) { return order.status === 'completed'; })
+            .reduce(function (sum, order) { return sum + order.totalAmount; }, 0);
 
         $scope.summaryData = {
             totalOrders: totalOrders,
@@ -370,35 +370,35 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Search and Filter =====
-    $scope.applySearch = function() {
+    $scope.applySearch = function () {
         $scope.applyFilters();
     };
 
-    $scope.applyFilters = function() {
+    $scope.applyFilters = function () {
         var filtered = $scope.orders;
 
         // Apply search query
         if ($scope.searchQuery) {
             var query = $scope.searchQuery.toLowerCase();
-            filtered = filtered.filter(function(order) {
+            filtered = filtered.filter(function (order) {
                 return order.orderNumber.toLowerCase().includes(query) ||
-                       order.customer.name.toLowerCase().includes(query) ||
-                       order.customer.email.toLowerCase().includes(query) ||
-                       order.customer.phone.toLowerCase().includes(query) ||
-                       order.paymentReference.toLowerCase().includes(query);
+                    order.customer.name.toLowerCase().includes(query) ||
+                    order.customer.email.toLowerCase().includes(query) ||
+                    order.customer.phone.toLowerCase().includes(query) ||
+                    order.paymentReference.toLowerCase().includes(query);
             });
         }
 
         // Apply status filter
         if ($scope.filterStatus) {
-            filtered = filtered.filter(function(order) {
+            filtered = filtered.filter(function (order) {
                 return order.status === $scope.filterStatus;
             });
         }
 
         // Apply payment method filter
         if ($scope.filterPaymentMethod) {
-            filtered = filtered.filter(function(order) {
+            filtered = filtered.filter(function (order) {
                 return order.paymentMethod === $scope.filterPaymentMethod;
             });
         }
@@ -408,12 +408,12 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         $scope.updatePagination();
     };
 
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
         $scope.searchQuery = '';
         $scope.applyFilters();
     };
 
-    $scope.clearAllFilters = function() {
+    $scope.clearAllFilters = function () {
         $scope.searchQuery = '';
         $scope.filterStatus = '';
         $scope.filterPaymentMethod = '';
@@ -421,18 +421,18 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Pagination =====
-    $scope.updatePagination = function() {
+    $scope.updatePagination = function () {
         $scope.totalPages = Math.ceil($scope.filteredOrders.length / $scope.pageSize);
         if ($scope.totalPages === 0) $scope.totalPages = 1;
     };
 
-    $scope.goLeft = function() {
+    $scope.goLeft = function () {
         if ($scope.currentPage > 1) {
             $scope.currentPage--;
         }
     };
 
-    $scope.goRight = function() {
+    $scope.goRight = function () {
         if ($scope.currentPage < $scope.totalPages) {
             $scope.currentPage++;
         }
@@ -442,7 +442,7 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     $scope.Math = window.Math;
 
     // ===== Date Formatting =====
-    $scope.formatDate = function(timestamp) {
+    $scope.formatDate = function (timestamp) {
         if (!timestamp) return 'Unknown';
         var date = new Date(timestamp * 1000);
         return date.toLocaleDateString('en-IN', {
@@ -454,24 +454,52 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         });
     };
 
+    // ===== Kebab Menu & View Order =====
+    $scope.openKebabId = null;
+
+    $scope.toggleKebabMenu = function (id, event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        if ($scope.openKebabId === id) {
+            $scope.openKebabId = null;
+        } else {
+            $scope.openKebabId = id;
+        }
+    };
+
+    // Close kebab menu when clicking elsewhere
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.kebab-menu-container').length) {
+            $timeout(function () {
+                $scope.openKebabId = null;
+            });
+        }
+    });
+
+    $scope.viewOrder = function (order) {
+        $scope.selectedOrder = angular.copy(order);
+        $('#orderModal').modal('show');
+    };
+
     // ===== Order Actions =====
-    $scope.viewInvoice = function(order) {
+    $scope.viewInvoice = function (order) {
         $scope.selectedOrder = angular.copy(order);
         $('#invoiceModal').modal('show');
     };
 
-    $scope.downloadInvoice = function(order) {
+    $scope.downloadInvoice = function (order) {
         $scope.showToaster('Invoice download will be available soon. PDF generation in progress...', 'info');
         // In real application, generate PDF using jsPDF or similar library
     };
 
-    $scope.sendInvoiceEmail = function(order) {
+    $scope.sendInvoiceEmail = function (order) {
         $scope.showToaster('Invoice email sent to ' + order.customer.email, 'success');
         // In real application, trigger email API
     };
 
-    $scope.updateOrderStatus = function(order, newStatus) {
-        var index = $scope.orders.findIndex(function(o) {
+    $scope.updateOrderStatus = function (order, newStatus) {
+        var index = $scope.orders.findIndex(function (o) {
             return o.id === order.id;
         });
 
@@ -483,7 +511,7 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         }
     };
 
-    $scope.initiateRefund = function(order) {
+    $scope.initiateRefund = function (order) {
         if (confirm('Are you sure you want to initiate a refund for Order #' + order.orderNumber + '? Amount: ₹' + order.totalAmount.toFixed(2))) {
             $scope.updateOrderStatus(order, 'refunded');
             $scope.showToaster('Refund initiated for ₹' + order.totalAmount.toFixed(2) + '. Processing may take 5-7 business days.', 'info');
@@ -491,11 +519,11 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Toaster =====
-    $scope.showToaster = function(message, type) {
+    $scope.showToaster = function (message, type) {
         var icon = '';
         var color = '';
 
-        switch(type) {
+        switch (type) {
             case 'success':
                 icon = '<i class="ti ti-check" style="margin-right: 8px;"></i>';
                 color = '#28a745';
@@ -520,18 +548,18 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         $scope.toasterMessage = icon + message;
         $scope.toasterVisible = true;
 
-        $timeout(function() {
+        $timeout(function () {
             $scope.toasterVisible = false;
         }, 3000);
     };
 
     // ===== Toggle Order Expand/Collapse =====
-    $scope.toggleOrderExpand = function(order) {
+    $scope.toggleOrderExpand = function (order) {
         order.expanded = !order.expanded;
     };
 
     // ===== Get Items Summary =====
-    $scope.getItemsSummary = function(order) {
+    $scope.getItemsSummary = function (order) {
         if (!order.items || order.items.length === 0) return 'No items';
 
         var firstItem = order.items[0].title;
@@ -550,7 +578,7 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== View Student Profile (Quick View Modal) =====
-    $scope.viewStudentProfile = function(customer) {
+    $scope.viewStudentProfile = function (customer) {
         // Create student object with customer data
         $scope.selectedStudent = {
             id: customer.id,
@@ -569,15 +597,15 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Close Student Quick View Modal =====
-    $scope.closeStudentViewModal = function() {
+    $scope.closeStudentViewModal = function () {
         $scope.studentViewModalOpen = false;
-        $timeout(function() {
+        $timeout(function () {
             $scope.selectedStudent = null;
         }, 300);
     };
 
     // ===== View Student Detailed Profile =====
-    $scope.viewStudentDetailedProfile = function() {
+    $scope.viewStudentDetailedProfile = function () {
         // Store student data in localStorage for the detail page
         localStorage.setItem('selectedStudent', JSON.stringify($scope.selectedStudent));
         // Open detail page in new window
@@ -587,7 +615,7 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     };
 
     // ===== Logout =====
-    $scope.logoutNow = function() {
+    $scope.logoutNow = function () {
         window.location.href = 'index.html';
     };
 
