@@ -37,6 +37,7 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     $scope.orders = [];
     $scope.filteredOrders = [];
     $scope.selectedOrder = null;
+    $scope.isLoading = true;
 
     // Pagination
     $scope.currentPage = 1;
@@ -47,6 +48,11 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     $scope.searchQuery = '';
     $scope.filterStatus = '';
     $scope.filterPaymentMethod = '';
+
+    // Skeleton Loader Helper
+    $scope.getSkeletonRows = function () {
+        return new Array($scope.pageSize);
+    };
 
     // ===== Student Quick View Modal State =====
     $scope.studentViewModalOpen = false;
@@ -341,11 +347,14 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
 
     // ===== Load Orders =====
     $scope.loadOrders = function () {
+        $scope.isLoading = true;
+        // Simulate network delay
         $timeout(function () {
             $scope.orders = $scope.dummyOrders;
             $scope.filteredOrders = $scope.orders;
             $scope.updatePagination();
-        }, 300);
+            $scope.isLoading = false;
+        }, 800);
     };
 
     // ===== Calculate Summary =====
@@ -424,6 +433,10 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
     $scope.updatePagination = function () {
         $scope.totalPages = Math.ceil($scope.filteredOrders.length / $scope.pageSize);
         if ($scope.totalPages === 0) $scope.totalPages = 1;
+        // Adjust current page if it exceeds total pages
+        if ($scope.currentPage > $scope.totalPages) {
+            $scope.currentPage = $scope.totalPages;
+        }
     };
 
     $scope.goLeft = function () {
@@ -436,6 +449,51 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         if ($scope.currentPage < $scope.totalPages) {
             $scope.currentPage++;
         }
+    };
+
+    // Standard Pagination Helpers (matching candidate-profile.html)
+    $scope.previousPage = $scope.goLeft;
+    $scope.nextPage = $scope.goRight;
+
+    $scope.goToPage = function (page) {
+        if (page >= 1 && page <= $scope.totalPages) {
+            $scope.currentPage = page;
+        }
+    };
+
+    $scope.getTotalPages = function () {
+        return $scope.totalPages;
+    };
+
+    $scope.getStartIndex = function () {
+        if ($scope.filteredOrders.length === 0) return 0;
+        return ($scope.currentPage - 1) * $scope.pageSize + 1;
+    };
+
+    $scope.getEndIndex = function () {
+        if ($scope.filteredOrders.length === 0) return 0;
+        return Math.min($scope.currentPage * $scope.pageSize, $scope.filteredOrders.length);
+    };
+
+    $scope.getPageNumbers = function () {
+        var pages = [];
+        var maxVisibleButtons = 5;
+        var startPage = Math.max(1, $scope.currentPage - Math.floor(maxVisibleButtons / 2));
+        var endPage = Math.min($scope.totalPages, startPage + maxVisibleButtons - 1);
+
+        if (endPage - startPage + 1 < maxVisibleButtons) {
+            startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.changePageSize = function () {
+        $scope.currentPage = 1;
+        $scope.updatePagination();
     };
 
     // Math object for template
@@ -477,25 +535,94 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         }
     });
 
+    // Use Angular for modal state
+    $scope.orderModalOpen = false;
+    $scope.invoiceModalOpen = false;
+
     $scope.viewOrder = function (order) {
         $scope.selectedOrder = angular.copy(order);
-        $('#orderModal').modal('show');
+        $scope.orderModalOpen = true;
+    };
+
+    $scope.closeOrderModal = function () {
+        $scope.orderModalOpen = false;
     };
 
     // ===== Order Actions =====
     $scope.viewInvoice = function (order) {
         $scope.selectedOrder = angular.copy(order);
-        $('#invoiceModal').modal('show');
+        $scope.invoiceModalOpen = true;
+    };
+
+    $scope.closeInvoiceModal = function () {
+        $scope.invoiceModalOpen = false;
     };
 
     $scope.downloadInvoice = function (order) {
-        $scope.showToaster('Invoice download will be available soon. PDF generation in progress...', 'info');
-        // In real application, generate PDF using jsPDF or similar library
+        $scope.showToaster('Generating PDF...', 'info');
+
+        var element = document.querySelector('.invoice-body');
+        var opt = {
+            margin: 10,
+            filename: 'Invoice-' + order.orderNumber + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Use html2pdf library
+        if (window.html2pdf) {
+            html2pdf().set(opt).from(element).save().then(function () {
+                $scope.$apply(function () {
+                    $scope.showToaster('Invoice downloaded successfully!', 'success');
+                });
+            }).catch(function (err) {
+                console.error('PDF Generation Error:', err);
+                $scope.$apply(function () {
+                    $scope.showToaster('Error generating PDF. Please try again.', 'error');
+                });
+            });
+        } else {
+            $scope.showToaster('PDF library not loaded. Please refresh the page.', 'error');
+        }
+    };
+
+    // State for email modal
+    $scope.emailModalOpen = false;
+    $scope.emailData = {
+        to: '',
+        subject: '',
+        orderId: null
     };
 
     $scope.sendInvoiceEmail = function (order) {
-        $scope.showToaster('Invoice email sent to ' + order.customer.email, 'success');
-        // In real application, trigger email API
+        $scope.emailData = {
+            to: order.customer.email, // Pre-fill with customer email
+            subject: 'Invoice for Order #' + order.orderNumber,
+            orderId: order.id,
+            orderNumber: order.orderNumber
+        };
+        // Use timeout to ensure UI updates if needed or just open modal
+        $timeout(function () {
+            $scope.emailModalOpen = true;
+        });
+    };
+
+    $scope.closeEmailModal = function () {
+        $scope.emailModalOpen = false;
+    };
+
+    $scope.sendEmailConfirmation = function () {
+        if (!$scope.emailData.to) {
+            $scope.showToaster('Please enter an email address', 'error');
+            return;
+        }
+
+        // Simulate email sending
+        $timeout(function () {
+            $scope.emailModalOpen = false;
+            $scope.showToaster('Invoice email sent to ' + $scope.emailData.to, 'success');
+        }, 500);
     };
 
     $scope.updateOrderStatus = function (order, newStatus) {
@@ -511,10 +638,62 @@ app.controller('ordersController', ['$scope', '$http', '$cookies', '$timeout', f
         }
     };
 
+    // Refund Modal State
+    $scope.refundData = {
+        order: null,
+        code: ['', '', '', ''],
+        error: ''
+    };
+
+    $scope.refundModalOpen = false;
+
     $scope.initiateRefund = function (order) {
-        if (confirm('Are you sure you want to initiate a refund for Order #' + order.orderNumber + '? Amount: ₹' + order.totalAmount.toFixed(2))) {
-            $scope.updateOrderStatus(order, 'refunded');
-            $scope.showToaster('Refund initiated for ₹' + order.totalAmount.toFixed(2) + '. Processing may take 5-7 business days.', 'info');
+        $scope.refundData = {
+            order: order,
+            code: ['', '', '', ''],
+            error: ''
+        };
+        // Reset inputs
+        $scope.refundModalOpen = true;
+        $timeout(function () {
+            // Focus first input
+            var firstInput = document.getElementById('digit-0');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    };
+
+    $scope.closeRefundModal = function () {
+        $scope.refundModalOpen = false;
+    };
+
+    $scope.handleDigitInput = function (index, event) {
+        var val = $scope.refundData.code[index];
+        // Ensure only numbers
+        if (/[^0-9]/.test(val)) {
+            $scope.refundData.code[index] = '';
+            return;
+        }
+
+        // Auto-advance
+        if (val && index < 3) {
+            document.getElementById('digit-' + (index + 1)).focus();
+        }
+
+        // Handle Backspace to go back
+        if (!val && index > 0 && event && event.keyCode === 8) {
+            document.getElementById('digit-' + (index - 1)).focus();
+        }
+    };
+
+    $scope.confirmRefund = function () {
+        var code = $scope.refundData.code.join('');
+        // Demo validation code '1234'
+        if (code.length === 4) {
+            $scope.refundModalOpen = false;
+            $scope.updateOrderStatus($scope.refundData.order, 'refunded');
+            $scope.showToaster('Refund initiated for ₹' + $scope.refundData.order.totalAmount.toFixed(2), 'success');
+        } else {
+            $scope.refundData.error = "Please enter the complete 4-digit code.";
         }
     };
 

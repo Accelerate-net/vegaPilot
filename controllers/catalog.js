@@ -125,6 +125,18 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
     // Modal state
     $scope.isEditing = false;
     $scope.editingId = null;
+    $scope.catalogModalOpen = false;
+    $scope.statusToggleModalOpen = false;
+    $scope.selectedItemForToggle = null;
+
+    $scope.closeCatalogModal = function () {
+        $scope.catalogModalOpen = false;
+    };
+
+    $scope.closeStatusToggleModal = function () {
+        $scope.statusToggleModalOpen = false;
+        $scope.selectedItemForToggle = null;
+    };
 
     // Enhanced sample catalog data matching the image style
     $scope.dummyCatalog = [
@@ -599,8 +611,7 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
 
         // Use timeout to ensure modal opens after Angular digest
         $timeout(function () {
-            console.log('Opening catalog modal');
-            $('#catalogModal').appendTo('body').modal('show');
+            $scope.catalogModalOpen = true;
         }, 0);
     };
 
@@ -653,7 +664,7 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
         console.log('Mapped newCatalog for editing:', $scope.newCatalog);
 
         $timeout(function () {
-            $('#catalogModal').appendTo('body').modal('show');
+            $scope.catalogModalOpen = true;
         }, 0);
     };
 
@@ -664,7 +675,7 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
         console.log('Toggle status for:', item);
         $scope.selectedItemForToggle = item;
         $timeout(function () {
-            $('#statusToggleModal').appendTo('body').modal('show');
+            $scope.statusToggleModalOpen = true;
         }, 0);
     };
 
@@ -728,7 +739,7 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
                     : 'Catalog item "' + item.title + '" disabled successfully!';
 
                 $scope.showToaster(message, 'success');
-                $('#statusToggleModal').modal('hide');
+                $scope.statusToggleModalOpen = false;
                 $scope.selectedItemForToggle = null;
             } else {
                 console.error('API returned unsuccessful response:', response.data);
@@ -827,7 +838,7 @@ app.controller('catalogController', function ($scope, $http, $cookies, $timeout)
                     : 'Catalog item "' + $scope.newCatalog.title + '" created successfully!';
 
                 $scope.showToaster(message, 'success');
-                $('#catalogModal').modal('hide');
+                $scope.catalogModalOpen = false;
                 $scope.resetNewCatalog();
                 $scope.loadCatalog(); // Reload the catalog
             } else {

@@ -43,7 +43,7 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
     // Skeleton loader helper
     $scope.getSkeletonRows = function () {
-        return new Array(5);
+        return new Array($scope.maxResultsShown);
     };
 
     // Summary data for tiles
@@ -431,6 +431,7 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
     // Load video list from database (using dummy data for now)
     $scope.loadVideoList = function () {
+        $scope.isLoading = true;
         // Simulate API call delay
         $timeout(function () {
             $scope.listData = $scope.dummyVideos;
@@ -439,7 +440,8 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
             // Populate filter options and apply initial filters
             $scope.populateFilterOptions();
             $scope.applyFilters();
-        }, 500);
+            $scope.isLoading = false;
+        }, 800);
     };
 
     // Load summary data for tiles

@@ -1094,14 +1094,14 @@
    </div>
 
    <!-- Add/Edit Catalog Modal -->
-   <div class="modal fade" id="catalogModal" tabindex="-1" role="dialog" data-backdrop="static">
+   <div class="crispr-modal-backdrop" ng-class="{active: catalogModalOpen}">
       <div class="crispr-modal-dialog">
          <div class="crispr-modal-header">
-            <h3>
+            <h3 style="margin: 0; display: flex; align-items: center;">
                <i class="ti" ng-class="isEditing ? 'ti-pencil' : 'ti-plus'"></i>
                {{isEditing ? 'Edit Catalog Item' : 'New Catalog Item'}}
             </h3>
-            <button type="button" class="crispr-modal-close" data-dismiss="modal">
+            <button type="button" class="crispr-modal-close" ng-click="closeCatalogModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
@@ -1330,7 +1330,7 @@
             </form>
          </div>
          <div class="crispr-modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">
+            <button type="button" class="btn btn-default" ng-click="closeCatalogModal()">
                <i class="ti ti-close"></i> Cancel
             </button>
             <button type="button" class="btn btn-primary" ng-click="saveCatalog()">
@@ -1346,12 +1346,12 @@
    </div>
 
    <!-- Status Toggle Confirmation Modal -->
-   <div class="modal fade" id="statusToggleModal" role="dialog">
+   <div class="crispr-modal-backdrop" ng-class="{active: statusToggleModalOpen}">
       <div class="crispr-modal-dialog" style="max-width: 450px; margin: 30px auto;">
          <div class="crispr-modal-header"
             ng-style="selectedItemForToggle.status == 1 && {'background': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'}">
             <h3><i class="ti ti-alert"></i> Confirm Action</h3>
-            <button type="button" class="crispr-modal-close" data-dismiss="modal">
+            <button type="button" class="crispr-modal-close" ng-click="closeStatusToggleModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
@@ -1372,7 +1372,7 @@
             </p>
          </div>
          <div class="crispr-modal-footer" style="justify-content: center;">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-default" ng-click="closeStatusToggleModal()">Cancel</button>
             <button type="button" class="btn btn-primary" ng-click="confirmToggleStatus()"
                ng-style="selectedItemForToggle.status == 1 && {'background': '#ef4444', 'border-color': '#dc2626'}">
                Confirm

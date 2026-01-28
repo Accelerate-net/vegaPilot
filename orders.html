@@ -21,6 +21,7 @@
    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
    <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
    <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
    <style type="text/css">
       /* Page Header Section */
@@ -405,79 +406,7 @@
          color: #666;
       }
 
-      /* Filter Bar */
-      .filter-bar {
-         display: flex;
-         gap: 15px;
-         margin-bottom: 25px;
-         flex-wrap: wrap;
-      }
 
-      .search-wrapper {
-         flex: 1;
-         min-width: 250px;
-         position: relative;
-      }
-
-      .search-wrapper i {
-         position: absolute;
-         left: 15px;
-         top: 50%;
-         transform: translateY(-50%);
-         color: #999;
-      }
-
-      .search-input {
-         width: 100%;
-         padding: 12px 15px 12px 45px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-         transition: all 0.3s ease;
-      }
-
-      .search-input:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
-
-      .filter-select {
-         padding: 12px 15px;
-         border: 1px solid #ddd;
-         border-radius: 6px;
-         font-size: 14px;
-         background: white;
-         cursor: pointer;
-         min-width: 180px;
-         transition: all 0.3s ease;
-      }
-
-      .filter-select:focus {
-         outline: none;
-         border-color: #006073;
-         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
-      }
-
-      .filter-tags {
-         margin: 15px 0;
-      }
-
-      .filter-tag {
-         display: inline-block;
-         background: #006073;
-         color: white;
-         padding: 5px 12px;
-         border-radius: 15px;
-         margin: 2px;
-         font-size: 12px;
-      }
-
-      .filter-tag .close {
-         color: white;
-         margin-left: 8px;
-         cursor: pointer;
-      }
 
       .empty-state {
          text-align: center;
@@ -771,133 +700,237 @@
                      <!-- Filter Bar -->
                      <div class="filter-bar">
                         <div class="search-wrapper">
-                           <i class="ti ti-search"></i>
+                           <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                              ng-click="searchQuery = ''; applyFilters()"></i>
                            <input type="text" class="search-input"
                               placeholder="Search by order ID, customer name, email, or phone..." ng-model="searchQuery"
                               ng-change="applyFilters()">
                         </div>
-                        <select class="filter-select" ng-model="filterStatus" ng-change="applyFilters()">
-                           <option value="">All Status</option>
-                           <option value="completed">Completed</option>
-                           <option value="pending">Pending</option>
-                           <option value="failed">Failed</option>
-                           <option value="refunded">Refunded</option>
-                        </select>
-                        <select class="filter-select" ng-model="filterPaymentMethod" ng-change="applyFilters()">
-                           <option value="">All Payment Methods</option>
-                           <option value="card">Card</option>
-                           <option value="upi">UPI</option>
-                           <option value="netbanking">Net Banking</option>
-                           <option value="wallet">Wallet</option>
-                        </select>
+
+                        <div class="filter-dropdown dropdown">
+                           <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown"
+                              aria-haspopup="true" aria-expanded="false">
+                              {{filterStatus ? (filterStatus | limitTo:1).toUpperCase() + filterStatus.slice(1) : 'All
+                              Status'}}
+                              <i class="ti ti-angle-down"></i>
+                           </button>
+                           <ul class="dropdown-menu dropdown-menu-right">
+                              <li><a href="#" ng-click="filterStatus = ''; applyFilters(); $event.preventDefault()">All
+                                    Status</a></li>
+                              <li><a href="#"
+                                    ng-click="filterStatus = 'completed'; applyFilters(); $event.preventDefault()">Completed</a>
+                              </li>
+                              <li><a href="#"
+                                    ng-click="filterStatus = 'pending'; applyFilters(); $event.preventDefault()">Pending</a>
+                              </li>
+                              <li><a href="#"
+                                    ng-click="filterStatus = 'failed'; applyFilters(); $event.preventDefault()">Failed</a>
+                              </li>
+                              <li><a href="#"
+                                    ng-click="filterStatus = 'refunded'; applyFilters(); $event.preventDefault()">Refunded</a>
+                              </li>
+                           </ul>
+                        </div>
+
+                        <div class="filter-dropdown dropdown">
+                           <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown"
+                              aria-haspopup="true" aria-expanded="false">
+                              {{filterPaymentMethod ? (filterPaymentMethod | limitTo:1).toUpperCase() +
+                              filterPaymentMethod.slice(1) : 'All Payment Methods'}}
+                              <i class="ti ti-angle-down"></i>
+                           </button>
+                           <ul class="dropdown-menu dropdown-menu-right">
+                              <li><a href="#"
+                                    ng-click="filterPaymentMethod = ''; applyFilters(); $event.preventDefault()">All
+                                    Payment Methods</a></li>
+                              <li><a href="#"
+                                    ng-click="filterPaymentMethod = 'card'; applyFilters(); $event.preventDefault()">Card</a>
+                              </li>
+                              <li><a href="#"
+                                    ng-click="filterPaymentMethod = 'upi'; applyFilters(); $event.preventDefault()">UPI</a>
+                              </li>
+                              <li><a href="#"
+                                    ng-click="filterPaymentMethod = 'netbanking'; applyFilters(); $event.preventDefault()">Net
+                                    Banking</a></li>
+                              <li><a href="#"
+                                    ng-click="filterPaymentMethod = 'wallet'; applyFilters(); $event.preventDefault()">Wallet</a>
+                              </li>
+                           </ul>
+                        </div>
                      </div>
 
                      <!-- Orders Listing -->
-<div class="row" style="margin-top: 20px;" ng-show="filteredOrders.length > 0">
-    <div class="col-md-12">
-        <div class="crispr-table-container">
-            <table class="crispr-table">
-                <thead>
-                    <tr>
-                        <th class="sortable">Order ID</th>
-                        <th class="sortable">Customer</th>
-                        <th class="sortable">Date</th>
-                        <th>Items Summary</th>
-                        <th class="sortable">Amount</th>
-                        <th class="sortable">Status</th>
-                        <th class="sortable">Payment</th>
-                        <th style="width: 80px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="order in filteredOrders | limitTo:pageSize:(currentPage-1)*pageSize"
-                        ng-click="viewOrder(order)">
-                        <td>
-                            <span style="font-weight: 600; color: #006073;">{{order.orderNumber}}</span>
-                        </td>
-                        <td>
-                            <div class="profile-cell">
-                                <div class="profile-info">
-                                    <div class="profile-name">{{order.customer.name}}</div>
-                                    <div class="profile-subtext">{{order.customer.email}}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="info-cell">
-                                <i class="ti ti-calendar"></i> {{formatDate(order.orderDate)}}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="info-cell" title="{{order.items[0].title}}">
-                                {{getItemsSummary(order)}}
-                            </div>
-                        </td>
-                        <td>
-                            <span style="font-weight: 600; color: #28a745;">₹{{order.totalAmount |
-                                number:2}}</span>
-                        </td>
-                        <td>
-                            <span class="crispr-status" ng-class="{
+                     <div class="row" style="margin-top: 20px;" ng-show="filteredOrders.length > 0 || isLoading">
+                        <div class="col-md-12">
+                           <div class="crispr-table-container">
+                              <table class="crispr-table">
+                                 <thead>
+                                    <tr>
+                                       <th class="sortable">Order ID</th>
+                                       <th class="sortable">Customer</th>
+                                       <th class="sortable">Date</th>
+                                       <th>Items Summary</th>
+                                       <th class="sortable">Amount</th>
+                                       <th class="sortable">Status</th>
+                                       <th class="sortable">Payment</th>
+                                       <th style="width: 80px;">Actions</th>
+                                    </tr>
+                                 </thead>
+                                 <!-- Skeleton Body -->
+                                 <tbody ng-if="isLoading">
+                                    <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                       <td>
+                                          <div class="skeleton-col text-short" style="width: 80px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div style="display: flex; align-items: center; gap: 12px;">
+                                             <div class="skeleton-col avatar">
+                                                <div class="skeleton-shimmer"></div>
+                                             </div>
+                                             <div>
+                                                <div class="skeleton-col text-medium" style="margin-bottom: 5px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                                <div class="skeleton-col text-short"
+                                                   style="height: 12px; width: 100px;">
+                                                   <div class="skeleton-shimmer"></div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="skeleton-col text-short" style="width: 100px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="skeleton-col text-medium" style="width: 150px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="skeleton-col text-short" style="width: 60px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="skeleton-col text-short"
+                                             style="width: 80px; border-radius: 12px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="skeleton-col text-short" style="width: 70px;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <!-- Empty for Actions -->
+                                       </td>
+                                    </tr>
+                                 </tbody>
+
+                                 <tbody ng-if="!isLoading">
+                                    <tr ng-repeat="order in filteredOrders | limitTo:pageSize:(currentPage-1)*pageSize"
+                                       ng-click="viewOrder(order)">
+                                       <td>
+                                          <span style="font-weight: 600; color: #006073;">{{order.orderNumber}}</span>
+                                       </td>
+                                       <td>
+                                          <div class="profile-cell">
+                                             <div class="profile-info">
+                                                <div class="profile-name">{{order.customer.name}}</div>
+                                                <div class="profile-subtext">{{order.customer.email}}</div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="info-cell">
+                                             <i class="ti ti-calendar"></i> {{formatDate(order.orderDate)}}
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="info-cell" title="{{order.items[0].title}}">
+                                             {{getItemsSummary(order)}}
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <span style="font-weight: 600; color: #28a745;">₹{{order.totalAmount |
+                                             number:2}}</span>
+                                       </td>
+                                       <td>
+                                          <span class="crispr-status" ng-class="{
                                              'active': order.status === 'completed', 
                                              'pending': order.status === 'pending', 
                                              'inactive': order.status === 'failed' || order.status === 'refunded'
                                           }">{{order.status}}</span>
-                        </td>
-                        <td>
-                            <span class="crispr-badge">
-                                <i class="ti" ng-class="{
+                                       </td>
+                                       <td>
+                                          <span class="crispr-badge">
+                                             <i class="ti" ng-class="{
                                                 'ti-credit-card': order.paymentMethod === 'card',
                                                 'ti-mobile': order.paymentMethod === 'upi',
                                                 'ti-wallet': order.paymentMethod === 'wallet',
                                                 'ti-desktop': order.paymentMethod === 'netbanking'
                                              }"></i> {{order.paymentMethod | uppercase}}
-                            </span>
-                        </td>
-                        <td onclick="event.stopPropagation();">
-                            <div class="kebab-menu-container">
-                                <button class="kebab-button" ng-click="toggleKebabMenu(order.id, $event)">
-                                    <i class="ti ti-more-alt"></i>
-                                </button>
-                                <div class="kebab-dropdown" ng-class="{'active': openKebabId === order.id}">
-                                    <a class="kebab-dropdown-item" ng-click="viewOrder(order)">
-                                        <i class="ti ti-eye"></i> View Order
-                                    </a>
-                                    <a class="kebab-dropdown-item" ng-click="viewInvoice(order)">
-                                        <i class="ti ti-receipt"></i> View Invoice
-                                    </a>
-                                    <a class="kebab-dropdown-item" ng-click="sendInvoiceEmail(order)">
-                                        <i class="ti ti-email"></i> Email Invoice
-                                    </a>
-                                    <a class="kebab-dropdown-item" ng-click="initiateRefund(order)"
-                                        ng-if="order.status === 'completed'">
-                                        <i class="ti ti-back-left"></i> Initiate Refund
-                                    </a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                          </span>
+                                       </td>
+                                       <td onclick="event.stopPropagation();">
+                                          <div class="kebab-menu-container">
+                                             <button class="kebab-button" ng-click="toggleKebabMenu(order.id, $event)">
+                                                <i class="ti ti-more-alt"></i>
+                                             </button>
+                                             <div class="kebab-dropdown"
+                                                ng-class="{'active': openKebabId === order.id}">
+                                                <a class="kebab-dropdown-item" ng-click="viewOrder(order)">
+                                                   <i class="ti ti-eye"></i> View Order
+                                                </a>
+                                                <a class="kebab-dropdown-item" ng-click="viewInvoice(order)">
+                                                   <i class="ti ti-receipt"></i> View Invoice
+                                                </a>
+                                                <a class="kebab-dropdown-item" ng-click="sendInvoiceEmail(order)">
+                                                   <i class="ti ti-email"></i> Email Invoice
+                                                </a>
+                                                <a class="kebab-dropdown-item" ng-click="initiateRefund(order)"
+                                                   ng-if="order.status === 'completed'">
+                                                   <i class="ti ti-back-left"></i> Initiate Refund
+                                                </a>
+                                             </div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
 
-            <!-- Pagination -->
-            <div class="crispr-pagination-container" ng-show="filteredOrders.length > 0">
-                <div class="crispr-pagination-info">
-                    Showing {{(currentPage-1)*pageSize + 1}} to {{Math.min(currentPage*pageSize,
-                    filteredOrders.length)}} of {{filteredOrders.length}} entries
-                </div>
-                <div class="crispr-pagination-controls">
-                    <button class="crispr-pagination-btn" ng-click="goLeft()" ng-disabled="currentPage === 1">
-                        <i class="ti ti-angle-left"></i> Previous
-                    </button>
-                    <button class="crispr-pagination-btn" ng-click="goRight()" ng-disabled="currentPage >= totalPages">
-                        Next <i class="ti ti-angle-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                              <!-- Pagination -->
+                              <div class="pagination-container" ng-show="filteredOrders.length > 0">
+                                 <div class="pagination-info">
+                                    <span>Showing {{getStartIndex()}} to {{getEndIndex()}} of {{filteredOrders.length}}
+                                       entries</span>
+                                    <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()"
+                                       ng-options="size as 'Show ' + size for size in [10, 20, 50, 100]">
+                                    </select>
+                                 </div>
+                                 <div class="pagination-controls">
+                                    <button class="pagination-btn" ng-click="previousPage()"
+                                       ng-disabled="currentPage === 1">
+                                       <i class="ti ti-angle-left"></i> Previous
+                                    </button>
+                                    <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                       ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                       {{page}}
+                                    </button>
+                                    <button class="pagination-btn" ng-click="nextPage()"
+                                       ng-disabled="currentPage >= getTotalPages()">
+                                       Next <i class="ti ti-angle-right"></i>
+                                    </button>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
                      <!-- Empty State -->
                      <div class="row" ng-show="filteredOrders.length === 0">
                         <div class="col-md-12">
@@ -1037,164 +1070,166 @@
    </style>
 
    <!-- Invoice Modal -->
-   <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-lg" role="document" style="max-width: 900px;">
-         <div class="modal-content">
-            <div class="modal-header invoice-header no-print">
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                  style="color: white; opacity: 0.8;">
-                  <span aria-hidden="true">&times;</span>
-               </button>
-               <h4 class="modal-title">
-                  <i class="ti ti-receipt"></i> Invoice - {{selectedOrder.orderNumber}}
-               </h4>
-            </div>
-            <div class="modal-body invoice-body" ng-if="selectedOrder">
-               <!-- Invoice Header -->
-               <div class="row">
-                  <div class="col-md-6">
-                     <h2 style="color: #006073; margin: 0;">VegaPilot</h2>
-                     <p style="color: #6c757d; margin: 5px 0;">
-                        Educational Platform<br>
-                        www.vegapilot.com<br>
-                        support@vegapilot.com
-                     </p>
-                  </div>
-                  <div class="col-md-6 text-right">
-                     <h3 style="color: #006073; margin: 0;">INVOICE</h3>
-                     <p style="color: #6c757d; margin: 5px 0;">
-                        <strong>Invoice #:</strong> INV-{{selectedOrder.orderNumber}}<br>
-                        <strong>Date:</strong> {{formatDate(selectedOrder.orderDate)}}<br>
-                        <strong>Status:</strong> <span class="status-badge"
-                           ng-class="'status-' + selectedOrder.status">{{selectedOrder.status.toUpperCase()}}</span>
-                     </p>
-                  </div>
+   <!-- Invoice Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: invoiceModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 900px;">
+         <div class="crispr-modal-header invoice-header no-print">
+            <h3>
+               <i class="ti ti-receipt"></i> Invoice - {{selectedOrder.orderNumber}}
+            </h3>
+            <button type="button" class="crispr-modal-close" ng-click="closeInvoiceModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body invoice-body" ng-if="selectedOrder">
+            <!-- Invoice Header -->
+            <div class="row">
+               <div class="col-md-6">
+                  <h2 style="color: #006073; margin: 0; font-size: 24px;">VegaPilot</h2>
+                  <p style="color: #6c757d; margin: 5px 0;">
+                     Educational Platform<br>
+                     www.vegapilot.com<br>
+                     support@vegapilot.com
+                  </p>
                </div>
-
-               <hr style="margin: 20px 0; border-color: #dee2e6;">
-
-               <!-- Billing Information -->
-               <div class="row">
-                  <div class="col-md-6">
-                     <h5 style="color: #006073; margin-bottom: 10px;">Bill To:</h5>
-                     <p style="margin: 0; line-height: 1.6;">
-                        <strong>{{selectedOrder.customer.name}}</strong><br>
-                        {{selectedOrder.customer.email}}<br>
-                        {{selectedOrder.customer.phone}}
-                     </p>
-                  </div>
-                  <div class="col-md-6">
-                     <h5 style="color: #006073; margin-bottom: 10px;">Payment Details:</h5>
-                     <p style="margin: 0; line-height: 1.6;">
-                        <strong>Method:</strong> {{selectedOrder.paymentMethod.toUpperCase()}}<br>
-                        <strong>Reference:</strong> {{selectedOrder.paymentReference}}<br>
-                        <strong>Status:</strong> {{selectedOrder.status.toUpperCase()}}
-                     </p>
-                  </div>
-               </div>
-
-               <!-- Invoice Items Table -->
-               <table class="invoice-table">
-                  <thead>
-                     <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Item Description</th>
-                        <th style="width: 120px; text-align: right;">Price</th>
-                        <th style="width: 80px; text-align: center;">Qty</th>
-                        <th style="width: 120px; text-align: right;">Amount</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     <tr ng-repeat="item in selectedOrder.items">
-                        <td>{{$index + 1}}</td>
-                        <td>
-                           <strong>{{item.title}}</strong><br>
-                           <small style="color: #6c757d;">Code: {{item.code}}</small>
-                        </td>
-                        <td style="text-align: right;">₹{{item.price | number:2}}</td>
-                        <td style="text-align: center;">1</td>
-                        <td style="text-align: right;">₹{{item.price | number:2}}</td>
-                     </tr>
-                  </tbody>
-               </table>
-
-               <!-- Invoice Totals -->
-               <div class="row" style="margin-top: 30px;">
-                  <div class="col-md-7">
-                     <div ng-if="selectedOrder.discounts && selectedOrder.discounts.length > 0">
-                        <h6 style="color: #006073; margin-bottom: 10px;">Discounts Applied:</h6>
-                        <div ng-repeat="discount in selectedOrder.discounts"
-                           style="font-size: 13px; color: #28a745; margin-bottom: 5px;">
-                           <i class="ti ti-check"></i> {{discount.code}} - {{discount.description}}
-                           (-₹{{discount.amount}})
-                        </div>
-                     </div>
-                  </div>
-                  <div class="col-md-5">
-                     <table style="width: 100%; font-size: 14px;">
-                        <tr>
-                           <td style="padding: 8px; text-align: right;"><strong>Subtotal:</strong></td>
-                           <td style="padding: 8px; text-align: right; width: 120px;">₹{{selectedOrder.subtotal |
-                              number:2}}</td>
-                        </tr>
-                        <tr ng-if="selectedOrder.taxAmount > 0">
-                           <td style="padding: 8px; text-align: right;"><strong>Tax
-                                 ({{selectedOrder.taxPercent}}%):</strong></td>
-                           <td style="padding: 8px; text-align: right;">₹{{selectedOrder.taxAmount | number:2}}</td>
-                        </tr>
-                        <tr ng-if="selectedOrder.discountAmount > 0">
-                           <td style="padding: 8px; text-align: right; color: #28a745;"><strong>Discount:</strong></td>
-                           <td style="padding: 8px; text-align: right; color: #28a745;">-₹{{selectedOrder.discountAmount
-                              | number:2}}</td>
-                        </tr>
-                        <tr style="border-top: 2px solid #006073;">
-                           <td style="padding: 12px 8px; text-align: right; font-size: 18px;"><strong>Total:</strong>
-                           </td>
-                           <td style="padding: 12px 8px; text-align: right; font-size: 18px; color: #006073;">
-                              <strong>₹{{selectedOrder.totalAmount | number:2}}</strong>
-                           </td>
-                        </tr>
-                     </table>
-                  </div>
-               </div>
-
-               <!-- Footer Notes -->
-               <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #dee2e6;">
-                  <p style="font-size: 12px; color: #6c757d; margin: 0;">
-                     <strong>Terms & Conditions:</strong><br>
-                     Thank you for your purchase. This is a computer-generated invoice and does not require a physical
-                     signature.
-                     All sales are final. For any queries, please contact our support team.
+               <div class="col-md-6 text-right">
+                  <h3 style="color: #006073; margin: 0; font-size: 20px;">INVOICE</h3>
+                  <p style="color: #6c757d; margin: 5px 0;">
+                     <strong>Invoice #:</strong> INV-{{selectedOrder.orderNumber}}<br>
+                     <strong>Date:</strong> {{formatDate(selectedOrder.orderDate)}}<br>
+                     <strong>Status:</strong> <span class="status-badge"
+                        ng-class="'status-' + selectedOrder.status">{{selectedOrder.status.toUpperCase()}}</span>
                   </p>
                </div>
             </div>
-            <div class="modal-footer no-print">
-               <button type="button" class="btn btn-success" onclick="window.print()">
-                  <i class="ti ti-printer"></i> Print Invoice
-               </button>
-               <button type="button" class="btn btn-primary" ng-click="downloadInvoice(selectedOrder)">
-                  <i class="ti ti-download"></i> Download PDF
-               </button>
-               <button type="button" class="btn btn-default" data-dismiss="modal">
-                  <i class="ti ti-close"></i> Close
-               </button>
+
+            <hr style="margin: 20px 0; border-color: #dee2e6;">
+
+            <!-- Billing Information -->
+            <div class="row">
+               <div class="col-md-6">
+                  <h5 style="color: #006073; margin-bottom: 10px; font-weight: 600;">Bill To:</h5>
+                  <p style="margin: 0; line-height: 1.6;">
+                     <strong>{{selectedOrder.customer.name}}</strong><br>
+                     {{selectedOrder.customer.email}}<br>
+                     {{selectedOrder.customer.phone}}
+                  </p>
+               </div>
+               <div class="col-md-6">
+                  <h5 style="color: #006073; margin-bottom: 10px; font-weight: 600;">Payment Details:</h5>
+                  <p style="margin: 0; line-height: 1.6;">
+                     <strong>Method:</strong> {{selectedOrder.paymentMethod.toUpperCase()}}<br>
+                     <strong>Reference:</strong> {{selectedOrder.paymentReference}}<br>
+                     <strong>Status:</strong> {{selectedOrder.status.toUpperCase()}}
+                  </p>
+               </div>
+            </div>
+
+            <!-- Invoice Items Table -->
+            <table class="invoice-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+               <thead>
+                  <tr style="background: #f8f9fa;">
+                     <th style="width: 50px; padding: 12px; border-bottom: 2px solid #e9ecef;">#</th>
+                     <th style="padding: 12px; border-bottom: 2px solid #e9ecef;">Item Description</th>
+                     <th style="width: 120px; text-align: right; padding: 12px; border-bottom: 2px solid #e9ecef;">Price
+                     </th>
+                     <th style="width: 80px; text-align: center; padding: 12px; border-bottom: 2px solid #e9ecef;">Qty
+                     </th>
+                     <th style="width: 120px; text-align: right; padding: 12px; border-bottom: 2px solid #e9ecef;">
+                        Amount</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr ng-repeat="item in selectedOrder.items" style="border-bottom: 1px solid #e9ecef;">
+                     <td style="padding: 12px;">{{$index + 1}}</td>
+                     <td style="padding: 12px;">
+                        <strong>{{item.title}}</strong><br>
+                        <small style="color: #6c757d;">Code: {{item.code}}</small>
+                     </td>
+                     <td style="text-align: right; padding: 12px;">₹{{item.price | number:2}}</td>
+                     <td style="text-align: center; padding: 12px;">1</td>
+                     <td style="text-align: right; padding: 12px;">₹{{item.price | number:2}}</td>
+                  </tr>
+               </tbody>
+            </table>
+
+            <!-- Invoice Totals -->
+            <div class="row" style="margin-top: 30px;">
+               <div class="col-md-7">
+                  <div ng-if="selectedOrder.discounts && selectedOrder.discounts.length > 0">
+                     <h6 style="color: #006073; margin-bottom: 10px;">Discounts Applied:</h6>
+                     <div ng-repeat="discount in selectedOrder.discounts"
+                        style="font-size: 13px; color: #28a745; margin-bottom: 5px;">
+                        <i class="ti ti-check"></i> {{discount.code}} - {{discount.description}}
+                        (-₹{{discount.amount}})
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-5">
+                  <table style="width: 100%; font-size: 14px;">
+                     <tr>
+                        <td style="padding: 8px; text-align: right;"><strong>Subtotal:</strong></td>
+                        <td style="padding: 8px; text-align: right; width: 120px;">₹{{selectedOrder.subtotal |
+                           number:2}}</td>
+                     </tr>
+                     <tr ng-if="selectedOrder.taxAmount > 0">
+                        <td style="padding: 8px; text-align: right;"><strong>Tax
+                              ({{selectedOrder.taxPercent}}%):</strong></td>
+                        <td style="padding: 8px; text-align: right;">₹{{selectedOrder.taxAmount | number:2}}</td>
+                     </tr>
+                     <tr ng-if="selectedOrder.discountAmount > 0">
+                        <td style="padding: 8px; text-align: right; color: #28a745;"><strong>Discount:</strong></td>
+                        <td style="padding: 8px; text-align: right; color: #28a745;">-₹{{selectedOrder.discountAmount
+                           | number:2}}</td>
+                     </tr>
+                     <tr style="border-top: 2px solid #006073;">
+                        <td style="padding: 12px 8px; text-align: right; font-size: 18px;"><strong>Total:</strong>
+                        </td>
+                        <td style="padding: 12px 8px; text-align: right; font-size: 18px; color: #006073;">
+                           <strong>₹{{selectedOrder.totalAmount | number:2}}</strong>
+                        </td>
+                     </tr>
+                  </table>
+               </div>
+            </div>
+
+            <!-- Footer Notes -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+               <p style="font-size: 12px; color: #6c757d; margin: 0;">
+                  <strong>Terms & Conditions:</strong><br>
+                  Thank you for your purchase. This is a computer-generated invoice and does not require a physical
+                  signature.
+                  All sales are final. For any queries, please contact our support team.
+               </p>
             </div>
          </div>
+         <div class="crispr-modal-footer no-print">
+            <button type="button" class="btn btn-default" ng-click="closeInvoiceModal()">
+               Close
+            </button>
+            <button type="button" class="btn btn-success" onclick="window.print()">
+               <i class="ti ti-printer"></i> Print
+            </button>
+            <button type="button" class="btn btn-primary" ng-click="downloadInvoice(selectedOrder)">
+               <i class="ti ti-download"></i> Download
+            </button>
+         </div>
       </div>
+   </div>
    </div>
 
    <div ng-show="toasterVisible" class="appToaster"
       ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage">
    </div>
 
-   <div class="modal fade" id="orderModal" tabindex="-1" role="dialog" data-backdrop="static">
+   <div class="crispr-modal-backdrop" ng-class="{active: orderModalOpen}">
       <div class="crispr-modal-dialog" style="max-width: 800px;">
          <div class="crispr-modal-header">
             <h3>
                <i class="ti ti-receipt"></i>
                Order #{{selectedOrder.orderNumber}}
             </h3>
-            <button type="button" class="crispr-modal-close" data-dismiss="modal">
+            <button type="button" class="crispr-modal-close" ng-click="closeOrderModal()">
                <i class="ti ti-close"></i>
             </button>
          </div>
@@ -1280,8 +1315,8 @@
             </div>
          </div>
          <div class="crispr-modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" ng-click="viewInvoice(selectedOrder)" data-dismiss="modal">
+            <button type="button" class="btn btn-default" ng-click="closeOrderModal()">Close</button>
+            <button type="button" class="btn btn-primary" ng-click="viewInvoice(selectedOrder)">
                <i class="ti ti-receipt"></i> View Invoice
             </button>
          </div>
@@ -1323,6 +1358,101 @@
          <button class="toaster-close" ng-click="removeToaster($index)">
             <i class="ti ti-close"></i>
          </button>
+      </div>
+   </div>
+
+   <!-- Email Invoice Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: emailModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header">
+            <h3>
+               <i class="ti ti-email"></i> Email Invoice
+            </h3>
+            <button type="button" class="crispr-modal-close" ng-click="closeEmailModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <p style="color: #666; margin-bottom: 20px;">
+               Send invoice for Order <strong>#{{emailData.orderNumber}}</strong> to the customer.
+            </p>
+            <div class="form-group">
+               <label>Recipient Email <span class="required" style="color: red;">*</span></label>
+               <input type="email" class="form-control" ng-model="emailData.to" placeholder="Enter email address">
+            </div>
+            <div class="form-group">
+               <label>Subject</label>
+               <input type="text" class="form-control" ng-model="emailData.subject" placeholder="Email subject">
+            </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button type="button" class="btn btn-default" ng-click="closeEmailModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" ng-click="sendEmailConfirmation()">
+               <i class="ti ti-check"></i> Send Email
+            </button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Refund Confirmation Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: refundModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: white; border-bottom: none;">
+            <button type="button" class="crispr-modal-close" ng-click="closeRefundModal()"
+               style="background: #f1f3f5; color: #333;">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body" style="text-align: center; padding-top: 0;">
+            <div
+               style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+               <i class="ti ti-alert" style="font-size: 30px; color: #dc2626;"></i>
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #1e293b;">Initiate Refund</h3>
+
+            <p style="color: #64748b; font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
+               Are you sure you want to initiate a refund of
+               <strong style="color: #1e293b;">₹{{refundData.order.totalAmount | number:2}}</strong>
+               for Order <strong style="color: #1e293b;">#{{refundData.order.orderNumber}}</strong>?
+               Please enter the confirmatory code to continue.
+            </p>
+
+            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 25px;">
+               <input type="text" id="digit-0" ng-model="refundData.code[0]" ng-change="handleDigitInput(0)"
+                  maxlength="1"
+                  style="width: 50px; height: 60px; text-align: center; font-size: 24px; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; color: #333;"
+                  onkeyup="if(event.keyCode===8 && this.value==='') { /* handled in angular */ } else if(this.value.length === 1) { document.getElementById('digit-1').focus(); }">
+
+               <input type="text" id="digit-1" ng-model="refundData.code[1]" ng-change="handleDigitInput(1)"
+                  maxlength="1"
+                  style="width: 50px; height: 60px; text-align: center; font-size: 24px; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; color: #333;"
+                  onkeyup="if(event.keyCode===8 && this.value==='') { document.getElementById('digit-0').focus(); } else if(this.value.length === 1) { document.getElementById('digit-2').focus(); }">
+
+               <input type="text" id="digit-2" ng-model="refundData.code[2]" ng-change="handleDigitInput(2)"
+                  maxlength="1"
+                  style="width: 50px; height: 60px; text-align: center; font-size: 24px; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; color: #333;"
+                  onkeyup="if(event.keyCode===8 && this.value==='') { document.getElementById('digit-1').focus(); } else if(this.value.length === 1) { document.getElementById('digit-3').focus(); }">
+
+               <input type="text" id="digit-3" ng-model="refundData.code[3]" ng-change="handleDigitInput(3)"
+                  maxlength="1"
+                  style="width: 50px; height: 60px; text-align: center; font-size: 24px; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; color: #333;"
+                  onkeyup="if(event.keyCode===8 && this.value==='') { document.getElementById('digit-2').focus(); }">
+            </div>
+
+            <p ng-if="refundData.error"
+               style="color: #dc2626; font-size: 13px; margin-top: -10px; margin-bottom: 20px;">
+               {{refundData.error}}
+            </p>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+               <button type="button" class="btn btn-default" ng-click="closeRefundModal()"
+                  style="padding: 10px 24px; background: white; border: 1px solid #cbd5e0; color: #475569;">Cancel</button>
+               <!-- Reverted cancel button style -->
+               <button type="button" class="btn btn-danger" ng-click="confirmRefund()"
+                  ng-disabled="!refundData.code[0] || !refundData.code[1] || !refundData.code[2] || !refundData.code[3]"
+                  style="padding: 10px 24px; background: #dc2626; border: none; color: white;">Confirm Refund</button>
+            </div>
+         </div>
       </div>
    </div>
 
