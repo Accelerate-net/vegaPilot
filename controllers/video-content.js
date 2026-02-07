@@ -30,6 +30,7 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
     // Initialize scope variables
     $scope.createView = false;
     $scope.modifyVideoView = false;
+    $scope.linkVideoView = false;
     $scope.currentPage = 1;
     $scope.totalPages = 1;
     $scope.maxResultsShown = 10; // Number of items per page
@@ -43,7 +44,7 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
     // Skeleton loader helper
     $scope.getSkeletonRows = function () {
-        return new Array($scope.maxResultsShown);
+        return new Array($scope.maxResultsShown).fill(0);
     };
 
     // Summary data for tiles
@@ -1914,7 +1915,16 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
 
         $scope.applyFilters();
         $scope.showToaster(successCount + ' videos linked successfully!', 'success');
-        $scope.cancelUpload(); // Close modal
+        $scope.closeLinkVideoModal(); // Close modal
+    };
+
+    $scope.openLinkVideoModal = function () {
+        $scope.resetNewVideo();
+        $scope.linkVideoView = true;
+    };
+
+    $scope.closeLinkVideoModal = function () {
+        $scope.linkVideoView = false;
     };
 
     $scope.resetNewVideo = function () {

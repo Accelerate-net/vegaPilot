@@ -1728,7 +1728,7 @@
          <li style="display: flex; align-items: center; margin-right: 10px;">
             <button class="btn"
                style="background: #ffb706; color: #006073; border: none; font-weight: 600; padding: 10px 20px; border-radius: 6px; font-size: 14px; transition: all 0.2s ease; white-space: nowrap; margin-top: 7px;"
-               data-toggle="modal" data-target="#linkVideoModal" ng-hide="createView" ng-click="resetNewVideo()"
+               ng-hide="createView" ng-click="openLinkVideoModal()"
                onmouseover="this.style.background='#ffa500'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(255, 183, 6, 0.3)'"
                onmouseout="this.style.background='#ffb706'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                <i class="ti ti-plus"></i> Add New
@@ -1805,7 +1805,7 @@
 
                      <!-- All Videos Table -->
                      <div data-widget-group="all-video-table" ng-show="!createView">
-                        <div class="row" ng-show="listData.length > 0">
+                        <div class="row" ng-show="listData.length > 0 || isLoading">
                            <div class="col-md-12">
                               <!-- Filter Panel -->
 
@@ -2159,128 +2159,125 @@
    </div>
 
    <!-- Link Video Modal -->
-   <div class="modal fade" id="linkVideoModal" tabindex="-1" role="dialog" aria-labelledby="linkVideoModalLabel"
-      aria-hidden="true" style="z-index: 100000;">
-      <div class="modal-dialog modal-lg" role="document">
-         <div class="modal-content"
-            style="display: flex; flex-direction: column; height: 100%; max-height: 100%; background: transparent; border: none; box-shadow: none; overflow: hidden;">
-            <div class="modal-header">
-               <h3><i class="ti ti-link"></i> Classify Video</h3>
-               <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
-                  <i class="ti ti-close"></i>
-               </button>
-            </div>
-            <div class="modal-body">
-               <form>
-                  <!-- Form Section: Video Details -->
-                  <div class="form-section">
-                     <div class="form-row">
-                        <div class="form-group">
-                           <label>Subject (L1) <span class="required" style="color: red;">*</span></label>
-                           <select class="form-control" ng-model="newVideo.classificationLevel1"
-                              ng-change="onSubjectChange()">
-                              <option value="">Select Level 1 (Subject)</option>
-                              <option value="Biology">Biology</option>
-                              <option value="Chemistry">Chemistry</option>
-                              <option value="Mathematics">Mathematics</option>
-                              <option value="Physics">Physics</option>
-                           </select>
-                        </div>
-                        <div class="form-group">
-                           <label>Chapter (L2) <span class="required" style="color: red;">*</span></label>
-                           <select class="form-control" ng-model="newVideo.classificationLevel2"
-                              ng-disabled="!newVideo.classificationLevel1">
-                              <option value="">Select Level 2 (Chapter)</option>
-                              <option ng-repeat="chapter in availableChapters" value="{{chapter.id}}">
-                                 {{chapter.name}}
-                              </option>
-                           </select>
-                        </div>
+   <!-- Link Video Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: linkVideoView}">
+      <div class="crispr-modal-dialog" style="max-width: 960px;">
+         <div class="crispr-modal-header">
+            <h3><i class="ti ti-link"></i> Classify Video</h3>
+            <button class="crispr-modal-close" ng-click="closeLinkVideoModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <form>
+               <!-- Form Section: Video Details -->
+               <div class="form-section">
+                  <div class="form-row">
+                     <div class="form-group">
+                        <label>Subject (L1) <span class="required" style="color: red;">*</span></label>
+                        <select class="form-control" ng-model="newVideo.classificationLevel1"
+                           ng-change="onSubjectChange()">
+                           <option value="">Select Level 1 (Subject)</option>
+                           <option value="Biology">Biology</option>
+                           <option value="Chemistry">Chemistry</option>
+                           <option value="Mathematics">Mathematics</option>
+                           <option value="Physics">Physics</option>
+                        </select>
+                     </div>
+                     <div class="form-group">
+                        <label>Chapter (L2) <span class="required" style="color: red;">*</span></label>
+                        <select class="form-control" ng-model="newVideo.classificationLevel2"
+                           ng-disabled="!newVideo.classificationLevel1">
+                           <option value="">Select Level 2 (Chapter)</option>
+                           <option ng-repeat="chapter in availableChapters" value="{{chapter.id}}">
+                              {{chapter.name}}
+                           </option>
+                        </select>
+                     </div>
+                  </div>
+
+                  <div class="form-row">
+                     <div class="form-group">
+                        <label>Instructor</label>
+                        <select class="form-control" ng-model="newVideo.instructorId">
+                           <option value="">Select Instructor Profile</option>
+                           <option ng-repeat="instructor in availableInstructors" value="{{instructor.id}}">
+                              {{instructor.name}}
+                           </option>
+                        </select>
+                     </div>
+                     <div class="form-group">
+                        <label>Source Folder</label>
+                        <select class="form-control" ng-model="newVideo.collectionName" ng-change="onCollectionSelect()"
+                           ng-disabled="loadingCollections">
+                           <option value="">Select Hosting Folder</option>
+                           <option ng-repeat="collection in bunnyCollections" value="{{collection.name}}">
+                              {{collection.name}} ({{collection.videoCount}} items)
+                           </option>
+                        </select>
+                        <p ng-if="loadingCollections" style="font-size: 12px; color: #666; margin-top: 5px;">
+                           <i class="fa fa-spinner fa-spin"></i> Loading folders...
+                        </p>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="form-section" ng-if="newVideo.collectionName">
+                  <div class="form-section-title">Video Display Titles</div>
+
+                  <div class="form-row" ng-repeat="item in videoItems track by $index"
+                     style="border-bottom: 1px dashed #eee; margin-bottom: 12px; position: relative;"
+                     ng-style="$last && {'border-bottom': 'none', 'padding-bottom': '0'}">
+
+                     <div class="form-group" style="margin-bottom: 0;">
+                        <label ng-if="$first">Select Video</label>
+                        <label ng-if="!$first" style="visibility: hidden; height: 0; margin: 0; display: block;">Select
+                           Video</label>
+                        <select class="form-control" ng-model="item.targetVideoId"
+                           ng-change="onVideoSelect(item, $index)"
+                           ng-disabled="!newVideo.collectionName || loadingVideosInCollection">
+                           <option value="">Select Video File</option>
+                           <option ng-repeat="vid in getAvailableVideos(item)" value="{{vid.guid}}">
+                              {{vid.title}} ({{formatDuration(vid.length)}})
+                           </option>
+                        </select>
                      </div>
 
-                     <div class="form-row">
-                        <div class="form-group">
-                           <label>Instructor</label>
-                           <select class="form-control" ng-model="newVideo.instructorId">
-                              <option value="">Select Instructor Profile</option>
-                              <option ng-repeat="instructor in availableInstructors" value="{{instructor.id}}">
-                                 {{instructor.name}}
-                              </option>
-                           </select>
-                        </div>
-                        <div class="form-group">
-                           <label>Source Folder</label>
-                           <select class="form-control" ng-model="newVideo.collectionName"
-                              ng-change="onCollectionSelect()" ng-disabled="loadingCollections">
-                              <option value="">Select Hosting Folder</option>
-                              <option ng-repeat="collection in bunnyCollections" value="{{collection.name}}">
-                                 {{collection.name}} ({{collection.videoCount}} items)
-                              </option>
-                           </select>
-                           <p ng-if="loadingCollections" style="font-size: 12px; color: #666; margin-top: 5px;">
-                              <i class="fa fa-spinner fa-spin"></i> Loading folders...
-                           </p>
+                     <div class="form-group" style="margin-bottom: 0; position: relative;">
+                        <label ng-if="$first">Title <span class="required" style="color: red;">*</span></label>
+                        <label ng-if="!$first"
+                           style="visibility: hidden; height: 0; margin: 0; display: block;">Title</label>
+                        <div style="display: flex; gap: 10px;">
+                           <input type="text" class="form-control video-row-title" id="video-title-{{$index}}"
+                              ng-model="item.titleName" placeholder="Enter video title" maxlength="80"
+                              ng-keyup="$event.keyCode == 13 && addVideoRow()">
+
+                           <button type="button" class="btn btn-danger btn-sm" ng-click="removeVideoRow($index)"
+                              ng-show="videoItems.length > 1"
+                              style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center;"
+                              title="Remove Row">
+                              <i class="ti ti-close"></i>
+                           </button>
+
+                           <button type="button" class="btn btn-primary btn-sm" ng-click="addVideoRow()"
+                              ng-show="$last && videoItems.length < videosInSelectedCollection.length"
+                              style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center; background: #006073; border-color: #006073;"
+                              title="Add Row">
+                              <i class="ti ti-plus"></i>
+                           </button>
                         </div>
                      </div>
                   </div>
 
-                  <div class="form-section" ng-if="newVideo.collectionName">
-                     <div class="form-section-title">Video Display Titles</div>
+               </div>
+            </form>
+         </div>
 
-                     <div class="form-row" ng-repeat="item in videoItems track by $index"
-                        style="border-bottom: 1px dashed #eee; margin-bottom: 12px; position: relative;"
-                        ng-style="$last && {'border-bottom': 'none', 'padding-bottom': '0'}">
-
-                        <div class="form-group" style="margin-bottom: 0;">
-                           <label ng-if="$first">Select Video</label>
-                           <label ng-if="!$first"
-                              style="visibility: hidden; height: 0; margin: 0; display: block;">Select Video</label>
-                           <select class="form-control" ng-model="item.targetVideoId"
-                              ng-change="onVideoSelect(item, $index)"
-                              ng-disabled="!newVideo.collectionName || loadingVideosInCollection">
-                              <option value="">Select Video File</option>
-                              <option ng-repeat="vid in getAvailableVideos(item)" value="{{vid.guid}}">
-                                 {{vid.title}} ({{formatDuration(vid.length)}})
-                              </option>
-                           </select>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 0; position: relative;">
-                           <label ng-if="$first">Title <span class="required" style="color: red;">*</span></label>
-                           <label ng-if="!$first"
-                              style="visibility: hidden; height: 0; margin: 0; display: block;">Title</label>
-                           <div style="display: flex; gap: 10px;">
-                              <input type="text" class="form-control video-row-title" id="video-title-{{$index}}"
-                                 ng-model="item.titleName" placeholder="Enter video title" maxlength="80"
-                                 ng-keyup="$event.keyCode == 13 && addVideoRow()">
-
-                              <button type="button" class="btn btn-danger btn-sm" ng-click="removeVideoRow($index)"
-                                 ng-show="videoItems.length > 1"
-                                 style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center;"
-                                 title="Remove Row">
-                                 <i class="ti ti-close"></i>
-                              </button>
-
-                              <button type="button" class="btn btn-primary btn-sm" ng-click="addVideoRow()"
-                                 ng-show="$last && videoItems.length < videosInSelectedCollection.length"
-                                 style="border-radius: 6px; padding: 0 12px; height: 32px; display: flex; align-items: center; justify-content: center; background: #006073; border-color: #006073;"
-                                 title="Add Row">
-                                 <i class="ti ti-plus"></i>
-                              </button>
-                           </div>
-                        </div>
-                     </div>
-
-                  </div>
-               </form>
-            </div>
-
-            <div class="modal-footer">
-               <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-               <button type="button" class="btn btn-success" ng-click="linkVideo()" ng-disabled="!isLinkFormComplete()">
-                  <i class="ti ti-save"></i> Save
-               </button>
-            </div>
+         <div class="crispr-modal-footer">
+            <button type="button" class="btn btn-default" ng-click="closeLinkVideoModal()">Cancel</button>
+            <button type="button" class="btn btn-success" ng-click="linkVideo()" ng-disabled="!isLinkFormComplete()">
+               <i class="ti ti-save"></i> Save
+            </button>
          </div>
       </div>
    </div>

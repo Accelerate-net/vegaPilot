@@ -6,6 +6,10 @@ angular.module('questionBankApp', ['ngCookies'])
 
 
   .controller('questionBankController', function ($scope, $http, $interval, $cookies, $sce, $timeout) {
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? "http://localhost:3000"
+      : "https://crisprtech.app/crispr-apis";
+
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
@@ -106,7 +110,7 @@ angular.module('questionBankApp', ['ngCookies'])
     $scope.renderSummaryTiles = function () {
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/list-summary.php',
+        url: BASE_URL + '/restricted/question-bank/list-summary.php',
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
@@ -134,7 +138,7 @@ angular.module('questionBankApp', ['ngCookies'])
     $scope.filterAllQuestions = function (page, records, type) {
       $scope.isLoading = true;
 
-      var url = 'http://localhost:3000/restricted/question-bank/list.php?page=' + page + '&records=' + records + '&filter=' + type;
+      var url = BASE_URL + '/restricted/question-bank/list.php?page=' + page + '&records=' + records + '&filter=' + type;
       if ($scope.filterSubject) url += '&subject=' + encodeURIComponent($scope.filterSubject);
       if ($scope.filterChapter) url += '&chapter=' + encodeURIComponent($scope.filterChapter);
 
@@ -270,7 +274,7 @@ angular.module('questionBankApp', ['ngCookies'])
 
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/read-single.php?id=' + id,
+        url: BASE_URL + '/restricted/question-bank/read-single.php?id=' + id,
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
@@ -308,7 +312,7 @@ angular.module('questionBankApp', ['ngCookies'])
     $scope.seekQuestionBySequenceNumber = function (seekNumber) {
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/read-in-sequence.php?sequence=' + seekNumber,
+        url: BASE_URL + '/restricted/question-bank/read-in-sequence.php?sequence=' + seekNumber,
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
@@ -409,7 +413,7 @@ angular.module('questionBankApp', ['ngCookies'])
       if ($scope.modifyQuestionData.challenged) {
         $http({
           method: 'GET',
-          url: 'http://localhost:3000/restricted/question-bank/reset-challenge.php?id=' + modifyQuestionData.id,
+          url: BASE_URL + '/restricted/question-bank/reset-challenge.php?id=' + modifyQuestionData.id,
           headers: {
             'Content-Type': 'application/json',
             'X-Access-Token': getAdminTokenFromCookie()
@@ -430,7 +434,7 @@ angular.module('questionBankApp', ['ngCookies'])
 
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/update-verified.php?id=' + modifyQuestionData.id + '&verified=' + verified_number,
+        url: BASE_URL + '/restricted/question-bank/update-verified.php?id=' + modifyQuestionData.id + '&verified=' + verified_number,
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
@@ -546,7 +550,7 @@ angular.module('questionBankApp', ['ngCookies'])
 
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/restricted/question-bank/update-question-details.php?id=' + questionId,
+        url: BASE_URL + '/restricted/question-bank/update-question-details.php?id=' + questionId,
         data: data,
         headers: {
           'Content-Type': 'application/json',
@@ -650,7 +654,7 @@ angular.module('questionBankApp', ['ngCookies'])
       }
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/restricted/question-bank/update-question-image.php?id=' + questionId,
+        url: BASE_URL + '/restricted/question-bank/update-question-image.php?id=' + questionId,
         data: data,
         headers: {
           'Content-Type': 'application/json',
@@ -670,7 +674,7 @@ angular.module('questionBankApp', ['ngCookies'])
     $scope.removeSolutionImage = function (questionId) {
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/remove-solution-image.php?id=' + questionId,
+        url: BASE_URL + '/restricted/question-bank/remove-solution-image.php?id=' + questionId,
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
@@ -758,7 +762,7 @@ angular.module('questionBankApp', ['ngCookies'])
       }
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/restricted/question-bank/update-solution-image.php?id=' + questionId,
+        url: BASE_URL + '/restricted/question-bank/update-solution-image.php?id=' + questionId,
         data: data,
         headers: {
           'Content-Type': 'application/json',
@@ -780,7 +784,7 @@ angular.module('questionBankApp', ['ngCookies'])
     $scope.removePhotoSolution = function (questionId) {
       $http({
         method: 'GET',
-        url: 'http://localhost:3000/restricted/question-bank/reset-solution-image.php?id=' + questionId,
+        url: BASE_URL + '/restricted/question-bank/reset-solution-image.php?id=' + questionId,
         headers: {
           'Content-Type': 'application/json',
           'X-Access-Token': getAdminTokenFromCookie()
