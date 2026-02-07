@@ -1,55 +1,59 @@
 // Course View Controller - Handles course content navigation and display
 var courseViewApp = angular.module('courseViewApp', ['ngCookies']);
 
-courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeout', '$http', function($scope, $cookies, $timeout, $http) {
+courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeout', '$http', function ($scope, $cookies, $timeout, $http) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
     //Check if logged in
-    if(getAdminTokenFromCookie()){
-      $scope.isLoggedIn = true;
+    if (getAdminTokenFromCookie()) {
+        $scope.isLoggedIn = true;
     }
-    else{
-      $scope.isLoggedIn = false;
-      window.location = "index.html";
+    else {
+        $scope.isLoggedIn = false;
+        window.location = "index.html";
     }
 
     //Logout function
-    $scope.logoutNow = function(){
-      if($cookies.get("vegaPilotAdminToken")){
-        $cookies.remove("vegaPilotAdminToken");
-        window.location = "index.html";
-      }
+    $scope.logoutNow = function () {
+        if ($cookies.get("vegaPilotAdminToken")) {
+            $cookies.remove("vegaPilotAdminToken");
+            window.location = "index.html";
+        }
     }
 
     function getAdminTokenFromCookie() {
-      return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
+        return $cookies.get("vegaPilotAdminToken") || localStorage.getItem("vegaPilotAdminToken");
     }
 
 
 
 
     // ===== API Configuration =====
-    $scope.apiBaseUrl = 'http://localhost:3000/restricted/course';
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? "http://localhost:3000"
+        : "https://crisprtech.app/crispr-apis";
+
+    $scope.apiBaseUrl = BASE_URL + '/restricted/course';
 
     // Get token from localStorage
-    
+
 
     // Loading state
     $scope.isLoading = false;
     $scope.loadingMessage = 'Loading...';
 
-    $scope.showLoading = function(message) {
+    $scope.showLoading = function (message) {
         $scope.isLoading = true;
         $scope.loadingMessage = message || 'Loading...';
     };
 
-    $scope.hideLoading = function() {
+    $scope.hideLoading = function () {
         $scope.isLoading = false;
     };
 
     // Format duration from seconds to MM:SS or HH:MM:SS
-    $scope.formatDuration = function(seconds) {
+    $scope.formatDuration = function (seconds) {
         if (!seconds || seconds === 0) return '0:00';
         var hours = Math.floor(seconds / 3600);
         var minutes = Math.floor((seconds % 3600) / 60);
@@ -226,7 +230,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     }
 
     // ===== Initialize Controller =====
-    $scope.init = function() {
+    $scope.init = function () {
         const params = getUrlParams();
         const urlParams = new URLSearchParams(window.location.search);
         $scope.bundleId = urlParams.get('bundleId') || urlParams.get('id') || 70005;
@@ -243,7 +247,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Course Bundle Metadata from API =====
-    $scope.loadCourseBundleMetadata = function() {
+    $scope.loadCourseBundleMetadata = function () {
         $scope.showLoading('Loading course structure...');
 
         var url = $scope.apiBaseUrl + '/get-course-bundle-content.php';
@@ -259,7 +263,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Course bundle metadata API response:', response.data);
 
             if (response.data && response.data.status === 'success' && response.data.data) {
@@ -275,7 +279,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 };
 
                 // Build available segments
-                $scope.availableSegments = metadata.content.map(function(segment) {
+                $scope.availableSegments = metadata.content.map(function (segment) {
                     return {
                         id: segment.segment.toString(),
                         name: segment.name
@@ -301,7 +305,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 $scope.loadProfileData();
                 $scope.hideLoading();
             }
-        }, function(error) {
+        }, function (error) {
             console.error('Error loading course bundle metadata:', error);
             // Fallback to old methods
             $scope.loadCourseData($scope.currentParams.courseCode);
@@ -314,19 +318,19 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Update Modules from Metadata =====
-    $scope.updateModulesFromMetadata = function() {
+    $scope.updateModulesFromMetadata = function () {
         if (!$scope.courseBundleMetadata || !$scope.courseBundleMetadata.content) {
             $scope.availableModules = [];
             return;
         }
 
         // Find the selected segment
-        var selectedSegment = $scope.courseBundleMetadata.content.find(function(seg) {
+        var selectedSegment = $scope.courseBundleMetadata.content.find(function (seg) {
             return seg.segment.toString() === $scope.selectedSegmentId;
         });
 
         if (selectedSegment && selectedSegment.modules) {
-            $scope.availableModules = selectedSegment.modules.map(function(module) {
+            $scope.availableModules = selectedSegment.modules.map(function (module) {
                 return {
                     id: module.moduleId.toString(),
                     name: module.moduleName
@@ -338,14 +342,14 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Update Chapters from Metadata =====
-    $scope.updateChaptersFromMetadata = function() {
+    $scope.updateChaptersFromMetadata = function () {
         if (!$scope.courseBundleMetadata || !$scope.courseBundleMetadata.content) {
             $scope.availableChapters = [];
             return;
         }
 
         // Find the selected segment
-        var selectedSegment = $scope.courseBundleMetadata.content.find(function(seg) {
+        var selectedSegment = $scope.courseBundleMetadata.content.find(function (seg) {
             return seg.segment.toString() === $scope.selectedSegmentId;
         });
 
@@ -355,12 +359,12 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         }
 
         // Find the selected module
-        var selectedModule = selectedSegment.modules.find(function(mod) {
+        var selectedModule = selectedSegment.modules.find(function (mod) {
             return mod.moduleId.toString() === $scope.selectedModuleId;
         });
 
         if (selectedModule && selectedModule.chapters) {
-            $scope.availableChapters = selectedModule.chapters.map(function(chapter) {
+            $scope.availableChapters = selectedModule.chapters.map(function (chapter) {
                 return {
                     id: chapter.chapterId.toString(),
                     name: chapter.title,
@@ -373,8 +377,8 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Course Data =====
-    $scope.loadCourseData = function(courseCode) {
-        $timeout(function() {
+    $scope.loadCourseData = function (courseCode) {
+        $timeout(function () {
             const course = $scope.coursesDatabase[courseCode];
             if (course) {
                 $scope.courseData = {
@@ -402,10 +406,10 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Available Modules =====
-    $scope.loadAvailableModules = function(courseCode) {
+    $scope.loadAvailableModules = function (courseCode) {
         const course = $scope.coursesDatabase[courseCode];
         if (course && course.modules) {
-            $scope.availableModules = Object.keys(course.modules).map(function(moduleId) {
+            $scope.availableModules = Object.keys(course.modules).map(function (moduleId) {
                 return {
                     id: moduleId,
                     name: course.modules[moduleId].name
@@ -417,10 +421,10 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Available Chapters =====
-    $scope.loadAvailableChapters = function(courseCode, moduleId) {
+    $scope.loadAvailableChapters = function (courseCode, moduleId) {
         const course = $scope.coursesDatabase[courseCode];
         if (course && course.modules[moduleId] && course.modules[moduleId].chapters) {
-            $scope.availableChapters = Object.keys(course.modules[moduleId].chapters).map(function(chapterId) {
+            $scope.availableChapters = Object.keys(course.modules[moduleId].chapters).map(function (chapterId) {
                 return {
                     id: chapterId,
                     name: course.modules[moduleId].chapters[chapterId].name
@@ -432,8 +436,8 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Module Data =====
-    $scope.loadModuleData = function(courseCode, moduleId) {
-        $timeout(function() {
+    $scope.loadModuleData = function (courseCode, moduleId) {
+        $timeout(function () {
             const course = $scope.coursesDatabase[courseCode];
             if (course && course.modules[moduleId]) {
                 const module = course.modules[moduleId];
@@ -458,7 +462,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Chapter Data with Parts from API =====
-    $scope.loadChapterData = function(courseCode, moduleId, chapterId) {
+    $scope.loadChapterData = function (courseCode, moduleId, chapterId) {
         // Get bundleId from URL or use default mapping
         const urlParams = new URLSearchParams(window.location.search);
         const bundleId = urlParams.get('bundleId') || $scope.bundleId || 70000;
@@ -484,7 +488,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 'X-Access-Token': getAdminTokenFromCookie(),
                 'Content-Type': 'application/json'
             }
-        }).then(function(response) {
+        }).then(function (response) {
             console.log('Chapter data API response:', response.data);
 
             if (response.data && response.data.status === 'success' && response.data.data) {
@@ -493,7 +497,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 // Map partsIncluded to parts array
                 var parts = [];
                 if (apiData.partsIncluded) {
-                    Object.keys(apiData.partsIncluded).forEach(function(key) {
+                    Object.keys(apiData.partsIncluded).forEach(function (key) {
                         var part = apiData.partsIncluded[key];
                         parts.push({
                             id: parseInt(key),
@@ -520,12 +524,12 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 }
 
                 // Sort parts by id
-                parts.sort(function(a, b) { return a.id - b.id; });
+                parts.sort(function (a, b) { return a.id - b.id; });
 
                 // Get chapter name from availableChapters if available
                 var chapterName = apiData.title || 'Chapter Content';
                 if ($scope.availableChapters && $scope.availableChapters.length > 0) {
-                    var currentChapter = $scope.availableChapters.find(function(ch) {
+                    var currentChapter = $scope.availableChapters.find(function (ch) {
                         return ch.id === chapterId.toString();
                     });
                     if (currentChapter) {
@@ -571,7 +575,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
                 $scope.loadChapterDataFallback(courseCode, moduleId, chapterId);
                 $scope.hideLoading();
             }
-        }, function(error) {
+        }, function (error) {
             console.error('Error loading chapter data:', error);
             // Fallback to dummy data
             $scope.loadChapterDataFallback(courseCode, moduleId, chapterId);
@@ -580,8 +584,8 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // Fallback function with dummy data
-    $scope.loadChapterDataFallback = function(courseCode, moduleId, chapterId) {
-        $timeout(function() {
+    $scope.loadChapterDataFallback = function (courseCode, moduleId, chapterId) {
+        $timeout(function () {
             const course = $scope.coursesDatabase[courseCode];
             let chapterName = 'Chapter Content';
             let chapterDescription = 'Chapter description';
@@ -748,7 +752,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Load Profile Data =====
-    $scope.loadProfileData = function() {
+    $scope.loadProfileData = function () {
         $scope.profileData = {
             name: 'John Doe',
             email: 'john.doe@example.com'
@@ -756,7 +760,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Select Part =====
-    $scope.selectPart = function(part) {
+    $scope.selectPart = function (part) {
         $scope.selectedPart = part;
         $scope.selectedPartId = part.id;
 
@@ -776,21 +780,21 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Show Toaster Message =====
-    $scope.showToasterMessage = function(message) {
+    $scope.showToasterMessage = function (message) {
         console.log('Toaster:', message);
     };
 
     // ===== Navigation Functions =====
-    $scope.goToCourse = function() {
+    $scope.goToCourse = function () {
         window.location.href = 'catalog.html';
     };
 
-    $scope.goToModule = function() {
+    $scope.goToModule = function () {
         window.location.href = 'preview-course.html?courseCode=' + $scope.courseData.code;
     };
 
     // ===== Previous/Next Part Navigation =====
-    $scope.previousPart = function() {
+    $scope.previousPart = function () {
         if ($scope.hasPreviousPart()) {
             const currentIndex = $scope.chapterData.parts.findIndex(p => p.id === $scope.selectedPartId);
             if (currentIndex > 0) {
@@ -800,7 +804,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         }
     };
 
-    $scope.nextPart = function() {
+    $scope.nextPart = function () {
         if ($scope.hasNextPart()) {
             const currentIndex = $scope.chapterData.parts.findIndex(p => p.id === $scope.selectedPartId);
             if (currentIndex < $scope.chapterData.parts.length - 1) {
@@ -810,20 +814,20 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         }
     };
 
-    $scope.hasPreviousPart = function() {
+    $scope.hasPreviousPart = function () {
         if (!$scope.chapterData.parts || $scope.chapterData.parts.length === 0) return false;
         const currentIndex = $scope.chapterData.parts.findIndex(p => p.id === $scope.selectedPartId);
         return currentIndex > 0;
     };
 
-    $scope.hasNextPart = function() {
+    $scope.hasNextPart = function () {
         if (!$scope.chapterData.parts || $scope.chapterData.parts.length === 0) return false;
         const currentIndex = $scope.chapterData.parts.findIndex(p => p.id === $scope.selectedPartId);
         return currentIndex < $scope.chapterData.parts.length - 1;
     };
 
     // ===== Segment Change Handler =====
-    $scope.onSegmentChange = function() {
+    $scope.onSegmentChange = function () {
         // Update available modules for the selected segment
         if ($scope.courseBundleMetadata) {
             $scope.updateModulesFromMetadata();
@@ -846,7 +850,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Module Change Handler =====
-    $scope.onModuleChange = function() {
+    $scope.onModuleChange = function () {
         // Update available chapters for the selected module
         if ($scope.courseBundleMetadata) {
             // Use API metadata
@@ -866,19 +870,19 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // ===== Chapter Change Handler =====
-    $scope.onChapterChange = function() {
+    $scope.onChapterChange = function () {
         // Navigate to the selected chapter
         $scope.navigateToModuleAndChapter();
     };
 
     // ===== Navigate to Module and Chapter =====
-    $scope.navigateToModuleAndChapter = function() {
+    $scope.navigateToModuleAndChapter = function () {
         var url = 'course-view.html?courseCode=' + $scope.currentParams.courseCode +
-                  '&bundleId=' + $scope.bundleId +
-                  '&segment=' + $scope.selectedSegmentId +
-                  '&module=' + $scope.selectedModuleId +
-                  '&chapter=' + $scope.selectedChapterId +
-                  '&part=0';
+            '&bundleId=' + $scope.bundleId +
+            '&segment=' + $scope.selectedSegmentId +
+            '&module=' + $scope.selectedModuleId +
+            '&chapter=' + $scope.selectedChapterId +
+            '&part=0';
         window.location.href = url;
     };
 
@@ -887,7 +891,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     $scope.filteredCoursesArray = [];
 
     // Convert coursesDatabase object to array for easier filtering
-    $scope.updateFilteredCoursesArray = function() {
+    $scope.updateFilteredCoursesArray = function () {
         if (!$scope.coursesDatabase) {
             $scope.filteredCoursesArray = [];
             return;
@@ -895,7 +899,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
 
         var coursesArray = [];
         try {
-            Object.keys($scope.coursesDatabase).forEach(function(courseCode) {
+            Object.keys($scope.coursesDatabase).forEach(function (courseCode) {
                 var course = $scope.coursesDatabase[courseCode];
                 if (!course) {
                     return;
@@ -917,10 +921,10 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
             // Filter based on search query
             if ($scope.courseSearchQuery) {
                 var query = $scope.courseSearchQuery.toLowerCase();
-                $scope.filteredCoursesArray = coursesArray.filter(function(courseItem) {
+                $scope.filteredCoursesArray = coursesArray.filter(function (courseItem) {
                     return (courseItem.title && courseItem.title.toLowerCase().indexOf(query) !== -1) ||
-                           (courseItem.code && courseItem.code.toLowerCase().indexOf(query) !== -1) ||
-                           (courseItem.category && courseItem.category.toLowerCase().indexOf(query) !== -1);
+                        (courseItem.code && courseItem.code.toLowerCase().indexOf(query) !== -1) ||
+                        (courseItem.category && courseItem.category.toLowerCase().indexOf(query) !== -1);
                 });
             } else {
                 $scope.filteredCoursesArray = coursesArray;
@@ -931,15 +935,15 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
     };
 
     // Watch for changes in search query
-    $scope.$watch('courseSearchQuery', function() {
+    $scope.$watch('courseSearchQuery', function () {
         $scope.updateFilteredCoursesArray();
     });
 
-    $scope.openSelectCourseModal = function() {
+    $scope.openSelectCourseModal = function () {
         $scope.courseSearchQuery = '';
         $scope.updateFilteredCoursesArray();
 
-        $timeout(function() {
+        $timeout(function () {
             // Try multiple approaches to ensure the modal opens
             var modalElement = document.getElementById('selectCourseModal');
             if (modalElement) {
@@ -964,7 +968,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         }, 100);
     };
 
-    $scope.selectCourseFromModal = function(courseCode) {
+    $scope.selectCourseFromModal = function (courseCode) {
         if (!courseCode) {
             return;
         }
@@ -976,9 +980,9 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
             if (firstModuleId && course.modules[firstModuleId].chapters) {
                 var firstChapterId = Object.keys(course.modules[firstModuleId].chapters)[0];
                 var url = 'course-view.html?courseCode=' + courseCode +
-                          '&module=' + firstModuleId +
-                          '&chapter=' + firstChapterId +
-                          '&part=0';
+                    '&module=' + firstModuleId +
+                    '&chapter=' + firstChapterId +
+                    '&part=0';
                 window.location.href = url;
             }
         }
@@ -1005,15 +1009,15 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         }
     };
 
-    $scope.getModuleCount = function(course) {
+    $scope.getModuleCount = function (course) {
         if (!course || !course.modules) return 0;
         return Object.keys(course.modules).length;
     };
 
-    $scope.getChapterCountForCourse = function(course) {
+    $scope.getChapterCountForCourse = function (course) {
         if (!course || !course.modules) return 0;
         var count = 0;
-        Object.keys(course.modules).forEach(function(moduleId) {
+        Object.keys(course.modules).forEach(function (moduleId) {
             var module = course.modules[moduleId];
             if (module.chapters) {
                 count += Object.keys(module.chapters).length;
@@ -1022,7 +1026,7 @@ courseViewApp.controller('courseViewController', ['$scope', '$cookies', '$timeou
         return count;
     };
 
-    $scope.isCourseDatabaseEmpty = function() {
+    $scope.isCourseDatabaseEmpty = function () {
         return !$scope.coursesDatabase || Object.keys($scope.coursesDatabase).length === 0;
     };
 

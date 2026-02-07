@@ -98,8 +98,13 @@ app.controller('videoContentController', function ($scope, $http, $cookies, $tim
     $scope.loadingCollections = false;
     $scope.creatingCollection = false;
 
+    // Use dynamic BASE_URL
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? "http://localhost:3000"
+        : "https://crisprtech.app/crispr-apis";
+
     // API Configuration - Use proxy server
-    var API_BASE = '/api/bunny';
+    var API_BASE = BASE_URL + '/api/bunny';
 
     // Pagination helpers
     $scope.getStartIndex = function () {

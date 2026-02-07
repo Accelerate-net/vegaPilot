@@ -287,6 +287,9 @@ angular.module('questionBankApp', ['ngCookies'])
             $scope.modifyQuestionView = true;
 
             $scope.modifyQuestionData = response.data;
+            if ($scope.modifyQuestionData.chapterCode) {
+              $scope.modifyQuestionData.chapter = $scope.modifyQuestionData.chapterCode;
+            }
             $scope.isPhotoAttached = $scope.modifyQuestionData.url != "";
             $scope.isPhotoAttachedSolution = $scope.modifyQuestionData.solutionURL != "";
 
@@ -325,6 +328,9 @@ angular.module('questionBankApp', ['ngCookies'])
             $scope.modifyQuestionView = true;
 
             $scope.modifyQuestionData = response.data;
+            if ($scope.modifyQuestionData.chapterCode) {
+              $scope.modifyQuestionData.chapter = $scope.modifyQuestionData.chapterCode;
+            }
             $scope.isPhotoAttached = $scope.modifyQuestionData.url != "";
             $scope.isPhotoAttachedSolution = $scope.modifyQuestionData.solutionURL != "";
 

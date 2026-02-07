@@ -34,7 +34,11 @@ app.controller('InstructorPortfolioController', ['$scope', '$timeout', '$http', 
 
 
     // ===== API Configuration =====
-    $scope.apiBaseUrl = 'http://localhost:3000/restricted/people';
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? "http://localhost:3000"
+        : "https://crisprtech.app/crispr-apis";
+
+    $scope.apiBaseUrl = BASE_URL + '/restricted/people';
 
     // Get token from localStorage or cookies
 

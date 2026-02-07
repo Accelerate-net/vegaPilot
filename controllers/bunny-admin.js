@@ -89,7 +89,11 @@ app.controller('BunnyAdminController', ['$scope', '$cookies', '$http', '$timeout
     $scope.loadingMessage = 'Loading...';
 
     // ===== API Configuration =====
-    var API_BASE = '/api/bunny';
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? "http://localhost:3000"
+        : "https://crisprtech.app/crispr-apis";
+
+    var API_BASE = BASE_URL + '/api/bunny';
 
     // ===== Initialize App =====
     $scope.init = function () {

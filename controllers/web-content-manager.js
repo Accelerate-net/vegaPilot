@@ -105,6 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentVoucherId = null;
     let currentVoucherCode = '';
     let voucherUsersSearchQuery = '';
+    const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? "http://localhost:3000"
+        : "https://crisprtech.app/crispr-apis";
+
     let currentStatusFilter = 'all'; // 'all' or 'active'
 
     // DOM Elements
@@ -237,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const token = getAdminTokenFromCookie();
 
             // Build query params
-            let url = `http://localhost:3000/restricted/catalog/list-catalog.php?page=${page}&size=${size}&sortBy=${sortBy}`;
+            let url = BASE_URL + `/restricted/catalog/list-catalog.php?page=${page}&size=${size}&sortBy=${sortBy}`;
             if (searchKey) {
                 url += `&searchKey=${encodeURIComponent(searchKey)}`;
             }
@@ -401,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get auth token from localStorage
             const token = getAdminTokenFromCookie();
 
-            const res = await fetch('http://localhost:3000/restricted/config/get-auto-enrollment-mapping.php', {
+            const res = await fetch(BASE_URL + '/restricted/config/get-auto-enrollment-mapping.php', {
                 method: 'GET',
                 headers: {
                     'X-Access-Token': token,
@@ -530,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Saving auto-enrollment:', finalPayload);
 
-            const res = await fetch('http://localhost:3000/restricted/config/save-auto-enrollment-mapping.php', {
+            const res = await fetch(BASE_URL + '/restricted/config/save-auto-enrollment-mapping.php', {
                 method: 'POST',
                 headers: {
                     'X-Access-Token': token,
@@ -563,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const token = getAdminTokenFromCookie();
 
-            const url = 'http://localhost:3000/restricted/config/add-new-voucher-code.php';
+            const url = BASE_URL + '/restricted/config/add-new-voucher-code.php';
 
             console.log('Saving discount:', discountData);
 
@@ -597,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function performRevoke(voucherId) {
         try {
             const token = getAdminTokenFromCookie();
-            const url = `http://localhost:3000/restricted/config/revoke-voucher-code.php?id=${voucherId}`;
+            const url = BASE_URL + `/restricted/config/revoke-voucher-code.php?id=${voucherId}`;
 
             console.log('Revoking voucher:', voucherId);
 
@@ -628,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const token = getAdminTokenFromCookie();
 
-            let url = `http://localhost:3000/restricted/people/list-candidates.php?page=1&size=20&sortBy=name`;
+            let url = BASE_URL + `/restricted/people/list-candidates.php?page=1&size=20&sortBy=name`;
             if (searchKey && searchKey.trim()) {
                 url += `&searchKey=${encodeURIComponent(searchKey.trim())}`;
             }
@@ -666,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const token = getAdminTokenFromCookie();
 
-            let url = `http://localhost:3000/restricted/config/get-users-associated-to-voucher-code.php?id=${voucherId}&page=${page}&size=${size}&sortBy=${sortBy}&searchKey=${encodeURIComponent(searchKey)}`;
+            let url = BASE_URL + `/restricted/config/get-users-associated-to-voucher-code.php?id=${voucherId}&page=${page}&size=${size}&sortBy=${sortBy}&searchKey=${encodeURIComponent(searchKey)}`;
 
             console.log('Fetching voucher users from:', url);
 
