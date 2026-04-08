@@ -257,6 +257,304 @@ input {
   color: #eff8fa;
 }
 
+.student-page {
+  position: relative;
+}
+
+.hero-row,
+.toolbar-row,
+.pagination-bar,
+.modal-header-row,
+.action-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.muted-copy,
+.student-subtle {
+  color: var(--muted);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.big-stat {
+  margin: 6px 0 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.toolbar-row {
+  margin-bottom: 18px;
+}
+
+.search-shell {
+  flex: 1;
+}
+
+.search-input,
+.filter-select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: white;
+}
+
+.filter-select {
+  max-width: 180px;
+}
+
+.filter-select.compact {
+  max-width: 120px;
+}
+
+.student-table-shell {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.student-table thead th {
+  text-align: left;
+  background: #f6fbfb;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 16px;
+  white-space: nowrap;
+}
+
+.student-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf3f4;
+  vertical-align: middle;
+}
+
+.sort-button,
+.link-chip,
+.table-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.link-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(0, 96, 115, 0.08);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.table-button {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.table-button.danger {
+  color: var(--danger);
+}
+
+.student-cell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar.placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
+  color: white;
+  font-weight: 700;
+}
+
+.student-name {
+  font-weight: 700;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: #edf3f4;
+}
+
+.status-pill.active,
+.status-pill.expiring-soon,
+.status-pill.blocked,
+.status-pill.expired,
+.status-pill.inactive {
+  color: white;
+}
+
+.status-pill.active {
+  background: #15803d;
+}
+
+.status-pill.inactive {
+  background: #6b7280;
+}
+
+.status-pill.blocked,
+.status-pill.expired {
+  background: #b42318;
+}
+
+.status-pill.expiring-soon {
+  background: #b45309;
+}
+
+.loading-row,
+.empty-row {
+  text-align: center;
+  color: var(--muted);
+  padding: 22px;
+}
+
+.empty-row.standalone {
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  margin-top: 16px;
+}
+
+.info-banner {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #b6e0fe;
+  background: #eef8ff;
+  color: #0c5460;
+  border-radius: 12px;
+}
+
+.pagination-bar {
+  margin-top: 16px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ghost-button.compact {
+  padding: 8px 12px;
+}
+
+.active-page {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 26, 30, 0.48);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(16, 45, 51, 0.18);
+}
+
+.modal-card.large {
+  width: min(980px, 100%);
+}
+
+.subtle-panel,
+.nested-panel {
+  margin: 16px 0;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.toast-region {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  gap: 10px;
+  z-index: 30;
+}
+
+.toast-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 280px;
+  max-width: 380px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+}
+
+.toast-card p {
+  margin: 4px 0 0;
+}
+
+.toast-card.info {
+  background: #0369a1;
+}
+
+.toast-card.success {
+  background: #15803d;
+}
+
+.toast-card.error {
+  background: #b42318;
+}
+
+.toast-close {
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
 @media (max-width: 1100px) {
   .app-shell,
   .login-page,
@@ -270,5 +568,18 @@ input {
 
   .content {
     padding: 16px;
+  }
+
+  .stats-grid,
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-row,
+  .toolbar-row,
+  .pagination-bar,
+  .modal-header-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import LegacyScreenPage from './pages/LegacyScreenPage';
+import StudentManagementPage from './pages/StudentManagementPage';
 import VerifyTokenPage from './pages/VerifyTokenPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
@@ -16,6 +17,14 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  function renderProtectedScreen(screen) {
+    if (screen.path === '/candidate-profile.html') {
+      return <StudentManagementPage />;
+    }
+
+    return <LegacyScreenPage screen={screen} />;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/index.html'} replace />} />
@@ -33,7 +42,7 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Layout currentScreen={screen}>
-                <LegacyScreenPage screen={screen} />
+                {renderProtectedScreen(screen)}
               </Layout>
             </ProtectedRoute>
           }
