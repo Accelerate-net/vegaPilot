@@ -422,9 +422,11 @@
                            <li class="nav-separator"><span>Commerce</span></li>
                            <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
                            <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a></li>
-                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
-                                    Manager</span></a></li>
+                           <li><a href="instructor-payouts.html"><i class="ti ti-time"></i><span>Instructor Payouts</span></a></li>
 
+                           <li class="nav-separator"><span>Marketing</span></li>
+                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+                           <li><a href="leads-management.html"><i class="ti ti-target"></i><span>Leads</span></a></li>
                            <li class="nav-separator"><span>People</span></li>
                            <li><a href="instructor-portfolio.html"><i
                                     class="ti ti-id-badge"></i><span>Instructors</span></a></li>
@@ -445,6 +447,10 @@
                      <div class="students-container">
 
                         <!-- Filter Bar -->
+                        <div ng-if="isDemoMode"
+                           style="margin-bottom: 14px; padding: 12px 16px; border: 1px solid #b6e0fe; background: #eef8ff; color: #0c5460; border-radius: 8px; font-size: 13px;">
+                           Showing demo candidate records mapped to the current API response structure for local preview.
+                        </div>
                         <div class="filter-bar">
                            <div class="search-wrapper">
                               <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"

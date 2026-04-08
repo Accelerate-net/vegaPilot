@@ -11,6 +11,7 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
     const BASE_URL = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? "http://localhost:3000"
         : "https://crisprtech.app/crispr-apis";
+    var isLocalPreview = window.location.protocol === 'file:';
 
     $scope.apiBaseUrl = BASE_URL + '/restricted/people';
 
@@ -43,9 +44,402 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
+    function getDummyCandidatesDataset() {
+        return [
+            {
+                id: 101,
+                candidateKey: 'CAND-2026-001',
+                name: 'Aarav Nair',
+                email: 'aarav.nair@example.com',
+                mobile: '+91 98765 43210',
+                registeredMobile: '+91 98765 43210',
+                communicationMobile: '+91 98765 43210',
+                photo: null,
+                totalCourseEnrollments: 3,
+                totalTestSeriesEnrollments: 1,
+                status: 'Active',
+                statusCode: 1,
+                blocked: false,
+                joinedDate: '2026-01-12T00:00:00Z',
+                lastUpdated: '2026-03-14T09:30:00Z',
+                dob: '2007-08-18',
+                gender: 'Male',
+                place: 'Kochi',
+                fatherName: 'Ramesh Nair',
+                motherName: 'Deepa Nair',
+                aspiration: 'IIT-JEE',
+                classOfStudy: '12th',
+                board: 'CBSE',
+                yearOfPassing: '2026',
+                lastInstitution: 'Gregorian Public School',
+                enrolledCourses: [
+                    {
+                        courseId: 'C001',
+                        courseName: 'Advanced Mathematics',
+                        courseCode: 'MATH-101',
+                        validUntil: 1780704000,
+                        enrollmentDate: 1736640000,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C002',
+                        courseName: 'Physics Fundamentals',
+                        courseCode: 'PHY-101',
+                        validUntil: 1779321600,
+                        enrollmentDate: 1737244800,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C004',
+                        courseName: 'Chemistry Essentials',
+                        courseCode: 'CHEM-101',
+                        validUntil: 1777766400,
+                        enrollmentDate: 1738368000,
+                        enrollmentStatusText: 'EXPIRING SOON'
+                    }
+                ]
+            },
+            {
+                id: 102,
+                candidateKey: 'CAND-2026-002',
+                name: 'Diya Joseph',
+                email: 'diya.joseph@example.com',
+                mobile: '+91 91234 56780',
+                registeredMobile: '+91 91234 56780',
+                communicationMobile: '+91 91234 56780',
+                photo: null,
+                totalCourseEnrollments: 2,
+                totalTestSeriesEnrollments: 2,
+                status: 'Active',
+                statusCode: 1,
+                blocked: false,
+                joinedDate: '2025-11-22T00:00:00Z',
+                lastUpdated: '2026-02-28T15:45:00Z',
+                dob: '2008-02-02',
+                gender: 'Female',
+                place: 'Thrissur',
+                fatherName: 'Mathew Joseph',
+                motherName: 'Anitha Joseph',
+                aspiration: 'NEET',
+                classOfStudy: '11th',
+                board: 'State',
+                yearOfPassing: '2027',
+                lastInstitution: 'St. Clare Senior Secondary School',
+                enrolledCourses: [
+                    {
+                        courseId: 'C005',
+                        courseName: 'Biology Fundamentals',
+                        courseCode: 'BIO-101',
+                        validUntil: 1781481600,
+                        enrollmentDate: 1732233600,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C004',
+                        courseName: 'Chemistry Essentials',
+                        courseCode: 'CHEM-101',
+                        validUntil: 1777248000,
+                        enrollmentDate: 1732752000,
+                        enrollmentStatusText: 'EXPIRING SOON'
+                    }
+                ]
+            },
+            {
+                id: 103,
+                candidateKey: 'CAND-2026-003',
+                name: 'Mohammed Irfan',
+                email: 'm.irfan@example.com',
+                mobile: '+91 99887 77665',
+                registeredMobile: '+91 99887 77665',
+                communicationMobile: '+91 99887 77665',
+                photo: null,
+                totalCourseEnrollments: 1,
+                totalTestSeriesEnrollments: 0,
+                status: 'Inactive',
+                statusCode: 0,
+                blocked: false,
+                joinedDate: '2025-09-03T00:00:00Z',
+                lastUpdated: '2026-01-16T11:10:00Z',
+                dob: '2006-12-10',
+                gender: 'Male',
+                place: 'Malappuram',
+                fatherName: 'Hameed K',
+                motherName: 'Shabana Hameed',
+                aspiration: 'SSC CGL',
+                classOfStudy: 'Completed 12th',
+                board: 'State',
+                yearOfPassing: '2025',
+                lastInstitution: 'Ideal Higher Secondary School',
+                enrolledCourses: [
+                    {
+                        courseId: 'C006',
+                        courseName: 'English Literature',
+                        courseCode: 'ENG-201',
+                        validUntil: 1765843200,
+                        enrollmentDate: 1725321600,
+                        enrollmentStatusText: 'EXPIRED'
+                    }
+                ]
+            },
+            {
+                id: 104,
+                candidateKey: 'CAND-2026-004',
+                name: 'Sneha Menon',
+                email: 'sneha.menon@example.com',
+                mobile: '+91 90012 34098',
+                registeredMobile: '+91 90012 34098',
+                communicationMobile: '+91 90012 34098',
+                photo: null,
+                totalCourseEnrollments: 4,
+                totalTestSeriesEnrollments: 3,
+                status: 'Active',
+                statusCode: 1,
+                blocked: false,
+                joinedDate: '2026-02-08T00:00:00Z',
+                lastUpdated: '2026-03-30T08:20:00Z',
+                dob: '2007-04-24',
+                gender: 'Female',
+                place: 'Kozhikode',
+                fatherName: 'Rajeev Menon',
+                motherName: 'Lakshmi Menon',
+                aspiration: 'KEAM',
+                classOfStudy: '12th',
+                board: 'CBSE',
+                yearOfPassing: '2026',
+                lastInstitution: 'Silver Hills Public School',
+                enrolledCourses: [
+                    {
+                        courseId: 'C001',
+                        courseName: 'Advanced Mathematics',
+                        courseCode: 'MATH-101',
+                        validUntil: 1782172800,
+                        enrollmentDate: 1738972800,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C002',
+                        courseName: 'Physics Fundamentals',
+                        courseCode: 'PHY-101',
+                        validUntil: 1782172800,
+                        enrollmentDate: 1738972800,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C004',
+                        courseName: 'Chemistry Essentials',
+                        courseCode: 'CHEM-101',
+                        validUntil: 1782172800,
+                        enrollmentDate: 1738972800,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C008',
+                        courseName: 'Economics Basics',
+                        courseCode: 'ECO-101',
+                        validUntil: 1779667200,
+                        enrollmentDate: 1740096000,
+                        enrollmentStatusText: 'ACTIVE'
+                    }
+                ]
+            },
+            {
+                id: 105,
+                candidateKey: 'CAND-2026-005',
+                name: 'Rahul Prasad',
+                email: 'rahul.prasad@example.com',
+                mobile: '+91 95555 11223',
+                registeredMobile: '+91 95555 11223',
+                communicationMobile: '+91 95555 11223',
+                photo: null,
+                totalCourseEnrollments: 0,
+                totalTestSeriesEnrollments: 1,
+                status: 'Blocked',
+                statusCode: 2,
+                blocked: true,
+                joinedDate: '2025-08-19T00:00:00Z',
+                lastUpdated: '2026-03-02T13:05:00Z',
+                dob: '2005-06-15',
+                gender: 'Male',
+                place: 'Kannur',
+                fatherName: 'Suresh Prasad',
+                motherName: 'Bindu Prasad',
+                aspiration: 'Bank Exams',
+                classOfStudy: 'Graduate',
+                board: 'University',
+                yearOfPassing: '2024',
+                lastInstitution: 'Payyanur College',
+                enrolledCourses: []
+            },
+            {
+                id: 106,
+                candidateKey: 'CAND-2026-006',
+                name: 'Meera Krishnan',
+                email: 'meera.krishnan@example.com',
+                mobile: '+91 93456 78901',
+                registeredMobile: '+91 93456 78901',
+                communicationMobile: '+91 93456 78901',
+                photo: null,
+                totalCourseEnrollments: 2,
+                totalTestSeriesEnrollments: 1,
+                status: 'Active',
+                statusCode: 1,
+                blocked: false,
+                joinedDate: '2026-03-01T00:00:00Z',
+                lastUpdated: '2026-04-02T10:00:00Z',
+                dob: '2008-10-09',
+                gender: 'Female',
+                place: 'Thiruvananthapuram',
+                fatherName: 'Krishnan N',
+                motherName: 'Revathi Krishnan',
+                aspiration: 'CUET',
+                classOfStudy: '12th',
+                board: 'ISC',
+                yearOfPassing: '2026',
+                lastInstitution: 'Loyola School',
+                enrolledCourses: [
+                    {
+                        courseId: 'C003',
+                        courseName: 'Computer Science Basics',
+                        courseCode: 'CS-101',
+                        validUntil: 1782604800,
+                        enrollmentDate: 1740787200,
+                        enrollmentStatusText: 'ACTIVE'
+                    },
+                    {
+                        courseId: 'C006',
+                        courseName: 'English Literature',
+                        courseCode: 'ENG-201',
+                        validUntil: 1779062400,
+                        enrollmentDate: 1741132800,
+                        enrollmentStatusText: 'ACTIVE'
+                    }
+                ]
+            }
+        ];
+    }
+
+    function mapCandidate(candidate) {
+        return {
+            id: candidate.candidateKey || candidate.id,
+            candidateKey: candidate.candidateKey,
+            name: candidate.name || 'Unknown',
+            email: candidate.email || '',
+            mobile: candidate.mobile || candidate.registeredMobile || candidate.communicationMobile || '',
+            registeredMobile: candidate.registeredMobile,
+            communicationMobile: candidate.communicationMobile,
+            avatar: candidate.photo || null,
+            status: candidate.blocked ? 'blocked' : (candidate.status || 'active').toLowerCase(),
+            statusCode: candidate.statusCode,
+            blocked: candidate.blocked,
+            enrollmentDate: candidate.joinedDate ? new Date(candidate.joinedDate) : null,
+            joinedDate: candidate.joinedDate,
+            lastUpdated: candidate.lastUpdated,
+            dob: candidate.dob,
+            gender: candidate.gender,
+            place: candidate.place,
+            fatherName: candidate.fatherName,
+            motherName: candidate.motherName,
+            aspiration: candidate.aspiration,
+            classOfStudy: candidate.classOfStudy,
+            board: candidate.board,
+            yearOfPassing: candidate.yearOfPassing,
+            lastInstitution: candidate.lastInstitution,
+            totalCourseEnrollments: candidate.totalCourseEnrollments || 0,
+            totalTestSeriesEnrollments: candidate.totalTestSeriesEnrollments || 0,
+            enrolledCourses: angular.copy(candidate.enrolledCourses || [])
+        };
+    }
+
+    function applyStudentResponse(apiData, meta) {
+        $scope.currentPage = meta.page;
+        $scope.itemsPerPage = meta.size;
+        $scope.pageSize = meta.size;
+        $scope.totalStudents = meta.total;
+        $scope.totalPages = meta.totalPages;
+
+        $scope.students = apiData.map(mapCandidate);
+        $scope.filteredStudents = $scope.students.slice();
+        $scope.paginatedStudents = $scope.students.slice();
+        $scope.hideLoading();
+    }
+
+    function getDummyCandidatesResponse() {
+        var dataset = getDummyCandidatesDataset();
+        var filtered = dataset.slice();
+        var searchKey = ($scope.searchQuery || '').trim().toLowerCase();
+
+        if (searchKey) {
+            filtered = filtered.filter(function (candidate) {
+                return [candidate.name, candidate.email, candidate.mobile, candidate.candidateKey]
+                    .filter(Boolean)
+                    .some(function (value) {
+                        return String(value).toLowerCase().indexOf(searchKey) !== -1;
+                    });
+            });
+        }
+
+        if ($scope.filterStatus) {
+            filtered = filtered.filter(function (candidate) {
+                var normalizedStatus = candidate.blocked ? 'blocked' : String(candidate.status || '').toLowerCase();
+                return normalizedStatus === $scope.filterStatus;
+            });
+        }
+
+        var sortField = $scope.sortColumn || 'name';
+        filtered.sort(function (left, right) {
+            var a = left[sortField];
+            var b = right[sortField];
+
+            if (sortField === 'joinedDate') {
+                a = new Date(a || 0).getTime();
+                b = new Date(b || 0).getTime();
+            }
+
+            a = a == null ? '' : a;
+            b = b == null ? '' : b;
+
+            if (typeof a === 'string') a = a.toLowerCase();
+            if (typeof b === 'string') b = b.toLowerCase();
+
+            if (a < b) return $scope.sortReverse ? 1 : -1;
+            if (a > b) return $scope.sortReverse ? -1 : 1;
+            return 0;
+        });
+
+        var total = filtered.length;
+        var size = $scope.itemsPerPage || 10;
+        var totalPages = Math.max(1, Math.ceil(total / size));
+        var currentPage = Math.min($scope.currentPage || 1, totalPages);
+        var startIndex = (currentPage - 1) * size;
+
+        return {
+            data: filtered.slice(startIndex, startIndex + size),
+            meta: {
+                page: currentPage,
+                size: size,
+                total: total,
+                totalPages: totalPages
+            }
+        };
+    }
+
+    function loadDummyStudents(message) {
+        $scope.isDemoMode = true;
+        if (message) {
+            $scope.showToaster('info', 'Demo Data', message);
+        }
+
+        var dummyResponse = getDummyCandidatesResponse();
+        applyStudentResponse(dummyResponse.data, dummyResponse.meta);
+    }
+
     //Check if logged in
     if (getAdminTokenFromCookie()) {
         $scope.isLoggedIn = true;
+    }
+    else if (isLocalPreview) {
+        $scope.isLoggedIn = true;
+        $scope.isDemoMode = true;
     }
     else {
         $scope.isLoggedIn = false;
@@ -75,6 +469,11 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
 
     // ===== Load Students from API =====
     $scope.loadStudents = function () {
+        if ($scope.isDemoMode) {
+            loadDummyStudents();
+            return;
+        }
+
         // Build API URL with parameters
         var url = $scope.apiBaseUrl + '/list-candidates.php';
         var params = {
@@ -113,55 +512,19 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
             console.log('API Response:', response.data);
 
             if (response.data && response.data.status === 'success') {
-                var apiData = response.data.data;
-                var meta = response.data.meta;
-
-                // Update pagination metadata
-                $scope.currentPage = meta.page;
-                $scope.itemsPerPage = meta.size;
-                $scope.totalStudents = meta.total;
-                $scope.totalPages = meta.totalPages;
-
-                // Map API response to local data structure
-                $scope.students = apiData.map(function (candidate) {
-                    return {
-                        id: candidate.candidateKey || candidate.id,
-                        candidateKey: candidate.candidateKey,
-                        name: candidate.name || 'Unknown',
-                        email: candidate.email || '',
-                        mobile: candidate.mobile || candidate.registeredMobile || candidate.communicationMobile || '',
-                        registeredMobile: candidate.registeredMobile,
-                        communicationMobile: candidate.communicationMobile,
-                        avatar: candidate.photo || null, // Photo is already in data URL format
-                        status: candidate.blocked ? 'blocked' : (candidate.status || 'active').toLowerCase(),
-                        statusCode: candidate.statusCode,
-                        blocked: candidate.blocked,
-                        enrollmentDate: candidate.joinedDate ? new Date(candidate.joinedDate) : null, // joinedDate is already a date string
-                        joinedDate: candidate.joinedDate,
-                        lastUpdated: candidate.lastUpdated,
-                        dob: candidate.dob,
-                        gender: candidate.gender,
-                        place: candidate.place,
-                        fatherName: candidate.fatherName,
-                        motherName: candidate.motherName,
-                        aspiration: candidate.aspiration,
-                        classOfStudy: candidate.classOfStudy,
-                        board: candidate.board,
-                        yearOfPassing: candidate.yearOfPassing,
-                        lastInstitution: candidate.lastInstitution,
-                        totalCourseEnrollments: candidate.totalCourseEnrollments || 0,
-                        totalTestSeriesEnrollments: candidate.totalTestSeriesEnrollments || 0,
-                        enrolledCourses: [] // Will be populated when viewing details or from separate API
-                    };
+                applyStudentResponse(response.data.data || [], response.data.meta || {
+                    page: 1,
+                    size: $scope.itemsPerPage,
+                    total: 0,
+                    totalPages: 1
                 });
-
-                // For client-side compatibility, maintain filteredStudents and paginatedStudents
-                $scope.filteredStudents = $scope.students.slice();
-                $scope.paginatedStudents = $scope.students.slice();
-
-                $scope.hideLoading();
             } else {
                 console.error('API returned unsuccessful response:', response.data);
+                if (isLocalPreview) {
+                    loadDummyStudents('Loaded local demo student data because the API response was not successful.');
+                    return;
+                }
+
                 $scope.students = [];
                 $scope.filteredStudents = [];
                 $scope.paginatedStudents = [];
@@ -180,6 +543,11 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
             }
         }).catch(function (error) {
             console.error('Error loading students:', error);
+            if (isLocalPreview) {
+                loadDummyStudents('Loaded local demo student data because the candidate API is not reachable in preview mode.');
+                return;
+            }
+
             $scope.students = [];
             $scope.filteredStudents = [];
             $scope.paginatedStudents = [];
@@ -438,6 +806,11 @@ app.controller('StudentManagementController', ['$scope', '$cookies', '$timeout',
     $scope.viewEnrolledCourses = function (student) {
         $scope.selectedStudentForCourses = student;
         $scope.coursesModalOpen = true;
+
+        if ($scope.isDemoMode) {
+            $scope.selectedStudentForCourses.enrolledCourses = angular.copy(student.enrolledCourses || []);
+            return;
+        }
 
         // Fetch course enrollments from API
         $scope.showLoading('Loading course enrollments...');

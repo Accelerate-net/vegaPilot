@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="LeadTrackerApp">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <title>Leads Management</title>
+
+  <!-- DEPENDENCIES -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600,700,900" rel="stylesheet">
+  <link href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+  <link href="assets/css/styles.css" rel="stylesheet">
+  <link href="assets/css/scroll-fix.css" rel="stylesheet">
+  <link href="assets/css/crispr-table.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --vega-primary: #006073;
+      --vega-dark: #004d5a;
+      --vega-accent: #ffb706;
+    }
+    [ng-cloak] { display:none!important; }
+    body.modal-open { overflow: hidden; }
+    body {
+      background: #f4f6f8;
+    }
+
+    #wrapper {
+      padding: 0 !important;
+    }
+
+    #topnav {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      background: linear-gradient(135deg, var(--vega-primary) 0%, #005a6b 100%) !important;
+      position: relative !important;
+      border: none !important;
+      box-shadow: 0 4px 18px rgba(0, 96, 115, 0.18) !important;
+      padding: 0 !important;
+    }
+
+    #topnav .navbar-brand,
+    #topnav .toolbar-icon-bg a,
+    #topnav .toolbar-icon-bg i {
+      color: white !important;
+    }
+
+    #topnav .toolbar-icon-bg .icon-bg {
+      background: rgba(255, 255, 255, 0.14) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    }
+
+    #topnav .toolbar-icon-bg:hover .icon-bg {
+      background: rgba(255, 255, 255, 0.24) !important;
+    }
+
+    .acc-menu li a.active {
+      border-left: 5px solid #005e70 !important;
+      color: #005e6f !important;
+      font-weight: 700 !important;
+      background: rgba(0, 94, 112, 0.1) !important;
+    }
+
+    .acc-menu li a.active i {
+      color: #005e6f !important;
+    }
+    
+    /* Reverting to your original table styles with minor spacing upgrades */
+    .page-header-section {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:30px; padding:25px; background:linear-gradient(135deg, var(--vega-primary) 0%, var(--vega-dark) 100%);
+      border-radius:8px; color:white;
+      box-shadow: 0 10px 24px rgba(0, 96, 115, 0.16);
+    }
+
+    .page-title-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .page-header-section h2 {
+      margin: 0;
+      color: white;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .page-header-section p {
+      margin: 6px 0 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+    }
+
+    .lead-stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .lead-stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 18px 20px;
+      border-left: 4px solid var(--vega-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .lead-stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .lead-stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--vega-primary);
+    }
+
+    .students-table-container {
+      overflow: visible;
+    }
+
+/* Row styling for second attempts - orange/important fade */
+.students-table tbody tr.second-attempt {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+}
+
+.students-table tbody tr.second-attempt:hover {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+}
+
+/* Row styling for completed leads - green fade */
+.students-table tbody tr.completed-row {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.03) 100%);
+    opacity: 0.85;
+}
+
+.students-table tbody tr.completed-row:hover {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
+}
+
+/* Avatar Circle */
+.table-avatar {
+    width: 36px;
+    height: 36px;
+    background: #006073;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    margin-right: 12px;
+}
+
+/* Modern Pills for Dates */
+.badge-pill-modern {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-overdue {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+.status-upcoming {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.status-today {
+    background: #fefce8;
+    color: #a16207;
+}
+/* 1. Labels */
+  .info-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b; /* Slate-500 */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* 2. Modern Input Fields */
+  .form-control-modern {
+    width: 100%;
+    padding: 10px 14px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box; /* Fixes width overflow */
+    font-family: inherit;
+  }
+
+  /* Focus Effect (Glow) */
+  .form-control-modern:focus {
+    border-color: #006073; /* Vega Primary */
+    box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+  }
+
+  /* 3. Emoji Selection Row */
+  .emoji-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .emoji-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    font-size: 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  /* Hover State */
+  .emoji-item:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+  }
+
+  /* Active State (Selected) */
+  .emoji-item.active {
+    background-color: #006073; /* Vega Primary */
+    color: #ffffff;
+    border-color: #006073;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+/* Specific Column Styling */
+.col-name { display: flex; align-items: center; }
+.col-phone { font-family: 'Monaco', monospace; font-size: 13px; color: #64748b; }
+.col-mood { font-size: 20px; }
+    .instructors-table th {
+      padding:15px; font-size:12px; text-transform:uppercase; background:#f8f9fa;
+      border-bottom:2px solid #e9ecef; text-align: left; font-weight: 700; color: #555;
+    }
+    .clickable-row:hover { background-color: #f0f9ff; cursor: pointer; }
+
+    /* MODERN MODAL (Style from React) */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.6); 
+      backdrop-filter: blur(4px); display:flex;
+      align-items:center; justify-content:center; z-index:100000;
+    }
+    .modal-dialog {
+      background:#fff; border-radius:24px; max-width:680px; width:95%; max-height:90vh;
+      overflow:hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+  padding: 25px;
+  background: var(--vega-primary);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;  /* ← Add this */
+  border-bottom: none;  /* ← Add this */
+}
+    .avatar-box {
+      width: 45px; height: 45px; background: var(--vega-accent); color: var(--vega-primary);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 18px;
+    }
+    .modal-body { padding:30px; overflow-y: auto; flex-grow: 1; }
+
+    /* Alert Styling */
+    .alert-urgent {
+      background: #fff1f2; border: 1px solid #ffe4e6; padding: 15px; 
+      border-radius: 12px; color: #be123c; font-weight: 700; font-size: 13px;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+
+    /* Info Cards inside Modal */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .info-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; }
+    .info-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+    .info-value { font-size: 15px; font-weight: 700; color: #1e293b; margin-top: 4px; }
+
+    /* AI Box Styling */
+    .ai-box {
+      background: linear-gradient(to bottom right, #f0fdfa, #ffffff);
+      border: 1px solid #ccfbf1; padding: 20px; border-radius: 20px; margin-top: 10px;
+    }
+    .ai-badge { color: #0d9488; font-weight: 900; font-size: 11px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+
+    /* Form Controls */
+    .form-control-vega {
+      width: 100%; padding: 12px; background: #f8fafc; border: 1px solid #d1d5db;
+      border-radius: 10px; font-weight: 600; margin-top: 5px;
+    }
+    .form-control-vega:focus { border-color: var(--vega-primary); outline: none; background: white; }
+
+    /* Emoji Picker */
+    .emoji-row { display: flex; gap: 10px; margin-top: 5px; }
+    .emoji-item {
+      flex: 1; text-align: center; padding: 10px; border: 2px solid #e5e7eb;
+      border-radius: 12px; cursor: pointer; font-size: 22px;
+    }
+    .emoji-item.active { border-color: var(--vega-primary); background: #f0f9ff; }
+
+    .modal-footer { padding: 20px 30px; background: #f9fafb; border-top: 1px solid #eee; display: flex; gap: 10px; }
+    
+    /* Buttons */
+    .btn-vega { padding: 12px 20px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; }
+    .btn-save { background: var(--vega-primary); color: white; }
+    .btn-whatsapp { background: #25d366; color: white; }
+    .btn-call { background: #007bff; color: white; }
+    .filter-emoji-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.filter-emoji-btn:hover {
+    background: #f1f5f9;
+}
+
+.filter-emoji-btn.active {
+    background: #f0f9ff;
+    border-color: var(--vega-primary);
+    box-shadow: 0 2px 8px rgba(0, 96, 115, 0.15);
+    transform: scale(1.1);
+}
+
+.active-filter-clear {
+    background: #fef3c7 !important;
+    border: 1px solid #fcd34d !important;
+    color: #92400e !important;
+    font-weight: 800 !important;
+}
+.status-dropdown-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #006073;
+    background: #006073;
+    color: #ffffff;
+    cursor: pointer;
+    outline: none;
+    height: 32px;
+    width: 140px;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 0px rgba(0, 96, 115, 0.0);
+}
+
+/* Hover glow */
+.status-dropdown-pill:hover {
+    background: #007a8f;
+    border-color: #007a8f;
+    box-shadow: 0 0 6px rgba(0, 96, 115, 0.5);
+}
+
+/* When clicked OR when value is active */
+.status-dropdown-pill.active,
+.status-dropdown-pill:focus {
+    background: #004d5a;
+    border-color: #004d5a;
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 96, 115, 0.8);
+}
+
+.inline-mood-select {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+.inline-mood-select:hover {
+    border-color: var(--vega-primary);
+    background: white;
+}
+.inline-mood-select:disabled,
+.inline-mood-select.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.inline-mood-select:disabled:hover,
+.inline-mood-select.disabled:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+  /* Fade class for disabled follow-up fields - lighter fade */
+  .fade-out {
+    opacity: 0.6 !important;
+    color: #999 !important;
+    transition: all 0.3s ease;
+  }
+.status-alert {
+  color: #ff2d2d;      /* Red */
+  font-weight: 700;
+}
+
+.status-normal {
+  color: #2ecc71;      /* Green for safe dates */
+}
+/* Row Colors for Converted/Lost */
+.students-table tbody tr.row-converted {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.05) 100%);
+    opacity: 0.75;
+}
+
+.students-table tbody tr.row-lost {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%);
+    opacity: 0.75;
+}
+
+.students-table tbody tr.row-converted:hover {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.18) 0%, rgba(34, 197, 94, 0.08) 100%);
+}
+
+.students-table tbody tr.row-lost:hover {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.08) 100%);
+}
+
+/* Fade follow-up date when locked */
+.follow-up-locked {
+    opacity: 0.4;
+    pointer-events: none;
+}
+/* Modal Body Background Colors */
+.modal-body-converted {
+  background: linear-gradient(to bottom, #91ffb2 0%, #ffffff 100%) !important;
+}
+
+.modal-body-lost {
+  background: linear-gradient(to bottom, #ff3434 0%, #ffffff 100%) !important;
+}
+
+.modal-body-normal {
+  background: #ffffff;
+}
+/* Lost Lead Badge (faded date) */
+.status-lost {
+  background: #fef2f2;
+  color: #991b1b;
+  opacity: 0.55;
+}
+/* ============================================
+   MODERN DROPDOWN STYLES (Consistent Design)
+   ============================================ */
+
+/* Base Modern Dropdown */
+.dropdown-modern {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23475569' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 35px;
+}
+
+.dropdown-modern:hover {
+  border-color: #006073;
+  box-shadow: 0 2px 8px rgba(0, 96, 115, 0.15);
+  transform: translateY(-1px);
+}
+
+.dropdown-modern:focus {
+  border-color: #006073;
+  box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+}
+
+/* Status-Specific Colors (In Alert Banner) */
+.dropdown-modern.status-received {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+.dropdown-modern.status-inprogress {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.dropdown-modern.status-converted {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  color: #166534;
+}
+
+.dropdown-modern.status-lost {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+/* When inside Alert Banner (lighter for contrast) */
+.alert-banner .dropdown-modern {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #1e293b;
+  font-weight: 800;
+}
+
+.alert-banner .dropdown-modern:hover {
+  background: white;
+  border-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Modal Overlay Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .modal-dialog {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #006073 0%, #004d5a 100%);
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+  }
+
+  .modal-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .modal-header button:hover {
+    opacity: 0.8;
+  }
+
+  .modal-body {
+    padding: 25px;
+  }
+
+  .modal-footer {
+    padding: 15px 25px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+    background: #f8fafc;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+  }
+
+  .btn-vega {
+    background: #006073;
+    color: white;
+    border: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+  }
+
+  .btn-vega:hover {
+    background: #004d5a;
+    color: white;
+  }
+
+  .btn-save {
+    background: #16a34a;
+  }
+
+  .btn-save:hover {
+    background: #15803d;
+  }
+
+  .form-control-modern {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    width: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .form-control-modern:focus {
+    border-color: #006073;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+  }
+
+  .info-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Calendar Styling */
+  .calendar-day-active {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+  }
+
+  .calendar-day-active:hover {
+    transform: scale(1.05);
+    background: #bfdbfe !important;
+  }
+
+  .header-primary-btn {
+    background: var(--vega-accent);
+    color: var(--vega-primary);
+    border: none;
+    font-weight: 700;
+    padding: 11px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 6px 14px rgba(255, 183, 6, 0.22);
+  }
+
+  .header-primary-btn:hover {
+    background: #ffca45;
+    transform: translateY(-1px);
+  }
+
+  .date-pill-btn {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+  }
+
+  .date-pill-btn:hover {
+    background: #e2e8f0;
+  }
+
+  .date-pill-btn.active {
+    background: #006073;
+    color: white;
+    border-color: #006073;
+  }
+
+  .calendar-icon-btn {
+    font-size: 14px;
+    min-width: 40px;
+  }
+
+  .pagination-btn-sm {
+    min-width: 36px;
+  }
+  .calendar-wrap {
+    padding: 20px 24px;
+  }
+  .calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .calendar-title {
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .calendar-nav-btn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .calendar-nav-btn:hover {
+    background: #e2e8f0;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  .calendar-weekday {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .calendar-day {
+    position: relative;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    min-height: 64px;
+    padding: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+  }
+  .calendar-day:hover {
+    background: #eef2f7;
+    transform: translateY(-1px);
+  }
+  .calendar-day-blank {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+  .calendar-day-has {
+    background: #eff6ff;
+    border-color: #0284c7;
+  }
+  .calendar-day-today {
+    outline: 2px solid #f59e0b;
+  }
+  .calendar-day-number {
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 13px;
+  }
+  .calendar-day-count {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    background: #006073;
+    color: white;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+  }
+  .calendar-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+  /* Base Alert Banner */
+/* Base Alert Banner */
+.alert-banner {
+  padding: 15px 20px;
+  border-radius: 0;  /* ← Make sure this is 0 */
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;  /* ← Make sure this is 0 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Overdue (Red) Banner */
+.alert-banner-overdue {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 2px solid #991b1b;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* On Track (Green) Banner */
+.alert-banner-ontrack {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: 2px solid #166534;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+/* Banner Content (Left Side) */
+.alert-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+/* Icon */
+.alert-banner-icon {
+  font-size: 20px;
+}
+
+/* Title Text */
+.alert-banner-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+/* Main Text */
+.alert-banner-text {
+  font-size: 15px;
+  margin-top: 2px;
+}
+
+/* Dropdown Container */
+.alert-banner-dropdown-container {
+  min-width: 180px;
+}
+
+/* Base Dropdown Styles */
+.alert-banner-dropdown {
+  width: 100%;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Red Dropdown (for overdue) */
+.alert-banner-dropdown-red {
+  border: 2px solid #fca5a5;
+  color: #991b1b;
+}
+
+/* Green Dropdown (for on track) */
+.alert-banner-dropdown-green {
+  border: 2px solid #86efac;
+  color: #166534;
+}
+
+/* Dropdown Hover Effect */
+.alert-banner-dropdown:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Dropdown Focus Effect */
+.alert-banner-dropdown:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .alert-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 15px;
+  }
+  
+  .alert-banner-content {
+    gap: 10px;
+  }
+  
+  .alert-banner-icon {
+    font-size: 18px;
+  }
+  
+  .alert-banner-title {
+    font-size: 11px;
+  }
+  
+  .alert-banner-text {
+    font-size: 13px;
+  }
+  
+  .alert-banner-dropdown-container {
+    min-width: 100%;
+  }
+  
+  .alert-banner-dropdown {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}
+
+/* Enhanced Top Navbar - Fixed Layout */
+#topnav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 !important;
+  height: 60px;
+  position: relative;
+}
+
+#topnav .logo-area {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-left: 20px;
+  flex-shrink: 0;
+}
+
+#topnav .navbar-brand {
+  display: flex;
+  align-items: center;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 20px !important;
+  letter-spacing: 0.5px;
+  margin: 0 !important;
+}
+
+/* Right side container */
+#topnav > div:last-child {
+  margin-left: auto;
+}
+
+/* Menu Icon */
+.toolbar-icon-bg .icon-bg {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.toolbar-icon-bg:hover .icon-bg {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Add Lead Button Hover Effect */
+#topnav .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 183, 6, 0.6);
+  background: #ffc107 !important;
+}
+
+#topnav .btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #topnav .navbar-brand {
+    font-size: 16px !important;
+  }
+  
+  #topnav .btn {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+  
+  #topnav > div:last-child {
+    padding-right: 15px;
+    gap: 10px;
+  }
+}
+/* Top Spacing Fix */
+.page-content.container-fluid {
+  padding-top: 30px !important;
+}
+
+/* Ensure navbar buttons are clickable */
+#topnav {
+  z-index: 1000 !important;
+}
+
+#topnav .btn {
+  position: relative;
+  z-index: 1001;
+  pointer-events: auto;
+  cursor: pointer !important;
+}
+
+#topnav .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 183, 6, 0.6);
+  background: #ffc107 !important;
+}
+  </style>
+</head>
+
+<body class="animated-content" ng-controller="LeadController" ng-cloak>
+
+<!-- TOP NAVBAR -->
+<!-- <header id="topnav" class="navbar navbar-default navbar-fixed-top">
+  <div class="logo-area">
+    <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+      <a><span class="icon-bg"><i class="ti ti-menu"></i></span></a>
+    </span>
+    
+    <span class="navbar-brand">VegaPilot</span>
+  </div>
+  
+</header> -->
+<!-- TOP NAVBAR (Enhanced with Brand Colors) -->
+<header id="topnav" class="navbar navbar-default navbar-fixed-top">
+  
+  <!-- Left Side: Logo Area -->
+  <div class="logo-area" style="background: transparent; border: none;">
+    <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+      <a><span class="icon-bg"><i class="ti ti-menu"></i></span></a>
+    </span>
+    
+    <span class="navbar-brand animated-brand" style="width: 125px;"></span>
+  </div>
+  <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+      <i class="ti ti-target" style="margin-right: 8px; color: white;"></i> Leads Management
+    </h2>
+  </div>
+  
+  <!-- Right Side: Lead Count + Add Lead Button -->
+  <div style="display: flex; align-items: center; padding-right: 25px; gap: 15px;">  
+    <!-- Add Lead Button -->
+    <button class="btn header-primary-btn" ng-click="openAddLeadModal()">
+      <i class="ti ti-plus"></i> ADD LEAD
+    </button>
+  </div>
+  
+</header>
+<div id="wrapper">
+<div id="layout-static">
+
+<!-- SIDEBAR -->
+<!-- <div class="static-sidebar-wrapper sidebar-default"> -->
+<div class="static-sidebar-wrapper sidebar-default">
+  <div class="static-sidebar">
+    <div class="sidebar">
+      <div class="widget stay-on-collapse" id="widget-sidebar">
+        <nav role="navigation" class="widget-body">
+          <ul class="acc-menu">
+            
+            <li class="nav-separator"><span>Programs</span></li>
+            <li>
+              <a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a>
+            </li>
+            <li>
+              <a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a>
+            </li>
+            <li>
+              <a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a>
+            </li>
+            <li>
+              <a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a>
+            </li>
+
+            <li class="nav-separator"><span>Exams & Quizzes</span></li>
+            <li>
+              <a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a>
+            </li>
+            <li>
+              <a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a>
+            </li>
+
+            <li class="nav-separator"><span>Content Library</span></li>
+            <li>
+              <a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a>
+            </li>
+            <li>
+              <a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video Library</span></a>
+            </li>
+            <li>
+              <a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice Questions</span></a>
+            </li>
+            <li>
+              <a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a>
+            </li>
+
+            <li class="nav-separator"><span>Commerce</span></li>
+            <li>
+              <a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a>
+            </li>
+            <li>
+              <a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a>
+            </li>
+            <li><a href="instructor-payouts.html"><i class="ti ti-time"></i><span>Instructor Payouts</span></a></li>
+
+            <li class="nav-separator"><span>Marketing</span></li>
+            <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content Manager</span></a></li>
+            <li><a href="leads-management.html" class="active"><i class="ti ti-target"></i><span>Leads</span></a></li>
+            <li class="nav-separator"><span>People</span></li>
+            <li>
+              <a href="instructor-portfolio.html"><i class="ti ti-id-badge"></i><span>Instructors</span></a>
+            </li>
+            <li>
+              <a href="mentor-profiles.html"><i class="ti ti-comments-smiley"></i><span>Mentors</span></a>
+            </li>
+
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- </div> -->
+
+<!-- MAIN CONTENT -->
+<div class="static-content-wrapper">
+<div class="static-content">
+<div class="page-content container-fluid">
+<div class="leads-container">
+
+<div class="lead-stats-row">
+  <div class="lead-stat-card">
+    <div class="lead-stat-label">Total Leads</div>
+    <div class="lead-stat-value">{{leads.length}}</div>
+  </div>
+  <div class="lead-stat-card">
+    <div class="lead-stat-label">Received</div>
+    <div class="lead-stat-value">{{(leads | filter:{leadStatus:1}).length}}</div>
+  </div>
+  <div class="lead-stat-card">
+    <div class="lead-stat-label">In Progress</div>
+    <div class="lead-stat-value">{{(leads | filter:{leadStatus:2}).length}}</div>
+  </div>
+  <div class="lead-stat-card">
+    <div class="lead-stat-label">Converted</div>
+    <div class="lead-stat-value">{{(leads | filter:{leadStatus:4}).length}}</div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<!-- SEARCH & MOOD FILTER TOOLBAR -->
+<div class="filter-bar" style="margin-bottom: 20px; align-items: stretch;">
+  <div class="search-wrapper" style="max-width: 420px;">
+    <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}" ng-click="searchQuery = ''"></i>
+    <input type="text" class="search-input" ng-model="searchQuery" placeholder="Search by name or phone...">
+  </div>
+
+  <!-- 1. STATUS FILTER PILL (Inherited Design) -->
+<div class="filter-dropdown dropdown">
+  <button class="filter-dropdown-btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    {{selectedStatus === 'all' ? 'All Status' : (selectedStatus == 1 ? 'Received' : (selectedStatus == 2 ? 'In Progress' : (selectedStatus == 3 ? 'Lost' : 'Converted')))}}
+    <i class="ti ti-angle-down"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-right">
+    <li><a href="#" ng-click="filterByStatus('all'); $event.preventDefault()">All Status</a></li>
+    <li><a href="#" ng-click="filterByStatus(1); $event.preventDefault()">Received</a></li>
+    <li><a href="#" ng-click="filterByStatus(2); $event.preventDefault()">In Progress</a></li>
+    <li><a href="#" ng-click="filterByStatus(4); $event.preventDefault()">Converted</a></li>
+    <li><a href="#" ng-click="filterByStatus(3); $event.preventDefault()">Lost</a></li>
+  </ul>
+</div>
+
+  <!-- 2. MOOD FILTER PILL -->
+  <div style="display: flex; align-items: center; gap: 10px; background: #fff; padding: 0 15px; border-radius: 10px; border: 1px solid #e2e8f0; min-height: 46px;">
+    <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Mood</span>
+    <div class="filter-emoji-btn" ng-class="{'active': selectedMood === 1}" ng-click="filterByMood(1)">😄</div>
+    <div class="filter-emoji-btn" ng-class="{'active': selectedMood === 2}" ng-click="filterByMood(2)">😐</div>
+    <div class="filter-emoji-btn" ng-class="{'active': selectedMood === 3}" ng-click="filterByMood(3)">😡</div>
+    <button ng-if="selectedMood" ng-click="filterByMood(null)" 
+            style="border:none; background:none; color:#ef4444; font-size:10px; font-weight:800; text-transform:uppercase; cursor:pointer;">
+      Clear
+    </button>
+  </div>
+
+<!-- 3. DATE FILTER PILL (Inherited Design) -->
+<div style="display: flex; align-items: center; gap: 8px; background: #fff; padding: 0 14px; border-radius: 10px; border: 1px solid #e2e8f0; min-height: 46px;">
+  
+  <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">
+    Due
+  </span>
+
+  <!-- ALL -->
+  <button class="date-pill-btn"
+    ng-class="{'active': !selectedDateFilter}"
+    ng-click="filterByDate(null)">
+    All
+  </button>
+
+  <!-- TODAY -->
+  <button class="date-pill-btn"
+    ng-class="{'active': selectedDateFilter === 'today'}"
+    ng-click="filterByDate('today')">
+    Today
+  </button>
+
+  <!-- TOMORROW -->
+  <button class="date-pill-btn"
+    ng-class="{'active': selectedDateFilter === 'tomorrow'}"
+    ng-click="filterByDate('tomorrow')">
+    Tomorrow
+  </button>
+
+  <!-- CALENDAR ICON BUTTON -->
+  <button class="date-pill-btn calendar-icon-btn"
+    ng-class="{'active': selectedDateFilter === 'calendar' || selectedDateFilter === 'custom'}"
+    ng-click="openCalendar()">
+    <i class="fa fa-calendar"></i>
+  </button>
+
+  <button ng-if="selectedDateFilter" 
+          ng-click="filterByDate(null)" 
+          style="border:none; background:none; color:#ef4444; font-size:10px; font-weight:800; text-transform:uppercase; cursor:pointer;">
+    Clear
+  </button>
+</div>
+
+  <!-- RESET ALL -->
+  <button class="btn btn-sm" ng-click="clearAllFilters()" 
+          style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 800; border-radius: 10px; height: 46px; padding: 0 15px;">
+    <i class="fa fa-refresh"></i> RESET ALL
+  </button>
+
+</div>
+
+<!-- TABLE -->
+
+    <!-- TABLE -->
+   <div class="students-table-container">
+  <table class="students-table">
+    <thead>
+      <tr>
+        <th width="25%">Student Name</th>
+        <th width="15%">Contact Detail</th>
+        <th width="15%">Date Added</th>
+        <th width="13%">Interest Level</th>
+<th width="20%" ng-click="sortByDate()" style="cursor: pointer; user-select: none;">
+  Follow-up Status 
+  <!-- <i class="fa" ng-class="sortDirection ? 'fa-caret-down' : 'fa-caret-up'" style="margin-left:5px; opacity:0.7;"></i> -->
+<!-- </th>        <th width="15%" style="text-align: right;">Place</th> -->
+      </tr>
+    </thead>
+<tbody>
+
+<!-- FILTER + PAGINATION -->
+<!-- <tr ng-repeat="lead in filteredResults = 
+        (leads 
+          | filter:searchQuery 
+          | filter:moodFilter 
+          | filter:statusFilter 
+          | filter:dateFilter
+          | orderBy:[leadSortKey,'finalFollowup']) 
+        | limitTo:itemsPerPage:(currentPage-1)*itemsPerPage 
+        track by lead.id"
+    ng-click="openLeadModal(lead)"
+    ng-class="{
+        'second-attempt': lead.attemptNumber > 1 && lead.status === 'pending',
+        'completed-row': lead.status === 'complete'
+    }"
+    style="cursor:pointer;"> -->
+    <tr ng-repeat="lead in filteredResults = 
+        (leads 
+          | filter:searchQuery 
+          | filter:moodFilter 
+          | filter:statusFilter 
+          | filter:dateFilter) 
+        | limitTo:itemsPerPage:(currentPage-1)*itemsPerPage 
+        track by lead.id"
+    ng-click="openLeadModal(lead)"
+    ng-class="getRowClass(lead)"
+    style="cursor:pointer;">
+
+    <!-- CONTACT ICON + NAME -->
+    <td>
+      <div class="col-name" style="display:flex; align-items:center; gap:12px;">
+
+        <!-- Avatar with correct contactMethod -->
+        <div class="table-avatar"
+             ng-style="{
+               'background': lead.contactMethod == 1 ? '#25d366'
+                            : (lead.contactMethod == 2 ? '#b45309'
+                            : '#7c3aed'),
+               'font-size':'18px'
+             }">
+
+          <span ng-if="lead.contactMethod == 1">
+            <i class="fa fa-whatsapp"></i>
+          </span>
+
+          <span ng-if="lead.contactMethod == 2">
+            <i class="fa fa-phone"></i>
+          </span>
+
+          <span ng-if="lead.contactMethod == 3">
+            <i class="fa fa-envelope"></i>
+          </span>
+
+        </div>
+
+        <div>
+          <div style="font-weight:800; color:#0f172a;">
+            {{lead.name}}
+            <span ng-if="lead.lastFollowupUpdate && isFollowupUpdatedToday(lead)" style="margin-left: 6px; font-size: 10px; font-weight: 700; color: #fff; background: #0891b2; padding: 2px 6px; border-radius: 3px; display: inline-block;">↑ FU Updated</span>
+          </div>
+          <div style="font-size:11px; color:#94a3b8;" ng-if="lead.updatedAt">
+            Updated {{lead.updatedAt | date:'shortTime'}}
+          </div>
+        </div>
+
+      </div>
+    </td>
+
+    <!-- PHONE -->
+    <td class="col-phone">
+      <i class="ti ti-mobile" style="margin-right:5px;"></i> 
+      {{lead.phone}}
+    </td>
+
+    <!-- DATE JOINED -->
+    <td style="font-size:13px; color:#64748b;">
+      <i class="fa fa-calendar" style="margin-right:5px;"></i>
+      {{lead.dateJoined | date:'MMM d, yy'}}
+    </td>
+
+    <!-- MOOD SELECT (use numeric values) -->
+<!-- MOOD SELECT (locked when converted/lost) -->
+<td class="col-mood" ng-click="$event.stopPropagation()">
+
+  <select class="inline-mood-select"
+          ng-model="lead.behavior"
+          ng-change="quickUpdateMood(lead)"
+          ng-disabled="isLeadLocked(lead)"
+          ng-class="{'disabled': isLeadLocked(lead)}">
+
+    <option ng-value="1">😄 High Interest</option>
+    <option ng-value="2">😐 Neutral</option>
+    <option ng-value="3">😡 Low Interest</option>
+
+  </select>
+
+</td>
+
+
+  
+
+<!-- FOLLOW-UP DATE -->
+<td>
+    <span class="badge-pill-modern"
+          ng-class="{
+              'status-lost': lead.leadStatus == 3,
+              'status-overdue': isOverdue(lead.finalFollowup) && lead.leadStatus != 3 && lead.leadStatus != 4,
+              'status-upcoming': !isOverdue(lead.finalFollowup) && lead.leadStatus != 3 && lead.leadStatus != 4,
+              'follow-up-locked': lead.leadStatus == 4
+          }">
+        <i class="fa fa-calendar-o" style="margin-right:5px;"></i>
+        {{lead.finalFollowup | date:'MMM d, yyyy'}}
+    </span>
+</td>
+
+</tr>
+
+<!-- NO RESULTS -->
+<tr ng-if="leads.length > 0 && filteredResults.length === 0">
+  <td colspan="5" style="text-align:center; padding:60px; background:#fafafa;">
+    <i class="ti ti-search" style="font-size:30px; color:#cbd5e1; display:block; margin-bottom:10px;"></i>
+    <h4 style="margin:0; color:#64748b; font-weight:700;">No matching leads found</h4>
+  </td>
+</tr>
+
+<!-- EMPTY DB -->
+<tr ng-if="leads.length === 0">
+  <td colspan="5" style="text-align:center; padding:60px; color:#94a3b8;">
+    <p>No leads found. Start by adding a new inquiry.</p>
+  </td>
+</tr>
+
+</tbody>
+
+  </table>
+
+  <!-- Pagination Area -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span>{{getPaginationInfo()}}</span>
+      <select class="page-size-select"
+              ng-model="itemsPerPage"
+              ng-change="setItemsPerPage(itemsPerPage)">
+        <option ng-repeat="opt in itemsPerPageOptions" ng-value="opt">Show {{opt}}</option>
+      </select>
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-btn" ng-click="setPage(currentPage - 1)" ng-disabled="currentPage === 1">
+        <i class="ti ti-angle-left"></i> Previous
+      </button>
+     <button class="pagination-btn pagination-btn-sm"
+        ng-repeat="page in pagesArray()"
+        ng-class="{active: page === currentPage}"
+        ng-click="setPage(page)">
+  {{page}}
+</button>
+
+      <button class="pagination-btn" ng-click="setPage(currentPage + 1)" ng-disabled="currentPage === getTotalPages()">
+        Next <i class="ti ti-angle-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+</div></div></div></div></div>
+
+<!-- MAIN MODAL (View/Edit) -->
+<div class="modal-overlay" ng-if="showLeadModal" ng-click="closeLeadModal()">
+  <div class="modal-dialog" ng-click="$event.stopPropagation()">
+
+  <!-- MODAL HEADER -->
+  <div class="modal-header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <!-- Maps DB Number (1,2,3) to Emoji -->
+      <div class="avatar-box" style="font-size: 24px; background: white; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+        {{ selectedLead.behavior === 1 ? '😄' : (selectedLead.behavior === 3 ? '😡' : '😐') }}
+      </div>
+      <div>
+        <h3 style="margin: 0; color: white; font-weight: 700;">{{selectedLead.name}}</h3>
+        <p style="margin: 0; margin-top: 4px; font-size: 12px; opacity: 0.85; font-weight: 600;">
+          <i class="fa fa-calendar" style="margin-right: 4px;"></i>
+          Joined: {{selectedLead.dateJoined | date:'MMM d, yyyy'}} 
+        </p>
+      </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <!-- Contact Method Badge - Colored based on number -->
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 25px; font-weight: 700;"
+           ng-style="{
+             'background': selectedLead.contactMethod === 1 ? '#25d366' : 
+                          (selectedLead.contactMethod === 2 ? '#b45309' : '#7c3aed'),
+             'box-shadow': '0 6px 16px rgba(0, 0, 0, 0.25)'
+           }">
+        <i class="fa" 
+           ng-class="{'fa-whatsapp': selectedLead.contactMethod === 1, 'fa-phone': selectedLead.contactMethod === 2, 'fa-envelope': selectedLead.contactMethod === 3}" 
+           style="font-size: 18px; color: white;"></i>
+        <span style="color: white; font-weight: 800; font-size: 14px; letter-spacing: 0.3px;">{{selectedLead.phone}}</span>
+      </div>
+      <button style="background:none; border:none; color:white; font-size:24px; cursor: pointer;" ng-click="closeLeadModal()">&times;</button>
+    </div>
+  </div>
+
+<div class="modal-body" 
+     style="padding: 0; margin: 0;"
+     ng-class="{
+       'modal-body-converted': selectedLead.leadStatus == 4,
+       'modal-body-lost': selectedLead.leadStatus == 3,
+       'modal-body-normal': selectedLead.leadStatus != 3 && selectedLead.leadStatus != 4
+     }">    <!-- VIEW MODE -->
+    <div>
+      <!-- ALERT BANNER -->
+<!-- ALERT BANNER (Green for Converted, Red for Lost) -->
+<div class="alert-banner" 
+     ng-class="{
+       'alert-banner-converted': selectedLead.leadStatus == 4,
+       'alert-banner-lost': selectedLead.leadStatus == 3,
+       'alert-banner-overdue': selectedLead.leadStatus != 3 && selectedLead.leadStatus != 4 && isOverdue(selectedLead.finalFollowup),
+       'alert-banner-ontrack': selectedLead.leadStatus != 3 && selectedLead.leadStatus != 4 && !isOverdue(selectedLead.finalFollowup)
+     }" 
+     style="margin: 0; border-radius: 0; padding: 15px 20px;">       <div class="alert-banner-content">
+    <i class="fa" ng-class="isOverdue(selectedLead.finalFollowup) ? 'fa-exclamation-triangle' : 'fa-check-circle'" style="font-size: 20px;"></i>
+    <div>
+        <div class="alert-banner-title">FOLLOW-UP STATUS</div>
+     <div class="alert-banner-text" style="display: flex; align-items: center; gap: 10px;">
+    <span>Due Date:</span>
+    
+    <!-- Editable Date (when not locked) -->
+    <input ng-if="!isLeadLocked(selectedLead)"
+           type="date" 
+           ng-model="selectedLead.finalFollowup" 
+           ng-change="updateFollowupOnly(selectedLead)"
+           style="background: rgba(255,255,255,0.2); 
+                  border: 1px solid rgba(255,255,255,0.4); 
+                  color: white; 
+                  border-radius: 6px; 
+                  padding: 2px 8px; 
+                  font-weight: 800; 
+                  font-size: 14px;
+                  cursor: pointer;
+                  outline: none;">
+    
+    <!-- Locked Date Display (when converted/lost) -->
+    <span ng-if="isLeadLocked(selectedLead)"
+          style="background: rgba(255,255,255,0.2); 
+                 border: 1px solid rgba(255,255,255,0.4); 
+                 padding: 2px 8px; 
+                 border-radius: 6px;
+                 opacity: 0.6;">
+        {{selectedLead.finalFollowup | date:'MMM d, yyyy'}}
+    </span>
+</div>
+    </div>
+</div>
+
+        <!-- Numeric Status Dropdown -->
+        <div class="alert-banner-dropdown-container">
+          <select ng-model="selectedLead.leadStatus" 
+                  ng-change="updateLeadStatus(selectedLead)"
+                  class="alert-banner-dropdown"
+                  style="border: none; color: #333;">
+            <option ng-value="1">📥 Received</option>
+            <option ng-value="2">🔄 In Progress</option>
+            <option ng-value="4">✅ Converted</option>
+            <option ng-value="3">❌ Lost</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="padding: 30px;">
+        <!-- CONSULTATION NOTES (Fixed - No Edit) -->
+        <div style="background: #f8fafc; padding: 20px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 25px;">
+          <div class="info-label" style="color: #64748b; margin-bottom: 8px;">📋 Initial Consultation Notes</div>
+          <p style="margin:0; font-style: italic; color: #444; line-height: 1.6;">"{{selectedLead.description}}"</p>
+        </div>
+
+        <!-- ADD NEW FOLLOW-UP NOTE SECTION -->
+<!-- ADD NEW FOLLOW-UP NOTE SECTION -->
+<!-- <div ng-if="!isLeadLocked(selectedLead)" 
+     style="background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:10px; margin-bottom:20px;">
+
+  <label class="info-label" style="color:#006073; margin-bottom:8px;">
+    ➕ Add Follow-up Note
+  </label>
+
+  <div style="display:flex; gap:10px; align-items:center;">
+    
+   
+    <input type="text"
+           class="form-control-modern"
+           ng-model="tempNoteText"
+           placeholder="Write follow-up note..."
+           style="flex:1; height:42px;">
+
+   
+    <button class="btn btn-vega"
+            style="height:42px; padding:0 18px; background:#006073; color:#fff; font-weight:700;"
+            ng-click="addFollowUpNote(selectedLead, tempNoteText); tempNoteText=''">
+      Save
+    </button>
+  </div>
+</div> -->
+<!-- ADD NEW FOLLOW-UP NOTE SECTION -->
+<div ng-if="!isLeadLocked(selectedLead)" 
+     style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:10px; margin-bottom:20px;">
+
+  <label class="info-label" style="color:#006073; margin-bottom:12px;">
+    ➕ Add Follow-up Note
+  </label>
+
+  <div style="margin-bottom:12px;">
+    <label style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:8px; display:block;">
+      Select Mood for this Note:
+    </label>
+    
+    <div class="emoji-row" style="gap:8px; margin-bottom:12px;">
+        <div class="emoji-item" 
+             ng-class="{active: newNote.mood === 1}" 
+             ng-click="newNote.mood = 1">
+          😄 <small style="display:block; font-size:10px;">High</small>
+        </div>
+
+        <div class="emoji-item" 
+             ng-class="{active: newNote.mood === 2}" 
+             ng-click="newNote.mood = 2">
+          😐 <small style="display:block; font-size:10px;">Neutral</small>
+        </div>
+
+        <div class="emoji-item" 
+             ng-class="{active: newNote.mood === 3}" 
+             ng-click="newNote.mood = 3">
+          😡 <small style="display:block; font-size:10px;">Low</small>
+        </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; align-items:center;">
+    <input type="text"
+           class="form-control-modern"
+           ng-model="newNote.text"
+           placeholder="Write follow-up note..."
+           style="flex:1; height:42px;">
+
+    <button class="btn btn-vega"
+            style="height:42px; padding:0 18px; background:#006073; color:#fff; font-weight:700;"
+            ng-click="addFollowUpNote(selectedLead)">
+      Save
+    </button>
+  </div>
+</div>
+
+<!-- Locked Message -->
+<div ng-if="isLeadLocked(selectedLead)"
+     style="background:#f1f5f9; border:1px solid #cbd5e1; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center;">
+    <i class="fa fa-lock" style="color:#64748b; font-size:18px;"></i>
+    <p style="margin:8px 0 0; color:#64748b; font-weight:600;">
+        Follow-up notes are locked for {{selectedLead.leadStatus == 4 ? 'converted' : 'lost'}} leads
+    </p>
+</div>
+<!-- Locked Message -->
+<div ng-if="isLeadLocked(selectedLead)"
+     style="background:#f1f5f9; border:1px solid #cbd5e1; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center;">
+    <i class="fa fa-lock" style="color:#64748b; font-size:18px;"></i>
+    <p style="margin:8px 0 0; color:#64748b; font-weight:600;">
+        Follow-up notes are locked for {{selectedLead.leadStatus == 4 ? 'converted' : 'lost'}} leads
+    </p>
+</div>
+
+
+       
+      <!-- FOLLOW-UP HISTORY LIST (Newest First) -->
+<!-- <div ng-if="selectedLead.followUpHistory.length > 0">
+  <div class="info-label" style="margin-bottom: 12px;">🕒 Follow-Up History</div>
+<div ng-repeat="note in selectedLead.followUpHistory | orderBy:'-timestamp' track by note.timestamp"
+     style="background:#eff6ff; padding:15px 20px; border-radius:12px; border:1px solid #0284c7; margin-bottom:12px; position:relative;">
+ <div style="
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        background: #0284c7;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 12px;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+        z-index: 10;
+    ">
+      #{{ selectedLead.followUpHistory.length - $index }}
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#64748b; font-weight:700; margin-bottom:8px;">
+        <span>Added by: {{note.addedBy || 'Admin'}}</span>
+        <span ng-if="note.editedAt" style="display:flex; align-items:center; gap:6px; justify-content:flex-end;">
+          <i class="fa fa-pencil" style="font-size:10px;"></i>
+          <span>{{note.editedBy || 'Admin'}} | {{note.editedAt | date:'MMM d, yyyy h:mm a'}}</span>
+        </span>
+    </div>
+    <!-- EDIT BUTTON -->
+  <!-- FOLLOW-UP HISTORY LIST (Newest First with Mood) -->
+<!-- FOLLOW-UP HISTORY LIST (with Mood Badge in Top Right) -->
+<div ng-if="selectedLead.followUpHistory.length > 0">
+  <div class="info-label" style="margin-bottom: 12px;">🕒 Follow-Up History</div>
+  
+  <div ng-repeat="note in selectedLead.followUpHistory | orderBy:'-timestamp' track by note.timestamp"
+       style="background:#eff6ff; padding:15px 20px 15px 20px; border-radius:12px; border:1px solid #0284c7; margin-bottom:12px; position:relative;">
+    
+    <!-- Badge Number (Top Left) -->
+    <div style="position: absolute; top: -10px; left: -10px; background: #0284c7; color: white; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); z-index: 10;">
+      #{{ selectedLead.followUpHistory.length - $index }}
+    </div>
+
+    <!-- 👉 MOOD EMOJI BADGE (Top Right Corner) -->
+  <!-- Inside the ng-repeat="note in selectedLead.followUpHistory" -->
+<!-- THE MOOD BADGE -->
+<div style="position: absolute; top: -10px; right: -10px; background: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); z-index: 10; border: 2px solid #0284c7;">
+  
+  <span ng-if="note.mood == 1">😄</span>
+  <span ng-if="note.mood == 2">😐</span>
+  <span ng-if="note.mood == 3">😡</span>
+  
+  <!-- Fallback for OLD notes that have no mood data -->
+  <span ng-if="!note.mood" style="font-size: 12px; color: #94a3b8;">OLD</span>
+
+</div>
+
+    <!-- User Info -->
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#64748b; font-weight:700; margin-bottom:8px; padding-right:35px;">
+      <span>Added by: {{note.addedBy || 'Admin'}}</span>
+      <span ng-if="note.editedAt" style="display:flex; align-items:center; gap:6px;">
+        <i class="fa fa-pencil" style="font-size:10px;"></i>
+        <span>{{note.editedBy || 'Admin'}} | {{note.editedAt | date:'MMM d, h:mm a'}}</span>
+      </span>
+    </div>
+
+    <!-- EDIT BUTTON (only show if not locked) -->
+    <button ng-if="!note.isEditing && !isLeadLocked(selectedLead)"
+            ng-click="startEditingNote(note)"
+            style="background:none; border:none; color:#0284c7; cursor:pointer; position:absolute; bottom:15px; right:10px;">
+      <i class="fa fa-pencil"></i>
+    </button>
+
+    <!-- Timestamp -->
+    <div style="font-size:11px; color:#0284c7; font-weight:800; margin-bottom:8px;">
+      <i class="fa fa-clock-o"></i>
+      {{note.timestamp | date:'MMM d, yyyy • h:mm a'}}
+    </div>
+
+    <!-- View Text -->
+    <p ng-if="!note.isEditing"
+       style="margin:0; color:#0c4a6e; font-size:14px; padding-right:30px; line-height:1.5;">
+      {{note.text}}
+    </p>
+
+    <!-- Edit Mode -->
+    <textarea ng-if="note.isEditing"
+              class="form-control-modern"
+              ng-model="note.text"
+              rows="2"
+              style="width:100%; border:1px solid #0284c7; margin-top:8px;"></textarea>
+
+    <!-- SAVE / CANCEL -->
+    <div ng-if="note.isEditing"
+         style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+      <button class="btn btn-xs"
+              style="background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-weight:700; border-radius:8px;"
+              ng-click="cancelEditingNote(note)">Cancel</button>
+      <button class="btn btn-xs"
+              style="background:#006073; border:1px solid #006073; color:#ffffff; font-weight:700; border-radius:8px;"
+              ng-click="saveEditedNote(selectedLead, note)">Save</button>
+    </div>
+  </div>
+
+</div>
+
+        <div ng-if="selectedLead.followUpHistory.length === 0" style="text-align: center; padding: 6px; color: #94a3b8; font-size: 12px;">
+          <p style="margin: 0;">No follow-up attempts recorded yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer" style="justify-content: space-between;">
+    <!-- <button class="btn btn-danger btn-sm" ng-click="deleteLead(selectedLead)">Delete Lead</button> -->
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-vega btn-call" ng-click="makeCall(selectedLead.phone)"><i class="fa fa-phone"></i> Call</button>
+      <button class="btn btn-vega btn-whatsapp" ng-click="openWhatsApp(selectedLead.phone)"><i class="fa fa-whatsapp"></i> WhatsApp</button>
+      <!-- <button class="btn btn-default" ng-click="closeLeadModal()">Close</button> -->
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CALENDAR MODAL -->
+<div class="modal-overlay" ng-if="showCalendarModal" ng-click="closeCalendar()">
+  <div class="modal-dialog" style="max-width: 900px; width: 95%; max-height: 85vh;" ng-click="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <h3 style="margin:0; color:white; font-weight: 700;">📅 Lead Schedule Calendar</h3>
+      <button style="background:none; border:none; color:white; font-size:20px;" ng-click="closeCalendar()">&times;</button>
+    </div>
+
+  <div class="modal-body" style="padding: 0;">
+    <div class="calendar-wrap">
+      <div class="calendar-toolbar">
+        <button class="calendar-nav-btn" ng-click="previousMonth()">
+          <i class="fa fa-chevron-left"></i>
+        </button>
+        <div class="calendar-title">{{getMonthYear()}}</div>
+        <button class="calendar-nav-btn" ng-click="nextMonth()">
+          <i class="fa fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="calendar-weekday" ng-repeat="dayName in calendarWeekdays">{{dayName}}</div>
+        <div class="calendar-day calendar-day-blank" ng-repeat="blank in calendarBlanks"></div>
+
+        <button type="button"
+                class="calendar-day"
+                ng-repeat="day in calendarDates"
+                ng-class="{
+                  'calendar-day-active': selectedCalendarTs === day.timestamp,
+                  'calendar-day-today': day.isToday,
+                  'calendar-day-has': day.hasLeads
+                }"
+                ng-click="selectCalendarDate(day)">
+          <div class="calendar-day-number">{{day.day}}</div>
+          <div class="calendar-day-count" ng-if="day.count">{{day.count}}</div>
+        </button>
+      </div>
+
+      <div class="calendar-hint">
+        Click a date to filter the table. Days with numbers show how many leads are due.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-default" style="flex: 1; font-weight: 700;" ng-click="closeCalendar()">Close</button>
+  </div>
+</div>
+</div>
+
+<!-- STATUS EDITOR MODAL -->
+<div class="modal-overlay" ng-if="showStatusEditor" ng-click="closeStatusEditor()">
+  <div class="modal-dialog" style="max-width: 500px;" ng-click="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <h3 style="margin:0; color:white; font-weight: 700;">Update Lead Status</h3>
+      <button style="background:none; border:none; color:white; font-size:20px;" ng-click="closeStatusEditor()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- STATUS SELECTOR -->
+      <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border: 2px solid #006073; margin-bottom: 20px;">
+        <label class="info-label" style="margin-bottom: 12px; color: #006073;">Select Status</label>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 600; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <input type="radio" ng-model="selectedLead.status" value="pending" style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="color: #f59e0b; font-size: 14px;">⏱ Pending - Need Follow-up</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 600; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <input type="radio" ng-model="selectedLead.status" value="complete" style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="color: #16a34a; font-size: 14px;">✓ Complete - Done</span>
+          </label>
+        </div>
+
+        <!-- PENDING: Show Follow-Up Options -->
+        <div ng-if="selectedLead.status === 'pending'" style="animation: fadeIn 0.3s; margin-top: 20px; background: #f0f9ff; padding: 18px; border-radius: 8px; border: 2px solid #0ea5e9;">
+          
+          <!-- WARNING: Date hasn't been updated -->
+          <div ng-if="!selectedLead.nextFollowUpDate || (selectedLead.nextFollowUpDate | date:'MMM d, yyyy') === (selectedLead.finalFollowup | date:'MMM d, yyyy')" style="background: #fef3c7; border: 2px solid #fcd34d; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <i class="fa fa-exclamation-triangle" style="color: #d97706; font-size: 18px;"></i>
+            <div style="font-size: 12px; color: #92400e; font-weight: 700;">
+              <div>⚠️ REMINDER: Update the follow-up date</div>
+              <div style="font-size: 11px; font-weight: 600; margin-top: 3px;">Currently set to {{selectedLead.finalFollowup | date:'MMM d, yyyy'}} - Please change it</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label class="info-label" style="color: #0284c7;">📅 Next Follow-Up Date <span style="color: #e11d48;">*</span></label>
+            <input type="date" class="form-control-modern" ng-model="selectedLead.nextFollowUpDate" style="border: 2px solid #0ea5e9; padding: 12px;" required>
+            <div ng-if="!selectedLead.nextFollowUpDate" style="color: #e11d48; font-size: 11px; font-weight: 700; margin-top: 4px;">This field is required</div>
+          </div>
+
+          <div>
+            <label class="info-label" style="color: #0284c7;">📝 Follow-Up Notes <span style="color: #e11d48;">*</span></label>
+            <textarea class="form-control-modern" rows="3" ng-model="selectedLead.followUpNotes" placeholder="Add detailed notes about follow-up actions needed..." style="border: 2px solid #0ea5e9; padding: 12px; font-size: 14px;" required></textarea>
+            <div ng-if="!selectedLead.followUpNotes" style="color: #e11d48; font-size: 11px; font-weight: 700; margin-top: 4px;">Follow-up notes are required</div>
+          </div>
+        </div>
+
+        <!-- COMPLETE: Show Completed Message -->
+        <div ng-if="selectedLead.status === 'complete'" style="animation: fadeIn 0.3s; margin-top: 20px; text-align: center; padding: 15px; background: #f0fdf4; border-radius: 8px; border: 1px solid #86efac;">
+          <span style="font-size: 14px; font-weight: 700; color: #16a34a;">✓ Lead Marked as Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-default" style="flex: 1" ng-click="closeStatusEditor()">Cancel</button>
+      <button class="btn btn-vega btn-save" style="flex: 2" ng-click="saveStatus()">Save Status</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ADD NEW LEAD MODAL -->
+<div class="modal-overlay" ng-if="showAddLead" ng-click="closeAddLead()">
+  <div class="modal-dialog" style="max-width: 500px;" ng-click="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <h3 style="margin:0; color:white; font-weight: 700;">Add New Student Inquiry</h3>
+      <button style="background:none; border:none; color:white; font-size:20px;" ng-click="closeAddLead()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- 1. NAME & PHONE -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div>
+          <label class="info-label">Full Name <span style="color: #e11d48;">*</span></label>
+          <input type="text" class="form-control-modern" ng-model="newLead.name" ng-change="newLead.name = sanitizeName(newLead.name)" placeholder="Student Name" required>
+          <div ng-if="showAddLeadErrors && !newLead.name" style="color: #e11d48; font-size: 11px; font-weight: 700; margin-top: 4px;">Full name is required</div>
+        </div>
+        <div>
+          <label class="info-label">Phone Number <span style="color: #e11d48;">*</span></label>
+          <input type="text"
+                 class="form-control-modern"
+                 ng-model="newLead.phone"
+                 placeholder="10-digit mobile"
+                 maxlength="10"
+                 inputmode="numeric"
+                 pattern="[0-9]*"
+                 ng-change="newLead.phone = (newLead.phone || '').toString().replace(/[^0-9]/g, '')"
+                 required>
+          <div ng-if="showAddLeadErrors && !newLead.phone" style="color: #e11d48; font-size: 11px; font-weight: 700; margin-top: 4px;">10-digit number required</div>
+        </div>
+      </div>
+
+      <!-- 2. DATE JOINED -->
+      <div style="margin-bottom: 15px;">
+        <label class="info-label">Date Joined (Today) <span style="color: #e11d48;">*</span></label>
+        <input type="date" class="form-control-modern" ng-model="newLead.dateJoined" ng-change="updateFollowUpDate(newLead.behavior)" required>
+      </div>
+
+      <!-- 3. NOTES -->
+      <div style="margin-bottom: 15px;">
+        <label class="info-label">Consultation Notes <span style="color: #e11d48;">*</span></label>
+        <textarea class="form-control-modern" rows="2" ng-model="newLead.description" placeholder="What did the student ask?" required></textarea>
+      </div>
+
+      <!-- 4. CONTACT METHOD (Now using Numbers 1, 2, 3 for DB icons) -->
+      <div style="margin-bottom: 15px;">
+        <label class="info-label">How Did They Contact You? <span style="color: #e11d48;">*</span></label>
+        <div style="display: flex; gap: 10px;">
+          <!-- 1: WhatsApp (Green) -->
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer;" 
+                 ng-style="{'background': newLead.contactMethod === 1 ? '#e7f5fe' : 'white', 'border-color': newLead.contactMethod === 1 ? '#0284c7' : '#e2e8f0'}">
+            <input type="radio" ng-model="newLead.contactMethod" ng-value="1">
+            <span style="font-weight: 700; color: #25d366;"><i class="fa fa-whatsapp"></i> WhatsApp</span>
+          </label>
+          <!-- 2: Call (Brown) -->
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer;" 
+                 ng-style="{'background': newLead.contactMethod === 2 ? '#fef3c7' : 'white', 'border-color': newLead.contactMethod === 2 ? '#b45309' : '#e2e8f0'}">
+            <input type="radio" ng-model="newLead.contactMethod" ng-value="2">
+            <span style="font-weight: 700; color: #b45309;"><i class="fa fa-phone"></i> Call</span>
+          </label>
+          <!-- 3: Other (Purple) -->
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer;" 
+                 ng-style="{'background': newLead.contactMethod === 3 ? '#f3e8ff' : 'white', 'border-color': newLead.contactMethod === 3 ? '#7c3aed' : '#e2e8f0'}">
+            <input type="radio" ng-model="newLead.contactMethod" ng-value="3">
+            <span style="font-weight: 700; color: #7c3aed;"><i class="fa fa-envelope"></i> Other</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 5. MOOD SELECTION (Now using Numbers 1, 2, 3) -->
+      <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <label class="info-label">Select Student Interest (Mood) <span style="color: #e11d48;">*</span></label>
+        <div class="emoji-row" style="margin-bottom: 15px;">
+          <div class="emoji-item" ng-class="{active: newLead.behavior === 1}" ng-click="updateFollowUpDate(1)">
+            😄 <small style="display:block; font-size:10px;">High</small>
+          </div>
+          <div class="emoji-item" ng-class="{active: newLead.behavior === 2}" ng-click="updateFollowUpDate(2)">
+            😐 <small style="display:block; font-size:10px;">Neutral</small>
+          </div>
+          <div class="emoji-item" ng-class="{active: newLead.behavior === 3}" ng-click="updateFollowUpDate(3)">
+            😡 <small style="display:block; font-size:10px;">Low</small>
+          </div>
+        </div>
+
+        <label class="info-label" style="color: #006073;">Calculated Follow-up Date</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="date" class="form-control-modern" ng-model="newLead.finalFollowup" style="border: 2px solid #006073; background: #fff;" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer" style="padding: 20px; flex-direction: column; gap: 12px;">
+      <div ng-if="addLeadMissingFields.length" style="background: #fff1f2; border: 2px solid #fecaca; padding: 12px; border-radius: 8px; color: #dc2626; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa fa-times-circle"></i> Please fill in: {{addLeadMissingFields.join(', ')}}
+      </div>
+      <button class="btn btn-vega btn-save" style="width: 100%; height: 45px; font-size: 16px; background-color: #16a34a;" ng-click="saveNewLead()">
+        <i class="ti ti-save"></i> SAVE LEAD
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="assets/js/jquery-1.10.2.min.js"></script>
+<script src="assets/js/angular.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+<script src="assets/js/enquire.min.js"></script>
+<script src="assets/plugins/velocityjs/velocity.min.js"></script>
+<script src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+<script src="assets/plugins/wijets/wijets.js"></script>
+<script src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+<script src="assets/js/application.js"></script>
+<script src="controllers/leads.js"></script>
+
+</body>
+</html>
