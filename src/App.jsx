@@ -1,6 +1,8 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import CandidateDetailPage from './pages/CandidateDetailPage';
+import CoursesListPage from './pages/CoursesListPage';
 import LoginPage from './pages/LoginPage';
 import LegacyScreenPage from './pages/LegacyScreenPage';
 import StudentManagementPage from './pages/StudentManagementPage';
@@ -20,6 +22,12 @@ export default function App() {
   function renderProtectedScreen(screen) {
     if (screen.path === '/candidate-profile.html') {
       return <StudentManagementPage />;
+    }
+    if (screen.path === '/candidate-detail.html') {
+      return <CandidateDetailPage />;
+    }
+    if (screen.path === '/courses-list.html') {
+      return <CoursesListPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;

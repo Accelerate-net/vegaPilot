@@ -261,6 +261,11 @@ input {
   position: relative;
 }
 
+.courses-page,
+.detail-page {
+  position: relative;
+}
+
 .hero-row,
 .toolbar-row,
 .pagination-bar,
@@ -305,6 +310,17 @@ input {
   border-radius: 14px;
   padding: 12px 14px;
   background: white;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link-chip.neutral {
+  background: #f1f5f6;
+  color: var(--ink);
 }
 
 .filter-select {
@@ -393,6 +409,10 @@ input {
 
 .student-name {
   font-weight: 700;
+}
+
+.detail-meta {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .status-pill {
@@ -497,6 +517,10 @@ input {
   width: min(980px, 100%);
 }
 
+.nested-shell {
+  margin-top: 16px;
+}
+
 .subtle-panel,
 .nested-panel {
   margin: 16px 0;
@@ -507,6 +531,77 @@ input {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
+}
+
+.detail-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 22px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
+  color: white;
+}
+
+.hero-avatar {
+  width: 64px;
+  height: 64px;
+}
+
+.tab-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.stack-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.progress-block + .progress-block,
+.result-card + .result-card {
+  margin-top: 14px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #e5eff0;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, var(--brand) 0%, #14919b 100%);
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.mentor-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.mentor-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mentor-option {
+  text-align: left;
+  border: 1px solid var(--line);
+  cursor: pointer;
 }
 
 .toast-region {
@@ -571,14 +666,18 @@ input {
   }
 
   .stats-grid,
-  .course-grid {
+  .course-grid,
+  .mentor-grid,
+  .result-grid {
     grid-template-columns: 1fr;
   }
 
   .hero-row,
   .toolbar-row,
   .pagination-bar,
-  .modal-header-row {
+  .modal-header-row,
+  .detail-hero,
+  .mentor-card {
     flex-direction: column;
     align-items: stretch;
   }
