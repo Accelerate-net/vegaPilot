@@ -96,6 +96,14 @@ function getValidityStatus(validUntil) {
   return 'ACTIVE';
 }
 
+function getValidityClass(validUntil) {
+  const status = getValidityStatus(validUntil);
+  if (status === 'ACTIVE') return 'validity-active';
+  if (status === 'EXPIRING SOON') return 'validity-expiring';
+  if (status === 'EXPIRED') return 'validity-expired';
+  return '';
+}
+
 function getDaysRemaining(validUntil) {
   if (!validUntil) return 0;
   return Math.abs(Math.ceil((validUntil - Date.now() / 1000) / 86400));
@@ -111,6 +119,31 @@ function getPageNumbers(currentPage, totalPages) {
   return pages;
 }
 
+function mapSortColumn(column) {
+  const map = {
+    name: 'name',
+    email: 'email',
+    mobile: 'mobile',
+    coursesCount: 'totalCourseEnrollments',
+    enrollmentDate: 'joinedDate',
+    status: 'status',
+  };
+  return map[column] || column;
+}
+
+function sortIcon(column, activeColumn, isReverse) {
+  const mapped = mapSortColumn(column);
+  if (activeColumn !== mapped) return 'ti-arrows-vertical';
+  return isReverse ? 'ti-arrow-down' : 'ti-arrow-up';
+}
+
+function statusBadgeClass(status) {
+  if (status === 'active') return 'active';
+  if (status === 'inactive') return 'inactive';
+  if (status === 'blocked') return 'inactive';
+  return 'inactive';
+}
+
 export default function StudentManagementPage() {
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,13 +155,18 @@ export default function StudentManagementPage() {
   const [totalStudents, setTotalStudents] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Loading students...');
+  const [loadingMessage] = useState('Loading students...');
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [selectedStudentForCourses, setSelectedStudentForCourses] = useState(null);
+  const [coursesModalOpen, setCoursesModalOpen] = useState(false);
+  const [enrollCourseModalOpen, setEnrollCourseModalOpen] = useState(false);
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
   const [studentToBlacklist, setStudentToBlacklist] = useState(null);
+  const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
+  const [blacklistConfirmMessage, setBlacklistConfirmMessage] = useState('');
+  const [activeKebabId, setActiveKebabId] = useState(null);
   const [toasts, setToasts] = useState([]);
+  const kebabRef = useRef(null);
   const toastIdRef = useRef(0);
 
   const showToast = (type, title, message) => {
@@ -141,11 +179,20 @@ export default function StudentManagementPage() {
   };
 
   useEffect(() => {
+    const handleClick = (event) => {
+      if (kebabRef.current && !kebabRef.current.contains(event.target)) {
+        setActiveKebabId(null);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
+  useEffect(() => {
     let isCancelled = false;
 
     async function loadStudents() {
       setIsLoading(true);
-      setLoadingMessage('Loading students...');
       const isLocalWebPreview = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
       try {
@@ -195,9 +242,7 @@ export default function StudentManagementPage() {
           }
         }
       } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
+        if (!isCancelled) setIsLoading(false);
       }
     }
 
@@ -217,62 +262,65 @@ export default function StudentManagementPage() {
     [students]
   );
 
+  const blockedStudents = useMemo(
+    () => students.filter((student) => student.status === 'blocked' || student.blocked).length,
+    [students]
+  );
+
   const filteredAvailableCourses = useMemo(() => {
-    if (!selectedStudent) return [];
-    const enrolledCourseIds = new Set((selectedStudent.enrolledCourses || []).map((course) => course.courseId));
+    if (!selectedStudentForCourses) return [];
+    const enrolledCourseIds = new Set((selectedStudentForCourses.enrolledCourses || []).map((course) => course.courseId));
     return availableCourses.filter((course) => {
       if (enrolledCourseIds.has(course.courseId)) return false;
       if (!courseSearchQuery.trim()) return true;
       const query = courseSearchQuery.trim().toLowerCase();
       return course.courseName.toLowerCase().includes(query) || course.courseCode.toLowerCase().includes(query);
     });
-  }, [courseSearchQuery, selectedStudent]);
+  }, [courseSearchQuery, selectedStudentForCourses]);
 
   const paginationPages = useMemo(() => getPageNumbers(currentPage, totalPages), [currentPage, totalPages]);
 
-  function closeStudentModal() {
-    setSelectedStudent(null);
-    setEnrollModalOpen(false);
-    setCourseSearchQuery('');
-  }
-
   function handleSort(column) {
-    const map = {
-      name: 'name',
-      email: 'email',
-      mobile: 'mobile',
-      coursesCount: 'totalCourseEnrollments',
-      enrollmentDate: 'joinedDate',
-      status: 'status',
-    };
-    const next = map[column] || column;
-    if (sortColumn === next) {
+    const mapped = mapSortColumn(column);
+    if (sortColumn === mapped) {
       setSortReverse((value) => !value);
     } else {
-      setSortColumn(next);
+      setSortColumn(mapped);
       setSortReverse(false);
     }
     setCurrentPage(1);
   }
 
   function openStudentCourses(student) {
-    setSelectedStudent(student);
+    setSelectedStudentForCourses(student);
+    setCoursesModalOpen(true);
+    setEnrollCourseModalOpen(false);
+    setCourseSearchQuery('');
+    setActiveKebabId(null);
   }
 
   function openStudentDetail(student) {
     window.localStorage.setItem('selectedStudent', JSON.stringify(student));
-    const detailUrl = `${window.location.origin}/candidate-detail`;
-    window.open(detailUrl, '_blank', 'noopener,noreferrer');
+    window.open(`${window.location.origin}/candidate-detail`, '_blank', 'noopener,noreferrer');
+    setActiveKebabId(null);
+  }
+
+  function toggleBlacklist(student) {
+    setStudentToBlacklist(student);
+    setBlacklistConfirmMessage(`Do you really want to blacklist the profile of ${student.name}. By doing this, the candidate won't be able to login to the application anymore. You can re-enable access anytime.`);
+    setBlacklistModalOpen(true);
+    setActiveKebabId(null);
   }
 
   function confirmBlacklist() {
     if (!studentToBlacklist) return;
     showToast('success', 'Profile Blacklisted', `${studentToBlacklist.name} has been successfully blacklisted.`);
+    setBlacklistModalOpen(false);
     setStudentToBlacklist(null);
   }
 
   function enrollStudentToCourse(course) {
-    if (!selectedStudent) return;
+    if (!selectedStudentForCourses) return;
     const newEnrollment = {
       courseId: course.courseId,
       courseCode: course.courseCode,
@@ -282,7 +330,7 @@ export default function StudentManagementPage() {
       enrollmentStatusText: 'ACTIVE',
     };
 
-    setSelectedStudent((current) => ({
+    setSelectedStudentForCourses((current) => ({
       ...current,
       enrolledCourses: [...(current?.enrolledCourses || []), newEnrollment],
       totalCourseEnrollments: (current?.totalCourseEnrollments || 0) + 1,
@@ -290,7 +338,7 @@ export default function StudentManagementPage() {
 
     setStudents((current) =>
       current.map((student) =>
-        student.id === selectedStudent.id
+        student.id === selectedStudentForCourses.id
           ? {
               ...student,
               enrolledCourses: [...student.enrolledCourses, newEnrollment],
@@ -300,42 +348,73 @@ export default function StudentManagementPage() {
       )
     );
 
-    showToast('success', 'Enrollment Successful', `Successfully enrolled ${selectedStudent.name} to ${course.courseName}.`);
+    showToast('success', 'Enrollment Successful', `Successfully enrolled ${selectedStudentForCourses.name} to ${course.courseName}!`);
   }
 
   const showingStart = totalStudents === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const showingEnd = Math.min(currentPage * itemsPerPage, totalStudents);
 
   return (
-    <section className="screen-card student-page">
+    <section className="candidate-profile-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
-      <div className="hero-row">
+      <div className="page-header-section">
         <div>
-          <p className="eyebrow">Students</p>
-          <h3>Student Management</h3>
-          <p className="muted-copy">Search, review, and manage candidate enrollments with API-backed pagination.</p>
+          <h2>Student Management</h2>
+          <p>Manage students, track enrollments, and review candidate access.</p>
         </div>
-        <button className="ghost-button" type="button" onClick={() => showToast('info', 'Feature Coming Soon', 'Add new student functionality is under development.')}>
-          Add Student
-        </button>
       </div>
 
-      {isDemoMode ? <div className="info-banner">Showing demo candidate records mapped to the current API response structure for preview.</div> : null}
-
-      <div className="stats-grid">
-        <div className="detail-panel"><h4>Total Students</h4><p className="big-stat">{totalStudents}</p></div>
-        <div className="detail-panel"><h4>Active on Page</h4><p className="big-stat">{activeStudents}</p></div>
-        <div className="detail-panel"><h4>Course Enrollments</h4><p className="big-stat">{totalEnrollments}</p></div>
-        <div className="detail-panel"><h4>Data Source</h4><p className="big-stat">{isDemoMode ? 'Demo' : 'API'}</p></div>
+      <div className="stats-row">
+        <div className="stat-card">
+          <div className="stat-icon teal"><i className="ti ti-user" /></div>
+          <div className="stat-info">
+            <h3>{totalStudents}</h3>
+            <p>Total Students</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon green"><i className="ti ti-check-box" /></div>
+          <div className="stat-info">
+            <h3>{activeStudents}</h3>
+            <p>Active Students</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon orange"><i className="ti ti-book" /></div>
+          <div className="stat-info">
+            <h3>{totalEnrollments}</h3>
+            <p>Total Enrollments</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon purple"><i className="ti ti-na" /></div>
+          <div className="stat-info">
+            <h3>{blockedStudents}</h3>
+            <p>Blocked Students</p>
+          </div>
+        </div>
       </div>
 
-      <div className="toolbar-row">
-        <div className="search-shell">
+      {isDemoMode ? (
+        <div className="candidate-profile-info-banner">
+          Showing demo candidate records mapped to the current API response structure for local preview.
+        </div>
+      ) : null}
+
+      <div className="filter-bar">
+        <div className="search-wrapper">
+          <i
+            className={`ti ${searchQuery ? 'ti-close' : 'ti-search'}`}
+            onClick={() => {
+              setSearchQuery('');
+              setCurrentPage(1);
+            }}
+          />
           <input
-            aria-label="Search students"
+            type="text"
             className="search-input"
-            placeholder="Search by name, email, mobile, or candidate key..."
+            placeholder="Search by name, email, mobile number, or enrolled courses..."
             value={searchQuery}
             onChange={(event) => {
               setSearchQuery(event.target.value);
@@ -343,198 +422,381 @@ export default function StudentManagementPage() {
             }}
           />
         </div>
-        <select
-          className="filter-select"
-          value={filterStatus}
-          onChange={(event) => {
-            setFilterStatus(event.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="blocked">Blocked</option>
-        </select>
+
+        <div className="candidate-filter-dropdown">
+          <button type="button" className="filter-dropdown-btn">
+            {filterStatus === 'active' ? 'Active' : filterStatus === 'inactive' ? 'Inactive' : filterStatus === 'blocked' ? 'Blocked' : 'All Status'}
+            <i className="ti ti-angle-down" />
+          </button>
+          <div className="candidate-filter-dropdown-menu">
+            <button type="button" onClick={() => { setFilterStatus(''); setCurrentPage(1); }}>All Status</button>
+            <button type="button" onClick={() => { setFilterStatus('active'); setCurrentPage(1); }}>Active</button>
+            <button type="button" onClick={() => { setFilterStatus('inactive'); setCurrentPage(1); }}>Inactive</button>
+            <button type="button" onClick={() => { setFilterStatus('blocked'); setCurrentPage(1); }}>Blocked</button>
+          </div>
+        </div>
       </div>
 
-      <div className="student-table-shell">
-        <table className="student-table">
+      <div className="students-table-container">
+        <table className="students-table">
           <thead>
             <tr>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('name')}>Student</button></th>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('email')}>Email</button></th>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('mobile')}>Mobile</button></th>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('coursesCount')}>Enrolled Courses</button></th>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('enrollmentDate')}>Enrollment Date</button></th>
-              <th><button type="button" className="sort-button" onClick={() => handleSort('status')}>Status</button></th>
-              <th>Actions</th>
+              <th className={`sortable ${sortColumn === 'name' ? 'active' : ''}`} onClick={() => handleSort('name')}>
+                Student
+                <i className={`sort-icon ti ${sortIcon('name', sortColumn, sortReverse)}`} />
+              </th>
+              <th className={`sortable ${sortColumn === 'email' ? 'active' : ''}`} onClick={() => handleSort('email')}>
+                Email
+                <i className={`sort-icon ti ${sortIcon('email', sortColumn, sortReverse)}`} />
+              </th>
+              <th className={`sortable ${sortColumn === 'mobile' ? 'active' : ''}`} onClick={() => handleSort('mobile')}>
+                Mobile
+                <i className={`sort-icon ti ${sortIcon('mobile', sortColumn, sortReverse)}`} />
+              </th>
+              <th className={`sortable ${sortColumn === 'totalCourseEnrollments' ? 'active' : ''}`} onClick={() => handleSort('coursesCount')}>
+                Enrolled Courses
+                <i className={`sort-icon ti ${sortIcon('coursesCount', sortColumn, sortReverse)}`} />
+              </th>
+              <th className={`sortable ${sortColumn === 'joinedDate' ? 'active' : ''}`} onClick={() => handleSort('enrollmentDate')}>
+                Enrollment Date
+                <i className={`sort-icon ti ${sortIcon('enrollmentDate', sortColumn, sortReverse)}`} />
+              </th>
+              <th className={`sortable ${sortColumn === 'status' ? 'active' : ''}`} onClick={() => handleSort('status')}>
+                Status
+                <i className={`sort-icon ti ${sortIcon('status', sortColumn, sortReverse)}`} />
+              </th>
+              <th style={{ width: '50px' }} />
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               [...Array(itemsPerPage)].map((_, index) => (
                 <tr key={`loading-${index}`}>
-                  <td colSpan="7" className="loading-row">{loadingMessage}</td>
+                  <td>
+                    <div className="student-name-cell">
+                      <div className="student-avatar-placeholder skeleton-circle" />
+                      <div>
+                        <div className="skeleton-line skeleton-medium" />
+                        <div className="skeleton-line skeleton-short" />
+                      </div>
+                    </div>
+                  </td>
+                  <td><div className="skeleton-line skeleton-medium" /></td>
+                  <td><div className="skeleton-line skeleton-medium" /></td>
+                  <td><div className="skeleton-line skeleton-short" /></td>
+                  <td><div className="skeleton-line skeleton-short" /></td>
+                  <td><div className="skeleton-line skeleton-short" /></td>
+                  <td />
                 </tr>
               ))
             ) : students.length > 0 ? (
               students.map((student) => (
-                <tr key={student.id}>
+                <tr key={student.id} className={activeKebabId === student.id ? 'row-active-menu' : ''}>
                   <td>
-                    <div className="student-cell">
+                    <div className="student-name-cell">
                       {student.avatar ? (
-                        <img alt={student.name} className="avatar" src={student.avatar} />
+                        <img alt={student.name} src={student.avatar} className="student-avatar" />
                       ) : (
-                        <div className="avatar placeholder">{getInitials(student.name)}</div>
+                        <div className="student-avatar-placeholder">{getInitials(student.name)}</div>
                       )}
                       <div>
                         <div className="student-name">{student.name}</div>
-                        <div className="student-subtle">ID: {student.id}</div>
+                        <div className="student-id">ID: {student.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td>{student.email}</td>
-                  <td>{student.mobile}</td>
                   <td>
-                    <button type="button" className="link-chip" onClick={() => openStudentCourses(student)}>
-                      {student.totalCourseEnrollments || 0} Course{student.totalCourseEnrollments === 1 ? '' : 's'}
-                    </button>
+                    <div className="contact-info">
+                      <i className="ti ti-email" />
+                      {student.email}
+                    </div>
                   </td>
-                  <td>{student.enrollmentDate ? student.enrollmentDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown'}</td>
-                  <td><span className={`status-pill ${student.status}`}>{student.status}</span></td>
                   <td>
-                    <div className="action-row">
-                      <button type="button" className="table-button" onClick={() => openStudentDetail(student)}>View</button>
-                      <button type="button" className="table-button danger" onClick={() => setStudentToBlacklist(student)}>Blacklist</button>
+                    <div className="contact-info">
+                      <i className="ti ti-mobile" />
+                      {student.mobile}
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      className="courses-badge clickable"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openStudentCourses(student);
+                      }}
+                    >
+                      {student.totalCourseEnrollments || 0} Course{student.totalCourseEnrollments !== 1 ? 's' : ''}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="enrollment-date">
+                      {student.enrollmentDate ? student.enrollmentDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown'}
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${statusBadgeClass(student.status)}`}>
+                      {student.status}
+                    </span>
+                  </td>
+                  <td
+                    style={{ textAlign: 'center' }}
+                    className={activeKebabId === student.id ? 'cell-active-menu' : ''}
+                  >
+                    <div className="kebab-menu-container" ref={activeKebabId === student.id ? kebabRef : null}>
+                      <button
+                        type="button"
+                        className="kebab-button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveKebabId((current) => current === student.id ? null : student.id);
+                        }}
+                      >
+                        <i className="ti ti-more-alt" />
+                      </button>
+                      <div className={`kebab-dropdown ${activeKebabId === student.id ? 'active' : ''}`}>
+                        <div className="kebab-dropdown-item view-profile" onClick={() => openStudentDetail(student)}>
+                          <i className="ti ti-user" />
+                          <span className="item-label">View Profile</span>
+                        </div>
+                        <div className="kebab-dropdown-item blacklist-profile" onClick={() => toggleBlacklist(student)}>
+                          <i className="ti ti-na" />
+                          <span className="item-label">Blacklist Profile</span>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="empty-row">No students found for the current filters.</td>
+                <td colSpan="7">
+                  <div className="empty-state">
+                    <i className="ti ti-user" />
+                    <h3>No Students Found</h3>
+                    <p>{searchQuery || filterStatus ? 'No students match your search criteria.' : 'Get started by adding your first student.'}</p>
+                  </div>
+                </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
 
-      <div className="pagination-bar">
-        <div className="muted-copy">
-          Showing {showingStart} to {showingEnd} of {totalStudents} students
-        </div>
-        <div className="pagination-controls">
-          <select className="filter-select compact" value={itemsPerPage} onChange={(event) => { setItemsPerPage(Number(event.target.value)); setCurrentPage(1); }}>
-            {[10, 20, 50, 200].map((size) => <option key={size} value={size}>Show {size}</option>)}
-          </select>
-          <button type="button" className="ghost-button compact" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>Previous</button>
-          {paginationPages.map((page) => (
-            <button key={page} type="button" className={`ghost-button compact ${page === currentPage ? 'active-page' : ''}`} onClick={() => setCurrentPage(page)}>
-              {page}
-            </button>
-          ))}
-          <button type="button" className="ghost-button compact" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}>Next</button>
-        </div>
-      </div>
-
-      {selectedStudent ? (
-        <div className="modal-scrim" role="presentation" onClick={closeStudentModal}>
-          <div className="modal-card large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header-row">
-              <div>
-                <p className="eyebrow">Enrollments</p>
-                <h4>Enrolled Courses - {selectedStudent.name}</h4>
-              </div>
-              <div className="action-row">
-                <button type="button" className="primary-button" onClick={() => setEnrollModalOpen(true)}>Enroll Course</button>
-                <button type="button" className="ghost-button" onClick={closeStudentModal}>Close</button>
-              </div>
+        {students.length > 0 ? (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>Showing {showingStart} to {showingEnd} of {totalStudents} students</span>
+              <select
+                className="page-size-select"
+                value={itemsPerPage}
+                onChange={(event) => {
+                  setItemsPerPage(Number(event.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                {[10, 20, 50, 200].map((size) => (
+                  <option key={size} value={size}>{`Show ${size}`}</option>
+                ))}
+              </select>
             </div>
-            <div className="detail-panel subtle-panel">
-              <div className="student-cell">
-                <div className="avatar placeholder">{getInitials(selectedStudent.name)}</div>
-                <div>
-                  <div className="student-name">{selectedStudent.name}</div>
-                  <div className="student-subtle">{selectedStudent.email}</div>
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>
+                <i className="ti ti-angle-left" /> Previous
+              </button>
+              {paginationPages.map((page) => (
+                <button key={page} type="button" className={`pagination-btn ${page === currentPage ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>
+                  {page}
+                </button>
+              ))}
+              <button type="button" className="pagination-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}>
+                Next <i className="ti ti-angle-right" />
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div className={`legacy-modal-backdrop ${coursesModalOpen ? 'active' : ''}`}>
+        <div className="legacy-modal-dialog legacy-large" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3><i className="ti ti-book" /> Enrolled Courses - {selectedStudentForCourses?.name}</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => { setCoursesModalOpen(false); setSelectedStudentForCourses(null); }}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            {selectedStudentForCourses ? (
+              <div className="legacy-candidate-card">
+                {selectedStudentForCourses.avatar ? (
+                  <img alt={selectedStudentForCourses.name} src={selectedStudentForCourses.avatar} className="legacy-candidate-avatar" />
+                ) : (
+                  <div className="legacy-candidate-avatar placeholder">{getInitials(selectedStudentForCourses.name)}</div>
+                )}
+                <div className="legacy-candidate-info">
+                  <div className="legacy-candidate-name">{selectedStudentForCourses.name}</div>
+                  <div className="legacy-candidate-email">{selectedStudentForCourses.email}</div>
+                </div>
+                <div className="legacy-candidate-total">
+                  <div>{selectedStudentForCourses.totalCourseEnrollments || 0}</div>
+                  <span>Total Enrollments</span>
                 </div>
               </div>
-            </div>
-            {(selectedStudent.enrolledCourses || []).length > 0 ? (
-              <table className="student-table compact-table">
+            ) : null}
+
+            {selectedStudentForCourses?.enrolledCourses?.length ? (
+              <table className="legacy-modal-table">
                 <thead>
                   <tr>
-                    <th>Course</th>
+                    <th>Course Name</th>
                     <th>Active Till</th>
-                    <th>Status</th>
+                    <th style={{ textAlign: 'center' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedStudent.enrolledCourses.map((course) => (
-                    <tr key={`${selectedStudent.id}-${course.courseId}`}>
+                  {selectedStudentForCourses.enrolledCourses.map((course) => (
+                    <tr key={`${selectedStudentForCourses.id}-${course.courseId}`}>
                       <td>
-                        <div className="student-name">{course.courseName}</div>
-                        <div className="student-subtle">{course.courseCode}</div>
+                        <div className="legacy-table-title">{course.courseName}</div>
+                        <div className="legacy-table-subtitle">{course.courseCode}</div>
+                        <div className="legacy-table-meta">
+                          Enrolled: {course.enrollmentDate ? formatDateFromSeconds(course.enrollmentDate) : 'Unknown'}
+                        </div>
                       </td>
                       <td>
                         <div>{formatDateFromSeconds(course.validUntil)}</div>
-                        <div className="student-subtle">{getDaysRemaining(course.validUntil)} days {getValidityStatus(course.validUntil) === 'EXPIRED' ? 'expired' : 'remaining'}</div>
+                        <div className="legacy-table-meta">
+                          {getDaysRemaining(course.validUntil)} days {getValidityStatus(course.validUntil) === 'EXPIRED' ? 'expired' : 'remaining'}
+                        </div>
                       </td>
-                      <td><span className={`status-pill ${getValidityStatus(course.validUntil).toLowerCase().replace(/\s+/g, '-')}`}>{course.enrollmentStatusText || getValidityStatus(course.validUntil)}</span></td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className={`validity-badge ${getValidityClass(course.validUntil)}`}>
+                          {course.enrollmentStatusText || getValidityStatus(course.validUntil)}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <div className="empty-row standalone">No courses enrolled.</div>
-            )}
-
-            {enrollModalOpen ? (
-              <div className="nested-panel">
-                <div className="modal-header-row">
-                  <div>
-                    <p className="eyebrow">Enroll Course</p>
-                    <h4>Available Courses</h4>
-                  </div>
-                  <button type="button" className="ghost-button" onClick={() => setEnrollModalOpen(false)}>Done</button>
-                </div>
-                <input
-                  aria-label="Search available courses"
-                  className="search-input"
-                  placeholder="Search courses by name or code..."
-                  value={courseSearchQuery}
-                  onChange={(event) => setCourseSearchQuery(event.target.value)}
-                />
-                <div className="course-grid">
-                  {filteredAvailableCourses.map((course) => (
-                    <article key={course.courseId} className="detail-panel">
-                      <h4>{course.courseName}</h4>
-                      <p className="student-subtle">{course.courseCode} • {course.duration}</p>
-                      <p className="student-subtle">{course.modules} modules • ₹{course.price}</p>
-                      <button type="button" className="primary-button" onClick={() => enrollStudentToCourse(course)}>Enroll</button>
-                    </article>
-                  ))}
-                  {filteredAvailableCourses.length === 0 ? <div className="empty-row standalone">No matching courses available.</div> : null}
-                </div>
+              <div className="legacy-empty-modal">
+                <i className="ti ti-book" />
+                <p>No courses enrolled</p>
               </div>
-            ) : null}
+            )}
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => { setCoursesModalOpen(false); setSelectedStudentForCourses(null); }}>
+              <i className="ti ti-close" /> Close
+            </button>
+            <button type="button" className="legacy-btn legacy-btn-success" onClick={() => setEnrollCourseModalOpen(true)}>
+              <i className="ti ti-plus" /> Enroll Course
+            </button>
           </div>
         </div>
-      ) : null}
+      </div>
 
-      {studentToBlacklist ? (
-        <div className="modal-scrim" role="presentation" onClick={() => setStudentToBlacklist(null)}>
-          <div className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-            <p className="eyebrow">Confirmation</p>
-            <h4>Blacklist {studentToBlacklist.name}?</h4>
-            <p className="muted-copy">By doing this, the candidate will not be able to login to the application anymore. You can re-enable access later.</p>
-            <div className="action-row">
-              <button type="button" className="ghost-button" onClick={() => setStudentToBlacklist(null)}>Cancel</button>
-              <button type="button" className="primary-button" onClick={confirmBlacklist}>Confirm</button>
+      <div className={`legacy-modal-backdrop ${enrollCourseModalOpen ? 'active' : ''}`}>
+        <div className="legacy-modal-dialog legacy-xl" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3><i className="ti ti-book" /> Enroll Course - {selectedStudentForCourses?.name}</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setEnrollCourseModalOpen(false)}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            <div className="legacy-search-group">
+              <span className="legacy-input-addon"><i className="ti ti-search" /></span>
+              <input
+                type="text"
+                className="legacy-form-control"
+                placeholder="Search courses by name or code..."
+                value={courseSearchQuery}
+                onChange={(event) => setCourseSearchQuery(event.target.value)}
+              />
+              {courseSearchQuery ? (
+                <button type="button" className="legacy-input-clear" onClick={() => setCourseSearchQuery('')}>
+                  <i className="ti ti-close" />
+                </button>
+              ) : null}
             </div>
+
+            {filteredAvailableCourses.length > 0 ? (
+              <>
+                <p className="legacy-list-caption">Showing <strong>{filteredAvailableCourses.length}</strong> available course(s).</p>
+                <div className="legacy-scroll-box">
+                  <table className="legacy-modal-table">
+                    <thead>
+                      <tr>
+                        <th>Course Name</th>
+                        <th>Code</th>
+                        <th style={{ textAlign: 'center' }}>Duration</th>
+                        <th style={{ textAlign: 'center' }}>Price</th>
+                        <th style={{ textAlign: 'center' }}>Status</th>
+                        <th style={{ textAlign: 'center' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredAvailableCourses.map((course) => (
+                        <tr key={course.courseId}>
+                          <td>
+                            <div className="legacy-table-title">{course.courseName}</div>
+                            <div className="legacy-table-subtitle">{course.modules || 0} modules</div>
+                          </td>
+                          <td>{course.courseCode}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <i className="ti ti-calendar" style={{ marginRight: 5, color: '#6c757d' }} />
+                            {course.duration || 'N/A'}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <strong style={{ color: '#006073' }}>${course.price || 0}</strong>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className="legacy-inline-active">{course.status || 'Active'}</span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button type="button" className="legacy-btn legacy-btn-success legacy-btn-small" onClick={() => enrollStudentToCourse(course)}>
+                              <i className="ti ti-plus" /> Enroll
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <div className="legacy-empty-modal">
+                <i className="ti ti-book" />
+                <p>{courseSearchQuery ? `No courses found matching "${courseSearchQuery}"` : 'No courses available for enrollment'}</p>
+              </div>
+            )}
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setEnrollCourseModalOpen(false)}>
+              <i className="ti ti-close" /> Close
+            </button>
           </div>
         </div>
-      ) : null}
+      </div>
+
+      <div className={`legacy-modal-backdrop ${blacklistModalOpen ? 'active' : ''}`}>
+        <div className="legacy-modal-dialog legacy-confirm" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header legacy-danger-header">
+            <h3><i className="ti ti-alert" /> Confirm Blacklist</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setBlacklistModalOpen(false)}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            <p className="legacy-confirm-copy">{blacklistConfirmMessage}</p>
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setBlacklistModalOpen(false)}>Cancel</button>
+            <button type="button" className="legacy-btn legacy-btn-danger" onClick={confirmBlacklist}>
+              <i className="ti ti-na" /> Blacklist Profile
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
