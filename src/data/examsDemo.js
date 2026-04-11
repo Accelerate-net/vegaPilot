@@ -1,0 +1,5 @@
+export const examsDemo = [
+  { id: 50000, displayKey: '4df33c6e-9282-48dc-b8ee-d70e5d2304ef', title: 'IAT Mock Test - 1', brief: 'Comprehensive IAT mock test with four sections.', duration: 180, totalQuestions: 60, numberOfSections: 4, status: 1, createdOn: 1742333501, sectionsData: [{ name: 'Biology', questions: Array.from({ length: 15 }, (_, i) => ({ qi: 1000 + i })) }] },
+  { id: 50001, displayKey: '5ef44d7f-0393-59ed-c9ff-e81f6e3415f0', title: 'JEE Main Practice Test - Physics', brief: 'Focused physics practice test.', duration: 100, totalQuestions: 25, numberOfSections: 1, status: 1, createdOn: 1742333502, sectionsData: [{ name: 'Physics', questions: Array.from({ length: 25 }, (_, i) => ({ qi: 2000 + i })) }] },
+  { id: 50002, displayKey: '6fg55e8g-14a4-6afe-da0g-f92g7f4526g1', title: 'NEET Biology Mock Test', brief: 'Botany and Zoology mock assessment.', duration: 200, totalQuestions: 90, numberOfSections: 2, status: 0, createdOn: 1742333503, sectionsData: [{ name: 'Botany', questions: Array.from({ length: 45 }, (_, i) => ({ qi: 3000 + i })) }] },
+];

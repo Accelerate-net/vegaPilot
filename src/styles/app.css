@@ -318,6 +318,14 @@ input {
   gap: 8px;
 }
 
+.compact-stack {
+  gap: 10px;
+}
+
+.align-left {
+  text-align: left;
+}
+
 .link-chip.neutral {
   background: #f1f5f6;
   color: var(--ink);
@@ -517,6 +525,11 @@ input {
   width: min(980px, 100%);
 }
 
+.active-panel {
+  border: 1px solid rgba(0, 96, 115, 0.3);
+  background: linear-gradient(135deg, rgba(0, 96, 115, 0.04) 0%, rgba(255, 183, 6, 0.08) 100%);
+}
+
 .nested-shell {
   margin-top: 16px;
 }
@@ -547,6 +560,62 @@ input {
 .hero-avatar {
   width: 64px;
   height: 64px;
+}
+
+.course-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.course-sidebar-panel,
+.course-main-panel {
+  align-self: start;
+}
+
+.outline-block + .outline-block {
+  margin-top: 10px;
+}
+
+.outline-trigger {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.outline-trigger.minor {
+  margin-top: 8px;
+}
+
+.outline-trigger.tiny {
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+.outline-children {
+  margin-left: 12px;
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.part-card {
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.textarea-like {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.order-card {
+  border: 1px solid var(--line);
 }
 
 .tab-row {
@@ -650,6 +719,120 @@ input {
   font: inherit;
 }
 
+.report-page,
+.wizard-page {
+  position: relative;
+}
+
+.report-chip-row {
+  margin: 8px 0 18px;
+}
+
+.report-filter-grid,
+.form-grid,
+.selection-grid,
+.builder-grid,
+.report-column-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.report-filter-grid {
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(140px, 1fr)) auto;
+  margin: 18px 0;
+}
+
+.batch-filter-panel {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fbfdfd;
+  margin-bottom: 18px;
+}
+
+.selected-chip,
+.selection-card.selected {
+  border-color: var(--brand);
+  background: rgba(0, 96, 115, 0.06);
+}
+
+.report-column-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.selection-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.selection-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.selection-card.static {
+  cursor: default;
+}
+
+.builder-grid {
+  grid-template-columns: 340px minmax(0, 1fr);
+  align-items: start;
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid label {
+  display: grid;
+  gap: 8px;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.wizard-steps {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0 22px;
+}
+
+.wizard-step-pill {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.wizard-step-pill.active {
+  border-color: var(--brand);
+  background: rgba(0, 96, 115, 0.08);
+  color: var(--brand);
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selection-card.static .action-row {
+  margin-top: 6px;
+}
+
+.selection-grid .selection-card {
+  align-self: start;
+}
+
 @media (max-width: 1100px) {
   .app-shell,
   .login-page,
@@ -677,8 +860,21 @@ input {
   .pagination-bar,
   .modal-header-row,
   .detail-hero,
-  .mentor-card {
+  .mentor-card,
+  .course-layout {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .course-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .report-filter-grid,
+  .builder-grid,
+  .selection-grid,
+  .form-grid,
+  .report-column-grid {
+    grid-template-columns: 1fr;
   }
 }

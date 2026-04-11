@@ -1,0 +1,18 @@
+import React, { useState } from 'react';
+import ToastRegion from '../components/ToastRegion';
+import { instructorsDemo } from '../data/adminRemainingDemo';
+
+export default function InstructorPortfolioPage() {
+  const [instructors, setInstructors] = useState(instructorsDemo);
+  const [editingInstructor, setEditingInstructor] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  function showToast(type, title, message) { const id = Date.now() + Math.random(); setToasts((current) => [...current, { id, type, title, message }]); window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4000); }
+  return (
+    <section className="screen-card">
+      <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
+      <div className="hero-row"><div><p className="eyebrow">Instructors</p><h3>Instructor Portfolio</h3><p className="muted-copy">Instructor CRUD, profile metadata, and media footprint tracking.</p></div><button type="button" className="primary-button" onClick={() => setEditingInstructor({ name: '', specialization: '', institution: '', status: 'draft', mediaCount: 0, bio: '' })}>Add Instructor</button></div>
+      <div className="selection-grid">{instructors.map((instructor) => <div key={instructor.id} className="selection-card static"><strong>{instructor.name}</strong><span className="student-subtle">{instructor.specialization} · {instructor.institution}</span><p className="muted-copy">{instructor.bio}</p><div className="chip-row"><span className={`status-pill ${instructor.status === 'active' ? 'active' : 'inactive'}`}>{instructor.status}</span><span className="status-pill">{instructor.mediaCount} assets</span></div><div className="action-row"><button type="button" className="table-button" onClick={() => showToast('info', 'Assets Opened', `${instructor.mediaCount} assets available.`)}>Assets</button><button type="button" className="table-button" onClick={() => setEditingInstructor(instructor)}>Edit</button></div></div>)}</div>
+      {editingInstructor ? <div className="modal-scrim" role="presentation" onClick={() => setEditingInstructor(null)}><div className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><p className="eyebrow">Instructor Profile</p><h4>{editingInstructor.id ? 'Edit Instructor' : 'Create Instructor'}</h4><div className="form-grid"><label><span>Name</span><input className="search-input" value={editingInstructor.name} onChange={(event) => setEditingInstructor((current) => ({ ...current, name: event.target.value }))} /></label><label><span>Specialization</span><input className="search-input" value={editingInstructor.specialization} onChange={(event) => setEditingInstructor((current) => ({ ...current, specialization: event.target.value }))} /></label><label className="full-span"><span>Bio</span><textarea className="search-input textarea-like" value={editingInstructor.bio} onChange={(event) => setEditingInstructor((current) => ({ ...current, bio: event.target.value }))} /></label></div><div className="action-row"><button type="button" className="ghost-button" onClick={() => setEditingInstructor(null)}>Cancel</button><button type="button" className="primary-button" onClick={() => { setInstructors((current) => editingInstructor.id ? current.map((entry) => entry.id === editingInstructor.id ? editingInstructor : entry) : [{ ...editingInstructor, id: `I-${Date.now()}` }, ...current]); setEditingInstructor(null); showToast('success', 'Instructor Saved', 'Instructor profile saved successfully.'); }}>Save</button></div></div></div> : null}
+    </section>
+  );
+}

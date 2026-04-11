@@ -1,0 +1,77 @@
+export const catalogItemsDemo = [
+  { id: 1, code: 'CR0001', title: 'IAT 2026 - Exclusive 1 Year Course', brief: 'Dedicated coaching for IAT 2026 with personalized attention.', type: 'Course', originalPrice: 45000, sellingPrice: 28990, status: 1, pageUrl: 'https://crisprlearning.com/courses/iiser-exclusive-1-year-course-for-iat/', tagline: 'Enroll Now', displayImage: '' },
+  { id: 2, code: 'CR0002', title: 'IAT 2026 - Test Series', brief: 'Realistic IISER mock tests designed by IISER students.', type: 'Exam', originalPrice: 1999, sellingPrice: 999, status: 1, pageUrl: 'https://crisprlearning.com/test-series/iat-2026', tagline: 'Buy Now', displayImage: '' },
+  { id: 3, code: 'CR0003', title: 'Previous Year IAT 2017-2025', brief: 'Official PYQ collection with analytics.', type: 'Exam', originalPrice: 1999, sellingPrice: 199, status: 0, pageUrl: 'https://crisprlearning.com/previous-years/iat', tagline: 'Start Practice', displayImage: '' },
+];
+
+export const videoLibraryDemo = [
+  { id: 'VID-001', titleName: 'Cell Membrane Basics', videoDisplayKey: 'VID-CELL-001', chapterId: 'BIO-01', moduleId: '1', subject: 'Biology', instructorId: 'INST-01', instructorName: 'Dr. Arjun Mehta', durationInSeconds: 860, status: 'ready', createdOn: '2026-02-12T10:30:00Z', collectionName: 'Foundation Biology' },
+  { id: 'VID-002', titleName: 'Hydrocarbon Reactions', videoDisplayKey: 'VID-CHEM-014', chapterId: 'CHEM-04', moduleId: '2', subject: 'Chemistry', instructorId: 'INST-02', instructorName: 'Dr. Divya Krishnan', durationInSeconds: 1240, status: 'uploading', createdOn: '2026-03-01T15:10:00Z', collectionName: 'Organic Chemistry Sprint' },
+  { id: 'VID-003', titleName: 'Differentiation Drill', videoDisplayKey: 'VID-MATH-021', chapterId: 'MATH-09', moduleId: '4', subject: 'Mathematics', instructorId: 'INST-03', instructorName: 'Prof. Sneha Menon', durationInSeconds: 980, status: 'ready', createdOn: '2026-03-18T09:00:00Z', collectionName: 'Calculus Lab' },
+];
+
+export const bunnyFoldersDemo = [
+  { id: 'F-1', name: 'Marketing Videos', description: 'Public landing-page videos', videoCount: 2 },
+  { id: 'F-2', name: 'Product Demos', description: 'Internal demo captures', videoCount: 3 },
+  { id: 'F-3', name: 'Tutorials', description: 'Teacher-facing walkthroughs', videoCount: 4 },
+];
+
+export const bunnyVideosDemo = [
+  { id: 'BUN-001', title: 'Welcome Reel', folderId: 'F-1', duration: 78, date: '2026-01-18T09:00:00Z', status: 'ready' },
+  { id: 'BUN-002', title: 'Pricing Explainer', folderId: 'F-1', duration: 126, date: '2026-02-10T11:00:00Z', status: 'ready' },
+  { id: 'BUN-003', title: 'Analytics Dashboard Tour', folderId: 'F-2', duration: 231, date: '2026-03-04T12:00:00Z', status: 'processing' },
+  { id: 'BUN-004', title: 'Faculty CMS Tutorial', folderId: 'F-3', duration: 412, date: '2026-03-11T13:00:00Z', status: 'ready' },
+];
+
+export const questionBankDemoLite = [
+  { id: 1000, displayKey: 'QB-1000', subject: 'Physics', chapter: 'Mechanics', questionType: 'MCQ', level: 'Easy', verified: true, challenged: false, answer: 'B', solution: 'Use conservation of energy.' },
+  { id: 1001, displayKey: 'QB-1001', subject: 'Chemistry', chapter: 'Organic', questionType: 'MCQ', level: 'Medium', verified: false, challenged: true, answer: 'C', solution: 'Stability of intermediate governs the product.' },
+  { id: 1002, displayKey: 'QB-1002', subject: 'Mathematics', chapter: 'Calculus', questionType: 'Integer', level: 'Hard', verified: true, challenged: false, answer: '12', solution: 'Differentiate, solve critical points, then substitute.' },
+];
+
+export const practiceBundlesDemo = [
+  { id: 'BUNDLE-001', title: 'Biology OCR Set 1', sourceFile: 'biology_ocr_01.pdf', subject: 'Biology', questionCount: 28, status: 'processed', createdAt: '2026-03-10T11:00:00Z' },
+  { id: 'BUNDLE-002', title: 'Chemistry OCR Set 4', sourceFile: 'chemistry_ocr_04.pdf', subject: 'Chemistry', questionCount: 22, status: 'review', createdAt: '2026-03-14T14:00:00Z' },
+  { id: 'BUNDLE-003', title: 'Math Manual Upload', sourceFile: 'math_manual_02.pdf', subject: 'Mathematics', questionCount: 31, status: 'processed', createdAt: '2026-03-20T09:30:00Z' },
+];
+
+export const mentorsDemo = [
+  { id: 'M-001', name: 'Ritika Nair', specialization: 'IAT Mentorship', assignedStudents: 48, email: 'ritika.nair@example.com', phone: '+91 9876500011', status: 'active' },
+  { id: 'M-002', name: 'Farhan Ali', specialization: 'NEET Mentorship', assignedStudents: 36, email: 'farhan.ali@example.com', phone: '+91 9876500012', status: 'active' },
+  { id: 'M-003', name: 'Gopika Menon', specialization: 'JEE Mentorship', assignedStudents: 0, email: 'gopika.menon@example.com', phone: '+91 9876500013', status: 'inactive' },
+];
+
+export const instructorsDemo = [
+  { id: 'I-001', name: 'Dr. Arjun Mehta', specialization: 'Physics', institution: 'IISER Pune', status: 'active', mediaCount: 18, bio: 'Physics faculty with live-problem-solving sessions.' },
+  { id: 'I-002', name: 'Dr. Divya Krishnan', specialization: 'Chemistry', institution: 'NIT Calicut', status: 'active', mediaCount: 24, bio: 'Organic chemistry specialist with exam-focused modules.' },
+  { id: 'I-003', name: 'Prof. Sneha Menon', specialization: 'Mathematics', institution: 'CUSAT', status: 'draft', mediaCount: 7, bio: 'Calculus and coordinate geometry mentor.' },
+];
+
+export const payoutEntriesDemo = [
+  { id: 'PAY-001', instructorId: 'I-001', instructorName: 'Dr. Arjun Mehta', trackedHours: 26, rate: 1200, month: '2026-03', sessions: 12, status: 'pending' },
+  { id: 'PAY-002', instructorId: 'I-002', instructorName: 'Dr. Divya Krishnan', trackedHours: 31, rate: 1500, month: '2026-03', sessions: 14, status: 'paid' },
+  { id: 'PAY-003', instructorId: 'I-003', instructorName: 'Prof. Sneha Menon', trackedHours: 18, rate: 900, month: '2026-03', sessions: 9, status: 'pending' },
+];
+
+export const leadsDemo = [
+  { id: 1001, name: 'Akhil Raj', phone: '9876543210', source: 'WhatsApp Bot', mood: 1, leadStatus: 2, description: 'Asked about JEE crash course fees and scholarship.', finalFollowup: '2026-04-12', followUps: [{ text: 'Shared brochure', addedBy: 'Sales Admin', mood: 1, at: '2026-04-10T10:15:00Z' }] },
+  { id: 1002, name: 'Megha S', phone: '9123456780', source: 'Admissions Desk', mood: 2, leadStatus: 1, description: 'Interested in NEET repeaters batch and hostel.', finalFollowup: '2026-04-13', followUps: [{ text: 'Requested hostel details', addedBy: 'Admissions Desk', mood: 2, at: '2026-04-10T16:40:00Z' }] },
+  { id: 1003, name: 'Farhan K', phone: '9988776655', source: 'WhatsApp Bot', mood: 3, leadStatus: 3, description: 'Comparing SSC foundation pricing.', finalFollowup: '2026-04-14', followUps: [{ text: 'Budget concern noted', addedBy: 'Sales Admin', mood: 3, at: '2026-04-09T12:05:00Z' }] },
+];
+
+export const batchesDemo = [
+  { id: 'BATCH-001', batchName: 'IAT 2026 - Batch A', numberOfStudents: 45, description: 'Primary batch for IAT 2026 preparation.', startDate: '2026-01-15', endDate: '2026-05-30', active: 1, isFrozen: false, enrolledCourses: ['IAT 2026 - Exclusive 1 Year Course'], students: ['Aarav Nair', 'Diya Joseph', 'Sneha Menon'] },
+  { id: 'BATCH-002', batchName: 'NEET 2026 - Morning Batch', numberOfStudents: 30, description: 'Morning session for NEET aspirants.', startDate: '2026-02-01', endDate: '2026-05-15', active: 1, isFrozen: false, enrolledCourses: ['NEET 2026 Complete Preparation'], students: ['Rahul Prasad', 'Amit Patel'] },
+  { id: 'BATCH-003', batchName: 'Foundation 2026', numberOfStudents: 18, description: 'Foundation intake for class 11.', startDate: '2026-03-05', endDate: '2027-02-20', active: 0, isFrozen: true, enrolledCourses: [], students: ['Divya Iyer'] },
+];
+
+export const autoEnrollCoursesDemo = [
+  { code: 'CR0001', title: 'IAT 2026 - Exclusive 1 Year Course', validityDays: 365 },
+  { code: 'CR0002', title: 'IAT 2026 - Test Series', validityDays: 120 },
+];
+
+export const vouchersDemo = [
+  { id: 'VOC-001', code: 'WELCOME500', title: 'Welcome Discount', amountType: 'fixed', amount: 500, status: 'active', validUntil: '2026-05-30', limitedUsers: true, users: [{ name: 'Aarav Nair', phone: '9876543210' }, { name: 'Diya Joseph', phone: '9123456780' }] },
+  { id: 'VOC-002', code: 'TESTSERIES20', title: 'Test Series Promo', amountType: 'percentage', amount: 20, status: 'active', validUntil: '2026-04-30', limitedUsers: false, users: [] },
+  { id: 'VOC-003', code: 'ARCHIVED100', title: 'Old Campaign', amountType: 'fixed', amount: 100, status: 'revoked', validUntil: '2026-03-10', limitedUsers: false, users: [] },
+];
