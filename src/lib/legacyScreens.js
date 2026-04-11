@@ -1,6 +1,6 @@
 const screens = [
   {
-    path: '/index.html',
+    path: '/login',
     title: 'Pilot Login',
     legacyHtml: 'index.html',
     controller: 'controllers/login.js',
@@ -8,7 +8,7 @@ const screens = [
     summary: 'Admin authentication and token bootstrap.',
   },
   {
-    path: '/verify-token.html',
+    path: '/verify-token',
     title: 'Token Verification',
     legacyHtml: 'verify-token.html',
     controller: 'inline',
@@ -16,7 +16,7 @@ const screens = [
     summary: 'Developer utility for token validation.',
   },
   {
-    path: '/candidate-profile.html',
+    path: '/candidate-profile',
     title: 'Student Management',
     legacyHtml: 'candidate-profile.html',
     controller: 'controllers/candidate-profile.js',
@@ -24,7 +24,7 @@ const screens = [
     summary: 'Student listing, enrollment actions, and search.',
   },
   {
-    path: '/candidate-detail.html',
+    path: '/candidate-detail',
     title: 'Student Details',
     legacyHtml: 'candidate-detail.html',
     controller: 'controllers/candidate-detail.js',
@@ -32,7 +32,7 @@ const screens = [
     summary: 'Detailed candidate profile, mentor, courses, and exam history.',
   },
   {
-    path: '/orders.html',
+    path: '/orders',
     title: 'Orders Management',
     legacyHtml: 'orders.html',
     controller: 'controllers/orders.js',
@@ -40,7 +40,7 @@ const screens = [
     summary: 'Order tracking, invoice actions, and student drill-down.',
   },
   {
-    path: '/courses-list.html',
+    path: '/courses-list',
     title: 'Courses List',
     legacyHtml: 'courses-list.html',
     controller: 'controllers/courses-list.js',
@@ -48,7 +48,7 @@ const screens = [
     summary: 'Published course listing, filters, and deep links.',
   },
   {
-    path: '/course-view.html',
+    path: '/course-view',
     title: 'Course View',
     legacyHtml: 'course-view.html',
     controller: 'controllers/course-view.js',
@@ -56,7 +56,7 @@ const screens = [
     summary: 'Course detail viewer with chapter and part navigation.',
   },
   {
-    path: '/course-management.html',
+    path: '/course-management',
     title: 'Course Management',
     legacyHtml: 'course-management.html',
     controller: 'controllers/course-management.js',
@@ -64,7 +64,7 @@ const screens = [
     summary: 'Course authoring, syllabus management, and chapter linking.',
   },
   {
-    path: '/catalog.html',
+    path: '/catalog',
     title: 'Catalog Management',
     legacyHtml: 'catalog.html',
     controller: 'controllers/catalog.js',
@@ -72,7 +72,7 @@ const screens = [
     summary: 'Catalog entries, publishing, and asset upload workflow.',
   },
   {
-    path: '/video-content.html',
+    path: '/video-content',
     title: 'Video Content',
     legacyHtml: 'video-content.html',
     controller: 'controllers/video-content.js',
@@ -80,7 +80,7 @@ const screens = [
     summary: 'Bunny.net video upload, filtering, and collection management.',
   },
   {
-    path: '/bunny-admin.html',
+    path: '/bunny-admin',
     title: 'Video Management',
     legacyHtml: 'bunny-admin.html',
     controller: 'controllers/bunny-admin.js',
@@ -88,7 +88,7 @@ const screens = [
     summary: 'Folder-oriented Bunny.net admin surface.',
   },
   {
-    path: '/quiz-listing.html',
+    path: '/quiz-listing',
     title: 'Quiz Listing',
     legacyHtml: 'quiz-listing.html',
     controller: 'controllers/quiz-listing.js',
@@ -96,7 +96,7 @@ const screens = [
     summary: 'Quiz drafts, published quizzes, and report entry points.',
   },
   {
-    path: '/quiz-creation.html',
+    path: '/quiz-creation',
     title: 'Quiz Creation',
     legacyHtml: 'quiz-creation.html',
     controller: 'controllers/quiz-creation.js',
@@ -104,7 +104,7 @@ const screens = [
     summary: 'Quiz assembly from practice-question bundles.',
   },
   {
-    path: '/quiz-attempt-report.html',
+    path: '/quiz-attempt-report',
     title: 'Quiz Report',
     legacyHtml: 'quiz-attempt-report.html',
     controller: 'controllers/quiz-attempt-report.js',
@@ -112,7 +112,7 @@ const screens = [
     summary: 'Quiz attempt analytics and export tools.',
   },
   {
-    path: '/question-bank.html',
+    path: '/question-bank',
     title: 'Question Bank',
     legacyHtml: 'question-bank.html',
     controller: 'controllers/question-bank.js',
@@ -120,7 +120,7 @@ const screens = [
     summary: 'Question review, verification, solution editing, and filters.',
   },
   {
-    path: '/practice-questions.html',
+    path: '/practice-questions',
     title: 'Practice Questions',
     legacyHtml: 'practice-questions.html',
     controller: 'controllers/practice-questions.js',
@@ -128,7 +128,7 @@ const screens = [
     summary: 'PDF ingestion, OCR-assisted extraction, and quiz handoff.',
   },
   {
-    path: '/exam-listing.html',
+    path: '/exam-listing',
     title: 'Exam Listing',
     legacyHtml: 'exam-listing.html',
     controller: 'controllers/exam-listing.js',
@@ -136,7 +136,7 @@ const screens = [
     summary: 'Exam list, duplication, deletion, and report entry points.',
   },
   {
-    path: '/exam-creation-wizard.html',
+    path: '/exam-creation-wizard',
     title: 'Exam Creation Wizard',
     legacyHtml: 'exam-creation-wizard.html',
     controller: 'controllers/exam-creation-wizard.js',
@@ -144,7 +144,7 @@ const screens = [
     summary: 'Exam editor and section/question configuration.',
   },
   {
-    path: '/exam-attempt-report.html',
+    path: '/exam-attempt-report',
     title: 'Exam Report',
     legacyHtml: 'exam-attempt-report.html',
     controller: 'controllers/exam-attempt-report.js',
@@ -152,7 +152,7 @@ const screens = [
     summary: 'Exam attempt analytics and export tools.',
   },
   {
-    path: '/test-series-list.html',
+    path: '/test-series-list',
     title: 'Test Series List',
     legacyHtml: 'test-series-list.html',
     controller: 'controllers/test-series-list.js',
@@ -160,7 +160,7 @@ const screens = [
     summary: 'Test-series definition and exam assignments.',
   },
   {
-    path: '/mentor-profiles.html',
+    path: '/mentor-profiles',
     title: 'Mentor Profiles',
     legacyHtml: 'mentor-profiles.html',
     controller: 'controllers/mentor-profiles.js',
@@ -168,7 +168,7 @@ const screens = [
     summary: 'Mentor CRUD plus assigned-student workflows.',
   },
   {
-    path: '/instructor-portfolio.html',
+    path: '/instructor-portfolio',
     title: 'Instructor Portfolio',
     legacyHtml: 'instructor-portfolio.html',
     controller: 'controllers/instructor-portfolio.js',
@@ -176,7 +176,7 @@ const screens = [
     summary: 'Instructor CRUD and profile asset management.',
   },
   {
-    path: '/instructor-payouts.html',
+    path: '/instructor-payouts',
     title: 'Instructor Payouts',
     legacyHtml: 'instructor-payouts.html',
     controller: 'controllers/instructor-time-tracker.js',
@@ -184,7 +184,7 @@ const screens = [
     summary: 'Time tracking and payout calculations.',
   },
   {
-    path: '/leads-management.html',
+    path: '/leads-management',
     title: 'Leads Management',
     legacyHtml: 'leads-management.html',
     controller: 'controllers/leads.js',
@@ -192,7 +192,7 @@ const screens = [
     summary: 'Lead tracking, follow-up calendar, and outreach actions.',
   },
   {
-    path: '/batch.html',
+    path: '/batch',
     title: 'Batch Management',
     legacyHtml: 'batch.html',
     controller: 'controllers/batch.js',
@@ -200,7 +200,7 @@ const screens = [
     summary: 'Batch CRUD, course enrollments, and student assignment.',
   },
   {
-    path: '/web-content-manager.html',
+    path: '/web-content-manager',
     title: 'Web Content Manager',
     legacyHtml: 'web-content-manager.html',
     controller: 'controllers/web-content-manager.js',
@@ -212,4 +212,4 @@ const screens = [
 export const publicScreens = screens.filter((screen) => !screen.protected);
 export const protectedScreens = screens.filter((screen) => screen.protected);
 export const allScreens = screens;
-export const defaultProtectedRoute = '/candidate-profile.html';
+export const defaultProtectedRoute = '/candidate-profile';

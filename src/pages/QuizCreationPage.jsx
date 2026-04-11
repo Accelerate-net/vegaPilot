@@ -153,7 +153,7 @@ export default function QuizCreationPage() {
     if (status === 'published') published.unshift(quiz);
     window.localStorage.setItem('quizDrafts', JSON.stringify(drafts));
     window.localStorage.setItem('publishedQuizzes', JSON.stringify(published));
-    navigate('/quiz-listing.html');
+    navigate('/quiz-listing');
   }
 
   return (
@@ -165,7 +165,7 @@ export default function QuizCreationPage() {
           <h3>Build Quiz From Practice Bundles</h3>
           <p className="muted-copy">This keeps the legacy batch-driven flow and allows custom image questions before publishing.</p>
         </div>
-        <button type="button" className="ghost-button" onClick={() => navigate('/quiz-listing.html')}>Back to Quizzes</button>
+        <button type="button" className="ghost-button" onClick={() => navigate('/quiz-listing')}>Back to Quizzes</button>
       </div>
 
       {!preselectedBundles.length ? (

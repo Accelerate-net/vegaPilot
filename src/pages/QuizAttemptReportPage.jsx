@@ -120,7 +120,7 @@ export default function QuizAttemptReportPage() {
           <p className="muted-copy">{quiz.description}</p>
         </div>
         <div className="action-row">
-          <button type="button" className="ghost-button" onClick={() => navigate('/quiz-listing.html')}>Back to Quizzes</button>
+          <button type="button" className="ghost-button" onClick={() => navigate('/quiz-listing')}>Back to Quizzes</button>
           <button type="button" className="primary-button" onClick={() => setShowExportModal(true)}>Export PDF</button>
         </div>
       </div>

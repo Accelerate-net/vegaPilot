@@ -33,7 +33,7 @@ import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/le
 
 function ProtectedRoute({ children }) {
   if (!isAuthenticated()) {
-    return <Navigate to="/index.html" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -41,76 +41,76 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   function renderProtectedScreen(screen) {
-    if (screen.path === '/candidate-profile.html') {
+    if (screen.path === '/candidate-profile') {
       return <StudentManagementPage />;
     }
-    if (screen.path === '/candidate-detail.html') {
+    if (screen.path === '/candidate-detail') {
       return <CandidateDetailPage />;
     }
-    if (screen.path === '/courses-list.html') {
+    if (screen.path === '/courses-list') {
       return <CoursesListPage />;
     }
-    if (screen.path === '/course-view.html') {
+    if (screen.path === '/course-view') {
       return <CourseViewPage />;
     }
-    if (screen.path === '/course-management.html') {
+    if (screen.path === '/course-management') {
       return <CourseManagementPage />;
     }
-    if (screen.path === '/catalog.html') {
+    if (screen.path === '/catalog') {
       return <CatalogPage />;
     }
-    if (screen.path === '/video-content.html') {
+    if (screen.path === '/video-content') {
       return <VideoContentPage />;
     }
-    if (screen.path === '/bunny-admin.html') {
+    if (screen.path === '/bunny-admin') {
       return <BunnyAdminPage />;
     }
-    if (screen.path === '/orders.html') {
+    if (screen.path === '/orders') {
       return <OrdersPage />;
     }
-    if (screen.path === '/question-bank.html') {
+    if (screen.path === '/question-bank') {
       return <QuestionBankPage />;
     }
-    if (screen.path === '/practice-questions.html') {
+    if (screen.path === '/practice-questions') {
       return <PracticeQuestionsPage />;
     }
-    if (screen.path === '/exam-listing.html') {
+    if (screen.path === '/exam-listing') {
       return <ExamListingPage />;
     }
-    if (screen.path === '/exam-creation-wizard.html') {
+    if (screen.path === '/exam-creation-wizard') {
       return <ExamCreationWizardPage />;
     }
-    if (screen.path === '/exam-attempt-report.html') {
+    if (screen.path === '/exam-attempt-report') {
       return <ExamAttemptReportPage />;
     }
-    if (screen.path === '/quiz-listing.html') {
+    if (screen.path === '/quiz-listing') {
       return <QuizListingPage />;
     }
-    if (screen.path === '/quiz-creation.html') {
+    if (screen.path === '/quiz-creation') {
       return <QuizCreationPage />;
     }
-    if (screen.path === '/quiz-attempt-report.html') {
+    if (screen.path === '/quiz-attempt-report') {
       return <QuizAttemptReportPage />;
     }
-    if (screen.path === '/test-series-list.html') {
+    if (screen.path === '/test-series-list') {
       return <TestSeriesListPage />;
     }
-    if (screen.path === '/mentor-profiles.html') {
+    if (screen.path === '/mentor-profiles') {
       return <MentorProfilesPage />;
     }
-    if (screen.path === '/instructor-portfolio.html') {
+    if (screen.path === '/instructor-portfolio') {
       return <InstructorPortfolioPage />;
     }
-    if (screen.path === '/instructor-payouts.html') {
+    if (screen.path === '/instructor-payouts') {
       return <InstructorPayoutsPage />;
     }
-    if (screen.path === '/leads-management.html') {
+    if (screen.path === '/leads-management') {
       return <LeadsManagementPage />;
     }
-    if (screen.path === '/batch.html') {
+    if (screen.path === '/batch') {
       return <BatchManagementPage />;
     }
-    if (screen.path === '/web-content-manager.html') {
+    if (screen.path === '/web-content-manager') {
       return <WebContentManagerPage />;
     }
 
@@ -119,12 +119,12 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/index.html'} replace />} />
+      <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/login'} replace />} />
       {publicScreens.map((screen) => (
         <Route
           key={screen.path}
           path={screen.path}
-          element={screen.path === '/verify-token.html' ? <VerifyTokenPage /> : <LoginPage screen={screen} />}
+          element={screen.path === '/verify-token' ? <VerifyTokenPage /> : <LoginPage screen={screen} />}
         />
       ))}
       {protectedScreens.map((screen) => (

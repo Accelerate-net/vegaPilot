@@ -71,7 +71,7 @@ export default function ExamListingPage() {
           <h3>Exam Listing</h3>
           <p className="muted-copy">Manage exam drafts and published tests, launch reports, and duplicate/edit flows.</p>
         </div>
-        <button type="button" className="primary-button" onClick={() => navigate('/exam-creation-wizard.html')}>Create New Exam</button>
+        <button type="button" className="primary-button" onClick={() => navigate('/exam-creation-wizard')}>Create New Exam</button>
       </div>
 
       <div className="toolbar-row">
@@ -102,8 +102,8 @@ export default function ExamListingPage() {
                 <td><span className={`status-pill ${exam.status === 1 ? 'active' : 'inactive'}`}>{exam.status === 1 ? 'Active' : 'Draft'}</span></td>
                 <td>
                   <div className="action-row">
-                    <button type="button" className="table-button" onClick={() => { window.localStorage.setItem('reportExamData', JSON.stringify(exam)); navigate(`/exam-attempt-report.html?exam=${exam.id}`); }}>Report</button>
-                    <button type="button" className="table-button" onClick={() => navigate(`/exam-creation-wizard.html?edit=${exam.id}`)}>Edit</button>
+                    <button type="button" className="table-button" onClick={() => { window.localStorage.setItem('reportExamData', JSON.stringify(exam)); navigate(`/exam-attempt-report?exam=${exam.id}`); }}>Report</button>
+                    <button type="button" className="table-button" onClick={() => navigate(`/exam-creation-wizard?edit=${exam.id}`)}>Edit</button>
                     <button type="button" className="table-button" onClick={() => duplicateExam(exam)}>Duplicate</button>
                     <button type="button" className="table-button danger" onClick={() => setExamToDelete(exam)}>Delete</button>
                     <button type="button" className="table-button" onClick={() => setSelectedExam(exam)}>View</button>

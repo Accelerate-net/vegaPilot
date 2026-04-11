@@ -42,7 +42,7 @@ export default function OrdersPage() {
       phone: order.customer.phone,
       totalSpent: order.totalAmount,
     }));
-    const detailUrl = `${window.location.origin}${window.location.pathname}#/candidate-detail.html`;
+    const detailUrl = `${window.location.origin}/candidate-detail`;
     window.open(detailUrl, '_blank', 'noopener,noreferrer');
   }
 

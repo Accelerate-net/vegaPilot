@@ -228,7 +228,7 @@ export default function ExamCreationWizardPage() {
     if (status === 1) published.unshift(payload);
     window.localStorage.setItem('examDrafts', JSON.stringify(drafts));
     window.localStorage.setItem('publishedExams', JSON.stringify(published));
-    navigate('/exam-listing.html');
+    navigate('/exam-listing');
   }
 
   return (
@@ -240,7 +240,7 @@ export default function ExamCreationWizardPage() {
           <h3>{editId ? 'Edit Exam' : 'Create New Exam'}</h3>
           <p className="muted-copy">Rebuilt from the Angular exam authoring flow with staged section and question setup.</p>
         </div>
-        <button type="button" className="ghost-button" onClick={() => navigate('/exam-listing.html')}>Back to Exams</button>
+        <button type="button" className="ghost-button" onClick={() => navigate('/exam-listing')}>Back to Exams</button>
       </div>
 
       <div className="wizard-steps">

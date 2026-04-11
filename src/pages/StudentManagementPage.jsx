@@ -261,7 +261,7 @@ export default function StudentManagementPage() {
 
   function openStudentDetail(student) {
     window.localStorage.setItem('selectedStudent', JSON.stringify(student));
-    const detailUrl = `${window.location.origin}${window.location.pathname}#/candidate-detail.html`;
+    const detailUrl = `${window.location.origin}/candidate-detail`;
     window.open(detailUrl, '_blank', 'noopener,noreferrer');
   }
 

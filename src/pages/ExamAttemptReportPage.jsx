@@ -189,7 +189,7 @@ export default function ExamAttemptReportPage() {
           <p className="muted-copy">{exam.brief}</p>
         </div>
         <div className="action-row">
-          <button type="button" className="ghost-button" onClick={() => navigate('/exam-listing.html')}>Back to Exams</button>
+          <button type="button" className="ghost-button" onClick={() => navigate('/exam-listing')}>Back to Exams</button>
           <button type="button" className="ghost-button" onClick={() => setShowReEvaluateModal(true)}>Re-evaluate</button>
           <button type="button" className="primary-button" onClick={() => setShowExportModal(true)}>Export PDF</button>
         </div>

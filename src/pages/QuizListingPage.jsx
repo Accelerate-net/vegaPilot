@@ -50,7 +50,7 @@ export default function QuizListingPage() {
           <h3>Quiz Listing</h3>
           <p className="muted-copy">Manage draft and published quizzes, inspect attempts, and open reports.</p>
         </div>
-        <button type="button" className="primary-button" onClick={() => navigate('/quiz-creation.html')}>Create Quiz</button>
+        <button type="button" className="primary-button" onClick={() => navigate('/quiz-creation')}>Create Quiz</button>
       </div>
 
       <div className="tab-row">
@@ -88,7 +88,7 @@ export default function QuizListingPage() {
                 <td>
                   <div className="action-row">
                     <button type="button" className="table-button" onClick={() => setSelectedQuiz(quiz)}>View</button>
-                    <button type="button" className="table-button" onClick={() => { window.localStorage.setItem('reportQuizData', JSON.stringify(quiz)); navigate(`/quiz-attempt-report.html?quiz=${quiz.id}`); }}>Report</button>
+                    <button type="button" className="table-button" onClick={() => { window.localStorage.setItem('reportQuizData', JSON.stringify(quiz)); navigate(`/quiz-attempt-report?quiz=${quiz.id}`); }}>Report</button>
                     {quiz.status === 'draft' ? <button type="button" className="table-button" onClick={() => setQuizToPublish(quiz)}>Publish</button> : null}
                     <button type="button" className="table-button danger" onClick={() => setQuizToDelete(quiz)}>Delete</button>
                   </div>

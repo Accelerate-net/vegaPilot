@@ -8,7 +8,7 @@ export default function Layout({ children, currentScreen }) {
 
   function handleLogout() {
     clearToken();
-    navigate('/index.html', { replace: true });
+    navigate('/login', { replace: true });
   }
 
   return (

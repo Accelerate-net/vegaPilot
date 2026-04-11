@@ -125,7 +125,7 @@ export default function CandidateDetailPage() {
             <div className="detail-meta">{candidate.id} • {candidate.email} • {candidate.phone}</div>
           </div>
         </div>
-        <button className="ghost-button" type="button" onClick={() => navigate('/candidate-profile.html')}>Back</button>
+        <button className="ghost-button" type="button" onClick={() => navigate('/candidate-profile')}>Back</button>
       </div>
 
       <div className="stats-grid">

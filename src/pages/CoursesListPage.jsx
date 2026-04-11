@@ -193,12 +193,12 @@ export default function CoursesListPage() {
   }), [courses]);
 
   function openCourse(course) {
-    navigate(`/course-view.html?courseCode=${course.code}&bundleId=${course.id || 70005}&segment=1&module=1&chapter=1&part=0`);
+    navigate(`/course-view?courseCode=${course.code}&bundleId=${course.id || 70005}&segment=1&module=1&chapter=1&part=0`);
   }
 
   function openStudentProfile(student) {
     window.localStorage.setItem('selectedStudent', JSON.stringify(student));
-    const detailUrl = `${window.location.origin}${window.location.pathname}#/candidate-detail.html`;
+    const detailUrl = `${window.location.origin}/candidate-detail`;
     window.open(detailUrl, '_blank', 'noopener,noreferrer');
   }
 
@@ -235,7 +235,7 @@ export default function CoursesListPage() {
           <h3>Courses List</h3>
           <p className="muted-copy">Browse bundles, inspect enrolled students, and route into course content.</p>
         </div>
-        <button className="primary-button" type="button" onClick={() => navigate('/course-management.html')}>Create New Course</button>
+        <button className="primary-button" type="button" onClick={() => navigate('/course-management')}>Create New Course</button>
       </div>
 
       {isDemoMode ? <div className="info-banner">Showing demo course data because the course APIs are currently unreachable.</div> : null}

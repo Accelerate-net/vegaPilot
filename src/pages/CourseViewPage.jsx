@@ -37,7 +37,7 @@ export default function CourseViewPage() {
   );
 
   function navigateTo({ segmentId = currentSegment.id, moduleId = currentModule.id, chapterId = currentChapter.id, partId = currentPart.id }) {
-    navigate(`/course-view.html?courseCode=${route.courseCode}&bundleId=${route.bundleId}&segment=${segmentId}&module=${moduleId}&chapter=${chapterId}&part=${partId}`);
+    navigate(`/course-view?courseCode=${route.courseCode}&bundleId=${route.bundleId}&segment=${segmentId}&module=${moduleId}&chapter=${chapterId}&part=${partId}`);
   }
 
   return (
@@ -49,8 +49,8 @@ export default function CourseViewPage() {
           <p className="muted-copy">{courseViewDemo.description}</p>
         </div>
         <div className="action-row">
-          <button type="button" className="ghost-button" onClick={() => navigate('/courses-list.html')}>Back to Courses</button>
-          <button type="button" className="primary-button" onClick={() => navigate('/catalog.html')}>Catalog</button>
+          <button type="button" className="ghost-button" onClick={() => navigate('/courses-list')}>Back to Courses</button>
+          <button type="button" className="primary-button" onClick={() => navigate('/catalog')}>Catalog</button>
         </div>
       </div>
 
