@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ToastRegion from '../components/ToastRegion';
 import { bunnyFoldersDemo, bunnyVideosDemo } from '../data/adminRemainingDemo';
-import './BunnyAdminPage.css';
 
 export default function BunnyAdminPage() {
   const [folders, setFolders] = useState(bunnyFoldersDemo);

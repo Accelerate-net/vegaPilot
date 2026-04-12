@@ -725,7 +725,6 @@ export default function ExamAttemptReportPage() {
               </select>
             </div>
           </div>
-        </div>
       ) : (
         <div className="ear-empty-state">
           <i className="ti ti-search" />
