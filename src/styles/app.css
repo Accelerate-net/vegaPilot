@@ -13803,3 +13803,397 @@ input {
   background-color: #dff0d8;
   border-color: #d6e9c6;
 }
+
+/* Web Content Manager Styles */
+
+        /* Page Header Section - Copied from courses-list.html */
+.wcm-page-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+.wcm-page-header-section h2 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+        }
+
+.wcm-page-header-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+.wcm-page-header-section i {
+            margin-right: 8px;
+        }
+
+.wcm-section-card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+.wcm-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+.wcm-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #006073;
+            margin: 0;
+        }
+
+        /* Course Grid Styles */
+.wcm-course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+.wcm-course-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #f9fafb;
+            height: 100%;
+        }
+
+.wcm-course-checkbox {
+            display: none;
+        }
+
+        .course-checkbox:checked+.course-card {
+            border-color: #006073;
+            background: #e5faff;
+            box-shadow: 0 2px 5px rgba(0, 96, 115, 0.1);
+        }
+
+        .course-checkbox:checked+.course-card .course-icon {
+            background: #006073;
+            color: white;
+        }
+
+.wcm-course-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #e0f2f1;
+            color: #006073;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        /* Table Styles - Copied from courses-list.html */
+.wcm-custom-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+.wcm-custom-table thead {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            color: white;
+        }
+
+.wcm-custom-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: none;
+        }
+
+.wcm-custom-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+        }
+
+.wcm-custom-table tbody tr:hover {
+            background: #f8f9fc;
+        }
+
+.wcm-custom-table td {
+            padding: 18px 20px;
+            vertical-align: middle;
+            color: #4b5563;
+        }
+
+.wcm-validity-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+.wcm-status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+.wcm-status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+.wcm-status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+.wcm-status-revoked {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        /* Buttons */
+.wcm-btn-primary-custom {
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+.wcm-btn-primary-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 96, 115, 0.2);
+            color: white;
+        }
+
+.wcm-btn-success-custom {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+.wcm-btn-success-custom:hover {
+            background: #059669;
+            color: white;
+        }
+
+        /* Pagination Styles */
+.wcm-pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 8px 8px;
+        }
+
+.wcm-pagination-info {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+.wcm-pagination-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+.wcm-pagination-btn {
+            padding: 5px 12px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            min-width: 32px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+        }
+
+.wcm-pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+
+.wcm-pagination-btn.wcm-active {
+            background: #006073;
+            color: white;
+            border-color: #006073;
+            font-weight: 600;
+        }
+
+        /* Custom Dropdown Styling */
+#statusFilter {
+            padding: 8px 35px 8px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 viewBox=%270 0 12 8%27%3e%3cpath fill=%27%234b5563%27 d=%27M6 8L0 0h12z%27/%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: all 0.2s ease;
+        }
+
+#statusFilter:hover {
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+        }
+
+#statusFilter:focus {
+            outline: none;
+            border-color: #006073;
+            box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.15);
+        }
+
+        /* Navbar Styling - Match other pages */
+
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+            position: relative !important;
+        }
+
+        /* Navbar text and elements color */
+        #topnav .navbar-brand,
+        #topnav h2,
+
+            color: white !important;
+        }
+
+
+            color: white !important;
+        }
+
+        /* Toolbar icon backgrounds - blend with gradient */
+
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+
+            color: white !important;
+        }
+
+        /* Sidebar trigger specific styling */
+
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+
+            background: rgba(255, 255, 255, 0.25) !important;
+        }
+
+        /* Sidebar active menu item styling */
+
+            border-left: 5px solid #005e70 !important;
+            color: #005e6f !important;
+            font-weight: bold !important;
+            background: rgba(0, 94, 112, 0.1) !important;
+        }
+
+
+            color: #005e6f !important;
+        }
+
+        /* Remove wrapper padding */
+
+            padding: 0 !important;
+        }
+    
+.wcm-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.wcm-btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+}
+.wcm-btn-danger {
+  color: #fff;
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+.wcm-form-control {
+  display: block;
+  width: 100%;
+  height: 34px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
