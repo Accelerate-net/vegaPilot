@@ -21,6 +21,22 @@ export default function WebContentManagerPage() {
 
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [newDiscount, setNewDiscount] = useState({ code: '', type: 'percentage', value: '', validUntil: '', limitUsers: false });
+
+  // User selection for limited discount codes
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const sampleUsers = [
+    { id: 'U001', name: 'Aarav Nair', phone: '9876500001', email: 'aarav@test.com' },
+    { id: 'U002', name: 'Diya Joseph', phone: '9876500002', email: 'diya@test.com' },
+    { id: 'U003', name: 'Sneha Menon', phone: '9876500003', email: 'sneha@test.com' },
+    { id: 'U004', name: 'Rahul Prasad', phone: '9876500004', email: 'rahul@test.com' },
+    { id: 'U005', name: 'Amit Patel', phone: '9876500005', email: 'amit@test.com' },
+  ];
+  const filteredUsers = useMemo(() => {
+    if (!userSearchQuery) return [];
+    const q = userSearchQuery.toLowerCase();
+    return sampleUsers.filter(u => !selectedUsers.some(s => s.id === u.id) && (u.name.toLowerCase().includes(q) || u.phone.includes(q) || u.email.toLowerCase().includes(q)));
+  }, [userSearchQuery, selectedUsers]);
   
   const [viewUsersModalOpen, setViewUsersModalOpen] = useState(false);
   const [selectedVoucherForUsers, setSelectedVoucherForUsers] = useState(null);
@@ -223,7 +239,7 @@ export default function WebContentManagerPage() {
 
         {/* Enroll Modal */}
         {enrollModalOpen && (
-            <div className="crispr-modal-backdrop" onClick={() => setEnrollModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setEnrollModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '800px', width: '100%' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header">
                         <h3>Select Courses</h3>
@@ -271,7 +287,7 @@ export default function WebContentManagerPage() {
 
         {/* Add Discount Modal */}
         {discountModalOpen && (
-            <div className="crispr-modal-backdrop" onClick={() => setDiscountModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setDiscountModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header">
                         <h3>Add Discount Code</h3>
@@ -310,9 +326,55 @@ export default function WebContentManagerPage() {
 
                             <div style={{ marginTop: '10px', paddingTop: '15px', borderTop: '1px dashed #e2e8f0' }}>
                                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', margin: 0, fontWeight: 600, color: '#475569' }}>
-                                     <input type="checkbox" checked={newDiscount.limitUsers} onChange={e => setNewDiscount({...newDiscount, limitUsers: e.target.checked})} style={{ margin: 0, width: '18px', height: '18px', cursor: 'pointer' }} />
+                                     <input type="checkbox" checked={newDiscount.limitUsers} onChange={e => { setNewDiscount({...newDiscount, limitUsers: e.target.checked}); if (!e.target.checked) { setSelectedUsers([]); setUserSearchQuery(''); } }} style={{ margin: 0, width: '18px', height: '18px', cursor: 'pointer' }} />
                                      Limit to Specific User(s)
                                  </label>
+
+                                 {/* User search section - shown when limitUsers is checked */}
+                                 {newDiscount.limitUsers && (
+                                     <div style={{ paddingLeft: '5px', marginTop: '15px' }}>
+                                         {/* Search Input */}
+                                         <div style={{ position: 'relative', marginBottom: '10px' }}>
+                                             <input type="text" className="form-control" value={userSearchQuery} onChange={e => setUserSearchQuery(e.target.value)} placeholder="Search user by name, email, or mobile..." style={{ paddingLeft: '40px', width: '100%', padding: '12px 16px 12px 40px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '14px' }} />
+                                             <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '16px' }}></i>
+                                         </div>
+
+                                         {/* Selected Users Tags */}
+                                         {selectedUsers.length > 0 && (
+                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                                                 {selectedUsers.map(u => (
+                                                     <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#e0f2f1', color: '#006073', borderRadius: '20px', fontSize: '13px', fontWeight: 500 }}>
+                                                         {u.name}
+                                                         <button type="button" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#dc2626', fontSize: '14px', lineHeight: 1 }}>
+                                                             <i className="ti ti-close"></i>
+                                                         </button>
+                                                     </span>
+                                                 ))}
+                                             </div>
+                                         )}
+
+                                         {/* Search Results Dropdown */}
+                                         {filteredUsers.length > 0 && (
+                                             <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto', background: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                                 {filteredUsers.map(u => (
+                                                     <div key={u.id} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s' }} className="wcm-user-result-hover" onClick={() => { setSelectedUsers([...selectedUsers, u]); setUserSearchQuery(''); }}>
+                                                         <div>
+                                                             <strong style={{ fontSize: '14px' }}>{u.name}</strong>
+                                                             <div style={{ fontSize: '12px', color: '#6b7280' }}>{u.email} · {u.phone}</div>
+                                                         </div>
+                                                         <i className="ti ti-plus" style={{ color: '#006073' }}></i>
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         )}
+
+                                         {userSearchQuery && filteredUsers.length === 0 && (
+                                             <div style={{ textAlign: 'center', padding: '15px', color: '#9ca3af', fontSize: '13px' }}>
+                                                 No users found matching "{userSearchQuery}"
+                                             </div>
+                                         )}
+                                     </div>
+                                 )}
                             </div>
                         </form>
                     </div>
@@ -326,7 +388,7 @@ export default function WebContentManagerPage() {
 
         {/* View Users Modal */}
         {viewUsersModalOpen && selectedVoucherForUsers && (
-            <div className="crispr-modal-backdrop" onClick={() => setViewUsersModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setViewUsersModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '700px', width: '100%' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header">
                         <h3>Users Associated with Voucher</h3>
@@ -367,7 +429,7 @@ export default function WebContentManagerPage() {
 
         {/* Revoke Confirm Modal */}
         {revokeModalOpen && voucherToRevoke && (
-            <div className="crispr-modal-backdrop" onClick={() => setRevokeModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setRevokeModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)' }}>
                         <h3><i className="ti ti-alert-circle"></i> Confirm Revoke</h3>

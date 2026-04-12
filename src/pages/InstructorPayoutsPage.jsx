@@ -276,7 +276,7 @@ export default function InstructorPayoutsPage() {
 
         {/* Ledger Detailed Modal */}
         {ledgerModalOpen && selectedInstructorInfo && (
-            <div className="crispr-modal-backdrop" onClick={() => setLedgerModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setLedgerModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '900px', width: '100%' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#1e293b' }}>
                         <h3 style={{ margin: 0, fontWeight: 700 }}><i className="ti ti-agenda" style={{ color: '#006073' }}></i> Payout Ledger: {selectedInstructorInfo.name}</h3>
@@ -358,7 +358,7 @@ export default function InstructorPayoutsPage() {
 
         {/* Make Payment Modal */}
         {makePaymentModalOpen && selectedInstructorInfo && (
-            <div className="crispr-modal-backdrop" onClick={() => setMakePaymentModalOpen(false)}>
+            <div className="crispr-modal-backdrop active" onClick={() => setMakePaymentModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                     <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}>
                         <h3 style={{ margin: 0, fontWeight: 600 }}><i className="ti ti-money"></i> Record Payment</h3>
