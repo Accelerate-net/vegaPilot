@@ -33,7 +33,7 @@ function FilterDropdown({ label, options, value, onChange }) {
   const current = options.find((o) => o.value === value);
 
   return (
-    <div className="filter-dropdown" ref={ref} style={{ position: 'relative' }}>
+    <div className="filter-dropdown" ref={ref}>
       <button
         type="button"
         className={`filter-dropdown-btn${value ? ' active' : ''}`}
