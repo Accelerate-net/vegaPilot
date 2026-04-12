@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilot - Login</title>
+
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' rel='stylesheet'>
+    <link rel="shortcut icon" href="/assets/favicon-CJe8UUsX.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: #f8fafc;
+        }
+
+        /* Split Screen Layout */
+        .login-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Left Branded Panel */
+        .brand-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #006073 0%, #004d5c 50%, #003844 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+            animation: rotate 30s linear infinite;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent);
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            max-width: 450px;
+        }
+
+        .brand-logo {
+            width: 180px;
+            margin-bottom: 40px;
+            filter: brightness(0) invert(1);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .brand-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .brand-subtitle {
+            font-size: 18px;
+            font-weight: 400;
+            opacity: 0.85;
+            line-height: 1.6;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .brand-features {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        .brand-feature {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .brand-feature-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .brand-feature-text {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        /* Right Login Panel */
+        .login-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            background: white;
+        }
+
+        .login-form-container {
+            width: 100%;
+            max-width: 420px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .login-header {
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            font-size: 15px;
+            color: #6b7280;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px 0 50px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1f2937;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-input:hover {
+            border-color: #d1d5db;
+        }
+
+        .form-input:focus {
+            background: white;
+            border-color: #006073;
+            box-shadow: 0 0 0 4px rgba(0, 96, 115, 0.1);
+        }
+
+        .form-input:focus+.input-icon,
+        .input-wrapper:focus-within .input-icon {
+            color: #006073;
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #6b7280;
+        }
+
+        /* Error Message */
+        .error-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            animation: shake 0.5s ease-in-out, fadeIn 0.3s ease-out;
+        }
+
+        .error-message i {
+            color: #ef4444;
+            font-size: 18px;
+        }
+
+        .error-message span {
+            font-size: 14px;
+            color: #dc2626;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Login Button */
+        .btn-login {
+            width: 100%;
+            height: 52px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            color: white;
+            background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 96, 115, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login i {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-login:hover i {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        .login-footer {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .login-footer p {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .login-footer a {
+            color: #006073;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .brand-panel {
+                display: none;
+            }
+
+            .login-panel {
+                padding: 40px 24px;
+            }
+
+            .login-form-container {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-header h1 {
+                font-size: 26px;
+            }
+
+            .form-input {
+                height: 48px;
+            }
+
+            .btn-login {
+                height: 48px;
+            }
+        }
+
+        /* Loading State */
+        .btn-login.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn-login.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Mobile Logo */
+        .mobile-logo {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .mobile-logo img {
+            height: 50px;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-logo {
+                display: block;
+            }
+        }
+
+        /* Loading Screen Overlay */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #006073 0%, #004d5c 50%, #003844 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-screen-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-logo {
+            width: 120px;
+            margin-bottom: 40px;
+            filter: brightness(0) invert(1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Spinner */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .loading-spinner::before,
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .loading-spinner::before {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .loading-spinner::after {
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top-color: white;
+            border-right-color: white;
+            animation: spinLoader 1s linear infinite;
+        }
+
+        @keyframes spinLoader {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* Success Animation */
+        .loading-screen.success .loading-spinner::after {
+            display: none;
+        }
+
+        .loading-screen.success .loading-spinner::before {
+            border-color: #28a745;
+        }
+
+        .success-checkmark {
+            display: none;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            border: 3px solid #28a745;
+            position: relative;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .loading-screen.success .success-checkmark {
+            display: block;
+        }
+
+        .loading-screen.success .loading-spinner {
+            display: none;
+        }
+
+        .success-checkmark::after {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 10px;
+            width: 12px;
+            height: 24px;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+            animation: checkmarkDraw 0.3s ease-out 0.2s backwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes checkmarkDraw {
+            from {
+                height: 0;
+            }
+
+            to {
+                height: 24px;
+            }
+        }
+
+        /* Loading dots animation */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '';
+            }
+
+            40% {
+                content: '.';
+            }
+
+            60% {
+                content: '..';
+            }
+
+            80%,
+            100% {
+                content: '...';
+            }
+        }
+    </style>
+
+    <!-- Controller -->
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/js/angular.min.js"></script>
+    <script src="assets/js/angular-cookies.min.js"></script>
+    <script src="controllers/login.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BVCB4S_a.css">
+</head>
+
+<body ng-app="AdminLoginApp" ng-controller="adminloginController" ng-cloak>
+
+    <!-- Loading Screen Overlay -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-screen-content">
+            <img src="/assets/crispr-logo-for-dark-bg-BlpPK-6N.png" alt="Logo" class="loading-logo">
+            <div class="loading-spinner"></div>
+            <div class="success-checkmark"></div>
+            <div class="loading-text" id="loadingText">Checking authentication<span class="loading-dots"></span></div>
+            <div class="loading-subtext" id="loadingSubtext">Please wait a moment</div>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <!-- Left Brand Panel -->
+        <div class="brand-panel">
+            <div class="brand-content">
+                <img src="/assets/crispr-logo-for-dark-bg-BlpPK-6N.png" alt="Logo" class="brand-logo">
+                <h1 class="brand-title">Welcome to Pilot</h1>
+                <p class="brand-subtitle">Your comprehensive platform for managing courses, exams, and student progress
+                    all in one place.</p>
+
+                <div class="brand-features">
+                    <div class="brand-feature">
+                        <div class="brand-feature-icon">
+                            <i class="ti ti-book"></i>
+                        </div>
+                        <span class="brand-feature-text">Manage courses and test series effortlessly</span>
+                    </div>
+                    <div class="brand-feature">
+                        <div class="brand-feature-icon">
+                            <i class="ti ti-stats-up"></i>
+                        </div>
+                        <span class="brand-feature-text">Track student performance with detailed analytics</span>
+                    </div>
+                    <div class="brand-feature">
+                        <div class="brand-feature-icon">
+                            <i class="ti ti-shield-check"></i>
+                        </div>
+                        <span class="brand-feature-text">Secure and reliable exam management</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Login Panel -->
+        <div class="login-panel">
+            <div class="login-form-container">
+                <div class="mobile-logo">
+                    <img src="/assets/crispr-logo-for-dark-bg-BlpPK-6N.png" alt="Logo">
+                </div>
+
+                <div class="login-header">
+                    <h1>Sign in</h1>
+                    <p>Enter your credentials to access your account</p>
+                </div>
+
+                <!-- Error Message -->
+                <div class="error-message" ng-if="isLoginError">
+                    <i class="ti ti-alert"></i>
+                    <span>{{warnMsg}}</span>
+                </div>
+
+                <form ng-submit="loginadmin()">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-input" placeholder="Enter your username" ng-model="username"
+                                required autofocus>
+                            <i class="ti ti-user input-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <input type="{{showPassword ? 'text' : 'password'}}" class="form-input"
+                                placeholder="Enter your password" ng-model="password" required>
+                            <i class="ti ti-key input-icon"></i>
+                            <button type="button" class="password-toggle" ng-click="showPassword = !showPassword">
+                                <i class="ti" ng-class="showPassword ? 'ti-eye' : 'ti-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login" ng-class="{loading: isLoading}">
+                        <span ng-if="!isLoading">Sign in <i class="ti ti-arrow-right"></i></span>
+                        <span ng-if="isLoading">Signing in...</span>
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <p>Powered by <a href="#">VegaPilot</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="assets/js/toaster.js"></script>
+    <!-- Toaster Container -->
+    <div class="toaster-container">
+       <div class="toaster" ng-repeat="toaster in toasters track by $index" ng-class="[toaster.type, {'hiding': toaster.hiding}]">
+          <div class="toaster-icon">
+             <i class="ti" ng-class="{
+                'ti-check': toaster.type === 'success',
+                'ti-alert': toaster.type === 'error',
+                'ti-info-alt': toaster.type === 'info',
+                'ti-bell': toaster.type === 'warning'
+             }"></i>
+          </div>
+          <div class="toaster-content">
+             <div class="toaster-title">{{toaster.title}}</div>
+             <div class="toaster-message">{{toaster.message}}</div>
+          </div>
+          <button class="toaster-close" ng-click="removeToaster($index)">
+             <i class="ti ti-close"></i>
+          </button>
+       </div>
+    </div>
+
+</body>
+
+</html>

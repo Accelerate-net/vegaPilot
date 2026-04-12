@@ -51,7 +51,7 @@ function normalizeMentor(mentor, index) {
   const almaMater = mentor.almaMater || mentor.institution || 'IISER Pune';
   const graduationYear = mentor.graduationYear || 2018 + index;
   const studentCount = mentor.studentCount ?? mentor.assignedStudents ?? 0;
-  const isActive = mentor.active ?? mentor.status === 'active' || mentor.status === 1;
+  const isActive = mentor.active ?? (mentor.status === 'active' || mentor.status === 1);
   return {
     ...mentor,
     brief: mentor.bio || mentor.brief || `${specialisation} mentor with structured student guidance and weekly review routines.`,
