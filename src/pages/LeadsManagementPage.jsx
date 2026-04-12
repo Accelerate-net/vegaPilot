@@ -13,6 +13,18 @@ const sourceIcons = {
 };
 const sourceOptions = Object.keys(sourceIcons);
 
+/* ── Preferred Time Slots ── */
+const timeSlotOptions = ['Morning (9–12)', 'Afternoon (12–3)', 'Evening (3–6)', 'Night (6–9)', 'Any Time'];
+
+/* ── Preferred Communication ── */
+const commOptions = [
+  { key: 'Phone Call', icon: 'ti-mobile' },
+  { key: 'WhatsApp', icon: 'ti-comment-alt' },
+  { key: 'Email', icon: 'ti-email' },
+  { key: 'SMS', icon: 'ti-comment' },
+  { key: 'In-Person', icon: 'ti-user' },
+];
+
 /* ── Interest Levels ── */
 const interestConfig = {
   High:    { color: '#16a34a', bg: '#dcfce7', icon: '🔥', label: 'High' },
@@ -57,27 +69,27 @@ function daysBetween(dateStr) {
 
 /* ── Demo Data ── */
 const initialLeads = [
-  { id: 1001, name: 'Akhil Raj', phone: '9876543210', email: 'akhil@test.com', source: 'WhatsApp', interest: 'High', status: 'In Progress', associate: 'Sales Admin', description: 'Asked about JEE crash course fees and scholarship.', nextFollowUp: todayStr(), createdAt: '2026-03-17T09:00:00Z', catalogItems: ['CR0001'], timeline: [
+  { id: 1001, name: 'Akhil Raj', phone: '9876543210', email: 'akhil@test.com', source: 'WhatsApp', interest: 'High', status: 'In Progress', associate: 'Sales Admin', description: 'Asked about JEE crash course fees and scholarship.', nextFollowUp: todayStr(), createdAt: '2026-03-17T09:00:00Z', catalogItems: ['CR0001'], preferredTimeSlot: 'Evening (3–6)', preferredComm: 'WhatsApp', timeline: [
     { type: 'followup', text: 'Shared brochure and fee structure', addedBy: 'Sales Admin', interest: 'High', at: '2026-04-10T10:15:00Z' },
     { type: 'followup', text: 'Student confirmed interest, requesting demo class', addedBy: 'Sales Admin', interest: 'High', at: '2026-04-12T14:30:00Z' },
   ]},
-  { id: 1002, name: 'Megha S', phone: '9123456780', email: 'megha@test.com', source: 'Form', interest: 'Neutral', status: 'Received', associate: 'Admissions Desk', description: 'Interested in NEET repeaters batch and hostel.', nextFollowUp: tomorrowStr(), createdAt: '2026-04-10T16:00:00Z', catalogItems: [], timeline: [
+  { id: 1002, name: 'Megha S', phone: '9123456780', email: 'megha@test.com', source: 'Form', interest: 'Neutral', status: 'Received', associate: 'Admissions Desk', description: 'Interested in NEET repeaters batch and hostel.', nextFollowUp: tomorrowStr(), createdAt: '2026-04-10T16:00:00Z', catalogItems: [], preferredTimeSlot: 'Morning (9–12)', preferredComm: 'Phone Call', timeline: [
     { type: 'followup', text: 'Requested hostel details and batch timings', addedBy: 'Admissions Desk', interest: 'Neutral', at: '2026-04-10T16:40:00Z' },
   ]},
-  { id: 1003, name: 'Farhan K', phone: '9988776655', email: '', source: 'Phone', interest: 'Low', status: 'Lost', associate: 'Sales Admin', description: 'Comparing SSC foundation pricing with competitors.', nextFollowUp: '2026-04-20', createdAt: '2026-03-06T11:00:00Z', catalogItems: ['CR0003'], timeline: [
+  { id: 1003, name: 'Farhan K', phone: '9988776655', email: '', source: 'Phone', interest: 'Low', status: 'Lost', associate: 'Sales Admin', description: 'Comparing SSC foundation pricing with competitors.', nextFollowUp: '2026-04-20', createdAt: '2026-03-06T11:00:00Z', catalogItems: ['CR0003'], preferredTimeSlot: 'Any Time', preferredComm: 'SMS', timeline: [
     { type: 'followup', text: 'Budget concern noted. Not willing to pay above 15k.', addedBy: 'Sales Admin', interest: 'Low', at: '2026-04-09T12:05:00Z' },
     { type: 'reassign', from: 'Sales Admin', to: 'Counselor Priya', at: '2026-04-10T09:00:00Z' },
     { type: 'reassign', from: 'Counselor Priya', to: 'Sales Admin', at: '2026-04-11T11:30:00Z' },
   ]},
-  { id: 1004, name: 'Riya Thomas', phone: '9876501234', email: 'riya@example.com', source: 'Social Media', interest: 'High', status: 'Converted', associate: 'Counselor Priya', description: 'Responded to Instagram ad for IAT batch.', nextFollowUp: '', createdAt: '2026-04-01T08:30:00Z', catalogItems: ['CR0001', 'CR0002'], timeline: [
+  { id: 1004, name: 'Riya Thomas', phone: '9876501234', email: 'riya@example.com', source: 'Social Media', interest: 'High', status: 'Converted', associate: 'Counselor Priya', description: 'Responded to Instagram ad for IAT batch.', nextFollowUp: '', createdAt: '2026-04-01T08:30:00Z', catalogItems: ['CR0001', 'CR0002'], preferredTimeSlot: 'Afternoon (12–3)', preferredComm: 'WhatsApp', timeline: [
     { type: 'followup', text: 'Initial call done, very enthusiastic', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-02T09:00:00Z' },
     { type: 'followup', text: 'Demo class attended, wants to enrol immediately', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-04T11:00:00Z' },
     { type: 'followup', text: 'Payment received, student enrolled', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-05T15:00:00Z' },
   ]},
-  { id: 1005, name: 'Arjun Pillai', phone: '9001122334', email: 'arjun.p@mail.com', source: 'Website', interest: 'Neutral', status: 'In Progress', associate: 'Counselor Arun', description: 'Visited pricing page twice. Registered for newsletter.', nextFollowUp: todayStr(), createdAt: '2026-04-11T14:20:00Z', catalogItems: ['CR0002'], timeline: [
+  { id: 1005, name: 'Arjun Pillai', phone: '9001122334', email: 'arjun.p@mail.com', source: 'Website', interest: 'Neutral', status: 'In Progress', associate: 'Counselor Arun', description: 'Visited pricing page twice. Registered for newsletter.', nextFollowUp: todayStr(), createdAt: '2026-04-11T14:20:00Z', catalogItems: ['CR0002'], preferredTimeSlot: 'Night (6–9)', preferredComm: 'Email', timeline: [
     { type: 'followup', text: 'Called, wants to discuss with parents first.', addedBy: 'Counselor Arun', interest: 'Neutral', at: '2026-04-12T10:00:00Z' },
   ]},
-  { id: 1006, name: 'Nandita Menon', phone: '9445566778', email: 'nandita@test.in', source: 'Email', interest: 'High', status: 'Received', associate: 'Admissions Desk', description: 'Emailed inquiry about foundation 2027 batch schedule.', nextFollowUp: todayStr(), createdAt: '2026-04-12T18:00:00Z', catalogItems: [], timeline: []},
+  { id: 1006, name: 'Nandita Menon', phone: '9445566778', email: 'nandita@test.in', source: 'Email', interest: 'High', status: 'Received', associate: 'Admissions Desk', description: 'Emailed inquiry about foundation 2027 batch schedule.', nextFollowUp: todayStr(), createdAt: '2026-04-12T18:00:00Z', catalogItems: [], preferredTimeSlot: '', preferredComm: '', timeline: []},
 ];
 
 export default function LeadsManagementPage() {
@@ -230,6 +242,13 @@ export default function LeadsManagementPage() {
     setSelectedLead(updated);
   };
 
+  const updateLeadField = (field, value) => {
+    if (!selectedLead) return;
+    const updated = { ...selectedLead, [field]: value };
+    setLeads(c => c.map(l => l.id === updated.id ? updated : l));
+    setSelectedLead(updated);
+  };
+
   const openLeadDetail = (lead) => {
     setSelectedLead(lead);
     setFollowUpText('');
@@ -240,7 +259,52 @@ export default function LeadsManagementPage() {
   };
 
   const openNewLead = () => {
-    setEditingLead({ name: '', phone: '', email: '', source: 'Phone', interest: 'Neutral', status: 'Received', associate: associates[0].name, description: '', nextFollowUp: nextFollowUpDate('Neutral') });
+    setEditingLead({ name: '', phone: '', email: '', source: 'Phone', interest: 'Neutral', status: 'Received', associate: associates[0].name, description: '', nextFollowUp: nextFollowUpDate('Neutral'), preferredTimeSlot: '', preferredComm: '' });
+  };
+
+  // ── PDF Export ──
+  const handleExportPDF = () => {
+    const fmtDate = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
+    const rows = filtered.map(lead => {
+      const lastFu = [...lead.timeline].reverse().find(t => t.type === 'followup');
+      return `<tr>
+        <td>${lead.name}</td>
+        <td>${lead.phone}</td>
+        <td>${lead.source}</td>
+        <td>${lead.associate}</td>
+        <td>${lead.interest}</td>
+        <td>${lead.status}</td>
+        <td>${lastFu ? fmtDate(lastFu.at) : '-'}</td>
+        <td>${lead.nextFollowUp ? fmtDate(lead.nextFollowUp) : '-'}</td>
+        <td>${daysBetween(lead.createdAt)}d</td>
+        <td>${lead.preferredTimeSlot || '-'}</td>
+        <td>${lead.preferredComm || '-'}</td>
+      </tr>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html><head><title>Leads Report</title>
+<style>
+  body { font-family: 'Inter', Arial, sans-serif; padding: 30px; color: #1e293b; }
+  h1 { font-size: 22px; color: #006073; margin-bottom: 4px; }
+  .meta { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #006073; color: white; padding: 8px 10px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) { background: #f8fafc; }
+  .footer { margin-top: 20px; font-size: 11px; color: #9ca3af; text-align: center; }
+  @media print { body { padding: 10px; } }
+</style></head><body>
+  <h1>Leads Management Report</h1>
+  <div class="meta">Generated on ${new Date().toLocaleString('en-IN')} · ${filtered.length} lead(s) · Filters: Status=${statusFilter}, Interest=${interestFilter}, Associate=${associateFilter}</div>
+  <table><thead><tr><th>Name</th><th>Phone</th><th>Source</th><th>Associate</th><th>Interest</th><th>Status</th><th>Last F/U</th><th>Next F/U</th><th>Age</th><th>Pref. Time</th><th>Pref. Comm</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="footer">VegaPilot · Leads Management</div>
+</body></html>`;
+
+    const printWindow = window.open('', '_blank', 'width=1100,height=700');
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 400);
   };
 
   const formatDate = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
@@ -264,9 +328,14 @@ export default function LeadsManagementPage() {
           </h2>
           <p style={{ margin: 0, opacity: 0.9, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>Track incoming leads, assign associates, and manage follow-ups.</p>
         </div>
-        <button onClick={openNewLead} style={{ background: '#ffb706', color: '#006073', border: 'none', padding: '10px 22px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <i className="ti ti-plus"></i> Add New Lead
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={handleExportPDF} style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '10px 18px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="ti ti-export"></i> Export List
+          </button>
+          <button onClick={openNewLead} style={{ background: '#ffb706', color: '#006073', border: 'none', padding: '10px 22px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="ti ti-plus"></i> Add New Lead
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -487,6 +556,33 @@ export default function LeadsManagementPage() {
                     <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#9ca3af' }}>Created {formatDateTime(selectedLead.createdAt)}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>{selectedLead.description || 'No description.'}</p>
+                </div>
+
+                {/* Preferences */}
+                <div style={{ background: 'white', borderRadius: '8px', padding: '15px', border: '1px solid #e2e8f0', marginBottom: '18px' }}>
+                  <h5 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 600, color: '#1e293b' }}><i className="ti ti-settings" style={{ marginRight: '5px', color: '#006073' }}></i>Contact Preferences</h5>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}><i className="ti ti-time" style={{ marginRight: '4px' }}></i>Preferred Time Slot</label>
+                      <select value={selectedLead.preferredTimeSlot || ''} onChange={e => updateLeadField('preferredTimeSlot', e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', background: 'white' }}>
+                        <option value="">Not Set</option>
+                        {timeSlotOptions.map(ts => <option key={ts} value={ts}>{ts}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}><i className="ti ti-comments" style={{ marginRight: '4px' }}></i>Preferred Communication</label>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {commOptions.map(co => {
+                          const active = selectedLead.preferredComm === co.key;
+                          return (
+                            <button key={co.key} type="button" onClick={() => updateLeadField('preferredComm', active ? '' : co.key)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid', borderColor: active ? '#006073' : '#e2e8f0', background: active ? '#e0f2f1' : 'white', color: active ? '#006073' : '#64748b', fontSize: '12px', fontWeight: active ? 600 : 400, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s' }}>
+                              <i className={`ti ${co.icon}`}></i>{co.key}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Interested Courses */}
