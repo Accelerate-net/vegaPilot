@@ -123,43 +123,43 @@ export default function BunnyAdminPage() {
   };
 
   return (
-    <div className="bunny-admin-wrapper" style={{ padding: '20px' }} onClick={() => { setShowSortMenu(false); setShowOrderMenu(false); }}>
+    <div className="ba-bunny-admin-wrapper" style={{ padding: '20px' }} onClick={() => { setShowSortMenu(false); setShowOrderMenu(false); }}>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon purple"><i className="ti ti-video-camera"></i></div>
-          <div className="stat-info">
+      <div className="ba-stats-grid">
+        <div className="ba-stat-card">
+          <div className="ba-stat-icon ba-purple"><i className="ti ti-video-camera"></i></div>
+          <div className="ba-stat-info">
             <h3>{videos.length}</h3>
             <p>Total Videos</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon green"><i className="ti ti-folder"></i></div>
-          <div className="stat-info">
+        <div className="ba-stat-card">
+          <div className="ba-stat-icon ba-green"><i className="ti ti-folder"></i></div>
+          <div className="ba-stat-info">
             <h3>{folders.length}</h3>
             <p>Folders</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon blue"><i className="ti ti-cloud"></i></div>
-          <div className="stat-info">
+        <div className="ba-stat-card">
+          <div className="ba-stat-icon ba-blue"><i className="ti ti-cloud"></i></div>
+          <div className="ba-stat-info">
             <h3>2.4 GB</h3>
             <p>Storage Used</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon orange"><i className="ti ti-time"></i></div>
-          <div className="stat-info">
+        <div className="ba-stat-card">
+          <div className="ba-stat-icon ba-orange"><i className="ti ti-time"></i></div>
+          <div className="ba-stat-info">
             <h3>{getTotalDuration()}</h3>
             <p>Total Duration</p>
           </div>
         </div>
       </div>
 
-      <div className="filter-bar" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+      <div className="ba-filter-bar" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button className="btn"
+          <button className="ba-btn"
              style={{ background: '#ffb706', color: '#006073', border: 'none', fontWeight: 600, padding: '10px 20px', borderRadius: '6px', fontSize: '14px', transition: 'all 0.2s', whiteSpace: 'nowrap', cursor: 'pointer' }}
              onMouseOver={e => { e.currentTarget.style.background = '#ffa500'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(255, 183, 6, 0.3)'; }}
              onMouseOut={e => { e.currentTarget.style.background = '#ffb706'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
@@ -167,17 +167,17 @@ export default function BunnyAdminPage() {
              <i className="ti ti-upload"></i> Upload Videos
           </button>
         </div>
-        <div className="search-wrapper" style={{ flex: 1, position: 'relative' }}>
+        <div className="ba-search-wrapper" style={{ flex: 1, position: 'relative' }}>
           <i className="ti ti-search" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}></i>
-          <input type="text" className="search-input" placeholder="Search videos by name, folder, or tags..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
+          <input type="text" className="ba-search-input" placeholder="Search videos by name, folder, or tags..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
         </div>
         
-        <div className="filter-dropdown" style={{ position: 'relative' }}>
-          <button className="filter-select" onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); setShowOrderMenu(false); }}>
+        <div className="ba-filter-dropdown" style={{ position: 'relative' }}>
+          <button className="ba-filter-select" onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); setShowOrderMenu(false); }}>
             Sort by {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)} <i className="ti ti-angle-down"></i>
           </button>
           {showSortMenu && (
-            <ul className="dropdown-menu" style={{ display: 'block', position: 'absolute', right: 0, top: '100%', minWidth: '160px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', zIndex: 100, padding: '5px 0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <ul className="ba-dropdown-menu" style={{ display: 'block', position: 'absolute', right: 0, top: '100%', minWidth: '160px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', zIndex: 100, padding: '5px 0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               {['name', 'date', 'duration', 'size'].map(s => (
                 <li key={s}><a href="#!" onClick={(e) => { e.preventDefault(); setSortBy(s); setShowSortMenu(false); }} style={{ display: 'block', padding: '8px 20px', color: '#374151', textDecoration: 'none' }}>Sort by {s.charAt(0).toUpperCase() + s.slice(1)}</a></li>
               ))}
@@ -185,12 +185,12 @@ export default function BunnyAdminPage() {
           )}
         </div>
 
-        <div className="filter-dropdown" style={{ position: 'relative' }}>
-          <button className="filter-select" onClick={(e) => { e.stopPropagation(); setShowOrderMenu(!showOrderMenu); setShowSortMenu(false); }}>
+        <div className="ba-filter-dropdown" style={{ position: 'relative' }}>
+          <button className="ba-filter-select" onClick={(e) => { e.stopPropagation(); setShowOrderMenu(!showOrderMenu); setShowSortMenu(false); }}>
             {sortOrder === 'asc' ? 'Ascending' : 'Descending'} <i className="ti ti-angle-down"></i>
           </button>
           {showOrderMenu && (
-            <ul className="dropdown-menu" style={{ display: 'block', position: 'absolute', right: 0, top: '100%', minWidth: '160px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', zIndex: 100, padding: '5px 0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <ul className="ba-dropdown-menu" style={{ display: 'block', position: 'absolute', right: 0, top: '100%', minWidth: '160px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', zIndex: 100, padding: '5px 0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
               <li><a href="#!" onClick={(e) => { e.preventDefault(); setSortOrder('asc'); setShowOrderMenu(false); }} style={{ display: 'block', padding: '8px 20px', color: '#374151', textDecoration: 'none' }}>Ascending</a></li>
               <li><a href="#!" onClick={(e) => { e.preventDefault(); setSortOrder('desc'); setShowOrderMenu(false); }} style={{ display: 'block', padding: '8px 20px', color: '#374151', textDecoration: 'none' }}>Descending</a></li>
             </ul>
@@ -198,33 +198,33 @@ export default function BunnyAdminPage() {
         </div>
       </div>
 
-      <div className="video-management-container">
-        <div className="folder-sidebar">
+      <div className="ba-video-management-container">
+        <div className="ba-folder-sidebar">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3 style={{ margin: 0 }}>Video Folders</h3>
-            <button className="btn btn-sm" style={{ background: '#006073', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }} onClick={() => setCreateFolderModalOpen(true)} title="Create New Folder">
+            <button className="ba-btn ba-btn-sm" style={{ background: '#006073', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }} onClick={() => setCreateFolderModalOpen(true)} title="Create New Folder">
                <i className="ti ti-plus"></i>
             </button>
           </div>
 
-          <div className="search-wrapper" style={{ position: 'relative', marginBottom: '15px' }}>
+          <div className="ba-search-wrapper" style={{ position: 'relative', marginBottom: '15px' }}>
             <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: '#9ca3af' }}></i>
-            <input type="text" className="search-input" placeholder="Search folders..." value={folderSearchQuery} onChange={(e) => { setFolderSearchQuery(e.target.value); setCurrentFolderPage(1); }} style={{ padding: '8px 10px 8px 30px', fontSize: '13px', height: '36px' }} />
+            <input type="text" className="ba-search-input" placeholder="Search folders..." value={folderSearchQuery} onChange={(e) => { setFolderSearchQuery(e.target.value); setCurrentFolderPage(1); }} style={{ padding: '8px 10px 8px 30px', fontSize: '13px', height: '36px' }} />
           </div>
 
-          <ul className="folder-list">
-             <li className={`folder-item ${selectedFolder === null ? 'active' : ''}`} onClick={() => { setSelectedFolder(null); setCurrentPage(1); }}>
+          <ul className="ba-folder-list">
+             <li className={`ba-folder-item ${selectedFolder === null ? 'ba-active' : ''}`} onClick={() => { setSelectedFolder(null); setCurrentPage(1); }}>
                 <i className="ti ti-layout-grid2"></i>
-                <span className="folder-name">All Videos</span>
-                <span className="folder-count">{videos.length}</span>
+                <span className="ba-folder-name">All Videos</span>
+                <span className="ba-folder-count">{videos.length}</span>
              </li>
              {paginatedFolders.map(folder => (
-               <li key={folder.id} className={`folder-item ${selectedFolder === folder.id ? 'active' : ''}`} onClick={() => { setSelectedFolder(folder.id); setCurrentPage(1); }}>
+               <li key={folder.id} className={`ba-folder-item ${selectedFolder === folder.id ? 'ba-active' : ''}`} onClick={() => { setSelectedFolder(folder.id); setCurrentPage(1); }}>
                   <i className="ti ti-folder"></i>
-                  <span className="folder-name">{folder.name}</span>
-                  <span className="folder-count">{videos.filter(v => v.folderId === folder.id).length}</span>
-                  <div className="folder-actions" onClick={e => e.stopPropagation()}>
-                     <button className="folder-action-btn" onClick={() => { setCurrentFolderToRename(folder); setRenameFolderData({ newName: folder.name }); setRenameFolderModalOpen(true); }} title="Rename folder">
+                  <span className="ba-folder-name">{folder.name}</span>
+                  <span className="ba-folder-count">{videos.filter(v => v.folderId === folder.id).length}</span>
+                  <div className="ba-folder-actions" onClick={e => e.stopPropagation()}>
+                     <button className="folder-action-ba-btn" onClick={() => { setCurrentFolderToRename(folder); setRenameFolderData({ newName: folder.name }); setRenameFolderModalOpen(true); }} title="Rename folder">
                         <i className="ti ti-pencil"></i>
                      </button>
                   </div>
@@ -241,39 +241,39 @@ export default function BunnyAdminPage() {
           )}
         </div>
 
-        <div className="video-main-content">
-          <div className="video-grid">
+        <div className="ba-video-main-content">
+          <div className="ba-video-grid">
              {isLoading ? (
                Array.from({ length: 8 }).map((_, i) => (
-                 <div key={i} className="skeleton-card">
-                    <div className="skeleton-thumbnail"><div className="skeleton-shimmer"></div></div>
-                    <div className="skeleton-info">
-                       <div className="skeleton-line medium"><div className="skeleton-shimmer"></div></div>
-                       <div className="skeleton-line short"><div className="skeleton-shimmer"></div></div>
+                 <div key={i} className="ba-skeleton-card">
+                    <div className="ba-skeleton-thumbnail"><div className="ba-skeleton-shimmer"></div></div>
+                    <div className="ba-skeleton-info">
+                       <div className="ba-skeleton-line ba-medium"><div className="ba-skeleton-shimmer"></div></div>
+                       <div className="ba-skeleton-line ba-short"><div className="ba-skeleton-shimmer"></div></div>
                     </div>
                  </div>
                ))
              ) : (
                 paginatedVideos.map(video => (
-                  <div key={video.id} className="video-card" onClick={() => { setCurrentVideo(video); setPlayerModalOpen(true); }}>
-                     <div className="video-thumbnail">
+                  <div key={video.id} className="ba-video-card" onClick={() => { setCurrentVideo(video); setPlayerModalOpen(true); }}>
+                     <div className="ba-video-thumbnail">
                         <i className="ti ti-video-camera"></i>
-                        <div className="play-overlay">
-                           <div className="play-icon"><i className="ti ti-control-play"></i></div>
+                        <div className="ba-play-overlay">
+                           <div className="ba-play-icon"><i className="ti ti-control-play"></i></div>
                         </div>
-                        <span className="video-duration">{formatDuration(video.duration)}</span>
+                        <span className="ba-video-duration">{formatDuration(video.duration)}</span>
                      </div>
-                     <div className="video-info">
-                        <div className="video-title" title={video.title}>{video.title}</div>
-                        <div className="video-meta">
+                     <div className="ba-video-info">
+                        <div className="ba-video-title" title={video.title}>{video.title}</div>
+                        <div className="ba-video-meta">
                            <span><i className="ti ti-folder"></i> {getFolderName(video.folderId)}</span>
                            <span><i className="ti ti-calendar"></i> {new Date(video.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                         </div>
-                        <div className="video-actions" onClick={e => e.stopPropagation()}>
+                        <div className="ba-video-actions" onClick={e => e.stopPropagation()}>
                            <button onClick={() => { setCurrentVideo(video); setRenameData({ newName: video.title }); setRenameModalOpen(true); }}>
                               <i className="ti ti-pencil"></i> Rename
                            </button>
-                           <button className="danger" onClick={() => { setVideoToDelete(video); setDeleteModalOpen(true); }}>
+                           <button className="ba-danger" onClick={() => { setVideoToDelete(video); setDeleteModalOpen(true); }}>
                               <i className="ti ti-trash"></i> Delete
                            </button>
                         </div>
@@ -297,7 +297,7 @@ export default function BunnyAdminPage() {
           )}
 
           {!isLoading && filteredVideos.length === 0 && (
-             <div className="empty-state">
+             <div className="ba-empty-state">
                 <i className="ti ti-package"></i>
                 <h3>No Videos Found</h3>
                 <p>{searchQuery ? "Try adjusting your search criteria" : "Upload your first video to get started"}</p>
@@ -308,19 +308,19 @@ export default function BunnyAdminPage() {
 
       {/* Rename Modal */}
       {renameModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setRenameModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header">
+         <div className="ba-modal-backdrop ba-active" onClick={() => setRenameModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header">
                   <h3><i className="ti ti-pencil"></i> Rename Video</h3>
-                  <button className="modal-close" onClick={() => setRenameModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" onClick={() => setRenameModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
-                  <div className="form-group">
+               <div className="ba-modal-body">
+                  <div className="ba-form-group">
                      <label>Video Name</label>
-                     <input type="text" className="form-input" value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
+                     <input type="text" className="ba-form-input" value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
                   </div>
                </div>
-               <div className="modal-footer">
+               <div className="ba-modal-footer">
                   <button onClick={() => setRenameModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                   <button disabled={!renameData.newName} onClick={() => { 
                       setVideos(videos.map(v => v.id === currentVideo.id ? { ...v, title: renameData.newName } : v));
@@ -336,20 +336,20 @@ export default function BunnyAdminPage() {
 
       {/* Delete Modal */}
       {deleteModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setDeleteModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' }}>
+         <div className="ba-modal-backdrop ba-active" onClick={() => setDeleteModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' }}>
                   <h3 style={{ color: 'white' }}><i className="ti ti-alert"></i> Confirm Delete</h3>
-                  <button className="modal-close" style={{ color: 'white' }} onClick={() => setDeleteModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" style={{ color: 'white' }} onClick={() => setDeleteModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
+               <div className="ba-modal-body">
                   <div style={{ textAlign: 'center', padding: '20px 0' }}>
                      <i className="ti ti-alert" style={{ fontSize: '48px', color: '#ef4444', marginBottom: '20px', display: 'block' }}></i>
                      <p style={{ fontSize: '16px', color: '#1f2937', marginBottom: '10px' }}>Are you sure you want to delete <strong>{videoToDelete?.title}</strong>?</p>
                      <p style={{ color: '#6b7280', fontSize: '14px' }}>This action cannot be undone and will permanently remove this video.</p>
                   </div>
                </div>
-               <div className="modal-footer">
+               <div className="ba-modal-footer">
                   <button onClick={() => setDeleteModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                   <button onClick={() => { 
                       setVideos(videos.filter(v => v.id !== videoToDelete.id)); 
@@ -365,23 +365,23 @@ export default function BunnyAdminPage() {
 
       {/* Create Folder Modal */}
       {createFolderModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setCreateFolderModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header">
+         <div className="ba-modal-backdrop ba-active" onClick={() => setCreateFolderModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header">
                   <h3><i className="ti ti-folder"></i> Create New Folder</h3>
-                  <button className="modal-close" onClick={() => setCreateFolderModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" onClick={() => setCreateFolderModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
-                  <div className="form-group">
+               <div className="ba-modal-body">
+                  <div className="ba-form-group">
                      <label>Folder Name <span style={{ color: '#ef4444' }}>*</span></label>
-                     <input type="text" className="form-input" value={newFolderData.name} onChange={e => setNewFolderData({ ...newFolderData, name: e.target.value })} placeholder="Enter folder name" />
+                     <input type="text" className="ba-form-input" value={newFolderData.name} onChange={e => setNewFolderData({ ...newFolderData, name: e.target.value })} placeholder="Enter folder name" />
                   </div>
-                  <div className="form-group">
+                  <div className="ba-form-group">
                      <label>Description (Optional)</label>
-                     <textarea className="form-input" value={newFolderData.description} onChange={e => setNewFolderData({ ...newFolderData, description: e.target.value })} placeholder="Enter folder description" rows="3"></textarea>
+                     <textarea className="ba-form-input" value={newFolderData.description} onChange={e => setNewFolderData({ ...newFolderData, description: e.target.value })} placeholder="Enter folder description" rows="3"></textarea>
                   </div>
                </div>
-               <div className="modal-footer">
+               <div className="ba-modal-footer">
                   <button onClick={() => setCreateFolderModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                   <button disabled={!newFolderData.name} onClick={() => { 
                       const newFolder = { id: 'F-' + Date.now(), name: newFolderData.name, description: newFolderData.description, videoCount: 0 }; 
@@ -399,19 +399,19 @@ export default function BunnyAdminPage() {
 
       {/* Rename Folder Modal */}
       {renameFolderModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setRenameFolderModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header">
+         <div className="ba-modal-backdrop ba-active" onClick={() => setRenameFolderModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header">
                   <h3><i className="ti ti-pencil"></i> Rename Folder</h3>
-                  <button className="modal-close" onClick={() => setRenameFolderModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" onClick={() => setRenameFolderModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
-                  <div className="form-group">
+               <div className="ba-modal-body">
+                  <div className="ba-form-group">
                      <label>Folder Name <span style={{ color: '#ef4444' }}>*</span></label>
-                     <input type="text" className="form-input" value={renameFolderData.newName} onChange={e => setRenameFolderData({ newName: e.target.value })} placeholder="Enter new folder name" />
+                     <input type="text" className="ba-form-input" value={renameFolderData.newName} onChange={e => setRenameFolderData({ newName: e.target.value })} placeholder="Enter new folder name" />
                   </div>
                </div>
-               <div className="modal-footer">
+               <div className="ba-modal-footer">
                   <button onClick={() => setRenameFolderModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                   <button disabled={!renameFolderData.newName} onClick={() => { 
                       setFolders(folders.map(f => f.id === currentFolderToRename.id ? { ...f, name: renameFolderData.newName } : f)); 
@@ -427,13 +427,13 @@ export default function BunnyAdminPage() {
 
       {/* Video Player Modal */}
       {playerModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setPlayerModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '900px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header">
+         <div className="ba-modal-backdrop ba-active" onClick={() => setPlayerModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '900px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header">
                   <h3><i className="ti ti-control-play"></i> {currentVideo?.title}</h3>
-                  <button className="modal-close" onClick={() => setPlayerModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" onClick={() => setPlayerModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
+               <div className="ba-modal-body">
                   <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', background: '#000' }}>
                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white' }}>
                         <i className="ti ti-video-camera" style={{ fontSize: '48px', opacity: 0.5 }}></i>
@@ -463,32 +463,32 @@ export default function BunnyAdminPage() {
 
       {/* Upload Modal */}
       {uploadModalOpen && (
-         <div className="modal-backdrop active" onClick={() => setUploadModalOpen(false)}>
-            <div className="modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
-               <div className="modal-header">
+         <div className="ba-modal-backdrop ba-active" onClick={() => setUploadModalOpen(false)}>
+            <div className="ba-modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+               <div className="ba-modal-header">
                   <h3><i className="ti ti-upload"></i> Upload Videos</h3>
-                  <button className="modal-close" onClick={() => setUploadModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button className="ba-modal-close" onClick={() => setUploadModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="modal-body">
-                  <div className="form-group">
+               <div className="ba-modal-body">
+                  <div className="ba-form-group">
                      <label>Select Folder <span style={{ color: '#ef4444' }}>*</span></label>
-                     <select className="form-input" value={uploadFolder} onChange={e => setUploadFolder(e.target.value)}>
+                     <select className="ba-form-input" value={uploadFolder} onChange={e => setUploadFolder(e.target.value)}>
                         <option value="">-- Select Folder --</option>
                         {folders.map(folder => (
                            <option key={folder.id} value={folder.id}>{folder.name}</option>
                         ))}
                      </select>
                   </div>
-                  <div className="upload-zone" style={{ border: '2px dashed #cbd5e0', borderRadius: '8px', padding: '30px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer' }}>
+                  <div className="ba-upload-zone" style={{ border: '2px dashed #cbd5e0', borderRadius: '8px', padding: '30px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer' }}>
                      <i className="ti ti-cloud-up" style={{ fontSize: '48px', color: '#94a3b8', marginBottom: '15px', display: 'block' }}></i>
                      <h4 style={{ margin: '0 0 5px 0', color: '#334155', fontSize: '16px', fontWeight: 600 }}>Drag & Drop Videos Here</h4>
                      <p style={{ margin: '0 0 15px 0', color: '#64748b', fontSize: '14px' }}>or click to browse files</p>
-                     <button className="btn" style={{ background: '#006073', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', pointerEvents: 'none' }}>
+                     <button className="ba-btn" style={{ background: '#006073', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', pointerEvents: 'none' }}>
                         <i className="ti ti-folder"></i> Browse Files
                      </button>
                   </div>
                </div>
-               <div className="modal-footer">
+               <div className="ba-modal-footer">
                   <button onClick={() => setUploadModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                   <button disabled={!uploadFolder} onClick={() => { 
                       setUploadModalOpen(false); 
