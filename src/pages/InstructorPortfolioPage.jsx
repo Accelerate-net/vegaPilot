@@ -62,7 +62,7 @@ function normalizeInstructor(instructor, index) {
     instructor.qualifications ||
     `${instructor.institution || 'IISER Pune'}, Certified Educator, ${(index % 5) + 6}+ years of academic mentoring`;
   const experience = Number(instructor.experienceYears || instructor.experience || (index % 7) + 6);
-  const isActive = instructor.active ?? instructor.status === 'active' || instructor.status === 1;
+  const isActive = instructor.active ?? (instructor.status === 'active' || instructor.status === 1);
   const lessons = instructor.lessons || createLessons(expertSubject, index);
   return {
     ...instructor,
