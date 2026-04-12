@@ -89,6 +89,7 @@ function sortOrders(rows, sortColumn, sortReverse) {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState(ordersDemo);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPaymentMethod, setFilterPaymentMethod] = useState('');
@@ -108,6 +109,11 @@ export default function OrdersPage() {
   const [toasts, setToasts] = useState([]);
   const menuRef = useRef(null);
   const toastIdRef = useRef(0);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const closeMenus = (event) => {
@@ -283,7 +289,7 @@ export default function OrdersPage() {
         />
       </div>
 
-      {filteredOrders.length > 0 ? (
+      {(isLoading || filteredOrders.length > 0) ? (
         <div className="crispr-table-container">
           <table className="crispr-table">
             <thead>
@@ -298,54 +304,81 @@ export default function OrdersPage() {
                 <th className="actions-column">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {paginatedOrders.map((order) => (
-                <tr key={order.id} onClick={() => viewOrder(order)} className={openKebabId === order.id ? 'row-active-menu' : ''}>
-                  <td><span className="order-number-link">{order.orderNumber}</span></td>
-                  <td>
-                    <div className="profile-cell">
-                      <div className="profile-info">
-                        <div className="profile-name">{order.customer.name}</div>
-                        <div className="profile-subtext">{order.customer.email}</div>
+            {isLoading ? (
+              <tbody>
+                {Array.from({ length: pageSize > 5 ? 5 : pageSize }).map((_, index) => (
+                  <tr key={`skel-${index}`}>
+                    <td><div className="orders-skeleton short"><div className="orders-skeleton-shimmer" /></div></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className="orders-skeleton avatar"><div className="orders-skeleton-shimmer" /></div>
+                        <div>
+                          <div className="orders-skeleton medium" style={{ marginBottom: 5 }}><div className="orders-skeleton-shimmer" /></div>
+                          <div className="orders-skeleton short" style={{ height: 12, width: 100 }}><div className="orders-skeleton-shimmer" /></div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td><div className="info-cell"><i className="ti ti-calendar" /> {formatDate(order.orderDate)}</div></td>
-                  <td><div className="info-cell" title={order.items?.[0]?.title}>{getItemsSummary(order)}</div></td>
-                  <td><span className="order-amount">₹{formatMoney(order.totalAmount)}</span></td>
-                  <td><span className={`crispr-status ${statusClass(order.status)}`}>{order.status}</span></td>
-                  <td><span className="crispr-badge"><i className={`ti ${paymentIcon(order.paymentMethod)}`} /> {order.paymentMethod.toUpperCase()}</span></td>
-                  <td className={`actions-column ${openKebabId === order.id ? 'cell-active-menu' : ''}`} onClick={(event) => event.stopPropagation()}>
-                    <div className="kebab-menu-container">
-                      <button type="button" className="kebab-button" onClick={(event) => { event.stopPropagation(); setOpenKebabId((current) => (current === order.id ? null : order.id)); }}>
-                        <i className="ti ti-more-alt" />
-                      </button>
-                      <div className={`kebab-dropdown ${openKebabId === order.id ? 'active' : ''}`}>
-                        <button type="button" className="kebab-dropdown-item" onClick={() => viewOrder(order)}><i className="ti ti-eye" /> View Order</button>
-                        <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Invoice</button>
-                        <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Invoice</button>
-                        {order.status === 'completed' ? <button type="button" className="kebab-dropdown-item refund-action" onClick={() => initiateRefund(order)}><i className="ti ti-back-left" /> Initiate Refund</button> : null}
+                    </td>
+                    <td><div className="orders-skeleton medium" style={{ width: 110 }}><div className="orders-skeleton-shimmer" /></div></td>
+                    <td><div className="orders-skeleton long"><div className="orders-skeleton-shimmer" /></div></td>
+                    <td><div className="orders-skeleton amount"><div className="orders-skeleton-shimmer" /></div></td>
+                    <td><div className="orders-skeleton badge"><div className="orders-skeleton-shimmer" /></div></td>
+                    <td><div className="orders-skeleton short" style={{ width: 70 }}><div className="orders-skeleton-shimmer" /></div></td>
+                    <td />
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
+                {paginatedOrders.map((order) => (
+                  <tr key={order.id} onClick={() => viewOrder(order)} className={openKebabId === order.id ? 'row-active-menu' : ''}>
+                    <td><span className="order-number-link">{order.orderNumber}</span></td>
+                    <td>
+                      <div className="profile-cell">
+                        <div className="profile-info">
+                          <div className="profile-name">{order.customer.name}</div>
+                          <div className="profile-subtext">{order.customer.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                    </td>
+                    <td><div className="info-cell"><i className="ti ti-calendar" /> {formatDate(order.orderDate)}</div></td>
+                    <td><div className="info-cell" title={order.items?.[0]?.title}>{getItemsSummary(order)}</div></td>
+                    <td><span className="order-amount">₹{formatMoney(order.totalAmount)}</span></td>
+                    <td><span className={`crispr-status ${statusClass(order.status)}`}>{order.status}</span></td>
+                    <td><span className="crispr-badge"><i className={`ti ${paymentIcon(order.paymentMethod)}`} /> {order.paymentMethod.toUpperCase()}</span></td>
+                    <td className={`actions-column ${openKebabId === order.id ? 'cell-active-menu' : ''}`} onClick={(event) => event.stopPropagation()}>
+                      <div className="kebab-menu-container">
+                        <button type="button" className="kebab-button" onClick={(event) => { event.stopPropagation(); setOpenKebabId((current) => (current === order.id ? null : order.id)); }}>
+                          <i className="ti ti-more-alt" />
+                        </button>
+                        <div className={`kebab-dropdown ${openKebabId === order.id ? 'active' : ''}`}>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => viewOrder(order)}><i className="ti ti-eye" /> View Order</button>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Invoice</button>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Invoice</button>
+                          {order.status === 'completed' ? <button type="button" className="kebab-dropdown-item refund-action" onClick={() => initiateRefund(order)}><i className="ti ti-back-left" /> Initiate Refund</button> : null}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            )}
           </table>
 
-          <div className="pagination-container">
-            <div className="pagination-info">
-              <span>Showing {startIndex + 1} to {Math.min(startIndex + pageSize, filteredOrders.length)} of {filteredOrders.length} entries</span>
-              <select className="page-size-select" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}>
-                {[10, 20, 50, 100].map((size) => <option key={size} value={size}>Show {size}</option>)}
-              </select>
+          {!isLoading && filteredOrders.length > 0 && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                <span>Showing {startIndex + 1} to {Math.min(startIndex + pageSize, filteredOrders.length)} of {filteredOrders.length} entries</span>
+                <select className="page-size-select" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}>
+                  {[10, 20, 50, 100].map((size) => <option key={size} value={size}>Show {size}</option>)}
+                </select>
+              </div>
+              <div className="pagination-controls">
+                <button type="button" className="pagination-btn" disabled={page === 1} onClick={() => setCurrentPage((current) => Math.max(1, current - 1))}><i className="ti ti-angle-left" /> Previous</button>
+                {getPageNumbers(page, totalPages).map((pageNumber) => <button key={pageNumber} type="button" className={`pagination-btn ${page === pageNumber ? 'active' : ''}`} onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>)}
+                <button type="button" className="pagination-btn" disabled={page >= totalPages} onClick={() => setCurrentPage((current) => Math.min(totalPages, current + 1))}>Next <i className="ti ti-angle-right" /></button>
+              </div>
             </div>
-            <div className="pagination-controls">
-              <button type="button" className="pagination-btn" disabled={page === 1} onClick={() => setCurrentPage((current) => Math.max(1, current - 1))}><i className="ti ti-angle-left" /> Previous</button>
-              {getPageNumbers(page, totalPages).map((pageNumber) => <button key={pageNumber} type="button" className={`pagination-btn ${page === pageNumber ? 'active' : ''}`} onClick={() => setCurrentPage(pageNumber)}>{pageNumber}</button>)}
-              <button type="button" className="pagination-btn" disabled={page >= totalPages} onClick={() => setCurrentPage((current) => Math.min(totalPages, current + 1))}>Next <i className="ti ti-angle-right" /></button>
-            </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="empty-state">
@@ -485,6 +518,8 @@ function EmailModal({ emailData, setEmailData, onClose, onSend }) {
 
 function RefundModal({ refundData, setRefundData, onClose, onConfirm }) {
   const complete = refundData.code.every(Boolean);
+  const inputsRef = useRef([]);
+
   return (
     <div className="crispr-modal-backdrop active" role="presentation" onClick={onClose}>
       <div className="crispr-modal-dialog refund-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
@@ -494,7 +529,27 @@ function RefundModal({ refundData, setRefundData, onClose, onConfirm }) {
           <h3>Initiate Refund</h3>
           <p>Are you sure you want to initiate a refund of <strong>₹{formatMoney(refundData.order.totalAmount)}</strong> for Order <strong>#{refundData.order.orderNumber}</strong>? Please enter the confirmatory code to continue.</p>
           <div className="refund-code-row">
-            {refundData.code.map((digit, index) => <input key={index} type="text" maxLength="1" value={digit} onChange={(event) => { const next = [...refundData.code]; next[index] = event.target.value.replace(/\D/g, '').slice(0, 1); setRefundData((current) => ({ ...current, code: next, error: '' })); }} />)}
+            {refundData.code.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => { inputsRef.current[index] = el; }}
+                type="text"
+                maxLength="1"
+                value={digit}
+                onChange={(event) => {
+                  const val = event.target.value.replace(/\D/g, '').slice(0, 1);
+                  const next = [...refundData.code];
+                  next[index] = val;
+                  setRefundData((current) => ({ ...current, code: next, error: '' }));
+                  if (val && index < 3) inputsRef.current[index + 1]?.focus();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Backspace' && !digit && index > 0) {
+                    inputsRef.current[index - 1]?.focus();
+                  }
+                }}
+              />
+            ))}
           </div>
           {refundData.error ? <p className="refund-error">{refundData.error}</p> : null}
           <div className="refund-actions"><button type="button" className="btn btn-default" onClick={onClose}>Cancel</button><button type="button" className="btn btn-danger" disabled={!complete} onClick={onConfirm}>Confirm Refund</button></div>

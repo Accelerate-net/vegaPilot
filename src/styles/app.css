@@ -7194,6 +7194,12 @@ input {
   border-radius: 12px;
   background: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.orders-page .stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .orders-page .stat-icon {
@@ -7347,6 +7353,7 @@ input {
   border-radius: 8px;
   background: white;
   border: 1px solid #e6edf0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .orders-page .crispr-table {
@@ -7371,6 +7378,14 @@ input {
   text-align: left;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.orders-page .crispr-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.orders-page .crispr-table th:last-child {
+  border-top-right-radius: 8px;
 }
 
 .orders-page .crispr-table th.sortable {
@@ -7404,12 +7419,21 @@ input {
 
 .orders-page .crispr-table tbody tr {
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.orders-page .crispr-table tbody tr:hover,
+.orders-page .crispr-table tbody tr:hover {
+  background: #f8f9fa;
+  transform: scale(1.005);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
 .orders-page .crispr-table tbody tr.row-active-menu {
   background: #f8f9fa;
+  position: relative;
+  z-index: 1;
 }
 
 .orders-page .crispr-table th:nth-child(1) {
@@ -7847,10 +7871,16 @@ input {
   gap: 24px;
 }
 
-.orders-page .order-modal-grid h5,
-.orders-page .customer-info h5 {
+.orders-page .order-modal-grid > div > h5 {
   margin: 0 0 15px;
   color: #006073;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.orders-page .customer-info h5 {
+  margin: 0 0 10px;
+  color: #333;
   font-size: 14px;
   font-weight: 600;
 }
@@ -8124,6 +8154,50 @@ input {
   display: flex;
   justify-content: center;
   gap: 10px;
+}
+
+/* Orders skeleton loader */
+.orders-page .orders-skeleton {
+  position: relative;
+  overflow: hidden;
+  height: 14px;
+  border-radius: 5px;
+  background: #edf2f7;
+}
+
+.orders-page .orders-skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  animation: shimmer 1.2s infinite;
+}
+
+.orders-page .orders-skeleton.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.orders-page .orders-skeleton.short {
+  width: 80px;
+}
+
+.orders-page .orders-skeleton.medium {
+  width: 130px;
+}
+
+.orders-page .orders-skeleton.long {
+  width: 170px;
+}
+
+.orders-page .orders-skeleton.badge {
+  width: 70px;
+  border-radius: 12px;
+}
+
+.orders-page .orders-skeleton.amount {
+  width: 70px;
 }
 
 @media (max-width: 1100px) {
