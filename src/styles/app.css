@@ -2432,3 +2432,975 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+.mentor-profiles-page {
+  padding: 20px 0;
+}
+
+.mentor-profiles-page .page-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.mentor-profiles-page .page-header-section h2 {
+  margin: 0;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .page-header-section p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+}
+
+.mentor-profiles-page .create-mentor-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 20px;
+  background: #ffb706;
+  color: #006073;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.mentor-profiles-page .create-mentor-button:hover {
+  background: #ffa500;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 183, 6, 0.3);
+}
+
+.mentor-profiles-page .filter-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.mentor-profiles-page .search-wrapper {
+  position: relative;
+  min-width: 300px;
+  flex: 1;
+}
+
+.mentor-profiles-page .search-wrapper i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 16px;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.mentor-profiles-page .search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px 0 42px;
+  border: 1px solid #d9e2e7;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  font: inherit;
+}
+
+.mentor-profiles-page .filter-dropdown {
+  position: relative;
+}
+
+.mentor-profiles-page .filter-dropdown-btn {
+  min-width: 210px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid #d9e2e7;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mentor-profiles-page .mentor-filter-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 230px;
+  display: none;
+  border: 1px solid #d9e2e7;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.mentor-profiles-page .mentor-filter-menu.active {
+  display: block;
+}
+
+.mentor-profiles-page .mentor-filter-menu button {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.mentor-profiles-page .mentor-filter-menu button:hover {
+  background: #f8fafc;
+}
+
+.mentor-profiles-page .students-table-container,
+.mentor-profiles-page .mentors-table-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e6edf0;
+  overflow: hidden;
+}
+
+.mentor-profiles-page .students-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.mentor-profiles-page .students-table thead {
+  background: #f8fafb;
+}
+
+.mentor-profiles-page .students-table th {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e9ecef;
+  color: #52606d;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mentor-profiles-page .students-table th.sortable {
+  cursor: pointer;
+}
+
+.mentor-profiles-page .students-table th.sortable:hover,
+.mentor-profiles-page .students-table th.sortable.active {
+  color: #006073;
+}
+
+.mentor-profiles-page .sort-icon {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.mentor-profiles-page .students-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #edf2f5;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.mentor-profiles-page .profile-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mentor-profiles-page .avatar,
+.mentor-profiles-page .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.mentor-profiles-page .avatar {
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+}
+
+.mentor-profiles-page .avatar-placeholder {
+  background: #006073;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mentor-profiles-page .profile-name {
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .mentor-brief {
+  max-width: 250px;
+  overflow: hidden;
+  color: #6c757d;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mentor-profiles-page .mentor-alma {
+  color: #333;
+  font-size: 13px;
+}
+
+.mentor-profiles-page .mentor-alma-sub {
+  margin-top: 2px;
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.mentor-profiles-page .subject-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #e7f5f7;
+  color: #006073;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mentor-profiles-page .subject-badge.compact {
+  font-size: 11px;
+}
+
+.mentor-profiles-page .students-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #bae6fd;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #0369a1;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mentor-profiles-page .students-count-badge:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  color: white;
+  border-color: #0369a1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.3);
+}
+
+.mentor-profiles-page .students-count-badge i {
+  font-size: 15px;
+}
+
+.mentor-profiles-page .mentor-actions-cell {
+  text-align: center;
+}
+
+.mentor-profiles-page .kebab-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.mentor-profiles-page .kebab-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+}
+
+.mentor-profiles-page .kebab-button:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.mentor-profiles-page .kebab-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  display: none;
+  overflow: hidden;
+  border: 1px solid #dbe4ea;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+  z-index: 20;
+}
+
+.mentor-profiles-page .kebab-dropdown.active {
+  display: block;
+}
+
+.mentor-profiles-page .kebab-dropdown-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.mentor-profiles-page .kebab-dropdown-item:hover {
+  background: #f8fafc;
+}
+
+.mentor-profiles-page .pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid #e9ecef;
+}
+
+.mentor-profiles-page .pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.mentor-profiles-page .page-size-select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d9e2e7;
+  border-radius: 6px;
+  background: white;
+  font: inherit;
+}
+
+.mentor-profiles-page .pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mentor-profiles-page .pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d9e2e7;
+  border-radius: 6px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mentor-profiles-page .pagination-btn:hover:not(:disabled) {
+  border-color: #b8c8d0;
+  background: #f8fafc;
+}
+
+.mentor-profiles-page .pagination-btn.active {
+  background: #006073;
+  border-color: #006073;
+  color: white;
+}
+
+.mentor-profiles-page .pagination-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mentor-profiles-page .empty-state {
+  padding: 60px 20px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.mentor-profiles-page .empty-state.compact {
+  padding: 40px 20px;
+}
+
+.mentor-profiles-page .empty-state i {
+  display: block;
+  margin-bottom: 20px;
+  color: #dee2e6;
+  font-size: 64px;
+}
+
+.mentor-profiles-page .empty-state h3 {
+  margin: 0 0 10px;
+  color: #495057;
+}
+
+.mentor-profiles-page .mentor-skeleton,
+.mentor-profiles-page .mentor-skeleton.avatar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #edf2f7;
+}
+
+.mentor-profiles-page .mentor-skeleton::after,
+.mentor-profiles-page .mentor-skeleton.avatar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: shimmer 1.2s infinite;
+}
+
+.mentor-profiles-page .mentor-skeleton-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mentor-profiles-page .mentor-skeleton.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.mentor-profiles-page .mentor-skeleton.medium {
+  width: 120px;
+  height: 14px;
+}
+
+.mentor-profiles-page .mentor-skeleton.long {
+  width: 220px;
+  height: 14px;
+}
+
+.mentor-profiles-page .mentor-skeleton.short {
+  width: 90px;
+  height: 14px;
+}
+
+.mentor-profiles-page .mentor-selection-summary {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-left: 4px solid #006073;
+  border-radius: 8px;
+  background: #e7f5f7;
+  color: #006073;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .mentor-modal-search {
+  margin-bottom: 18px;
+}
+
+.mentor-profiles-page .mentor-modal-caption {
+  margin: 0 0 15px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.mentor-profiles-page .mentor-scroll-table {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.mentor-profiles-page .mentor-scroll-table.tall {
+  max-height: 650px;
+  border: 0;
+}
+
+.mentor-profiles-page .mentor-selection-table {
+  margin: 0;
+}
+
+.mentor-profiles-page .mentor-selection-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.mentor-profiles-page .mentor-selection-table .checkbox-column {
+  width: 50px;
+  text-align: center;
+}
+
+.mentor-profiles-page .mentor-selection-table tr.selected-row {
+  background: #eff6ff;
+}
+
+.mentor-profiles-page .centered-cell {
+  text-align: center;
+}
+
+.mentor-profiles-page .mentor-student-name {
+  color: #334155;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .mentor-student-id {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.mentor-profiles-page .mentor-small-copy {
+  color: #475569;
+  font-size: 13px;
+}
+
+.mentor-profiles-page .mentor-mini-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .mentor-mini-badge.active {
+  background: #28a745;
+  color: white;
+}
+
+.mentor-profiles-page .mentor-mini-badge.inactive {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.mentor-profiles-page .status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mentor-profiles-page .status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.mentor-profiles-page .status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.mentor-profiles-page .mentor-footer-spread {
+  justify-content: space-between;
+}
+
+.mentor-profiles-page .mentor-footer-spread.large {
+  padding: 20px 32px;
+}
+
+.mentor-profiles-page .mentor-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mentor-profiles-page .mentor-selected-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mentor-edit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.44);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.mentor-edit-modal.active {
+  display: flex;
+}
+
+.mentor-edit-dialog,
+.mentor-delete-dialog,
+.mentor-view-dialog {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.mentor-delete-dialog {
+  max-width: 500px;
+}
+
+.mentor-view-dialog {
+  max-width: 850px;
+}
+
+.mentor-edit-header,
+.mentor-delete-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  color: white;
+  background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+}
+
+.mentor-delete-header {
+  background: #dc3545;
+}
+
+.mentor-edit-header h3,
+.mentor-delete-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.mentor-edit-close {
+  border: 0;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.mentor-edit-body {
+  padding: 22px;
+  overflow: auto;
+}
+
+.mentor-edit-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #e9ecef;
+  background: #fafcfd;
+}
+
+.mentor-form-section {
+  margin-bottom: 24px;
+}
+
+.mentor-form-title {
+  margin-bottom: 14px;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mentor-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mentor-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mentor-form-group label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mentor-form-input,
+.mentor-form-textarea {
+  width: 100%;
+  border: 1px solid #d9e2e7;
+  border-radius: 6px;
+  padding: 11px 14px;
+  background: white;
+  color: #334155;
+  font: inherit;
+}
+
+.mentor-form-textarea {
+  resize: vertical;
+}
+
+.mentor-photo-upload {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.mentor-photo-preview,
+.mentor-photo-placeholder {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+}
+
+.mentor-photo-preview {
+  object-fit: cover;
+}
+
+.mentor-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+  font-size: 24px;
+}
+
+.mentor-photo-meta .file-name,
+.mentor-delete-note,
+.mentor-profiles-page .muted-note {
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.mentor-profiles-page .required {
+  color: #dc2626;
+}
+
+.mentor-view-body {
+  padding: 0;
+  overflow: auto;
+}
+
+.mentor-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 40px 32px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #e0f2f7 0%, #b2ebf2 100%);
+}
+
+.mentor-profile-avatar-shell {
+  position: relative;
+}
+
+.mentor-profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 8px 20px rgba(0, 96, 115, 0.2);
+}
+
+.mentor-profile-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #006073 0%, #00a8cc 100%);
+  color: white;
+  font-size: 52px;
+  font-weight: 700;
+}
+
+.mentor-profile-active-dot {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 24px;
+  height: 24px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.mentor-profile-copy {
+  flex: 1;
+}
+
+.mentor-profile-copy h2 {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.mentor-profile-copy p {
+  margin: 0 0 16px;
+  color: #64748b;
+  font-size: 16px;
+  font-style: italic;
+}
+
+.mentor-profile-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mentor-rating-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mentor-rating-group .fa-star {
+  color: #fbbf24;
+  font-size: 18px;
+}
+
+.mentor-rating-value {
+  color: #1e293b;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mentor-rating-max,
+.mentor-rating-students {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.mentor-rating-divider {
+  width: 1px;
+  height: 20px;
+  background: #cbd5e0;
+}
+
+.mentor-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 32px;
+}
+
+.mentor-profiles-page .profile-info-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+}
+
+.mentor-profiles-page .profile-info-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mentor-profiles-page .profile-info-icon.blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.mentor-profiles-page .profile-info-icon.amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.mentor-profiles-page .profile-info-icon.indigo {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+.mentor-profiles-page .profile-info-icon.green {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.mentor-profiles-page .profile-info-label {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mentor-profiles-page .profile-info-value {
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mentor-profiles-page .profile-info-value.truncatable {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mentor-profiles-page .mentor-students-search-wrap {
+  padding: 12px 20px;
+  background: white;
+  flex-shrink: 0;
+}
+
+.mentor-profiles-page .mentor-students-body {
+  padding: 0 20px;
+}
+
+@media (max-width: 1100px) {
+  .mentor-profiles-page .page-header-section,
+  .mentor-profiles-page .filter-bar,
+  .mentor-profiles-page .pagination-container,
+  .mentor-profiles-page .mentor-profile-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mentor-profiles-page .students-table-container {
+    overflow-x: auto;
+  }
+
+  .mentor-profiles-page .students-table {
+    min-width: 980px;
+  }
+
+  .mentor-profiles-page .mentor-form-row,
+  .mentor-profiles-page .mentor-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
