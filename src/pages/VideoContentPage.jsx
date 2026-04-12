@@ -1,58 +1,852 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
-import { videoLibraryDemo } from '../data/adminRemainingDemo';
+import { bunnyFoldersDemo, bunnyVideosDemo, instructorsDemo, videoLibraryDemo } from '../data/adminRemainingDemo';
 
+const SUBJECTS = ['Biology', 'Chemistry', 'Mathematics', 'Physics'];
+const CHAPTERS = {
+  Biology: ['Cell Biology', 'Plant Biology', 'Genetics', 'Ecology', 'Human Physiology'],
+  Chemistry: ['Organic Chemistry', 'Physical Chemistry', 'Inorganic Chemistry', 'Aromatic Chemistry'],
+  Mathematics: ['Calculus', 'Integral Calculus', 'Coordinate Geometry', 'Algebra', 'Trigonometry'],
+  Physics: ['Mechanics', 'Electrostatics', 'Thermodynamics', 'Optics', 'Modern Physics'],
+};
+
+function formatDuration(seconds) {
+  if (!seconds) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// ---- FilterDropdown (same pattern as OrdersPage) ----
+function FilterDropdown({ label, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div className="filter-dropdown" ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        className={`filter-dropdown-btn${value ? ' active' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {current ? current.label : label}
+        <i className={`ti ti-angle-${open ? 'up' : 'down'}`} />
+      </button>
+      {open && (
+        <ul className="filter-dropdown-menu">
+          {options.map((o) => (
+            <li
+              key={o.value}
+              className={o.value === value ? 'active' : ''}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+            >
+              {o.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ---- KebabMenu ----
+function KebabMenu({ onView, onEdit, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="kebab-menu-container" ref={ref}>
+      <button
+        type="button"
+        className="kebab-trigger"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+      >
+        <i className="ti ti-more-alt" />
+      </button>
+      {open && (
+        <div className="kebab-dropdown">
+          <button type="button" onClick={() => { setOpen(false); onView(); }}>
+            <i className="ti ti-eye" /> View
+          </button>
+          <button type="button" onClick={() => { setOpen(false); onEdit(); }}>
+            <i className="ti ti-pencil" /> Edit
+          </button>
+          <button type="button" className="danger" onClick={() => { setOpen(false); onDelete(); }}>
+            <i className="ti ti-trash" /> Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Edit Video Modal ----
+function EditVideoModal({ video, onClose, onSave }) {
+  const [form, setForm] = useState({
+    titleName: video.titleName || '',
+    classificationLevel1: video.classificationLevel1 || '',
+    classificationLevel2: video.classificationLevel2 || '',
+    instructorId: video.instructorId || '',
+  });
+
+  function handleSave() {
+    onSave({ ...video, ...form });
+  }
+
+  const chapters = CHAPTERS[form.classificationLevel1] || [];
+
+  return (
+    <div className="crispr-modal-backdrop active" onClick={onClose}>
+      <div
+        className="crispr-modal-dialog"
+        style={{ maxWidth: 960 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="crispr-modal-header">
+          <h3><i className="ti ti-pencil" /> Edit Video #{video.videoId}</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}>
+            <i className="ti ti-close" />
+          </button>
+        </div>
+        <div className="crispr-modal-body" style={{ padding: 25 }}>
+          <div className="vc-edit-layout">
+            <div className="vc-edit-player">
+              <div className="vc-video-embed">
+                <div className="vc-video-placeholder">
+                  <i className="ti ti-video-clapper" />
+                  <p>Video Player</p>
+                  <span>{video.videoDisplayKey}</span>
+                </div>
+              </div>
+              <div className="vc-video-meta-box">
+                <div className="vc-meta-row">
+                  <span><strong>Video ID:</strong></span>
+                  <span className="vc-mono">{video.videoId}</span>
+                </div>
+                <div className="vc-meta-row">
+                  <span><strong>Collection:</strong></span>
+                  <span>{video.collectionName || 'N/A'}</span>
+                </div>
+                <div className="vc-meta-row">
+                  <span><strong>Duration:</strong></span>
+                  <span>{formatDuration(video.durationInSeconds)}</span>
+                </div>
+                <div className="vc-meta-row">
+                  <span><strong>Key:</strong></span>
+                  <span className="vc-mono" style={{ fontSize: 12 }}>{video.videoDisplayKey}</span>
+                </div>
+              </div>
+            </div>
+            <div className="vc-edit-form">
+              <div className="vc-form-group">
+                <label>Title Name</label>
+                <input
+                  type="text"
+                  className="vc-input"
+                  value={form.titleName}
+                  maxLength={80}
+                  placeholder="Enter video title"
+                  onChange={(e) => setForm((f) => ({ ...f, titleName: e.target.value }))}
+                />
+              </div>
+              <div className="vc-form-group">
+                <label>Level 1 (Subject)</label>
+                <select
+                  className="vc-select"
+                  value={form.classificationLevel1}
+                  onChange={(e) => setForm((f) => ({ ...f, classificationLevel1: e.target.value, classificationLevel2: '' }))}
+                >
+                  <option value="">Select Level 1</option>
+                  {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="vc-form-group">
+                <label>Level 2 (Chapter)</label>
+                <select
+                  className="vc-select"
+                  value={form.classificationLevel2}
+                  disabled={!form.classificationLevel1}
+                  onChange={(e) => setForm((f) => ({ ...f, classificationLevel2: e.target.value }))}
+                >
+                  <option value="">Select Level 2</option>
+                  {chapters.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="vc-form-group">
+                <label>Instructor</label>
+                <select
+                  className="vc-select"
+                  value={form.instructorId}
+                  onChange={(e) => setForm((f) => ({ ...f, instructorId: e.target.value }))}
+                >
+                  <option value="">Select Instructor</option>
+                  {instructorsDemo.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+                </select>
+              </div>
+              <div style={{ marginTop: 25 }}>
+                <button type="button" className="vc-btn-save" onClick={handleSave}>
+                  <i className="ti ti-save" /> Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Link/Classify Video Modal (Add New) ----
+function LinkVideoModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    classificationLevel1: '',
+    classificationLevel2: '',
+    instructorId: '',
+    collectionName: '',
+  });
+  const [videoItems, setVideoItems] = useState([{ targetVideoId: '', titleName: '' }]);
+
+  const chapters = CHAPTERS[form.classificationLevel1] || [];
+  const videosInFolder = form.collectionName
+    ? bunnyVideosDemo.filter((v) => {
+        const folder = bunnyFoldersDemo.find((f) => f.name === form.collectionName);
+        return folder ? v.folderId === folder.id : false;
+      })
+    : [];
+
+  function getAvailableVideos(currentItem) {
+    const selectedIds = videoItems.filter((it) => it !== currentItem).map((it) => it.targetVideoId).filter(Boolean);
+    return videosInFolder.filter((v) => !selectedIds.includes(v.id));
+  }
+
+  function addRow() {
+    setVideoItems((items) => [...items, { targetVideoId: '', titleName: '' }]);
+  }
+
+  function removeRow(index) {
+    setVideoItems((items) => items.filter((_, i) => i !== index));
+  }
+
+  function updateRow(index, key, value) {
+    setVideoItems((items) => items.map((it, i) => i === index ? { ...it, [key]: value } : it));
+  }
+
+  function isComplete() {
+    return form.classificationLevel1 && form.classificationLevel2 && videoItems.some((it) => it.titleName.trim());
+  }
+
+  return (
+    <div className="crispr-modal-backdrop active" onClick={onClose}>
+      <div
+        className="crispr-modal-dialog"
+        style={{ maxWidth: 960 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="crispr-modal-header">
+          <h3><i className="ti ti-link" /> Classify Video</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}>
+            <i className="ti ti-close" />
+          </button>
+        </div>
+        <div className="crispr-modal-body">
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div className="vc-form-section">
+              <div className="vc-form-row">
+                <div className="vc-form-group">
+                  <label>Subject (L1) <span style={{ color: 'red' }}>*</span></label>
+                  <select
+                    className="vc-select"
+                    value={form.classificationLevel1}
+                    onChange={(e) => setForm((f) => ({ ...f, classificationLevel1: e.target.value, classificationLevel2: '' }))}
+                  >
+                    <option value="">Select Level 1 (Subject)</option>
+                    {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="vc-form-group">
+                  <label>Chapter (L2) <span style={{ color: 'red' }}>*</span></label>
+                  <select
+                    className="vc-select"
+                    value={form.classificationLevel2}
+                    disabled={!form.classificationLevel1}
+                    onChange={(e) => setForm((f) => ({ ...f, classificationLevel2: e.target.value }))}
+                  >
+                    <option value="">Select Level 2 (Chapter)</option>
+                    {chapters.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="vc-form-row">
+                <div className="vc-form-group">
+                  <label>Instructor</label>
+                  <select
+                    className="vc-select"
+                    value={form.instructorId}
+                    onChange={(e) => setForm((f) => ({ ...f, instructorId: e.target.value }))}
+                  >
+                    <option value="">Select Instructor Profile</option>
+                    {instructorsDemo.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+                  </select>
+                </div>
+                <div className="vc-form-group">
+                  <label>Source Folder</label>
+                  <select
+                    className="vc-select"
+                    value={form.collectionName}
+                    onChange={(e) => setForm((f) => ({ ...f, collectionName: e.target.value }))}
+                  >
+                    <option value="">Select Hosting Folder</option>
+                    {bunnyFoldersDemo.map((f) => (
+                      <option key={f.id} value={f.name}>{f.name} ({f.videoCount} items)</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {form.collectionName && (
+              <div className="vc-form-section">
+                <div className="vc-form-section-title">Video Display Titles</div>
+                {videoItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="vc-form-row"
+                    style={{
+                      borderBottom: index < videoItems.length - 1 ? '1px dashed #eee' : 'none',
+                      marginBottom: 12,
+                      paddingBottom: index < videoItems.length - 1 ? 12 : 0,
+                    }}
+                  >
+                    <div className="vc-form-group" style={{ marginBottom: 0 }}>
+                      {index === 0 && <label>Select Video</label>}
+                      {index > 0 && <label style={{ visibility: 'hidden', height: 0, display: 'block', margin: 0 }}>Select Video</label>}
+                      <select
+                        className="vc-select"
+                        value={item.targetVideoId}
+                        disabled={!form.collectionName}
+                        onChange={(e) => updateRow(index, 'targetVideoId', e.target.value)}
+                      >
+                        <option value="">Select Video File</option>
+                        {getAvailableVideos(item).map((v) => (
+                          <option key={v.id} value={v.id}>{v.title} ({formatDuration(v.duration)})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="vc-form-group" style={{ marginBottom: 0 }}>
+                      {index === 0 && <label>Title <span style={{ color: 'red' }}>*</span></label>}
+                      {index > 0 && <label style={{ visibility: 'hidden', height: 0, display: 'block', margin: 0 }}>Title</label>}
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                          type="text"
+                          className="vc-input"
+                          value={item.titleName}
+                          placeholder="Enter video title"
+                          maxLength={80}
+                          onChange={(e) => updateRow(index, 'titleName', e.target.value)}
+                        />
+                        {videoItems.length > 1 && (
+                          <button
+                            type="button"
+                            className="vc-btn-row-remove"
+                            onClick={() => removeRow(index)}
+                            title="Remove Row"
+                          >
+                            <i className="ti ti-close" />
+                          </button>
+                        )}
+                        {index === videoItems.length - 1 && videoItems.length < videosInFolder.length && (
+                          <button
+                            type="button"
+                            className="vc-btn-row-add"
+                            onClick={addRow}
+                            title="Add Row"
+                          >
+                            <i className="ti ti-plus" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </form>
+        </div>
+        <div className="crispr-modal-footer">
+          <button type="button" className="btn-modal-cancel" onClick={onClose}>Cancel</button>
+          <button
+            type="button"
+            className="btn-modal-save"
+            disabled={!isComplete()}
+            onClick={() => { onSave(form, videoItems); }}
+          >
+            <i className="ti ti-save" /> Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Main Page ----
 export default function VideoContentPage() {
   const [videos, setVideos] = useState(videoLibraryDemo);
-  const [filters, setFilters] = useState({ searchText: '', subject: '', chapterId: '', instructorId: '' });
-  const [showUpload, setShowUpload] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [filterSubject, setFilterSubject] = useState('');
+  const [filterChapter, setFilterChapter] = useState('');
+  const [filterInstructor, setFilterInstructor] = useState('');
+  const [sortKey, setSortKey] = useState('titleName');
+  const [sortDir, setSortDir] = useState('asc');
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [editVideo, setEditVideo] = useState(null);
+  const [showLink, setShowLink] = useState(false);
+  const [viewVideo, setViewVideo] = useState(null);
   const [toasts, setToasts] = useState([]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
+  }, []);
 
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
-    setToasts((current) => [...current, { id, type, title, message }]);
-    window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4000);
+    setToasts((cur) => [...cur, { id, type, title, message }]);
+    window.setTimeout(() => setToasts((cur) => cur.filter((t) => t.id !== id)), 4000);
   }
 
-  const filtered = useMemo(() => videos.filter((video) => {
-    if (filters.subject && video.subject !== filters.subject) return false;
-    if (filters.chapterId && video.chapterId !== filters.chapterId) return false;
-    if (filters.instructorId && video.instructorId !== filters.instructorId) return false;
-    if (!filters.searchText.trim()) return true;
-    const query = filters.searchText.trim().toLowerCase();
-    return [video.titleName, video.videoDisplayKey].some((value) => String(value).toLowerCase().includes(query));
-  }), [videos, filters]);
+  function dismissToast(id) {
+    setToasts((cur) => cur.filter((t) => t.id !== id));
+  }
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setCurrentPage(1);
+  }
+
+  function SortIcon({ col }) {
+    if (sortKey !== col) return <i className="ti ti-arrows-vertical" style={{ marginLeft: 5, opacity: 0.4, fontSize: 11 }} />;
+    return <i className={`ti ti-arrow-${sortDir === 'asc' ? 'up' : 'down'}`} style={{ marginLeft: 5, fontSize: 11 }} />;
+  }
+
+  const subjectOptions = [
+    { value: '', label: 'All Subjects' },
+    ...SUBJECTS.map((s) => ({ value: s, label: s })),
+  ];
+
+  const chapterOptions = useMemo(() => {
+    const list = filterSubject ? CHAPTERS[filterSubject] || [] : Object.values(CHAPTERS).flat();
+    return [{ value: '', label: 'All Chapters' }, ...list.map((c) => ({ value: c, label: c }))];
+  }, [filterSubject]);
+
+  const instructorOptions = [
+    { value: '', label: 'All Instructors' },
+    ...instructorsDemo.map((i) => ({ value: i.id, label: i.name })),
+  ];
+
+  const filteredVideos = useMemo(() => {
+    let result = videos.filter((v) => {
+      if (filterSubject && v.classificationLevel1 !== filterSubject) return false;
+      if (filterChapter && v.classificationLevel2 !== filterChapter) return false;
+      if (filterInstructor && v.instructorId !== filterInstructor) return false;
+      if (searchText.trim()) {
+        const q = searchText.trim().toLowerCase();
+        if (![v.titleName, v.videoDisplayKey, String(v.videoId)].some((s) => String(s).toLowerCase().includes(q))) return false;
+      }
+      return true;
+    });
+
+    result = [...result].sort((a, b) => {
+      let av = a[sortKey] ?? '';
+      let bv = b[sortKey] ?? '';
+      if (sortKey === 'durationInSeconds') {
+        av = Number(av); bv = Number(bv);
+      } else {
+        av = String(av).toLowerCase(); bv = String(bv).toLowerCase();
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [videos, searchText, filterSubject, filterChapter, filterInstructor, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredVideos.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * pageSize;
+  const paginatedVideos = filteredVideos.slice(startIdx, startIdx + pageSize);
+
+  function goToPage(p) { setCurrentPage(Math.max(1, Math.min(p, totalPages))); }
+
+  function pageNumbers() {
+    const pages = [];
+    const range = 2;
+    for (let i = Math.max(1, safePage - range); i <= Math.min(totalPages, safePage + range); i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  function handleCopyKey(key) {
+    navigator.clipboard.writeText(key).then(() => {
+      showToast('success', 'Copied', `Key "${key}" copied to clipboard.`);
+    });
+  }
+
+  function handleDelete(video) {
+    setVideos((cur) => cur.filter((v) => v.id !== video.id));
+    showToast('success', 'Deleted', `"${video.titleName}" has been removed.`);
+  }
+
+  function handleSaveEdit(updated) {
+    setVideos((cur) => cur.map((v) => (v.id === updated.id ? updated : v)));
+    setEditVideo(null);
+    showToast('success', 'Saved', `"${updated.titleName}" updated successfully.`);
+  }
+
+  function handleSaveLink(form, items) {
+    const newEntries = items
+      .filter((it) => it.titleName.trim())
+      .map((it, i) => ({
+        id: `VID-NEW-${Date.now()}-${i}`,
+        videoId: Math.floor(Math.random() * 9000) + 1000,
+        titleName: it.titleName.trim(),
+        videoDisplayKey: `VID-${form.classificationLevel1?.slice(0, 3).toUpperCase() || 'NEW'}-${Math.floor(Math.random() * 900) + 100}`,
+        chapterId: form.classificationLevel2,
+        subject: form.classificationLevel1,
+        classificationLevel1: form.classificationLevel1,
+        classificationLevel2: form.classificationLevel2,
+        instructorId: form.instructorId,
+        instructorName: instructorsDemo.find((i) => i.id === form.instructorId)?.name || '',
+        durationInSeconds: 0,
+        status: 'uploading',
+        createdOn: new Date().toISOString(),
+        collectionName: form.collectionName,
+        thumbnail: '',
+      }));
+    setVideos((cur) => [...newEntries, ...cur]);
+    setShowLink(false);
+    showToast('success', 'Video Classified', `${newEntries.length} video(s) added successfully.`);
+  }
+
+  const skeletonRows = Array.from({ length: Math.min(5, pageSize) });
 
   return (
-    <section className="screen-card">
-      <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
-      <div className="hero-row">
-        <div><p className="eyebrow">Video Library</p><h3>Video Content</h3><p className="muted-copy">Manage linked videos, chapter metadata, and upload state.</p></div>
-        <button type="button" className="primary-button" onClick={() => setShowUpload(true)}>Upload / Link Video</button>
+    <section className="video-content-page screen-card">
+      <ToastRegion toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Page Header */}
+      <div className="vc-page-header">
+        <div className="vc-page-header-left">
+          <p className="vc-eyebrow"><i className="ti ti-video-clapper" /> Video Library</p>
+          <h3 className="vc-page-title">Video Content</h3>
+          <p className="vc-page-subtitle">Manage linked videos, chapter metadata, and upload state.</p>
+        </div>
+        <div className="vc-page-header-right">
+          <button type="button" className="vc-btn-add-new" onClick={() => setShowLink(true)}>
+            <i className="ti ti-plus" /> Add New
+          </button>
+        </div>
       </div>
-      <div className="report-filter-grid">
-        <div className="search-shell"><input className="search-input" placeholder="Search videos..." value={filters.searchText} onChange={(event) => setFilters((current) => ({ ...current, searchText: event.target.value }))} /></div>
-        <select className="filter-select" value={filters.subject} onChange={(event) => setFilters((current) => ({ ...current, subject: event.target.value }))}><option value="">All Subjects</option><option value="Biology">Biology</option><option value="Chemistry">Chemistry</option><option value="Mathematics">Mathematics</option></select>
+
+      {/* Filter Bar */}
+      <div className="filter-bar">
+        <div className="search-wrapper">
+          <i
+            className={`ti ${searchText ? 'ti-close' : 'ti-search'}`}
+            onClick={() => { setSearchText(''); setCurrentPage(1); }}
+            style={{ cursor: searchText ? 'pointer' : 'default' }}
+          />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search videos..."
+            value={searchText}
+            onChange={(e) => { setSearchText(e.target.value); setCurrentPage(1); }}
+          />
+        </div>
+        <FilterDropdown
+          label="All Subjects"
+          options={subjectOptions}
+          value={filterSubject}
+          onChange={(v) => { setFilterSubject(v); setFilterChapter(''); setCurrentPage(1); }}
+        />
+        <FilterDropdown
+          label="All Chapters"
+          options={chapterOptions}
+          value={filterChapter}
+          onChange={(v) => { setFilterChapter(v); setCurrentPage(1); }}
+        />
+        <FilterDropdown
+          label="All Instructors"
+          options={instructorOptions}
+          value={filterInstructor}
+          onChange={(v) => { setFilterInstructor(v); setCurrentPage(1); }}
+        />
       </div>
-      <div className="student-table-shell">
-        <table className="student-table">
-          <thead><tr><th>Title</th><th>Key</th><th>Subject</th><th>Instructor</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody>
-            {filtered.map((video) => (
-              <tr key={video.id}>
-                <td><strong>{video.titleName}</strong><div className="student-subtle">{video.collectionName}</div></td>
-                <td>{video.videoDisplayKey}</td>
-                <td>{video.subject}</td>
-                <td>{video.instructorName}</td>
-                <td>{Math.floor(video.durationInSeconds / 60)} min</td>
-                <td><span className={`status-pill ${video.status === 'ready' ? 'active' : 'expiring-soon'}`}>{video.status}</span></td>
-                <td><div className="action-row"><button type="button" className="table-button" onClick={() => showToast('info', 'Preview Opened', `Previewing ${video.titleName}`)}>Preview</button><button type="button" className="table-button" onClick={() => showToast('success', 'Video Linked', `${video.titleName} linked successfully.`)}>Link</button></div></td>
-              </tr>
-            ))}
-          </tbody>
+
+      {/* Table */}
+      <div className="crispr-table-container">
+        <table className="crispr-table">
+          <thead>
+            <tr>
+              <th>Thumbnail</th>
+              <th className="sortable" onClick={() => handleSort('titleName')}>
+                Video Details <SortIcon col="titleName" />
+              </th>
+              <th className="sortable" onClick={() => handleSort('durationInSeconds')}>
+                Duration <SortIcon col="durationInSeconds" />
+              </th>
+              <th className="sortable" onClick={() => handleSort('classificationLevel1')}>
+                Classification <SortIcon col="classificationLevel1" />
+              </th>
+              <th className="sortable" onClick={() => handleSort('status')}>
+                Status <SortIcon col="status" />
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          {isLoading ? (
+            <tbody>
+              {skeletonRows.map((_, i) => (
+                <tr key={`skel-${i}`}>
+                  <td>
+                    <div className="vc-skeleton thumb"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                  <td>
+                    <div className="vc-skeleton medium" style={{ marginBottom: 6 }}><div className="vc-skeleton-shimmer" /></div>
+                    <div className="vc-skeleton short"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                  <td>
+                    <div className="vc-skeleton short"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                  <td>
+                    <div className="vc-skeleton medium"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                  <td>
+                    <div className="vc-skeleton badge"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                  <td>
+                    <div className="vc-skeleton short"><div className="vc-skeleton-shimmer" /></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          ) : (
+            <tbody>
+              {paginatedVideos.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: 30, color: '#999' }}>
+                    No videos found matching your filters.
+                  </td>
+                </tr>
+              ) : (
+                paginatedVideos.map((video) => (
+                  <tr key={video.id}>
+                    <td>
+                      {video.thumbnail ? (
+                        <img
+                          src={video.thumbnail}
+                          alt="Video thumbnail"
+                          className="vc-thumbnail"
+                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        />
+                      ) : null}
+                      <div
+                        className="vc-thumbnail-placeholder"
+                        style={{ display: video.thumbnail ? 'none' : 'flex' }}
+                      >
+                        <i className="ti ti-video-clapper" />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="profile-name">{video.titleName}</div>
+                      <div className="profile-subtext">
+                        ID: {video.videoId} | Key: {video.videoDisplayKey}
+                        <span
+                          className="vc-copy-icon"
+                          title="Copy Key"
+                          onClick={() => handleCopyKey(video.videoDisplayKey)}
+                        >
+                          <i className="ti ti-files" />
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="profile-subtext" style={{ fontSize: 13 }}>
+                        <i className="ti ti-time" /> {formatDuration(video.durationInSeconds)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="vc-classification">
+                        {video.classificationLevel1 && (
+                          <span className="vc-badge vc-badge-l1">L1: {video.classificationLevel1}</span>
+                        )}
+                        {video.classificationLevel2 && (
+                          <span className="vc-badge vc-badge-l2">L2: {video.classificationLevel2}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`crispr-status ${video.status === 'ready' ? 'active' : 'inactive'}`}>
+                        {video.status === 'ready' ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <KebabMenu
+                        onView={() => setViewVideo(video)}
+                        onEdit={() => setEditVideo(video)}
+                        onDelete={() => handleDelete(video)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          )}
         </table>
+
+        {!isLoading && filteredVideos.length > 0 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>
+                Showing {startIdx + 1} to {Math.min(startIdx + pageSize, filteredVideos.length)} of {filteredVideos.length} videos
+              </span>
+              <select
+                className="page-size-select"
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+              >
+                {[10, 20, 50, 200].map((s) => (
+                  <option key={s} value={s}>Show {s}</option>
+                ))}
+              </select>
+            </div>
+            <div className="pagination-controls">
+              <button
+                type="button"
+                className="pagination-btn"
+                disabled={safePage === 1}
+                onClick={() => goToPage(safePage - 1)}
+              >
+                <i className="ti ti-angle-left" /> Previous
+              </button>
+              {pageNumbers().map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`pagination-btn${p === safePage ? ' active' : ''}`}
+                  onClick={() => goToPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="pagination-btn"
+                disabled={safePage === totalPages}
+                onClick={() => goToPage(safePage + 1)}
+              >
+                Next <i className="ti ti-angle-right" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      {showUpload ? <div className="modal-scrim" role="presentation" onClick={() => setShowUpload(false)}><div className="modal-card" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><p className="eyebrow">Upload Video</p><h4>Queue a new upload</h4><div className="detail-panel"><p className="muted-copy">The legacy page supports both direct uploads and linked videos. This port keeps the workflow entry point and metadata capture.</p></div><div className="action-row"><button type="button" className="ghost-button" onClick={() => setShowUpload(false)}>Cancel</button><button type="button" className="primary-button" onClick={() => { setShowUpload(false); showToast('success', 'Upload Queued', 'Video upload queued successfully.'); }}>Queue Upload</button></div></div></div> : null}
+
+      {/* View Modal */}
+      {viewVideo && (
+        <div className="crispr-modal-backdrop active" onClick={() => setViewVideo(null)}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 600 }} onClick={(e) => e.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-eye" /> Video Details</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setViewVideo(null)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body" style={{ padding: 25 }}>
+              <div className="vc-view-grid">
+                <div className="vc-view-video">
+                  <div className="vc-video-placeholder large">
+                    <i className="ti ti-video-clapper" />
+                    <p>Video Preview</p>
+                    <span>{viewVideo.videoDisplayKey}</span>
+                  </div>
+                </div>
+                <table className="vc-detail-table">
+                  <tbody>
+                    <tr><td><strong>Title</strong></td><td>{viewVideo.titleName}</td></tr>
+                    <tr><td><strong>Video ID</strong></td><td>{viewVideo.videoId}</td></tr>
+                    <tr><td><strong>Key</strong></td><td><span className="vc-mono">{viewVideo.videoDisplayKey}</span></td></tr>
+                    <tr><td><strong>Duration</strong></td><td>{formatDuration(viewVideo.durationInSeconds)}</td></tr>
+                    <tr><td><strong>Subject</strong></td><td>{viewVideo.classificationLevel1 || '—'}</td></tr>
+                    <tr><td><strong>Chapter</strong></td><td>{viewVideo.classificationLevel2 || '—'}</td></tr>
+                    <tr><td><strong>Instructor</strong></td><td>{viewVideo.instructorName || '—'}</td></tr>
+                    <tr><td><strong>Collection</strong></td><td>{viewVideo.collectionName || '—'}</td></tr>
+                    <tr>
+                      <td><strong>Status</strong></td>
+                      <td>
+                        <span className={`crispr-status ${viewVideo.status === 'ready' ? 'active' : 'inactive'}`}>
+                          {viewVideo.status === 'ready' ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn-modal-cancel" onClick={() => setViewVideo(null)}>Close</button>
+              <button type="button" className="btn-modal-save" onClick={() => { setViewVideo(null); setEditVideo(viewVideo); }}>
+                <i className="ti ti-pencil" /> Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editVideo && (
+        <EditVideoModal
+          video={editVideo}
+          onClose={() => setEditVideo(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
+
+      {/* Link/Classify Video Modal */}
+      {showLink && (
+        <LinkVideoModal
+          onClose={() => setShowLink(false)}
+          onSave={handleSaveLink}
+        />
+      )}
     </section>
   );
 }
