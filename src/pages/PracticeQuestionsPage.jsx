@@ -44,8 +44,24 @@ function fmtDate(ts) { if (!ts) return 'N/A'; const d = new Date(ts); const m = 
 function sanitizeLabel(label) { return (label || '').trim().replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, ''); }
 
 /* ── LocalStorage persistence ── */
-function loadQuestions() { try { return JSON.parse(localStorage.getItem('practiceQuestions') || '[]'); } catch { return []; } }
-function saveQuestions(questions) { try { localStorage.setItem('practiceQuestions', JSON.stringify(questions)); } catch (e) { console.error('Error saving:', e); } }
+function loadQuestions() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('practiceQuestions') || '[]');
+    if (stored.length > 0) return stored;
+  } catch { /* parse error */ }
+  // Fallback: in-memory cache (if localStorage quota was exceeded)
+  if (window.__practiceQuestionsCache?.length > 0) return window.__practiceQuestionsCache;
+  return [];
+}
+function saveQuestions(questions) {
+  try {
+    localStorage.setItem('practiceQuestions', JSON.stringify(questions));
+  } catch (e) {
+    console.error('Error saving to localStorage:', e);
+    // Store in memory fallback so SPA navigation still works
+    window.__practiceQuestionsCache = questions;
+  }
+}
 
 /* ── Find last content line for image cropping ── */
 function findLastContentLine(ctx, w, h) {
@@ -283,7 +299,9 @@ export default function PracticeQuestionsPage() {
   const createQuiz = () => {
     if (selectedBatchCount === 0) { showToast('info', 'Info', 'Select at least one bundle.'); return; }
     const param = encodeURIComponent('[' + selectedBatchIds.join(',') + ']');
-    navigate(`/quiz-creation?bundlesSelected=${param}`);
+    // Pass questions via route state so quiz-creation gets in-memory data
+    // even if localStorage quota was exceeded for large image payloads
+    navigate(`/quiz-creation?bundlesSelected=${param}`, { state: { questions } });
   };
 
   /* ── Load PDF.js worker on mount ── */

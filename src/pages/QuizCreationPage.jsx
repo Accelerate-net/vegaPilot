@@ -39,9 +39,23 @@ export default function QuizCreationPage() {
   const [toasts, setToasts] = useState([]);
   const customFileRef = useRef(null);
 
-  // Load questions from localStorage (shared with practice-questions)
+  // Load questions: prefer route state (from practice-questions navigate),
+  // then localStorage, then in-memory cache (if localStorage quota was exceeded)
   const [allQuestions] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('practiceQuestions') || '[]'); } catch { return []; }
+    // 1. Route state: passed directly from PracticeQuestionsPage via navigate({ state })
+    if (location.state?.questions?.length > 0) {
+      return location.state.questions;
+    }
+    // 2. localStorage: standard persistence
+    try {
+      const stored = JSON.parse(localStorage.getItem('practiceQuestions') || '[]');
+      if (stored.length > 0) return stored;
+    } catch { /* parse error */ }
+    // 3. Memory cache: fallback when localStorage quota was exceeded
+    if (window.__practiceQuestionsCache?.length > 0) {
+      return window.__practiceQuestionsCache;
+    }
+    return [];
   });
 
   const [customQuestions, setCustomQuestions] = useState([]);
