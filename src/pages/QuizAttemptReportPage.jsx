@@ -610,8 +610,7 @@ export default function QuizAttemptReportPage() {
           </table>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="qar-pagination">
+          <div className="qar-pagination">
               <div className="qar-pagination-info">
                 Showing <strong>{(safePage - 1) * pageSize + 1}</strong> to{' '}
                 <strong>{Math.min(safePage * pageSize, filteredRankings.length)}</strong> of{' '}
@@ -657,7 +656,6 @@ export default function QuizAttemptReportPage() {
                 </div>
               </div>
             </div>
-          )}
         </div>
       ) : (
         <div className="qar-empty-state">
