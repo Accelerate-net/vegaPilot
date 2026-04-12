@@ -10050,6 +10050,1107 @@ input {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   EXAM ATTEMPT REPORT PAGE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Header Card ── */
+.exam-attempt-report-page .ear-header-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.exam-attempt-report-page .ear-header-top {
+  background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
+  padding: 15px 20px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.exam-attempt-report-page .ear-header-main {
+  flex: 2;
+  min-width: 200px;
+  padding-right: 20px;
+  border-right: 1px solid rgba(255,255,255,0.15);
+  margin-right: 20px;
+}
+
+.exam-attempt-report-page .ear-header-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exam-attempt-report-page .ear-header-title i {
+  opacity: 0.9;
+  font-size: 18px;
+}
+
+.exam-attempt-report-page .ear-header-desc {
+  margin: 0 0 8px;
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+.exam-attempt-report-page .ear-section-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exam-attempt-report-page .ear-section-chip {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.exam-attempt-report-page .ear-header-info-group {
+  display: flex;
+  gap: 12px;
+  flex: 3;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.exam-attempt-report-page .ear-header-info-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(5px);
+  transition: background 0.2s;
+  min-width: 100px;
+}
+
+.exam-attempt-report-page .ear-header-info-item:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.exam-attempt-report-page .ear-header-info-icon {
+  font-size: 18px;
+  margin-right: 10px;
+  height: 32px;
+  width: 32px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.exam-attempt-report-page .ear-header-info-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-attempt-report-page .ear-header-info-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 2px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: white;
+  line-height: 1;
+}
+
+.exam-attempt-report-page .ear-header-info-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.exam-attempt-report-page .ear-header-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.exam-attempt-report-page .ear-back-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exam-attempt-report-page .ear-back-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* ── Stats Row ── */
+.exam-attempt-report-page .ear-header-body {
+  padding: 15px 20px;
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.exam-attempt-report-page .ear-stat-card {
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.exam-attempt-report-page .ear-stat-card:hover {
+  border-color: #006073;
+  background: #f0f8fa;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.exam-attempt-report-page .ear-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.exam-attempt-report-page .ear-stat-indigo {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.exam-attempt-report-page .ear-stat-green {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.exam-attempt-report-page .ear-stat-orange {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.exam-attempt-report-page .ear-stat-teal {
+  background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+}
+
+.exam-attempt-report-page .ear-stat-info h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.1;
+}
+
+.exam-attempt-report-page .ear-stat-info p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ── Filter Section ── */
+.exam-attempt-report-page .ear-filter-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.exam-attempt-report-page .ear-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.exam-attempt-report-page .ear-filter-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exam-attempt-report-page .ear-clear-filters-btn {
+  padding: 6px 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+
+.exam-attempt-report-page .ear-clear-filters-btn:hover {
+  border-color: #006073;
+  color: #006073;
+}
+
+.exam-attempt-report-page .ear-filter-row-1 {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.exam-attempt-report-page .ear-filter-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.exam-attempt-report-page .ear-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exam-attempt-report-page .ear-filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.exam-attempt-report-page .ear-filter-input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  color: #333;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.exam-attempt-report-page .ear-filter-input:focus {
+  border-color: #006073;
+  box-shadow: 0 0 0 3px rgba(0,96,115,0.1);
+}
+
+/* ── Batch Multiselect ── */
+.exam-attempt-report-page .ear-batch-multiselect {
+  position: relative;
+}
+
+.exam-attempt-report-page .ear-batch-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  height: 38px;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.exam-attempt-report-page .ear-batch-trigger:hover:not(.disabled) {
+  border-color: #006073;
+}
+
+.exam-attempt-report-page .ear-batch-trigger.disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.exam-attempt-report-page .ear-batch-count {
+  background: #006073;
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.exam-attempt-report-page .ear-batch-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  margin-top: 4px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.exam-attempt-report-page .ear-batch-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-batch-select-all {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #006073;
+  color: white;
+}
+
+.exam-attempt-report-page .ear-batch-clear-all {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #e9ecef;
+  color: #495057;
+}
+
+.exam-attempt-report-page .ear-batch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+  font-size: 13px;
+  color: #333;
+}
+
+.exam-attempt-report-page .ear-batch-item:hover {
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-batch-item:last-child {
+  border-bottom: none;
+}
+
+.exam-attempt-report-page .ear-batch-item.selected {
+  background: #e3f2f5;
+}
+
+.exam-attempt-report-page .ear-batch-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.exam-attempt-report-page .ear-batch-empty {
+  padding: 15px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+/* ── Active Filters ── */
+.exam-attempt-report-page .ear-active-filters {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.exam-attempt-report-page .ear-active-filters-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.exam-attempt-report-page .ear-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: #e7f5f7;
+  color: #006073;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #b3dce3;
+}
+
+.exam-attempt-report-page .ear-filter-badge button {
+  background: none;
+  border: none;
+  color: #006073;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  font-size: 10px;
+}
+
+.exam-attempt-report-page .ear-filter-badge button:hover {
+  opacity: 1;
+}
+
+/* ── Action Row ── */
+.exam-attempt-report-page .ear-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 15px;
+}
+
+.exam-attempt-report-page .ear-record-count {
+  color: #6c757d;
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.exam-attempt-report-page .ear-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.exam-attempt-report-page .ear-btn-reevaluate {
+  background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+}
+
+.exam-attempt-report-page .ear-btn-reevaluate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exam-attempt-report-page .ear-btn-export {
+  background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+}
+
+.exam-attempt-report-page .ear-btn-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Rank Table ── */
+.exam-attempt-report-page .ear-table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.exam-attempt-report-page .ear-rank-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.exam-attempt-report-page .ear-rank-table thead {
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-rank-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e9ecef;
+  white-space: nowrap;
+}
+
+.exam-attempt-report-page .ear-th-sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 28px !important;
+  transition: background 0.15s;
+}
+
+.exam-attempt-report-page .ear-th-sortable:hover {
+  background: #e9ecef;
+}
+
+.exam-attempt-report-page .ear-th-active {
+  color: #006073;
+}
+
+.exam-attempt-report-page .ear-sort-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.35;
+  font-size: 12px;
+}
+
+.exam-attempt-report-page .ear-th-active .ear-sort-icon {
+  opacity: 1;
+  color: #006073;
+}
+
+.exam-attempt-report-page .ear-rank-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f3f5;
+  vertical-align: middle;
+}
+
+.exam-attempt-report-page .ear-rank-table tbody tr {
+  transition: background 0.15s;
+}
+
+.exam-attempt-report-page .ear-rank-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-rank-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Rank Badge ── */
+.exam-attempt-report-page .ear-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.exam-attempt-report-page .ear-rank-1 { background: #ffd700; color: #333; }
+.exam-attempt-report-page .ear-rank-2 { background: #c0c0c0; color: #333; }
+.exam-attempt-report-page .ear-rank-3 { background: #cd7f32; color: white; }
+.exam-attempt-report-page .ear-rank-other { background: #e9ecef; color: #495057; }
+
+/* ── Status Badge ── */
+.exam-attempt-report-page .ear-status-badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.exam-attempt-report-page .ear-status-completed { background: #d4edda; color: #155724; }
+.exam-attempt-report-page .ear-status-in-progress { background: #fff3cd; color: #856404; }
+
+/* ── Score Badge ── */
+.exam-attempt-report-page .ear-score-badge {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.exam-attempt-report-page .ear-score-excellent { background: #d4edda; color: #155724; }
+.exam-attempt-report-page .ear-score-good { background: #d1ecf1; color: #0c5460; }
+.exam-attempt-report-page .ear-score-average { background: #fff3cd; color: #856404; }
+.exam-attempt-report-page .ear-score-poor { background: #f8d7da; color: #721c24; }
+
+/* ── Table utility cells ── */
+.exam-attempt-report-page .ear-td-mono { font-family: monospace; font-size: 12px; color: #495057; }
+.exam-attempt-report-page .ear-td-muted { color: #6c757d; }
+.exam-attempt-report-page .ear-td-datetime { font-size: 12px; color: #495057; }
+
+/* ── Kebab Menu ── */
+.exam-attempt-report-page .ear-kebab-container {
+  position: relative;
+}
+
+.exam-attempt-report-page .ear-kebab-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  background: white;
+  color: #6c757d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.15s;
+}
+
+.exam-attempt-report-page .ear-kebab-button:hover {
+  border-color: #006073;
+  color: #006073;
+  background: #f0f8fa;
+}
+
+.exam-attempt-report-page .ear-kebab-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 200;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.exam-attempt-report-page .ear-kebab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.exam-attempt-report-page .ear-kebab-item:hover { background: #f8f9fa; }
+.exam-attempt-report-page .ear-kebab-download { color: #006073; }
+.exam-attempt-report-page .ear-kebab-download:hover { background: #e3f2f5; }
+.exam-attempt-report-page .ear-kebab-reset { color: #dc3545; }
+.exam-attempt-report-page .ear-kebab-reset:hover { background: #fdf3f4; }
+
+/* ── Pagination ── */
+.exam-attempt-report-page .ear-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.exam-attempt-report-page .ear-pagination-info {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.exam-attempt-report-page .ear-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.exam-attempt-report-page .ear-page-btn {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 36px;
+  transition: all 0.12s;
+}
+
+.exam-attempt-report-page .ear-page-btn:hover:not(:disabled) {
+  border-color: #006073;
+  color: #006073;
+}
+
+.exam-attempt-report-page .ear-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exam-attempt-report-page .ear-page-active {
+  background: #006073 !important;
+  color: white !important;
+  border-color: #006073 !important;
+}
+
+.exam-attempt-report-page .ear-page-ellipsis {
+  padding: 6px 8px;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.exam-attempt-report-page .ear-page-size-select {
+  padding: 6px 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+}
+
+/* ── Empty State ── */
+.exam-attempt-report-page .ear-empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.exam-attempt-report-page .ear-empty-state i {
+  font-size: 64px;
+  color: #dee2e6;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.exam-attempt-report-page .ear-empty-state h4 { color: #495057; margin-bottom: 8px; font-size: 18px; }
+.exam-attempt-report-page .ear-empty-state p { color: #6c757d; font-size: 14px; margin: 0; }
+
+/* ── Modals ── */
+.exam-attempt-report-page .ear-modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.exam-attempt-report-page .ear-modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.exam-attempt-report-page .ear-modal-wide { max-width: 680px; }
+
+.exam-attempt-report-page .ear-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: 12px 12px 0 0;
+}
+
+.exam-attempt-report-page .ear-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exam-attempt-report-page .ear-modal-header-teal {
+  background: linear-gradient(135deg, #006073 0%, #005a6b 100%);
+}
+
+.exam-attempt-report-page .ear-modal-header-orange {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.exam-attempt-report-page .ear-modal-close {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.exam-attempt-report-page .ear-modal-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.exam-attempt-report-page .ear-modal-body { padding: 20px; }
+
+.exam-attempt-report-page .ear-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.exam-attempt-report-page .ear-btn-default {
+  padding: 10px 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.exam-attempt-report-page .ear-btn-default:hover {
+  border-color: #adb5bd;
+  background: #f8f9fa;
+}
+
+.exam-attempt-report-page .ear-modal-center { text-align: center; padding: 10px 0; }
+
+.exam-attempt-report-page .ear-modal-icon-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.exam-attempt-report-page .ear-icon-warning { background: #fff3cd; }
+.exam-attempt-report-page .ear-icon-teal { background: linear-gradient(135deg, #e3f2f5 0%, #d0e8ed 100%); }
+
+.exam-attempt-report-page .ear-modal-heading { margin: 0 0 10px; color: #333; font-size: 18px; }
+
+.exam-attempt-report-page .ear-modal-subtext {
+  color: #6c757d;
+  font-size: 14px;
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.exam-attempt-report-page .ear-modal-info-box {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.exam-attempt-report-page .ear-modal-info-title {
+  font-size: 13px;
+  color: #495057;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.exam-attempt-report-page .ear-modal-info-list {
+  margin: 0;
+  padding-left: 25px;
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.8;
+}
+
+.exam-attempt-report-page .ear-modal-warning-box {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.exam-attempt-report-page .ear-modal-filter-notice {
+  background: #e3f2f5;
+  border: 1px solid #006073;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* ── Export Columns Grid ── */
+.exam-attempt-report-page .ear-export-columns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.exam-attempt-report-page .ear-export-col-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  transition: all 0.15s;
+}
+
+.exam-attempt-report-page .ear-export-col-label.checked { background: #e3f2f5; border-color: #006073; }
+.exam-attempt-report-page .ear-export-col-label.locked { opacity: 0.7; }
+
+.exam-attempt-report-page .ear-export-col-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.exam-attempt-report-page .ear-export-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.exam-attempt-report-page .ear-select-all-btn {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #006073;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ── Attempt Detail Grid ── */
+.exam-attempt-report-page .ear-attempt-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.exam-attempt-report-page .ear-attempt-detail-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.exam-attempt-report-page .ear-attempt-detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.exam-attempt-report-page .ear-attempt-detail-value {
+  font-size: 14px;
+  color: #333;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .exam-attempt-report-page .ear-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .exam-attempt-report-page .ear-header-main {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+    width: 100%;
+  }
+
+  .exam-attempt-report-page .ear-header-info-group { width: 100%; }
+
+  .exam-attempt-report-page .ear-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .exam-attempt-report-page .ear-filter-row-1 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .exam-attempt-report-page .ear-filter-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-attempt-report-page .ear-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .exam-attempt-report-page .ear-attempt-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-attempt-report-page .ear-export-columns-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    QUIZ ATTEMPT REPORT PAGE
    Shared table pattern with candidate-profile-page — keep .students-table-
@@ -10905,6 +12006,77 @@ input {
   gap: 5px;
   font-size: 11px;
   color: #6c757d;
+}
+
+/* ── Crispr Modals ── */
+.quiz-attempt-report-page .crispr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+}
+.quiz-attempt-report-page .crispr-modal-dialog {
+  width: 90%;
+  max-width: 720px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+.quiz-attempt-report-page .crispr-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-radius: 12px 12px 0 0;
+  color: white;
+}
+.quiz-attempt-report-page .crispr-modal-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quiz-attempt-report-page .crispr-modal-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.quiz-attempt-report-page .crispr-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.quiz-attempt-report-page .crispr-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+.quiz-attempt-report-page .crispr-modal-footer {
+  padding: 15px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
 }
 
 /* ── Crispr Modal Overrides (for modal buttons inside this page) ── */
