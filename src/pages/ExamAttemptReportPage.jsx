@@ -680,8 +680,7 @@ export default function ExamAttemptReportPage() {
           </table>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="ear-pagination">
+          <div className="ear-pagination">
               <div className="ear-pagination-info">
                 Showing <strong>{startIndex}</strong> to <strong>{endIndex}</strong> of <strong>{filteredRankings.length}</strong> records
               </div>
@@ -725,7 +724,7 @@ export default function ExamAttemptReportPage() {
                 {[20, 50, 100, 200].map((size) => <option key={size} value={size}>{size} / page</option>)}
               </select>
             </div>
-          )}
+          </div>
         </div>
       ) : (
         <div className="ear-empty-state">
