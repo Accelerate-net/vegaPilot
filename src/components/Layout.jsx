@@ -25,6 +25,9 @@ export default function Layout({ children, currentScreen }) {
     });
   }
 
+  // ── Global Tooltip State (For collapsed hover) ─────────────────────
+  const [hoverTooltip, setHoverTooltip] = useState(null);
+
   // ── Group open/close state ─────────────────────────────────────────
   const activeGroupId = useMemo(() => {
     const s = protectedScreens.find((s) => s.path === location.pathname);
@@ -207,6 +210,7 @@ export default function Layout({ children, currentScreen }) {
                         collapsed={collapsed}
                         pinned
                         onTogglePin={togglePin}
+                        setHoverTooltip={setHoverTooltip}
                       />
                       {ind === 'after' && <div className="sb-drop-line" />}
                     </div>
@@ -224,20 +228,17 @@ export default function Layout({ children, currentScreen }) {
 
             return (
               <div key={group.id} className="sb-group">
-                <button
-                  type="button"
-                  title={collapsed ? group.label : undefined}
-                  className={`sb-group-hdr${hasActive ? ' has-active' : ''}${(isOpen && !collapsed) ? ' open' : ''}`}
-                  onClick={() => { if (!collapsed) toggleGroup(group.id); }}
-                >
-                  <i className={`fa ${group.icon} sb-icon`} />
-                  {!collapsed && (
-                    <>
-                      <span className="sb-label">{group.label}</span>
-                      <i className="fa fa-chevron-down sb-chevron" />
-                    </>
-                  )}
-                </button>
+                {!collapsed && (
+                  <button
+                    type="button"
+                    className={`sb-group-hdr${hasActive ? ' has-active' : ''}${isOpen ? ' open' : ''}`}
+                    onClick={() => toggleGroup(group.id)}
+                  >
+                    <i className={`fa ${group.icon} sb-icon`} />
+                    <span className="sb-label">{group.label}</span>
+                    <i className="fa fa-chevron-down sb-chevron" />
+                  </button>
+                )}
 
                 <div className={`sb-group-items${isOpen ? ' sb-group-items--open' : ''}`}>
                     {group.screens.map((screen) => (
@@ -247,6 +248,7 @@ export default function Layout({ children, currentScreen }) {
                         collapsed={collapsed}
                         pinned={pinnedPaths.includes(screen.path)}
                         onTogglePin={togglePin}
+                        setHoverTooltip={setHoverTooltip}
                       />
                     ))}
                   </div>
@@ -309,20 +311,46 @@ export default function Layout({ children, currentScreen }) {
       <main className="content">
         {children}
       </main>
+
+      {/* ── Global Tooltip Portal (Breaks out of overflow: hidden) ── */}
+      <div 
+        className={`sb-tooltip sb-tooltip-portal${hoverTooltip ? ' visible' : ''}`}
+        style={{
+          top: hoverTooltip ? hoverTooltip.top : -9999,
+          left: hoverTooltip ? hoverTooltip.left : -9999,
+        }}
+      >
+        {hoverTooltip?.text}
+      </div>
+
     </div>
   );
 }
 
 // ─── Individual nav item with pin button ──────────────────────────────────────
-function NavItem({ screen, collapsed, pinned, onTogglePin }) {
+function NavItem({ screen, collapsed, pinned, onTogglePin, setHoverTooltip }) {
   return (
-    <div className="sb-item-wrap">
+    <div 
+      className="sb-item-wrap"
+      onMouseEnter={(e) => {
+        if (collapsed) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setHoverTooltip({ text: screen.title, top: rect.top + rect.height / 2, left: rect.right + 10 });
+        }
+      }}
+      onMouseLeave={() => {
+        if (collapsed) setHoverTooltip(null);
+      }}
+    >
       <NavLink
         to={screen.path}
-        title={collapsed ? screen.title : undefined}
         className={({ isActive }) => `sb-item${isActive ? ' active' : ''}`}
       >
-        <i className={`fa ${screen.icon} sb-icon`} />
+        {collapsed ? (
+          <span className="sb-icon sb-short-code">{screen.shortCode || screen.title.substring(0, 2).toUpperCase()}</span>
+        ) : (
+          <i className={`fa ${screen.icon} sb-icon`} />
+        )}
         {!collapsed && <span className="sb-label">{screen.title}</span>}
       </NavLink>
       {!collapsed && (

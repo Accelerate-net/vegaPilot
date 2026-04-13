@@ -40,6 +40,7 @@ const screens = [
     protected: true,
     group: 'batches',
     icon: 'fa-object-group',
+    shortCode: 'BM',
     summary: 'Batch CRUD, course enrollments, and student assignment.',
   },
   {
@@ -50,6 +51,7 @@ const screens = [
     protected: true,
     group: 'batches',
     icon: 'fa-video-camera',
+    shortCode: 'LC',
     summary: 'Schedule, host, and moderate live interactive broadcast sessions.',
   },
 
@@ -62,6 +64,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-list-alt',
+    shortCode: 'CR',
     summary: 'Published course listing, filters, and deep links.',
   },
   {
@@ -72,6 +75,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-tasks',
+    shortCode: 'TS',
     summary: 'Test-series definition and exam assignments.',
   },
   {
@@ -82,6 +86,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-list-ul',
+    shortCode: 'QZ',
     summary: 'Quiz drafts, published quizzes, and report entry points.',
   },
   {
@@ -92,6 +97,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-database',
+    shortCode: 'QB',
     summary: 'Question review, verification, solution editing, and filters.',
   },
   {
@@ -102,6 +108,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-file-text-o',
+    shortCode: 'PQ',
     summary: 'PDF ingestion, OCR-assisted extraction, and quiz handoff.',
   },
   {
@@ -112,6 +119,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-video-camera',
+    shortCode: 'VL',
     summary: 'Bunny.net video upload, filtering, and collection management.',
   },
   {
@@ -122,6 +130,7 @@ const screens = [
     protected: true,
     group: 'academics',
     icon: 'fa-film',
+    shortCode: 'VH',
     summary: 'Folder-oriented Bunny.net admin surface.',
   },
 
@@ -134,6 +143,7 @@ const screens = [
     protected: true,
     group: 'people',
     icon: 'fa-users',
+    shortCode: 'ST',
     summary: 'Student listing, enrollment actions, and search.',
   },
   {
@@ -144,6 +154,7 @@ const screens = [
     protected: true,
     group: 'people',
     icon: 'fa-user-secret',
+    shortCode: 'MN',
     summary: 'Mentor CRUD plus assigned-student workflows.',
   },
   {
@@ -154,6 +165,7 @@ const screens = [
     protected: true,
     group: 'people',
     icon: 'fa-briefcase',
+    shortCode: 'IN',
     summary: 'Instructor CRUD and profile asset management.',
   },
 
@@ -166,6 +178,7 @@ const screens = [
     protected: true,
     group: 'commerce',
     icon: 'fa-shopping-cart',
+    shortCode: 'OR',
     summary: 'Order tracking, invoice actions, and student drill-down.',
   },
   {
@@ -176,6 +189,7 @@ const screens = [
     protected: true,
     group: 'commerce',
     icon: 'fa-th-large',
+    shortCode: 'CT',
     summary: 'Catalog entries, publishing, and asset upload workflow.',
   },
 
@@ -188,6 +202,7 @@ const screens = [
     protected: true,
     group: 'marketing',
     icon: 'fa-bullhorn',
+    shortCode: 'LD',
     summary: 'Lead tracking, follow-up calendar, and outreach actions.',
   },
   {
@@ -198,6 +213,7 @@ const screens = [
     protected: true,
     group: 'marketing',
     icon: 'fa-paper-plane',
+    shortCode: 'BMG',
     summary: 'Send bulk messages to students via multi-channel broadcasts.',
   },
   {
@@ -208,6 +224,7 @@ const screens = [
     protected: true,
     group: 'marketing',
     icon: 'fa-globe',
+    shortCode: 'WC',
     summary: 'Voucher and auto-enrollment management.',
   },
 
@@ -220,6 +237,7 @@ const screens = [
     protected: true,
     group: 'support',
     icon: 'fa-life-ring',
+    shortCode: 'SP',
     summary: 'Consolidated view for student support tickets and potential leads chats.',
   },
 
@@ -232,6 +250,7 @@ const screens = [
     protected: true,
     group: 'tools',
     icon: 'fa-star-half-o',
+    shortCode: 'FD',
     summary: 'Consolidated feedback aggregation and viewing portal.',
   },
   {
@@ -242,6 +261,7 @@ const screens = [
     protected: true,
     group: 'tools',
     icon: 'fa-bar-chart',
+    shortCode: 'SR',
     summary: 'Create custom surveys and view responses across targeted student batches.',
   },
   {
@@ -252,6 +272,7 @@ const screens = [
     protected: true,
     group: 'tools',
     icon: 'fa-money',
+    shortCode: 'IP',
     summary: 'Time tracking and payout calculations.',
   },
 

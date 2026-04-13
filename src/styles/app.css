@@ -102,7 +102,7 @@ input {
   width: 268px;
   min-width: 268px;
   flex-shrink: 0;
-  overflow: hidden;
+  z-index: 100;
   background: #ffffff;
   color: #1a1a2e;
   display: flex;
@@ -298,6 +298,42 @@ input {
   align-items: center;
 }
 
+/* Tooltip Portal (Global) */
+.sb-tooltip-portal {
+  position: fixed; /* breaks entirely out of DOM hierarchies */
+  transform: translateY(-50%) translateX(6px); /* initial slide position */
+  background: #1a1a2e; /* refined dark navy */
+  color: #ffffff;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10000;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sb-tooltip-portal::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #1a1a2e transparent transparent;
+}
+
+/* Trigger animation on active state */
+.sb-tooltip-portal.visible {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
 .sb-item {
   display: flex;
   align-items: center;
@@ -343,6 +379,15 @@ input {
   font-size: 15px;
   color: #6b7280;
   opacity: 1;
+}
+
+.sb-short-code {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Label — hidden in collapsed mode */
@@ -551,6 +596,15 @@ input {
   padding: 6px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 200;
+}
+
+.sidebar-collapsed .sb-profile-menu {
+  left: 60px;
+  right: auto;
+  bottom: 8px;
+  min-width: 220px;
+  transform-origin: bottom left;
+  box-shadow: 4px 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .sb-profile-menu-item {
