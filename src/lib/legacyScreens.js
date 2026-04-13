@@ -269,6 +269,16 @@ const screens = [
     icon: 'fa-globe',
     summary: 'Voucher and auto-enrollment management.',
   },
+  {
+    path: '/support',
+    title: 'Support Inbox',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'ops',
+    icon: 'fa-life-ring',
+    summary: 'Consolidated view for student support tickets and potential leads chats.',
+  },
 ];
 
 export const publicScreens = screens.filter((screen) => !screen.protected);

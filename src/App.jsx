@@ -29,6 +29,7 @@ import StudentManagementPage from './pages/StudentManagementPage';
 import TestSeriesListPage from './pages/TestSeriesListPage';
 import VerifyTokenPage from './pages/VerifyTokenPage';
 import WebContentManagerPage from './pages/WebContentManagerPage';
+import SupportPage from './pages/SupportPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
 import { getCachedUser } from './lib/userStore';
@@ -119,6 +120,9 @@ export default function App() {
     }
     if (screen.path === '/web-content-manager') {
       return <WebContentManagerPage />;
+    }
+    if (screen.path === '/support') {
+      return <SupportPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;
