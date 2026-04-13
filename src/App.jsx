@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import UserProvider from './components/UserProvider';
 import CandidateDetailPage from './pages/CandidateDetailPage';
 import CatalogPage from './pages/CatalogPage';
 import ExamAttemptReportPage from './pages/ExamAttemptReportPage';
@@ -30,12 +31,18 @@ import VerifyTokenPage from './pages/VerifyTokenPage';
 import WebContentManagerPage from './pages/WebContentManagerPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
+import { getCachedUser } from './lib/userStore';
+import { canAccess } from './lib/roles';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ screen, children }) {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
-
+  // Role-based access check (synchronous via cached user)
+  const user = getCachedUser();
+  if (user?.role && !canAccess(user.role, screen.path)) {
+    return <Navigate to={defaultProtectedRoute} replace />;
+  }
   return children;
 }
 
@@ -118,29 +125,31 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/login'} replace />} />
-      {publicScreens.map((screen) => (
-        <Route
-          key={screen.path}
-          path={screen.path}
-          element={screen.path === '/verify-token' ? <VerifyTokenPage /> : <LoginPage screen={screen} />}
-        />
-      ))}
-      {protectedScreens.map((screen) => (
-        <Route
-          key={screen.path}
-          path={screen.path}
-          element={
-            <ProtectedRoute>
-              <Layout currentScreen={screen}>
-                {renderProtectedScreen(screen)}
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-      ))}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <UserProvider>
+      <Routes>
+        <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/login'} replace />} />
+        {publicScreens.map((screen) => (
+          <Route
+            key={screen.path}
+            path={screen.path}
+            element={screen.path === '/verify-token' ? <VerifyTokenPage /> : <LoginPage screen={screen} />}
+          />
+        ))}
+        {protectedScreens.map((screen) => (
+          <Route
+            key={screen.path}
+            path={screen.path}
+            element={
+              <ProtectedRoute screen={screen}>
+                <Layout currentScreen={screen}>
+                  {renderProtectedScreen(screen)}
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+        ))}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </UserProvider>
   );
 }

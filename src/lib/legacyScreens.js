@@ -1,3 +1,13 @@
+export const NAV_GROUPS = [
+  { id: 'students',    label: 'Students',     icon: 'fa-users'           },
+  { id: 'orders',      label: 'Orders',        icon: 'fa-shopping-cart'   },
+  { id: 'courses',     label: 'Courses',       icon: 'fa-book'            },
+  { id: 'assessments', label: 'Assessments',   icon: 'fa-pencil-square-o' },
+  { id: 'exams',       label: 'Exams',         icon: 'fa-graduation-cap'  },
+  { id: 'people',      label: 'People',        icon: 'fa-id-badge'        },
+  { id: 'ops',         label: 'Operations',    icon: 'fa-cogs'            },
+];
+
 const screens = [
   {
     path: '/login',
@@ -5,6 +15,8 @@ const screens = [
     legacyHtml: 'index.html',
     controller: 'controllers/login.js',
     protected: false,
+    group: null,
+    icon: 'fa-sign-in',
     summary: 'Admin authentication and token bootstrap.',
   },
   {
@@ -13,6 +25,8 @@ const screens = [
     legacyHtml: 'verify-token.html',
     controller: 'inline',
     protected: false,
+    group: null,
+    icon: 'fa-key',
     summary: 'Developer utility for token validation.',
   },
   {
@@ -21,6 +35,8 @@ const screens = [
     legacyHtml: 'candidate-profile.html',
     controller: 'controllers/candidate-profile.js',
     protected: true,
+    group: 'students',
+    icon: 'fa-users',
     summary: 'Student listing, enrollment actions, and search.',
   },
   {
@@ -29,6 +45,8 @@ const screens = [
     legacyHtml: 'candidate-detail.html',
     controller: 'controllers/candidate-detail.js',
     protected: true,
+    group: 'students',
+    icon: 'fa-user-circle-o',
     summary: 'Detailed candidate profile, mentor, courses, and exam history.',
   },
   {
@@ -37,6 +55,8 @@ const screens = [
     legacyHtml: 'orders.html',
     controller: 'controllers/orders.js',
     protected: true,
+    group: 'orders',
+    icon: 'fa-shopping-cart',
     summary: 'Order tracking, invoice actions, and student drill-down.',
   },
   {
@@ -45,6 +65,8 @@ const screens = [
     legacyHtml: 'courses-list.html',
     controller: 'controllers/courses-list.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-list-alt',
     summary: 'Published course listing, filters, and deep links.',
   },
   {
@@ -53,6 +75,8 @@ const screens = [
     legacyHtml: 'course-view.html',
     controller: 'controllers/course-view.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-eye',
     summary: 'Course detail viewer with chapter and part navigation.',
   },
   {
@@ -61,6 +85,8 @@ const screens = [
     legacyHtml: 'course-management.html',
     controller: 'controllers/course-management.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-pencil',
     summary: 'Course authoring, syllabus management, and chapter linking.',
   },
   {
@@ -69,6 +95,8 @@ const screens = [
     legacyHtml: 'catalog.html',
     controller: 'controllers/catalog.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-th-large',
     summary: 'Catalog entries, publishing, and asset upload workflow.',
   },
   {
@@ -77,6 +105,8 @@ const screens = [
     legacyHtml: 'video-content.html',
     controller: 'controllers/video-content.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-video-camera',
     summary: 'Bunny.net video upload, filtering, and collection management.',
   },
   {
@@ -85,6 +115,8 @@ const screens = [
     legacyHtml: 'bunny-admin.html',
     controller: 'controllers/bunny-admin.js',
     protected: true,
+    group: 'courses',
+    icon: 'fa-film',
     summary: 'Folder-oriented Bunny.net admin surface.',
   },
   {
@@ -93,6 +125,8 @@ const screens = [
     legacyHtml: 'quiz-listing.html',
     controller: 'controllers/quiz-listing.js',
     protected: true,
+    group: 'assessments',
+    icon: 'fa-list-ul',
     summary: 'Quiz drafts, published quizzes, and report entry points.',
   },
   {
@@ -101,6 +135,8 @@ const screens = [
     legacyHtml: 'quiz-creation.html',
     controller: 'controllers/quiz-creation.js',
     protected: true,
+    group: 'assessments',
+    icon: 'fa-plus-square-o',
     summary: 'Quiz assembly from practice-question bundles.',
   },
   {
@@ -109,6 +145,8 @@ const screens = [
     legacyHtml: 'quiz-attempt-report.html',
     controller: 'controllers/quiz-attempt-report.js',
     protected: true,
+    group: 'assessments',
+    icon: 'fa-bar-chart',
     summary: 'Quiz attempt analytics and export tools.',
   },
   {
@@ -117,6 +155,8 @@ const screens = [
     legacyHtml: 'question-bank.html',
     controller: 'controllers/question-bank.js',
     protected: true,
+    group: 'assessments',
+    icon: 'fa-database',
     summary: 'Question review, verification, solution editing, and filters.',
   },
   {
@@ -125,6 +165,8 @@ const screens = [
     legacyHtml: 'practice-questions.html',
     controller: 'controllers/practice-questions.js',
     protected: true,
+    group: 'assessments',
+    icon: 'fa-file-text-o',
     summary: 'PDF ingestion, OCR-assisted extraction, and quiz handoff.',
   },
   {
@@ -133,6 +175,8 @@ const screens = [
     legacyHtml: 'exam-listing.html',
     controller: 'controllers/exam-listing.js',
     protected: true,
+    group: 'exams',
+    icon: 'fa-graduation-cap',
     summary: 'Exam list, duplication, deletion, and report entry points.',
   },
   {
@@ -141,6 +185,8 @@ const screens = [
     legacyHtml: 'exam-creation-wizard.html',
     controller: 'controllers/exam-creation-wizard.js',
     protected: true,
+    group: 'exams',
+    icon: 'fa-magic',
     summary: 'Exam editor and section/question configuration.',
   },
   {
@@ -149,6 +195,8 @@ const screens = [
     legacyHtml: 'exam-attempt-report.html',
     controller: 'controllers/exam-attempt-report.js',
     protected: true,
+    group: 'exams',
+    icon: 'fa-line-chart',
     summary: 'Exam attempt analytics and export tools.',
   },
   {
@@ -157,6 +205,8 @@ const screens = [
     legacyHtml: 'test-series-list.html',
     controller: 'controllers/test-series-list.js',
     protected: true,
+    group: 'exams',
+    icon: 'fa-tasks',
     summary: 'Test-series definition and exam assignments.',
   },
   {
@@ -165,6 +215,8 @@ const screens = [
     legacyHtml: 'mentor-profiles.html',
     controller: 'controllers/mentor-profiles.js',
     protected: true,
+    group: 'people',
+    icon: 'fa-user-secret',
     summary: 'Mentor CRUD plus assigned-student workflows.',
   },
   {
@@ -173,6 +225,8 @@ const screens = [
     legacyHtml: 'instructor-portfolio.html',
     controller: 'controllers/instructor-portfolio.js',
     protected: true,
+    group: 'people',
+    icon: 'fa-briefcase',
     summary: 'Instructor CRUD and profile asset management.',
   },
   {
@@ -181,6 +235,8 @@ const screens = [
     legacyHtml: 'instructor-payouts.html',
     controller: 'controllers/instructor-time-tracker.js',
     protected: true,
+    group: 'people',
+    icon: 'fa-money',
     summary: 'Time tracking and payout calculations.',
   },
   {
@@ -189,6 +245,8 @@ const screens = [
     legacyHtml: 'leads-management.html',
     controller: 'controllers/leads.js',
     protected: true,
+    group: 'ops',
+    icon: 'fa-bullhorn',
     summary: 'Lead tracking, follow-up calendar, and outreach actions.',
   },
   {
@@ -197,6 +255,8 @@ const screens = [
     legacyHtml: 'batch.html',
     controller: 'controllers/batch.js',
     protected: true,
+    group: 'ops',
+    icon: 'fa-object-group',
     summary: 'Batch CRUD, course enrollments, and student assignment.',
   },
   {
@@ -205,6 +265,8 @@ const screens = [
     legacyHtml: 'web-content-manager.html',
     controller: 'controllers/web-content-manager.js',
     protected: true,
+    group: 'ops',
+    icon: 'fa-globe',
     summary: 'Voucher and auto-enrollment management.',
   },
 ];
