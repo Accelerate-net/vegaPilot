@@ -34,6 +34,7 @@ import TestSeriesListPage from './pages/TestSeriesListPage';
 import VerifyTokenPage from './pages/VerifyTokenPage';
 import WebContentManagerPage from './pages/WebContentManagerPage';
 import SupportPage from './pages/SupportPage';
+import MessengerPage from './pages/MessengerPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
 import { getCachedUser } from './lib/userStore';
@@ -139,6 +140,9 @@ export default function App() {
     }
     if (screen.path === '/survey-dashboard') {
       return <SurveyDashboardPage />;
+    }
+    if (screen.path === '/messenger') {
+      return <MessengerPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;
