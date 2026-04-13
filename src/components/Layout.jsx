@@ -307,12 +307,6 @@ export default function Layout({ children, currentScreen }) {
 
       {/* ── Main content ──────────────────────────────────────────── */}
       <main className="content">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Current Screen</p>
-            <h2>{currentScreen.title}</h2>
-          </div>
-        </header>
         {children}
       </main>
     </div>
