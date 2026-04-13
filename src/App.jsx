@@ -12,6 +12,7 @@ import CourseManagementPage from './pages/CourseManagementPage';
 import CourseViewPage from './pages/CourseViewPage';
 import CoursesListPage from './pages/CoursesListPage';
 import ExamListingPage from './pages/ExamListingPage';
+import FeedbackSummaryPage from './pages/FeedbackSummaryPage';
 import InstructorPayoutsPage from './pages/InstructorPayoutsPage';
 import InstructorPortfolioPage from './pages/InstructorPortfolioPage';
 import LeadsManagementPage from './pages/LeadsManagementPage';
@@ -123,6 +124,9 @@ export default function App() {
     }
     if (screen.path === '/support') {
       return <SupportPage />;
+    }
+    if (screen.path === '/feedback-summary') {
+      return <FeedbackSummaryPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;

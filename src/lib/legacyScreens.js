@@ -279,6 +279,16 @@ const screens = [
     icon: 'fa-life-ring',
     summary: 'Consolidated view for student support tickets and potential leads chats.',
   },
+  {
+    path: '/feedback-summary',
+    title: 'Feedback Summary',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'ops',
+    icon: 'fa-star-half-o',
+    summary: 'Consolidated feedback aggregation and viewing portal.',
+  },
 ];
 
 export const publicScreens = screens.filter((screen) => !screen.protected);
