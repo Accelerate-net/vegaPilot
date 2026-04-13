@@ -184,6 +184,66 @@ export default function CatalogPage() {
 
   return (
     <div style={{ padding: '0 15px' }}>
+      <style>{`
+      .cat-catalog-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; background-color: #f9f9f9; margin: 0 0 10px 0; gap: 20px; padding: 20px; }
+      .cat-catalog-card { width: 100%; max-width: 300px; min-width: 240px; background-color: rgb(255, 255, 255); border-radius: 10px; overflow: hidden; text-align: center; flex: 1 0 0%; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px; transition: transform 0.3s; cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: flex-start; height: 410px; }
+      .cat-catalog-card:hover { transform: scale(1.05); }
+      .cat-catalog-image-container { position: relative; }
+      .cat-catalog-image { width: 100%; height: 160px; object-fit: cover; }
+      .cat-catalog-badge { position: absolute; top: 10px; left: 10px; padding: 5px 10px; font-size: 12px; font-weight: bold; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 10; }
+      .cat-badge-admission { background-color: #e8f5e9; color: #2e7d32; }
+      .cat-badge-official { background-color: #fff3e0; color: #e65100; }
+      .cat-badge-offer { background-color: #fce4ec; color: #c2185b; }
+      .cat-catalog-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+      .cat-catalog-title { font-size: 16px; font-weight: bold; color: #333; margin: 0 0 8px 0; line-height: 1.3em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+      .cat-catalog-description { font-size: 14px; color: #666; margin: 0 0 12px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-align: left; line-height: 1.4; }
+      .cat-catalog-price-section { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; justify-content: flex-start; flex-wrap: wrap; }
+      .cat-catalog-price-original { font-size: 14px; color: #999; text-decoration: line-through; }
+      .cat-catalog-price-selling { font-size: 20px; font-weight: bold; color: #2e7d32; }
+      .cat-catalog-discount-badge { background: #ff5722; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+      .cat-catalog-admin-actions { display: flex; gap: 8px; padding: 10px 15px; background: #f5f5f5; border-top: 1px solid #e0e0e0; justify-content: center; }
+      .cat-catalog-actions { display: flex; gap: 8px; }
+      .cat-catalog-actions .cat-btn { padding: 6px 12px; font-size: 14px; border-radius: 5px; border: none; cursor: pointer; transition: all 0.2s; }
+      .cat-btn-edit { background: #2196F3; color: white; }
+      .cat-btn-edit:hover { background: #1976D2; }
+      .cat-btn-active { background: #9E9E9E; color: white; }
+      .cat-btn-active:hover { background: #757575; }
+      .cat-btn-inactive { background: #f44336; color: white; }
+      .cat-btn-inactive:hover { background: #d32f2f; }
+      .cat-catalog-meta { font-size: 11px; color: #999; text-align: left; margin-bottom: 8px; }
+      .cat-empty-state { text-align: center; padding: 80px 20px; color: #666; }
+      .cat-empty-state i { font-size: 64px; color: #ddd; margin-bottom: 20px; }
+      .cat-empty-state h4 { color: #999; margin-bottom: 15px; font-size: 24px; }
+      .cat-empty-state p { color: #bbb; font-size: 16px; line-height: 1.6; }
+      .cat-pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 8px; margin-top: 0; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+      .cat-pagination-info { font-size: 14px; color: #666; font-weight: 500; }
+      .cat-pagination-controls { display: flex; gap: 5px; }
+      .cat-pagination-btn { background: white; border: 1px solid #e5e7eb; padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: #4b5563; font-size: 13px; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+      .cat-pagination-btn:hover:not(:disabled) { background: #f9fafb; color: #006073; border-color: #006073; }
+      .cat-pagination-btn.cat-active { background: linear-gradient(135deg, #006073 0%, #004d5c 100%); color: white; border-color: transparent; }
+      .cat-pagination-btn:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: not-allowed; }
+      .cat-filter-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+      .cat-search-wrapper { flex: 1; min-width: 250px; position: relative; }
+      .cat-search-input { width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; box-sizing: border-box; }
+      .cat-search-input:focus { outline: none; border-color: #006073; box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1); }
+      .cat-filter-select { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; min-width: 150px; transition: all 0.3s ease; }
+      .cat-filter-select:focus { outline: none; border-color: #006073; box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1); }
+      .cat-modal-body { max-height: 70vh; overflow-y: auto; }
+      .cat-skeleton-card { width: 100%; max-width: 300px; min-width: 240px; height: 410px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); position: relative; flex: 1 0 0%; }
+      .cat-skeleton-thumbnail { width: 100%; height: 160px; background: #f0f2f5; position: relative; overflow: hidden; }
+      .cat-skeleton-shimmer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%); animation: cat-shimmer 1.5s infinite; transform: translateX(-100%); }
+      @keyframes cat-shimmer { 100% { transform: translateX(100%); } }
+      .cat-skeleton-content { padding: 15px; display: flex; flex-direction: column; gap: 12px; flex-grow: 1; }
+      .cat-skeleton-line { height: 14px; background: #f0f2f5; border-radius: 4px; position: relative; overflow: hidden; }
+      .cat-skeleton-line.cat-title { height: 20px; width: 90%; margin-bottom: 5px; }
+      .cat-skeleton-line.cat-short { width: 60%; }
+      .cat-skeleton-line.cat-medium { width: 80%; }
+      .cat-skeleton-line.cat-price { height: 24px; width: 40%; margin-top: 10px; }
+      .cat-form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+      .cat-text-muted { color: #888; font-size: 12px; display: block; margin-top: 4px; }
+      .cat-alert { padding: 15px; border-radius: 8px; }
+      .cat-alert-warning { background: #fff3cd; border: 1px solid #ffeeba; }
+      `}</style>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
       {/* Page Header Section */}

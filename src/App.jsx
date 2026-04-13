@@ -28,6 +28,7 @@ import QuizCreationPage from './pages/QuizCreationPage';
 import QuizListingPage from './pages/QuizListingPage';
 import VideoContentPage from './pages/VideoContentPage';
 import LegacyScreenPage from './pages/LegacyScreenPage';
+import SurveyDashboardPage from './pages/SurveyDashboardPage';
 import StudentManagementPage from './pages/StudentManagementPage';
 import TestSeriesListPage from './pages/TestSeriesListPage';
 import VerifyTokenPage from './pages/VerifyTokenPage';
@@ -135,6 +136,9 @@ export default function App() {
     }
     if (screen.path === '/live-class-activity-planner') {
       return <LiveClassActivityPlannerPage />;
+    }
+    if (screen.path === '/survey-dashboard') {
+      return <SurveyDashboardPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;

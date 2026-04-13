@@ -309,6 +309,16 @@ const screens = [
     icon: 'fa-star-half-o',
     summary: 'Consolidated feedback aggregation and viewing portal.',
   },
+  {
+    path: '/survey-dashboard',
+    title: 'Survey Dashboard',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'ops',
+    icon: 'fa-bar-chart',
+    summary: 'Create custom surveys and view responses across targeted student batches.',
+  },
 ];
 
 export const publicScreens = screens.filter((screen) => !screen.protected);
