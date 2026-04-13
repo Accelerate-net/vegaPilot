@@ -114,6 +114,7 @@ export default function FeedbackSummaryPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
+  const [selectedChapterFilter, setSelectedChapterFilter] = useState('');
   const [selectedExamFilter, setSelectedExamFilter] = useState('');
   const [selectedBatchFilters, setSelectedBatchFilters] = useState([]);
   
@@ -136,6 +137,17 @@ export default function FeedbackSummaryPage() {
     [selectedCourseFilter]
   );
 
+  const availableChaptersForCourse = useMemo(() => {
+    if (!selectedCourseFilter) return [];
+    const chapters = new Set();
+    feedbackDemoData.forEach((fb) => {
+      if (fb.itemType === 'course' && fb.itemId === selectedCourseFilter && fb.chapterName) {
+        chapters.add(fb.chapterName);
+      }
+    });
+    return Array.from(chapters).sort();
+  }, [selectedCourseFilter]);
+
   const filteredFeedbacks = useMemo(() => {
     let next = [...feedbackDemoData];
     
@@ -153,6 +165,9 @@ export default function FeedbackSummaryPage() {
     
     if (selectedCourseFilter) {
       next = next.filter((r) => r.itemType === 'course' && r.itemId === selectedCourseFilter);
+      if (selectedChapterFilter) {
+        next = next.filter((r) => r.chapterName === selectedChapterFilter);
+      }
     }
     
     if (selectedExamFilter) {
@@ -178,7 +193,7 @@ export default function FeedbackSummaryPage() {
     });
     
     return next;
-  }, [searchQuery, dateFrom, dateTo, selectedCourseFilter, selectedExamFilter, selectedBatchFilters, sortColumn, sortDirection]);
+  }, [searchQuery, dateFrom, dateTo, selectedCourseFilter, selectedChapterFilter, selectedExamFilter, selectedBatchFilters, sortColumn, sortDirection]);
 
   const summary = useMemo(() => {
     if (filteredFeedbacks.length === 0) return { avg: 0, count: 0 };
@@ -206,12 +221,13 @@ export default function FeedbackSummaryPage() {
     setDateFrom(''); 
     setDateTo('');
     setSelectedCourseFilter(''); 
+    setSelectedChapterFilter('');
     setSelectedExamFilter('');
     setSelectedBatchFilters([]); 
     setCurrentPage(1);
   }
 
-  const hasActiveFilters = searchQuery || dateFrom || dateTo || selectedCourseFilter || selectedExamFilter || selectedBatchFilters.length > 0;
+  const hasActiveFilters = searchQuery || dateFrom || dateTo || selectedCourseFilter || selectedChapterFilter || selectedExamFilter || selectedBatchFilters.length > 0;
 
   const totalPages = Math.max(1, Math.ceil(filteredFeedbacks.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -330,6 +346,7 @@ export default function FeedbackSummaryPage() {
               value={selectedCourseFilter}
               onChange={(event) => { 
                 setSelectedCourseFilter(event.target.value); 
+                setSelectedChapterFilter('');
                 if (event.target.value) setSelectedExamFilter('');
                 setSelectedBatchFilters([]); 
                 setCurrentPage(1); 
@@ -337,6 +354,19 @@ export default function FeedbackSummaryPage() {
             >
               <option value="">All Courses</option>
               {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+            </select>
+          </div>
+
+          <div className="ear-filter-group">
+            <label className="ear-filter-label"><i className="ti ti-bookmark" /> Chapter</label>
+            <select
+              className="ear-filter-input"
+              value={selectedChapterFilter}
+              onChange={(event) => { setSelectedChapterFilter(event.target.value); setCurrentPage(1); }}
+              disabled={!selectedCourseFilter}
+            >
+              <option value="">All Chapters</option>
+              {availableChaptersForCourse.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
             </select>
           </div>
           
@@ -395,7 +425,13 @@ export default function FeedbackSummaryPage() {
             {selectedCourseFilter && (
               <span className="ear-filter-badge">
                 Course: {getCourseName(selectedCourseFilter)}
-                <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
+                <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedChapterFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
+              </span>
+            )}
+            {selectedChapterFilter && (
+              <span className="ear-filter-badge">
+                Chapter: {selectedChapterFilter}
+                <button type="button" onClick={() => setSelectedChapterFilter('')}><i className="ti ti-close" /></button>
               </span>
             )}
             {selectedExamFilter && (

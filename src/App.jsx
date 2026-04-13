@@ -16,6 +16,8 @@ import FeedbackSummaryPage from './pages/FeedbackSummaryPage';
 import InstructorPayoutsPage from './pages/InstructorPayoutsPage';
 import InstructorPortfolioPage from './pages/InstructorPortfolioPage';
 import LeadsManagementPage from './pages/LeadsManagementPage';
+import LiveClassActivityPlannerPage from './pages/LiveClassActivityPlannerPage';
+import LiveClassSchedulerPage from './pages/LiveClassSchedulerPage';
 import LoginPage from './pages/LoginPage';
 import MentorProfilesPage from './pages/MentorProfilesPage';
 import OrdersPage from './pages/OrdersPage';
@@ -127,6 +129,12 @@ export default function App() {
     }
     if (screen.path === '/feedback-summary') {
       return <FeedbackSummaryPage />;
+    }
+    if (screen.path === '/live-class-scheduler') {
+      return <LiveClassSchedulerPage />;
+    }
+    if (screen.path === '/live-class-activity-planner') {
+      return <LiveClassActivityPlannerPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;
