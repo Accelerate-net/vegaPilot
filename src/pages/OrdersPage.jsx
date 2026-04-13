@@ -473,7 +473,7 @@ function InvoiceModal({ order, onClose, onDownload }) {
         </div>
         <div className="crispr-modal-body invoice-body">
           <div className="invoice-top">
-            <div><h2>VegaPilot</h2><p>Educational Platform<br />www.vegapilot.com<br />support@vegapilot.com</p></div>
+            <div><h2>Crispr Pilot</h2><p>Educational Platform<br />www.crisprlearning.com<br />support@crisprlearning.com</p></div>
             <div className="invoice-meta"><h3>INVOICE</h3><p><strong>Invoice #:</strong> INV-{order.orderNumber}<br /><strong>Date:</strong> {formatDate(order.orderDate)}<br /><strong>Status:</strong> <span className={`status-badge status-${order.status}`}>{order.status.toUpperCase()}</span></p></div>
           </div>
           <hr />

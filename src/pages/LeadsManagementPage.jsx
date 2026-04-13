@@ -283,7 +283,7 @@ export default function LeadsManagementPage() {
     }).join('');
     const html = `<!DOCTYPE html><html><head><title>Leads Report</title>
 <style>
-  body { font-family: 'Inter', Arial, sans-serif; padding: 30px; color: #1e293b; }
+  body { font-family: 'Source Sans Pro', 'Segoe UI', 'Droid Sans', Tahoma, Arial, sans-serif; padding: 30px; color: #1e293b; }
   h1 { font-size: 22px; color: #006073; margin-bottom: 4px; }
   .meta { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -297,7 +297,7 @@ export default function LeadsManagementPage() {
   <div class="meta">Generated on ${new Date().toLocaleString('en-IN')} · ${filtered.length} lead(s) · Filters: Status=${statusFilter}, Interest=${interestFilter}, Associate=${associateFilter}</div>
   <table><thead><tr><th>Name</th><th>Phone</th><th>Source</th><th>Associate</th><th>Interest</th><th>Status</th><th>Last F/U</th><th>Next F/U</th><th>Age</th><th>Pref. Time</th><th>Pref. Comm</th></tr></thead>
   <tbody>${rows}</tbody></table>
-  <div class="footer">VegaPilot · Leads Management</div>
+  <div class="footer">Crispr Pilot · Leads Management</div>
 </body></html>`;
 
     const printWindow = window.open('', '_blank', 'width=1100,height=700');

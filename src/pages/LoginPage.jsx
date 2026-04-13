@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div className="login-page">
       <section className="login-panel">
         <p className="eyebrow">React Admin Preview</p>
-        <h1>VegaPilot</h1>
+        <h1>Crispr Pilot</h1>
         <p className="panel-copy">
           This is the new React entry point. Legacy Angular screens remain untouched while the migration is in
           progress.

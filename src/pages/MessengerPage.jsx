@@ -5,9 +5,9 @@ import { availableCourses, availableBatches } from '../data/attemptReportsDemo';
 const demoMessages = [
   {
     id: 'msg-1',
-    subject: 'Welcome back to VegaPilot',
+    subject: 'Welcome back to Crispr Pilot',
     abstract: 'We have exciting new features lined up for you...',
-    body: 'Hello Students,\n\nWe are thrilled to welcome you back for the new term. We have prepared completely new design frameworks for the email web app. Later I will describe how it should look like, so you wont get lost. Do you have any additional questions? I attached some documents which can help you in your work.\n\nBest wishes,\nVegaPilot Team',
+    body: 'Hello Students,\n\nWe are thrilled to welcome you back for the new term. We have prepared completely new design frameworks for the email web app. Later I will describe how it should look like, so you wont get lost. Do you have any additional questions? I attached some documents which can help you in your work.\n\nBest wishes,\nCrispr Pilot Team',
     date: '2026-04-14T09:00:00Z',
     channels: ['Email', 'App Push'],
     notifyParents: false,
@@ -339,7 +339,7 @@ export default function MessengerPage() {
           <div style={{ padding: '40px', maxWidth: '800px', width: '100%', margin: '0 auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <span style={{ background: '#F3F4F6', color: '#4B5563', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>system@vegapilot.com</span>
+                <span style={{ background: '#F3F4F6', color: '#4B5563', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600' }}>system@crisprlearning.com</span>
                 <span style={{ color: '#9CA3AF', fontSize: '13px' }}>{formatDateFull(selectedMessage.date)}</span>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>

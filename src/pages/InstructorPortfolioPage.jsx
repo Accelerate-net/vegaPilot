@@ -72,7 +72,7 @@ function normalizeInstructor(instructor, index) {
     qualifications,
     experience,
     experienceYears: experience,
-    email: instructor.email || `${instructor.name.toLowerCase().replace(/[^a-z]+/g, '.').replace(/(^\.|\.$)/g, '')}@vegapilot.com`,
+    email: instructor.email || `${instructor.name.toLowerCase().replace(/[^a-z]+/g, '.').replace(/(^\.|\.$)/g, '')}@crisprlearning.com`,
     mobile: instructor.mobile || instructor.phone || `+91 ${String(9000000000 + index + 1).slice(0, 10)}`,
     phone: instructor.phone || instructor.mobile || `+91 ${String(9000000000 + index + 1).slice(0, 10)}`,
     bio:

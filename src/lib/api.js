@@ -5,7 +5,7 @@ export function getBaseUrl() {
   const { protocol, hostname } = window.location;
   const isLocalPreview = protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
 
-  return isLocalPreview ? 'http://192.168.1.82:3000' : 'https://crisprtech.app/crispr-apis';
+  return isLocalPreview ? 'http://192.168.1.100:3000' : 'https://crisprtech.app/crispr-apis';
 }
 
 export const api = axios.create({

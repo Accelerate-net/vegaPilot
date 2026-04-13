@@ -1,7 +1,7 @@
 {
-  "name": "vegapilot-bunny-proxy",
+  "name": "crispr-pilot",
   "version": "1.0.0",
-  "description": "VegaPilot backend proxy and React migration workspace",
+  "description": "Crispr Pilot backend proxy and React migration workspace",
   "main": "bunny-proxy-server.js",
   "scripts": {
     "start": "node bunny-proxy-server.js",
@@ -16,9 +16,9 @@
     "bunnynet",
     "video",
     "proxy",
-    "vegapilot"
+    "crispr-pilot"
   ],
-  "author": "VegaPilot",
+  "author": "Crispr Pilot",
   "license": "MIT",
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.0",

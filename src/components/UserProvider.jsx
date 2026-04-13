@@ -67,8 +67,17 @@ export default function UserProvider({ children }) {
     });
   }, []);
 
+  const reorderPins = useCallback((newOrder) => {
+    setPrefs((prev) => {
+      const updated = { ...prev, pinnedPaths: newOrder };
+      setLocalPrefs(updated);
+      syncPrefsToServer(updated);
+      return updated;
+    });
+  }, []);
+
   return (
-    <UserContext.Provider value={{ user, prefs, togglePin, updatePrefs }}>
+    <UserContext.Provider value={{ user, prefs, togglePin, updatePrefs, reorderPins }}>
       {children}
     </UserContext.Provider>
   );

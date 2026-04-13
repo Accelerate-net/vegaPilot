@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'vegaPilotAdminToken';
+const TOKEN_KEY = 'crisprPilotAdminToken';
 
 export function getToken() {
   const cookieMatch = document.cookie.match(`(^|;)\\s*${TOKEN_KEY}=([^;]+)`);

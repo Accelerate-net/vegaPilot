@@ -8,7 +8,7 @@ import { canAccess } from '../lib/roles';
 export default function Layout({ children, currentScreen }) {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { user, prefs, togglePin } = useUser() || {};
+  const { user, prefs, togglePin, reorderPins } = useUser() || {};
 
   const pinnedPaths = prefs?.pinnedPaths || [];
 
@@ -38,12 +38,14 @@ export default function Layout({ children, currentScreen }) {
 
   useEffect(() => {
     if (activeGroupId) {
-      setOpenGroups((prev) => ({ ...prev, [activeGroupId]: true }));
+      setOpenGroups({ [activeGroupId]: true }); // close all others, open only active
     }
   }, [activeGroupId]);
 
   function toggleGroup(id) {
-    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+    setOpenGroups((prev) => ({
+      [id]: !prev[id], // only keep the clicked group, close all others
+    }));
   }
 
   // ── Allowed screens (role-filtered) ───────────────────────────────
@@ -62,11 +64,68 @@ export default function Layout({ children, currentScreen }) {
   [allowedScreens]);
 
   const pinnedScreens = useMemo(
-    () => allowedScreens.filter((s) => pinnedPaths.includes(s.path)),
+    // Sort by pinnedPaths order (not allowedScreens order) so reordering is reflected
+    () => pinnedPaths
+      .map((path) => allowedScreens.find((s) => s.path === path))
+      .filter(Boolean),
     [allowedScreens, pinnedPaths]
   );
 
-  // ── Profile popover ───────────────────────────────────────────────
+  // ── Drag state for pinned reorder ────────────────────────────────
+  const dragSrcPath = useRef(null);
+  const dropIndicatorRef = useRef(null);
+  const [dropIndicator, setDropIndicator] = useState(null);
+  const [isDraggingPin, setIsDraggingPin] = useState(false);
+  const [draggingPath, setDraggingPath] = useState(null); // drives faded class via React state
+
+  function setIndicator(value) {
+    dropIndicatorRef.current = value;
+    setDropIndicator(value);
+  }
+
+  function handleDragStart(e, path) {
+    dragSrcPath.current = path;
+    e.dataTransfer.effectAllowed = 'move';
+    setIsDraggingPin(true);
+    setDraggingPath(path); // React state — triggers re-render to apply faded class
+  }
+
+  function handleDragOver(e, path) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const position = e.clientY < midY ? 'before' : 'after';
+    setIndicator({ path, position });
+  }
+
+  function handleDrop(e, targetPath) {
+    e.preventDefault();
+    const src = dragSrcPath.current;
+    const indicator = dropIndicatorRef.current;
+    dragSrcPath.current = null;
+    setDraggingPath(null);   // clear before reorder so re-render shows no fade
+    setIsDraggingPin(false);
+    setIndicator(null);
+    if (!src || !indicator) return;
+    const pins = [...(prefs?.pinnedPaths || [])];
+    const srcIdx = pins.indexOf(src);
+    if (srcIdx === -1) return;
+    pins.splice(srcIdx, 1);
+    let tgtIdx = pins.indexOf(targetPath);
+    if (tgtIdx === -1) return;
+    if (indicator.position === 'after') tgtIdx += 1;
+    pins.splice(tgtIdx, 0, src);
+    reorderPins?.(pins);
+  }
+
+  function handleDragEnd() {
+    dragSrcPath.current = null;
+    setDraggingPath(null);
+    setIsDraggingPin(false);
+    setIndicator(null);
+  }
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef(null);
 
@@ -109,8 +168,7 @@ export default function Layout({ children, currentScreen }) {
           {!collapsed && (
             <>
               <div className="sb-brand-text">
-                <strong>Crispr</strong>
-                <small>Admin Panel</small>
+                <strong>Crispr Learning</strong>
               </div>
               <i className="fa fa-angle-left sb-collapse-arrow" />
             </>
@@ -129,16 +187,31 @@ export default function Layout({ children, currentScreen }) {
                   <span className="sb-label">Pinned</span>
                 </div>
               )}
-              <div className="sb-group-items">
-                {pinnedScreens.map((screen) => (
-                  <NavItem
-                    key={screen.path}
-                    screen={screen}
-                    collapsed={collapsed}
-                    pinned
-                    onTogglePin={togglePin}
-                  />
-                ))}
+              <div className={`sb-group-items sb-group-items--open${isDraggingPin ? ' sb-pins-dragging' : ''}`}>
+                {pinnedScreens.map((screen) => {
+                  const ind = dropIndicator?.path === screen.path ? dropIndicator.position : null;
+                  const isDragging = draggingPath === screen.path;
+                  return (
+                    <div
+                      key={screen.path}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, screen.path)}
+                      onDragOver={(e) => handleDragOver(e, screen.path)}
+                      onDrop={(e) => handleDrop(e, screen.path)}
+                      onDragEnd={handleDragEnd}
+                      className={`sb-pin-drag-wrap${isDragging ? ' sb-pin-dragging' : ''}`}
+                    >
+                      {ind === 'before' && <div className="sb-drop-line" />}
+                      <NavItem
+                        screen={screen}
+                        collapsed={collapsed}
+                        pinned
+                        onTogglePin={togglePin}
+                      />
+                      {ind === 'after' && <div className="sb-drop-line" />}
+                    </div>
+                  );
+                })}
               </div>
               {!collapsed && <div className="sb-group-divider" />}
             </div>
@@ -166,8 +239,7 @@ export default function Layout({ children, currentScreen }) {
                   )}
                 </button>
 
-                {isOpen && (
-                  <div className="sb-group-items">
+                <div className={`sb-group-items${isOpen ? ' sb-group-items--open' : ''}`}>
                     {group.screens.map((screen) => (
                       <NavItem
                         key={screen.path}
@@ -178,7 +250,6 @@ export default function Layout({ children, currentScreen }) {
                       />
                     ))}
                   </div>
-                )}
               </div>
             );
           })}
