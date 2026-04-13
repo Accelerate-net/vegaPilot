@@ -390,15 +390,15 @@ export default function CourseManagementPage() {
                                         <div className="col-md-12">
                                             {filteredModules.map(module => (
                                                 <div key={module.moduleKey} className="module-card">
-                                                    <div className={`module-header ${expandedModules[module.moduleKey] ? 'expanded' : ''}`} onClick={() => toggleModule(module.moduleKey)} style={{ background: '#f8f9fa', padding: '15px 20px', cursor: 'pointer', border: '1px solid #e9ecef', borderRadius: expandedModules[module.moduleKey] ? '4px 4px 0 0' : '4px', marginBottom: expandedModules[module.moduleKey] ? 0 : 15 }}>
-                                                        <div className="row" style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <div className={`module-header ${expandedModules[module.moduleKey] ? 'expanded' : ''}`} onClick={() => toggleModule(module.moduleKey)}>
+                                                        <div className="row">
                                                             <div className="col-md-8">
-                                                                <div className="module-info" style={{ display: 'flex', alignItems: 'center' }}>
-                                                                    <div className="expand-indicator" style={{ marginRight: 15 }}>
-                                                                        <i className={`fa ${expandedModules[module.moduleKey] ? 'fa-folder-open-o' : 'fa-folder-o'}`} style={{ fontSize: 24, color: '#666' }}></i>
+                                                                <div className="module-info">
+                                                                    <div className="expand-indicator">
+                                                                        <i className={`fa ${expandedModules[module.moduleKey] ? 'fa-folder-open-o' : 'fa-folder-o'}`}></i>
                                                                     </div>
                                                                     <div className="module-details">
-                                                                        <h3 className="module-title" style={{ margin: 0, fontSize: 18, fontWeight: 'bold' }}>
+                                                                        <h3 className="module-title">
                                                                             {module.title}
                                                                         </h3>
                                                                     </div>
@@ -412,11 +412,11 @@ export default function CourseManagementPage() {
                                                         </div>
                                                     </div>
                                                     {expandedModules[module.moduleKey] && (
-                                                        <div className="module-content" style={{ padding: '0 20px 20px', border: '1px solid #e9ecef', borderTop: 'none', background: '#fff', marginBottom: 15, borderRadius: '0 0 4px 4px' }}>
+                                                        <div className="module-content">
                                                             <div className="row">
                                                                 <div className="col-md-12">
                                                                     <div className="chapters-table-container">
-                                                                        <table className="table table-striped table-hover" style={{ marginTop: 15 }}>
+                                                                        <table className="table table-striped table-hover">
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th>Chapter</th>
@@ -443,12 +443,14 @@ export default function CourseManagementPage() {
                                                                                             <td style={{ verticalAlign: 'middle' }}>0:00:00</td>
                                                                                             <td style={{ verticalAlign: 'middle' }}>
                                                                                                 {chapter.teacher ? (
-                                                                                                    <div className="teacher-info-compact" style={{ display: 'flex', alignItems: 'center' }}>
-                                                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="teacher" style={{ width: 24, height: 24, borderRadius: '50%', marginRight: 8 }} />
+                                                                                                    <div className="teacher-info-compact">
+                                                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="teacher" className="teacher-photo-tiny" />
                                                                                                         <span>{chapter.teacher.name}</span>
                                                                                                     </div>
                                                                                                 ) : (
-                                                                                                    <span className="text-muted" style={{ fontSize: 12 }}>Unassigned</span>
+                                                                                                    <div className="teacher-not-mapped">
+                                                                                                        <i className="ti ti-help"></i> Not Assigned
+                                                                                                    </div>
                                                                                                 )}
                                                                                             </td>
                                                                                             <td style={{ verticalAlign: 'middle' }}>
@@ -490,36 +492,36 @@ export default function CourseManagementPage() {
                                     <div className="row">
                                         <div className="col-md-12">
                                             {filteredChapters.map(chapter => (
-                                                <div key={chapter.id} className="chapter-item" style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: 15, overflow: 'hidden' }}>
-                                                    <div className="chapter-header" onClick={() => toggleChapter(chapter.id)} style={{ padding: '15px 20px', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                                <div key={chapter.id} className="chapter-item">
+                                                    <div className="chapter-header" onClick={() => toggleChapter(chapter.id)}>
                                                         <div className="row" style={{ width: '100%', margin: 0, display: 'flex', alignItems: 'center' }}>
                                                             <div className="col-md-8" style={{ padding: 0 }}>
-                                                                <div className="chapter-info" style={{ display: 'flex', alignItems: 'center' }}>
-                                                                    <div className="expand-indicator" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
-                                                                        <i className={`fa ${expandedChapters[chapter.id] ? 'fa-folder-open-o' : 'fa-folder-o'}`} style={{ color: '#007bff', fontSize: 20 }}></i>
+                                                                <div className="chapter-info">
+                                                                    <div className="expand-indicator">
+                                                                        <i className={`fa ${expandedChapters[chapter.id] ? 'fa-folder-open-o' : 'fa-folder-o'}`}></i>
                                                                     </div>
                                                                     <div className="chapter-details">
-                                                                        <h4 className="chapter-title" style={{ margin: '0 0 5px 0', fontSize: 16, fontWeight: 'bold' }}>{chapter.title}</h4>
-                                                                        <p className="chapter-meta" style={{ margin: 0, color: '#666', fontSize: 13 }}>
-                                                                            <span><b>Chapter {chapter.code}</b> of Subject<i className="fa fa-circle separator-dot" style={{ margin: '0 8px', fontSize: 5 }}></i>{getPartsCount(chapter.partsIncluded)} parts<i className="fa fa-circle separator-dot" style={{ margin: '0 8px', fontSize: 5 }}></i>0:00:00</span>
+                                                                        <h4 className="chapter-title">{chapter.title}</h4>
+                                                                        <p className="chapter-meta">
+                                                                            <span><b>Chapter {chapter.code}</b> of Subject<i className="fa fa-circle separator-dot"></i>{getPartsCount(chapter.partsIncluded)} parts<i className="fa fa-circle separator-dot"></i>0:00:00</span>
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div className="col-md-4" style={{ padding: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                                                                 {chapter.teacher ? (
-                                                                    <div className="teacher-info-simple" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="Teacher" style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10 }} />
+                                                                    <div className="teacher-info-simple" onClick={(e) => e.stopPropagation()}>
+                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="Teacher" />
                                                                         <div className="teacher-details-simple">
-                                                                            <span style={{ fontWeight: 600, display: 'block' }}>{chapter.teacher.name}</span>
+                                                                            <span>{chapter.teacher.name}</span>
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="teacher-not-mapped" onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer', padding: '8px 10px', border: '2px dashed #ccc', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, background: '#f9f9f9', transition: 'all 0.3s ease' }}>
-                                                                        <i className="ti ti-user" style={{ fontSize: 20, color: '#999' }}></i>
-                                                                        <div style={{ textAlign: 'left', flex: 1 }}>
-                                                                            <span style={{ display: 'block', fontSize: 12, color: '#666', fontWeight: 500 }}>No Instructor</span>
-                                                                            <span style={{ display: 'block', fontSize: 10, color: '#007bff', fontWeight: 'bold' }}>Click to Assign</span>
+                                                                    <div className="teacher-not-mapped" onClick={(e) => e.stopPropagation()}>
+                                                                        <i className="ti ti-user"></i>
+                                                                        <div className="text-left" style={{ flex: 1 }}>
+                                                                            <span className="title">No Instructor</span>
+                                                                            <span className="subtitle">Click to Assign</span>
                                                                         </div>
                                                                     </div>
                                                                 )}
@@ -527,28 +529,31 @@ export default function CourseManagementPage() {
                                                         </div>
                                                     </div>
                                                     {expandedChapters[chapter.id] && (
-                                                        <div className="parts-list" style={{ background: '#eff8ff', padding: 20, borderTop: '2px solid #aec5dc' }}>
+                                                        <div className="chapter-parts-container">
                                                             {getPartsCount(chapter.partsIncluded) > 0 ? (
-                                                                <div>
+                                                                <div className="parts-list">
                                                                     {chapter.partsIncluded.map((part, pIdx) => (
-                                                                        <div key={pIdx} className="part-item" style={{ display: 'flex', alignItems: 'center', padding: 12, background: '#fff', border: '1px solid #e9ecef', borderRadius: 4, marginBottom: 8 }}>
-                                                                            <div style={{ background: '#28a745', color: '#fff', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 15 }}>
+                                                                        <div key={pIdx} className="part-card">
+                                                                            <div className="part-index">
                                                                                 {pIdx + 1}
                                                                             </div>
-                                                                            <div style={{ color: '#6c757d', marginRight: 10 }}>
-                                                                                <i className={`ti ${part.type === 'VIDEO' ? 'ti-video-camera' : part.type === 'MATERIAL' ? 'ti-file' : 'ti-clipboard'}`} style={{fontSize: 24}}></i>
+                                                                            <div className="part-icon">
+                                                                                <i className={`ti ${part.type === 'VIDEO' ? 'ti-video-camera' : part.type === 'MATERIAL' ? 'ti-file' : 'ti-clipboard'}`}></i>
                                                                             </div>
-                                                                            <div>
-                                                                                <h6 style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{part.title}</h6>
-                                                                                <span className={`badge badge-${part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : 'secondary'}`} style={{ fontSize: 10 }}>{part.type}</span>
+                                                                            <div className="part-content">
+                                                                                <h4>{part.title}</h4>
+                                                                                <span className={`badge badge-${part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : 'secondary'}`}>{part.type}</span>
                                                                             </div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             ) : (
-                                                                <div style={{ textAlign: 'center', color: '#6c757d', padding: 20 }}>
-                                                                    <i className="ti ti-video-camera-off" style={{ fontSize: 32, opacity: 0.5, marginBottom: 10 }}></i>
-                                                                    <p style={{ margin: 0 }}>This chapter doesn't have any parts assigned yet.</p>
+                                                                <div className="no-parts-message">
+                                                                    <div className="empty-state-icon">
+                                                                        <i className="ti ti-video-camera-off"></i>
+                                                                    </div>
+                                                                    <h4>No Parts Found</h4>
+                                                                    <p>This chapter doesn't have any parts assigned yet.</p>
                                                                 </div>
                                                             )}
                                                         </div>
