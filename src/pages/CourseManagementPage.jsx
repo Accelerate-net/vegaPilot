@@ -25,6 +25,7 @@ export default function CourseManagementPage() {
     
     // Modals
     const [isSelectCourseModalOpen, setIsSelectCourseModalOpen] = useState(false);
+    const [selectedModule, setSelectedModule] = useState(null);
     
     // Expanded states
     const [expandedModules, setExpandedModules] = useState({});
@@ -44,9 +45,16 @@ export default function CourseManagementPage() {
     }, [modules, selectedCourseBundle]);
     
     const filteredChapters = useMemo(() => {
-        const allowed = new Set(filteredModules.map(m => m.moduleKey));
-        return chapters.filter(c => allowed.has(c.moduleCode));
-    }, [chapters, filteredModules]);
+        let chaps = chapters;
+        if (selectedCourseBundle) {
+            const allowed = new Set(filteredModules.map(m => m.moduleKey));
+            chaps = chaps.filter(c => allowed.has(c.moduleCode));
+        }
+        if (selectedModule) {
+            chaps = chaps.filter(c => c.moduleCode === selectedModule.moduleKey);
+        }
+        return chaps;
+    }, [chapters, filteredModules, selectedCourseBundle, selectedModule]);
 
     const toggleModule = (moduleKey) => {
         setExpandedModules(prev => ({ ...prev, [moduleKey]: !prev[moduleKey] }));
@@ -106,31 +114,30 @@ export default function CourseManagementPage() {
         if (createType === 'bundle') {
             return (
                 <div className="panel panel-default">
-                    <div className="panel-heading" style={{ background: '#f8f9fa', padding: '15px 20px', borderBottom: '1px solid #e9ecef' }}>
-                        <h2 style={{ margin: 0, fontSize: 18, color: '#006073', fontWeight: 600 }}>
-                            <i className="ti ti-book"></i> Create New Course Bundle
-                        </h2>
+                    <div className="panel-heading">
+                        <h2><i className="ti ti-book"></i> Create New Course Bundle</h2>
                     </div>
                     <div className="panel-body">
                         <form className="form-horizontal">
                             <div className="row">
                                 <div className="col-md-6">
-                                    <div className="form-group" style={{ marginBottom: 15 }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Bundle Title</label>
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Bundle Title</label>
                                         <div className="col-sm-9">
                                             <input type="text" className="form-control" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({...newBundle, title: e.target.value})} />
                                         </div>
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 15 }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Display Key</label>
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Display Key</label>
                                         <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Auto-generated" value={newBundle.displayKey} onChange={e => setNewBundle({...newBundle, displayKey: e.target.value})} />
+                                            <input type="text" className="form-control" placeholder="Auto-generated HTML" value={newBundle.displayKey} onChange={e => setNewBundle({...newBundle, displayKey: e.target.value})} readOnly />
+                                            <small className="help-block">Auto-generated unique identifier</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-md-6">
-                                    <div className="form-group" style={{ marginBottom: 15 }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Status</label>
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Status</label>
                                         <div className="col-sm-9">
                                             <select className="form-control" value={newBundle.active} onChange={e => setNewBundle({...newBundle, active: e.target.value})}>
                                                 <option value="1">Active</option>
@@ -138,47 +145,50 @@ export default function CourseManagementPage() {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 15 }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Syllabus</label>
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Syllabus</label>
                                         <div className="col-sm-9">
                                             <select className="form-control" value={newBundle.selectedSyllabusId} onChange={e => setNewBundle({...newBundle, selectedSyllabusId: e.target.value})}>
-                                                <option value="">Select Syllabus (Optional)</option>
+                                                <option value="">Select Syllabus</option>
                                                 {syllabi.map(syl => (
                                                     <option key={syl.id} value={syl.id}>{syl.title}</option>
                                                 ))}
                                             </select>
-                                            <small className="help-block" style={{ marginTop: 5 }}>Based on the selected syllabus, choose modules below to include.</small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <hr style={{ margin: '20px 0', borderColor: '#eee' }} />
-                            <div className="form-group" style={{ display: 'flex' }}>
-                                <label className="col-sm-12 control-label text-left" style={{ fontWeight: 600, fontSize: 16, marginBottom: 15 }}>Select Modules</label>
-                            </div>
-                            <div className="row" style={{ padding: '0 15px' }}>
-                                {modules.map(module => (
-                                    <div className="col-md-3" key={module.moduleKey} style={{ marginBottom: 15 }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#f8f9fa', padding: '10px 15px', borderRadius: 6, border: '1px solid #e9ecef' }}>
-                                            <input 
-                                                type="checkbox" 
-                                                style={{ marginRight: 10, width: 16, height: 16 }}
-                                                checked={!!newBundle.selectedModules[module.moduleKey]} 
-                                                onChange={e => setNewBundle({...newBundle, selectedModules: {...newBundle.selectedModules, [module.moduleKey]: e.target.checked}})} 
-                                            />
-                                            <span style={{ fontWeight: 500 }}>{module.title}</span>
-                                        </label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Select Modules</label>
+                                <div className="col-sm-9">
+                                    <div className="row">
+                                        {modules.map(module => (
+                                            <div className="col-md-3" key={module.moduleKey}>
+                                                <div className="checkbox">
+                                                    <label>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={!!newBundle.selectedModules[module.moduleKey]} 
+                                                            onChange={e => setNewBundle({...newBundle, selectedModules: {...newBundle.selectedModules, [module.moduleKey]: e.target.checked}})} 
+                                                        />
+                                                        <strong>{module.title}</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                            <hr style={{ margin: '20px 0', borderColor: '#eee' }} />
-                            <div className="form-group text-right" style={{ marginTop: 20 }}>
-                                <button type="button" className="btn btn-default" onClick={() => setCreateView(false)} style={{ marginRight: 10, padding: '10px 20px', borderRadius: 4, border: '1px solid #ccc' }}>
-                                    <i className="ti ti-close"></i> Cancel
-                                </button>
-                                <button type="button" className="btn btn-primary" onClick={handleCreateBundle} disabled={!newBundle.title} style={{ padding: '10px 20px', borderRadius: 4, background: '#006073', border: 'none', color: 'white' }}>
-                                    <i className="ti ti-save"></i> Create Course Bundle
-                                </button>
+
+                            <div className="form-group">
+                                <div className="col-sm-offset-3 col-sm-9">
+                                    <button type="button" className="btn btn-primary btn-lg" onClick={handleCreateBundle} disabled={!newBundle.title} style={{ marginRight: 10 }}>
+                                        <i className="ti ti-save"></i> Create Course Bundle
+                                    </button>
+                                    <button type="button" className="btn btn-default btn-lg" onClick={() => setCreateView(false)}>
+                                        <i className="ti ti-close"></i> Cancel
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -189,33 +199,31 @@ export default function CourseManagementPage() {
         if (createType === 'module') {
             return (
                 <div className="panel panel-default">
-                    <div className="panel-heading" style={{ background: '#f8f9fa', padding: '15px 20px', borderBottom: '1px solid #e9ecef' }}>
-                        <h2 style={{ margin: 0, fontSize: 18, color: '#006073', fontWeight: 600 }}>
-                            <i className="ti ti-layout-grid2"></i> Create New Module
-                        </h2>
+                    <div className="panel-heading">
+                        <h2><i className="ti ti-layout-grid2"></i> Create New Module</h2>
                     </div>
                     <div className="panel-body">
-                        <form className="form-horizontal" style={{ maxWidth: 600, margin: '0 auto' }}>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module Title</label>
+                        <form className="form-horizontal">
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Module Title</label>
                                 <div className="col-sm-9">
                                     <input type="text" className="form-control" placeholder="Enter module title" value={newModule.title} onChange={e => setNewModule({...newModule, title: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module Key</label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Module Key</label>
                                 <div className="col-sm-9">
                                     <input type="text" className="form-control" placeholder="E.g., 5" value={newModule.moduleKey} onChange={e => setNewModule({...newModule, moduleKey: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Subject Area</label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Subject Area</label>
                                 <div className="col-sm-9">
                                     <input type="text" className="form-control" placeholder="E.g., Science" value={newModule.subjectArea} onChange={e => setNewModule({...newModule, subjectArea: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Status</label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Status</label>
                                 <div className="col-sm-9">
                                     <select className="form-control" value={newModule.active} onChange={e => setNewModule({...newModule, active: e.target.value})}>
                                         <option value="1">Active</option>
@@ -223,13 +231,15 @@ export default function CourseManagementPage() {
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group text-right" style={{ marginTop: 30 }}>
-                                <button type="button" className="btn btn-default" onClick={() => setCreateView(false)} style={{ marginRight: 10, padding: '10px 20px', borderRadius: 4, border: '1px solid #ccc' }}>
-                                    <i className="ti ti-close"></i> Cancel
-                                </button>
-                                <button type="button" className="btn btn-primary" onClick={handleCreateModule} disabled={!newModule.title || !newModule.moduleKey} style={{ padding: '10px 20px', borderRadius: 4, background: '#006073', border: 'none', color: 'white' }}>
-                                    <i className="ti ti-save"></i> Create Module
-                                </button>
+                            <div className="form-group">
+                                <div className="col-sm-offset-3 col-sm-9">
+                                    <button type="button" className="btn btn-primary btn-lg" onClick={handleCreateModule} disabled={!newModule.title || !newModule.moduleKey} style={{ marginRight: 10 }}>
+                                        <i className="ti ti-save"></i> Create Module
+                                    </button>
+                                    <button type="button" className="btn btn-default btn-lg" onClick={() => setCreateView(false)}>
+                                        <i className="ti ti-close"></i> Cancel
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -240,15 +250,13 @@ export default function CourseManagementPage() {
         if (createType === 'chapter') {
             return (
                 <div className="panel panel-default">
-                    <div className="panel-heading" style={{ background: '#f8f9fa', padding: '15px 20px', borderBottom: '1px solid #e9ecef' }}>
-                        <h2 style={{ margin: 0, fontSize: 18, color: '#006073', fontWeight: 600 }}>
-                            <i className="ti ti-bookmark"></i> Create New Chapter
-                        </h2>
+                    <div className="panel-heading">
+                        <h2><i className="ti ti-bookmark"></i> Create New Chapter</h2>
                     </div>
                     <div className="panel-body">
-                        <form className="form-horizontal" style={{ maxWidth: 600, margin: '0 auto' }}>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module</label>
+                        <form className="form-horizontal">
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Module</label>
                                 <div className="col-sm-9">
                                     <select className="form-control" value={newChapter.moduleCode} onChange={e => setNewChapter({...newChapter, moduleCode: e.target.value})}>
                                         <option value="">Select Module</option>
@@ -256,25 +264,27 @@ export default function CourseManagementPage() {
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Chapter Code</label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Chapter Code</label>
                                 <div className="col-sm-9">
                                     <input type="text" className="form-control" placeholder="E.g., CH-01" value={newChapter.code} onChange={e => setNewChapter({...newChapter, code: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15 }}>
-                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Chapter Title</label>
+                            <div className="form-group">
+                                <label className="col-sm-3 control-label">Chapter Title</label>
                                 <div className="col-sm-9">
                                     <input type="text" className="form-control" placeholder="Enter chapter title" value={newChapter.title} onChange={e => setNewChapter({...newChapter, title: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group text-right" style={{ marginTop: 30 }}>
-                                <button type="button" className="btn btn-default" onClick={() => setCreateView(false)} style={{ marginRight: 10, padding: '10px 20px', borderRadius: 4, border: '1px solid #ccc' }}>
-                                    <i className="ti ti-close"></i> Cancel
-                                </button>
-                                <button type="button" className="btn btn-primary" onClick={handleCreateChapter} disabled={!newChapter.title || !newChapter.moduleCode || !newChapter.code} style={{ padding: '10px 20px', borderRadius: 4, background: '#006073', border: 'none', color: 'white' }}>
-                                    <i className="ti ti-save"></i> Create Chapter
-                                </button>
+                            <div className="form-group">
+                                <div className="col-sm-offset-3 col-sm-9">
+                                    <button type="button" className="btn btn-primary btn-lg" onClick={handleCreateChapter} disabled={!newChapter.title || !newChapter.moduleCode || !newChapter.code} style={{ marginRight: 10 }}>
+                                        <i className="ti ti-save"></i> Create Chapter
+                                    </button>
+                                    <button type="button" className="btn btn-default btn-lg" onClick={() => setCreateView(false)}>
+                                        <i className="ti ti-close"></i> Cancel
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -298,12 +308,12 @@ export default function CourseManagementPage() {
                                     <i className="ti ti-layers"></i> Course Management
                                 </h2>
                             )}
-                            {selectedCourseBundle && !createView && (
+                            {selectedCourseBundle && (
                                 <>
                                     <h2 className="welcome-title">
                                         <i className="ti ti-book"></i> {selectedCourseBundle.title}
                                     </h2>
-                                    <p className="welcome-subtitle">
+                                    <p className="welcome-subtitle" style={{ background: 'rgba(255,255,255,0.15)', padding: '8px 12px', borderRadius: 4, display: 'inline-block', margin: 0 }}>
                                         <span style={{ fontWeight: 500 }}>
                                             <i className="ti ti-folder" style={{ marginRight: 4 }}></i>{filteredModules.length} Modules
                                         </span>
@@ -322,21 +332,13 @@ export default function CourseManagementPage() {
                                     </p>
                                 </>
                             )}
-                            {createView && (
-                                <>
-                                    <h2 className="welcome-title">
-                                        <i className="ti ti-pencil"></i> Authoring Tool
-                                    </h2>
-                                    <p className="welcome-subtitle">Creating new content...</p>
-                                </>
-                            )}
                         </div>
                     </div>
                     <div className="header-right">
                         <button className="btn btn-primary" onClick={() => setIsSelectCourseModalOpen(true)} style={{ marginRight: 10 }}>
                             <i className="ti ti-layers"></i> Select Course
                         </button>
-                        <button className="btn btn-success" onClick={() => { setCreateType('bundle'); setCreateView(true); }}>
+                        <button className="btn btn-success" onClick={() => { setCreateType('bundle'); setCreateView(true); }} style={{ background: '#ffb706', color: '#006073', border: 'none', fontWeight: 600 }}>
                             <i className="ti ti-plus"></i> New Bundle
                         </button>
                     </div>
@@ -360,23 +362,26 @@ export default function CourseManagementPage() {
                                     <ul className="nav nav-tabs" role="tablist">
                                         <li role="presentation" className={activeTab === 'modules' ? 'active' : ''}>
                                             <a href="#modules" onClick={(e) => { e.preventDefault(); setActiveTab('modules'); }}>
-                                                <i className="ti ti-folder" style={{ marginRight: 10 }}></i> Modules
+                                                <i className="ti ti-folder" style={{ marginRight: 10 }}></i> 
+                                                {!selectedModule ? 'Modules' : `Module: ${selectedModule.title}`}
                                             </a>
                                         </li>
-                                        <li role="presentation" className={activeTab === 'chapters' ? 'active' : ''}>
-                                            <a href="#chapters" onClick={(e) => { e.preventDefault(); setActiveTab('chapters'); }}>
-                                                <i className="ti ti-book" style={{ marginRight: 10 }}></i> Chapters
-                                            </a>
-                                        </li>
+                                        {selectedModule && (
+                                            <li role="presentation" className={activeTab === 'chapters' ? 'active' : ''}>
+                                                <a href="#chapters" onClick={(e) => { e.preventDefault(); setActiveTab('chapters'); }}>
+                                                    <i className="ti ti-book" style={{ marginRight: 10 }}></i> Chapters
+                                                </a>
+                                            </li>
+                                        )}
                                     </ul>
 
                                     <div className="tab-content" style={{ paddingTop: 20 }}>
                         {activeTab === 'modules' && (
-                            <div className="row" style={{ paddingTop: 20 }}>
+                            <div className="row" style={{ paddingTop: 0 }}>
                                 <div className="col-md-12">
                                     <div className="row" style={{ marginBottom: 20 }}>
-                                        <div className="col-md-12 text-right">
-                                            <button className="btn btn-primary" onClick={() => { setCreateType('module'); setCreateView(true); }}>
+                                        <div className="col-md-12">
+                                            <button className="btn btn-default" style={{ display: 'none' }} onClick={() => { setCreateType('module'); setCreateView(true); }}>
                                                 <i className="ti ti-plus"></i> Add New Module
                                             </button>
                                         </div>
@@ -400,7 +405,7 @@ export default function CourseManagementPage() {
                                                                 </div>
                                                             </div>
                                                             <div className="col-md-4 text-right">
-                                                                <button className="btn btn-success btn-sm" onClick={(e) => { e.stopPropagation(); }}>
+                                                                <button className="btn btn-success btn-sm" onClick={(e) => { e.stopPropagation(); setSelectedModule(module); setActiveTab('chapters'); }}>
                                                                     <i className="ti ti-book"></i> Modify Chapters
                                                                 </button>
                                                             </div>
@@ -470,11 +475,11 @@ export default function CourseManagementPage() {
                         )}
                         
                         {activeTab === 'chapters' && (
-                            <div className="row" style={{ paddingTop: 20 }}>
+                            <div className="row" style={{ paddingTop: 0 }}>
                                 <div className="col-md-12">
                                     <div className="row" style={{ marginBottom: 20 }}>
                                         <div className="col-md-12">
-                                            <button className="btn btn-default" style={{ marginRight: 10 }} onClick={() => setActiveTab('modules')}>
+                                            <button className="btn btn-default" style={{ marginRight: 10 }} onClick={() => { setSelectedModule(null); setActiveTab('modules'); }}>
                                                 <i className="ti ti-arrow-left"></i> Back to Modules
                                             </button>
                                             <button className="btn btn-default" style={{ display: 'none' }} onClick={() => { setCreateType('chapter'); setCreateView(true); }}>
@@ -566,46 +571,55 @@ export default function CourseManagementPage() {
             {/* Select Course Modal */}
             {isSelectCourseModalOpen && (
                 <>
-                    <div className="modal-backdrop fade in crispr-modal-backdrop" style={{ display: 'block', zIndex: 1040 }}></div>
-                    <div className="modal fade in" style={{ display: 'block', zIndex: 1050 }} tabIndex="-1" role="dialog">
+                    <div className="modal-backdrop fade in" style={{ display: 'block', zIndex: 1040 }}></div>
+                    <div className="modal fade in" id="selectCourseModal" style={{ display: 'block', zIndex: 1050 }} tabIndex="-1" role="dialog" aria-labelledby="selectCourseModalLabel">
                         <div className="modal-dialog modal-lg" role="document">
-                            <div className="modal-content" style={{ borderRadius: 8, overflow: 'hidden' }}>
-                                <div className="modal-header" style={{ background: '#006073', color: 'white', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <h4 className="modal-title" style={{ margin: 0 }}>
-                                        <i className="ti ti-layers" style={{ marginRight: 8 }}></i> Select Course Bundle
-                                    </h4>
-                                    <button type="button" className="close" onClick={() => setIsSelectCourseModalOpen(false)} style={{ color: 'white', opacity: 0.8, background: 'transparent', border: 'none', fontSize: 24 }}>
+                            <div className="modal-content">
+                                <div className="modal-header" style={{ backgroundColor: '#006073', color: 'white' }}>
+                                    <button type="button" className="close" onClick={() => setIsSelectCourseModalOpen(false)} style={{ color: 'white', opacity: 0.8 }}>
                                         <span aria-hidden="true">&times;</span>
                                     </button>
+                                    <h4 className="modal-title" id="selectCourseModalLabel">
+                                        <i className="ti ti-layers"></i> Select Course Bundle
+                                    </h4>
                                 </div>
-                                <div className="modal-body" style={{ padding: 20 }}>
+                                <div className="modal-body">
                                     <div className="row" style={{ marginBottom: 20 }}>
                                         <div className="col-md-12">
-                                            <div className="input-group" style={{ width: '100%' }}>
+                                            <div className="input-group">
+                                                <span className="input-group-addon"><i className="ti ti-search"></i></span>
                                                 <input 
                                                     type="text" 
                                                     className="form-control" 
                                                     placeholder="Search course bundles by title or code..." 
                                                     value={searchQuery}
                                                     onChange={e => setSearchQuery(e.target.value)}
-                                                    style={{ width: '100%', padding: '10px 15px', borderRadius: 4, border: '1px solid #ddd' }}
                                                 />
+                                                {searchQuery && (
+                                                    <span className="input-group-btn">
+                                                        <button className="btn btn-default" onClick={() => setSearchQuery('')}>
+                                                            <i className="ti ti-close"></i>
+                                                        </button>
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                     <div className="row">
                                         <div className="col-md-12">
-                                            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                                                <table className="table table-hover" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+                                                <table className="table table-hover" style={{ marginBottom: 0 }}>
                                                     <thead style={{ background: '#f8f9fa', position: 'sticky', top: 0, zIndex: 10 }}>
                                                         <tr>
-                                                            <th style={{ padding: '12px 8px', borderBottom: '2px solid #dee2e6' }}><i className="ti ti-hash"></i></th>
-                                                            <th style={{ padding: '12px 8px', borderBottom: '2px solid #dee2e6' }}>Course Bundle</th>
-                                                            <th style={{ width: 150, textAlign: 'center', padding: '12px 8px', borderBottom: '2px solid #dee2e6' }}>Modules</th>
+                                                            <th style={{ width: 60 }}><i className="ti ti-hash"></i></th>
+                                                            <th>Course Bundle</th>
+                                                            <th style={{ width: 150, textAlign: 'center' }}>Modules</th>
+                                                            <th style={{ width: 150, textAlign: 'center' }}>Chapters</th>
+                                                            <th style={{ width: 100, textAlign: 'center' }}>Status</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {bundles.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase())).map(bundle => (
+                                                        {bundles.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()) || b.displayKey.toLowerCase().includes(searchQuery.toLowerCase())).map(bundle => (
                                                             <tr 
                                                                 key={bundle.id} 
                                                                 onClick={() => {
@@ -613,20 +627,31 @@ export default function CourseManagementPage() {
                                                                     setIsSelectCourseModalOpen(false);
                                                                     setCreateView(false);
                                                                 }}
-                                                                style={{ cursor: 'pointer', background: selectedCourseBundle?.id === bundle.id ? '#e8f5e9' : 'transparent', borderBottom: '1px solid #f0f0f0' }}
+                                                                style={{ cursor: 'pointer', transition: 'all 0.2s ease', color: selectedCourseBundle?.id === bundle.id ? 'white' : 'inherit' }}
+                                                                className={selectedCourseBundle?.id === bundle.id ? 'bg-success' : ''}
                                                             >
-                                                                <td style={{ verticalAlign: 'middle', padding: '12px 8px' }}>
-                                                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #008ba3 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                                                <td style={{ verticalAlign: 'middle' }}>
+                                                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #008ba3 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>
                                                                         <i className="ti ti-book"></i>
                                                                     </div>
                                                                 </td>
-                                                                <td style={{ verticalAlign: 'middle', padding: '12px 8px' }}>
+                                                                <td style={{ verticalAlign: 'middle' }}>
                                                                     <strong style={{ fontSize: 16 }}>{bundle.title}</strong>
                                                                     <div style={{ fontSize: 12, color: '#666' }}>Code: {bundle.displayKey}</div>
                                                                 </td>
-                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle', padding: '12px 8px' }}>
-                                                                    <span style={{ display: 'inline-block', padding: '4px 12px', background: '#e3f2fd', color: '#1976d2', borderRadius: 12, fontWeight: 'bold' }}>
+                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                                    <span className="badge" style={{ backgroundColor: '#007bff', fontSize: 14, padding: '6px 12px', borderRadius: 12 }}>
                                                                         {bundle.modulesIncluded.length}
+                                                                    </span>
+                                                                </td>
+                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                                    <span className="badge" style={{ backgroundColor: '#28a745', fontSize: 14, padding: '6px 12px', borderRadius: 12 }}>
+                                                                        {bundle.modulesIncluded.reduce((acc, mk) => acc + chapters.filter(c => c.moduleCode === mk).length, 0)}
+                                                                    </span>
+                                                                </td>
+                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                                    <span className={`badge ${bundle.active === 1 ? 'badge-success' : 'badge-warning'}`}>
+                                                                        {bundle.active === 1 ? 'Active' : 'Inactive'}
                                                                     </span>
                                                                 </td>
                                                             </tr>
@@ -637,8 +662,8 @@ export default function CourseManagementPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-footer" style={{ borderTop: '1px solid #e9ecef', padding: 15, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <button type="button" className="btn btn-default" onClick={() => setIsSelectCourseModalOpen(false)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #ccc', borderRadius: 4 }}>
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-default" onClick={() => setIsSelectCourseModalOpen(false)}>
                                         Close
                                     </button>
                                 </div>
