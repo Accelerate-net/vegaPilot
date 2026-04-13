@@ -115,39 +115,39 @@ export default function CourseManagementPage() {
                         <form className="form-horizontal">
                             <div className="row">
                                 <div className="col-md-6">
-                                    <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Bundle Title</label>
+                                    <div className="form-group" style={{ marginBottom: 15 }}>
+                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Bundle Title</label>
                                         <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({...newBundle, title: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                            <input type="text" className="form-control" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({...newBundle, title: e.target.value})} />
                                         </div>
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Display Key</label>
+                                    <div className="form-group" style={{ marginBottom: 15 }}>
+                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Display Key</label>
                                         <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Auto-generated" value={newBundle.displayKey} onChange={e => setNewBundle({...newBundle, displayKey: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                            <input type="text" className="form-control" placeholder="Auto-generated" value={newBundle.displayKey} onChange={e => setNewBundle({...newBundle, displayKey: e.target.value})} />
                                         </div>
                                     </div>
                                 </div>
                                 <div className="col-md-6">
-                                    <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Status</label>
+                                    <div className="form-group" style={{ marginBottom: 15 }}>
+                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Status</label>
                                         <div className="col-sm-9">
-                                            <select className="form-control" value={newBundle.active} onChange={e => setNewBundle({...newBundle, active: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }}>
+                                            <select className="form-control" value={newBundle.active} onChange={e => setNewBundle({...newBundle, active: e.target.value})}>
                                                 <option value="1">Active</option>
                                                 <option value="0">Inactive</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                        <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Syllabus</label>
+                                    <div className="form-group" style={{ marginBottom: 15 }}>
+                                        <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Syllabus</label>
                                         <div className="col-sm-9">
-                                            <select className="form-control" value={newBundle.selectedSyllabusId} onChange={e => setNewBundle({...newBundle, selectedSyllabusId: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }}>
+                                            <select className="form-control" value={newBundle.selectedSyllabusId} onChange={e => setNewBundle({...newBundle, selectedSyllabusId: e.target.value})}>
                                                 <option value="">Select Syllabus (Optional)</option>
                                                 {syllabi.map(syl => (
                                                     <option key={syl.id} value={syl.id}>{syl.title}</option>
                                                 ))}
                                             </select>
-                                            <small style={{ color: '#666', marginTop: 5, display: 'block' }}>Based on the selected syllabus, choose modules below to include.</small>
+                                            <small className="help-block" style={{ marginTop: 5 }}>Based on the selected syllabus, choose modules below to include.</small>
                                         </div>
                                     </div>
                                 </div>
@@ -196,28 +196,28 @@ export default function CourseManagementPage() {
                     </div>
                     <div className="panel-body">
                         <form className="form-horizontal" style={{ maxWidth: 600, margin: '0 auto' }}>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Module Title</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module Title</label>
                                 <div className="col-sm-9">
-                                    <input type="text" className="form-control" placeholder="Enter module title" value={newModule.title} onChange={e => setNewModule({...newModule, title: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                    <input type="text" className="form-control" placeholder="Enter module title" value={newModule.title} onChange={e => setNewModule({...newModule, title: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Module Key</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module Key</label>
                                 <div className="col-sm-9">
-                                    <input type="text" className="form-control" placeholder="E.g., 5" value={newModule.moduleKey} onChange={e => setNewModule({...newModule, moduleKey: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                    <input type="text" className="form-control" placeholder="E.g., 5" value={newModule.moduleKey} onChange={e => setNewModule({...newModule, moduleKey: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Subject Area</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Subject Area</label>
                                 <div className="col-sm-9">
-                                    <input type="text" className="form-control" placeholder="E.g., Science" value={newModule.subjectArea} onChange={e => setNewModule({...newModule, subjectArea: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                    <input type="text" className="form-control" placeholder="E.g., Science" value={newModule.subjectArea} onChange={e => setNewModule({...newModule, subjectArea: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Status</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Status</label>
                                 <div className="col-sm-9">
-                                    <select className="form-control" value={newModule.active} onChange={e => setNewModule({...newModule, active: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }}>
+                                    <select className="form-control" value={newModule.active} onChange={e => setNewModule({...newModule, active: e.target.value})}>
                                         <option value="1">Active</option>
                                         <option value="0">Inactive</option>
                                     </select>
@@ -247,25 +247,25 @@ export default function CourseManagementPage() {
                     </div>
                     <div className="panel-body">
                         <form className="form-horizontal" style={{ maxWidth: 600, margin: '0 auto' }}>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Module</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Module</label>
                                 <div className="col-sm-9">
-                                    <select className="form-control" value={newChapter.moduleCode} onChange={e => setNewChapter({...newChapter, moduleCode: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }}>
+                                    <select className="form-control" value={newChapter.moduleCode} onChange={e => setNewChapter({...newChapter, moduleCode: e.target.value})}>
                                         <option value="">Select Module</option>
                                         {modules.map(m => <option key={m.moduleKey} value={m.moduleKey}>{m.title}</option>)}
                                     </select>
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Chapter Code</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Chapter Code</label>
                                 <div className="col-sm-9">
-                                    <input type="text" className="form-control" placeholder="E.g., CH-01" value={newChapter.code} onChange={e => setNewChapter({...newChapter, code: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                    <input type="text" className="form-control" placeholder="E.g., CH-01" value={newChapter.code} onChange={e => setNewChapter({...newChapter, code: e.target.value})} />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: 15, display: 'flex', alignItems: 'center' }}>
-                                <label className="col-sm-3 control-label text-right" style={{ paddingRight: 15, fontWeight: 600 }}>Chapter Title</label>
+                            <div className="form-group" style={{ marginBottom: 15 }}>
+                                <label className="col-sm-3 control-label text-right" style={{ fontWeight: 600 }}>Chapter Title</label>
                                 <div className="col-sm-9">
-                                    <input type="text" className="form-control" placeholder="Enter chapter title" value={newChapter.title} onChange={e => setNewChapter({...newChapter, title: e.target.value})} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }} />
+                                    <input type="text" className="form-control" placeholder="Enter chapter title" value={newChapter.title} onChange={e => setNewChapter({...newChapter, title: e.target.value})} />
                                 </div>
                             </div>
                             <div className="form-group text-right" style={{ marginTop: 30 }}>
@@ -286,7 +286,7 @@ export default function CourseManagementPage() {
     };
 
     return (
-        <div className="course-management-container">
+        <div className="container-fluid" style={{ paddingTop: '1%' }}>
             <ToastRegion toasts={toasts} onDismiss={(id) => setToasts(current => current.filter(t => t.id !== id))} />
             
             <div className="course-bundle-header">
@@ -344,193 +344,221 @@ export default function CourseManagementPage() {
             </div>
 
             {createView ? (
-                renderCreateView()
+                <div data-widget-group="course-window">
+                    <div className="row">
+                        <div className="col-md-12">
+                            {renderCreateView()}
+                        </div>
+                    </div>
+                </div>
             ) : selectedCourseBundle ? (
-                <div className="course-management-tabs">
-                    <ul className="nav nav-tabs">
-                        <li className={activeTab === 'modules' ? 'active' : ''}>
-                            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('modules'); }}>
-                                <i className="ti ti-folder"></i> Modules
-                            </a>
-                        </li>
-                        <li className={activeTab === 'chapters' ? 'active' : ''}>
-                            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('chapters'); }}>
-                                <i className="ti ti-book"></i> Chapters
-                            </a>
-                        </li>
-                    </ul>
+                <div data-widget-group="course-management-tabs">
+                    <div className="row">
+                        <div className="col-md-12">
+                            <div className="panel panel-default">
+                                <div className="panel-body">
+                                    <ul className="nav nav-tabs" role="tablist">
+                                        <li role="presentation" className={activeTab === 'modules' ? 'active' : ''}>
+                                            <a href="#modules" onClick={(e) => { e.preventDefault(); setActiveTab('modules'); }}>
+                                                <i className="ti ti-folder" style={{ marginRight: 10 }}></i> Modules
+                                            </a>
+                                        </li>
+                                        <li role="presentation" className={activeTab === 'chapters' ? 'active' : ''}>
+                                            <a href="#chapters" onClick={(e) => { e.preventDefault(); setActiveTab('chapters'); }}>
+                                                <i className="ti ti-book" style={{ marginRight: 10 }}></i> Chapters
+                                            </a>
+                                        </li>
+                                    </ul>
 
-                    <div className="tab-content panel-body bg-white border" style={{ borderColor: '#ddd', borderTop: 'none', background: '#fff', padding: 20 }}>
+                                    <div className="tab-content" style={{ paddingTop: 20 }}>
                         {activeTab === 'modules' && (
-                            <div>
-                                <div className="row" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div className="col-md-6">
-                                        <h4 style={{ color: '#006073', fontWeight: 600, marginTop: 0 }}>
-                                            <i className="ti ti-layout-grid2"></i> Modules in {selectedCourseBundle.title}
-                                        </h4>
+                            <div className="row" style={{ paddingTop: 20 }}>
+                                <div className="col-md-12">
+                                    <div className="row" style={{ marginBottom: 20 }}>
+                                        <div className="col-md-12 text-right">
+                                            <button className="btn btn-primary" onClick={() => { setCreateType('module'); setCreateView(true); }}>
+                                                <i className="ti ti-plus"></i> Add New Module
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="col-md-6 text-right">
-                                        <button className="btn btn-primary" style={{ background: '#006073', borderColor: '#006073', padding: '8px 16px', borderRadius: 4, color: '#fff', border: 'none' }} onClick={() => { setCreateType('module'); setCreateView(true); }}>
-                                            <i className="ti ti-plus"></i> Create New Module
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-md-12">
-                                        {filteredModules.map(module => (
-                                            <div key={module.moduleKey} className="module-card" style={{ marginBottom: 20, borderRadius: 8, border: '1px solid #e9ecef', overflow: 'hidden' }}>
-                                                <div className={`module-header ${expandedModules[module.moduleKey] ? 'expanded' : ''}`} onClick={() => toggleModule(module.moduleKey)} style={{ background: expandedModules[module.moduleKey] ? '#f8f9ff' : '#f8f9fa', padding: 15, cursor: 'pointer', borderBottom: expandedModules[module.moduleKey] ? '1px solid #cce5ff' : 'none' }}>
-                                                    <div className="row" style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <div className="col-md-10" style={{ flex: 1 }}>
-                                                            <div className="module-info" style={{ display: 'flex', alignItems: 'center' }}>
-                                                                <div className="expand-indicator" style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,123,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
-                                                                    <i className={`ti ${expandedModules[module.moduleKey] ? 'ti-angle-down' : 'ti-angle-right'}`} style={{ color: '#007bff' }}></i>
+                                    <div className="row">
+                                        <div className="col-md-12">
+                                            {filteredModules.map(module => (
+                                                <div key={module.moduleKey} className="module-card">
+                                                    <div className={`module-header ${expandedModules[module.moduleKey] ? 'expanded' : ''}`} onClick={() => toggleModule(module.moduleKey)} style={{ background: '#f8f9fa', padding: '15px 20px', cursor: 'pointer', border: '1px solid #e9ecef', borderRadius: expandedModules[module.moduleKey] ? '4px 4px 0 0' : '4px', marginBottom: expandedModules[module.moduleKey] ? 0 : 15 }}>
+                                                        <div className="row" style={{ display: 'flex', alignItems: 'center' }}>
+                                                            <div className="col-md-8">
+                                                                <div className="module-info" style={{ display: 'flex', alignItems: 'center' }}>
+                                                                    <div className="expand-indicator" style={{ marginRight: 15 }}>
+                                                                        <i className={`fa ${expandedModules[module.moduleKey] ? 'fa-folder-open-o' : 'fa-folder-o'}`} style={{ fontSize: 24, color: '#666' }}></i>
+                                                                    </div>
+                                                                    <div className="module-details">
+                                                                        <h3 className="module-title" style={{ margin: 0, fontSize: 18, fontWeight: 'bold' }}>
+                                                                            {module.title}
+                                                                        </h3>
+                                                                    </div>
                                                                 </div>
-                                                                <div>
-                                                                    <h4 className="module-title" style={{ margin: 0, fontSize: 18, fontWeight: 'bold' }}>Module {module.moduleKey}: {module.title}</h4>
-                                                                    <div style={{ marginTop: 5 }}>
-                                                                        <span className="module-badge" style={{ background: '#6c757d', color: '#fff', padding: '3px 8px', borderRadius: 12, fontSize: 11, marginRight: 5 }}>Module {module.moduleKey}</span>
-                                                                        <span className="module-badge" style={{ background: '#007bff', color: '#fff', padding: '3px 8px', borderRadius: 12, fontSize: 11, marginRight: 5 }}>{module.subjectArea}</span>
-                                                                        <span className="code-badge" style={{ background: '#28a745', color: '#fff', padding: '3px 8px', borderRadius: 12, fontSize: 11, marginRight: 5 }}>{module.difficultyLevel}</span>
-                                                                        <span className="parts-count" style={{ background: '#ffc107', color: '#212529', padding: '3px 8px', borderRadius: 12, fontSize: 11 }}>{chapters.filter(c => c.moduleCode === module.moduleKey).length} Chapters</span>
+                                                            </div>
+                                                            <div className="col-md-4 text-right">
+                                                                <button className="btn btn-success btn-sm" onClick={(e) => { e.stopPropagation(); }}>
+                                                                    <i className="ti ti-book"></i> Modify Chapters
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {expandedModules[module.moduleKey] && (
+                                                        <div className="module-content" style={{ padding: '0 20px 20px', border: '1px solid #e9ecef', borderTop: 'none', background: '#fff', marginBottom: 15, borderRadius: '0 0 4px 4px' }}>
+                                                            <div className="row">
+                                                                <div className="col-md-12">
+                                                                    <div className="chapters-table-container">
+                                                                        <table className="table table-striped table-hover" style={{ marginTop: 15 }}>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th>Chapter</th>
+                                                                                    <th>Name</th>
+                                                                                    <th>Parts</th>
+                                                                                    <th>Total Hours</th>
+                                                                                    <th>Teacher</th>
+                                                                                    <th>Status</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {chapters.filter(c => c.moduleCode === module.moduleKey).length === 0 ? (
+                                                                                    <tr>
+                                                                                        <td colSpan="6" className="text-center text-muted" style={{ padding: '20px' }}>
+                                                                                            <i className="ti ti-info"></i> No chapters assigned to this module yet
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ) : (
+                                                                                    chapters.filter(c => c.moduleCode === module.moduleKey).map(chapter => (
+                                                                                        <tr key={chapter.id}>
+                                                                                            <td style={{ verticalAlign: 'middle' }}><strong>{chapter.code}</strong></td>
+                                                                                            <td style={{ verticalAlign: 'middle' }}>{chapter.title}</td>
+                                                                                            <td style={{ verticalAlign: 'middle' }}>{getPartsCount(chapter.partsIncluded)}</td>
+                                                                                            <td style={{ verticalAlign: 'middle' }}>0:00:00</td>
+                                                                                            <td style={{ verticalAlign: 'middle' }}>
+                                                                                                {chapter.teacher ? (
+                                                                                                    <div className="teacher-info-compact" style={{ display: 'flex', alignItems: 'center' }}>
+                                                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="teacher" style={{ width: 24, height: 24, borderRadius: '50%', marginRight: 8 }} />
+                                                                                                        <span>{chapter.teacher.name}</span>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <span className="text-muted" style={{ fontSize: 12 }}>Unassigned</span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td style={{ verticalAlign: 'middle' }}>
+                                                                                                <span className={`badge ${chapter.status === 1 ? 'badge-success' : 'badge-warning'}`}>
+                                                                                                    {chapter.status === 1 ? 'Active' : 'Inactive'}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))
+                                                                                )}
+                                                                            </tbody>
+                                                                        </table>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="col-md-2 text-right">
-                                                            <button className="btn btn-default btn-sm" onClick={(e) => e.stopPropagation()} style={{ padding: '6px 12px', border: '1px solid #ccc', borderRadius: 4, background: '#fff' }}>
-                                                                <i className="ti ti-pencil"></i> Edit
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                    )}
                                                 </div>
-                                                {/* Expanded Chapters */}
-                                                {expandedModules[module.moduleKey] && (
-                                                    <div className="module-content" style={{ padding: 20, background: '#f8f9fa' }}>
-                                                        {chapters.filter(c => c.moduleCode === module.moduleKey).map(chapter => (
-                                                            <div key={chapter.id} className="chapter-item" style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: 15, overflow: 'hidden' }}>
-                                                                <div className="chapter-header" onClick={() => toggleChapter(chapter.id)} style={{ padding: '15px 20px', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                                                        <div className="expand-indicator" style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,123,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
-                                                                            <i className={`ti ${expandedChapters[chapter.id] ? 'ti-angle-down' : 'ti-angle-right'}`} style={{ color: '#007bff' }}></i>
-                                                                        </div>
-                                                                        <div>
-                                                                            <h4 style={{ margin: 0, fontWeight: 600 }}>{chapter.title}</h4>
-                                                                            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', fontSize: 12, color: '#666' }}>
-                                                                                <span style={{ background: '#007bff', color: '#fff', padding: '2px 6px', borderRadius: 4, fontWeight: 'bold', marginRight: 8 }}>{chapter.code}</span>
-                                                                                <span>{getPartsCount(chapter.partsIncluded)} Parts</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                {expandedChapters[chapter.id] && (
-                                                                    <div className="parts-list" style={{ background: '#eff8ff', padding: 20, borderTop: '2px solid #aec5dc' }}>
-                                                                        {getPartsCount(chapter.partsIncluded) > 0 ? (
-                                                                            <div>
-                                                                                {chapter.partsIncluded.map((part, pIdx) => (
-                                                                                    <div key={pIdx} className="part-item" style={{ display: 'flex', alignItems: 'center', padding: 12, background: '#fff', border: '1px solid #e9ecef', borderRadius: 4, marginBottom: 8 }}>
-                                                                                        <div style={{ background: '#28a745', color: '#fff', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 15 }}>
-                                                                                            {pIdx + 1}
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <h6 style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{part.title}</h6>
-                                                                                            <span className={`badge badge-${part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : 'secondary'}`} style={{ fontSize: 10 }}>{part.type}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div style={{ textAlign: 'center', color: '#6c757d', padding: 20 }}>
-                                                                                <i className="ti ti-video-camera-off" style={{ fontSize: 32, opacity: 0.5, marginBottom: 10 }}></i>
-                                                                                <p style={{ margin: 0 }}>This chapter doesn't have any parts assigned yet.</p>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                        {chapters.filter(c => c.moduleCode === module.moduleKey).length === 0 && (
-                                                            <div style={{ textAlign: 'center', color: '#6c757d', padding: '30px 20px' }}>
-                                                                <i className="ti ti-book-open" style={{ fontSize: 32, opacity: 0.5, marginBottom: 10 }}></i>
-                                                                <p style={{ margin: 0 }}>This module doesn't have any chapters yet.</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         )}
                         
                         {activeTab === 'chapters' && (
-                            <div>
-                                <div className="row" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div className="col-md-6">
-                                        <h4 style={{ color: '#006073', fontWeight: 600, marginTop: 0 }}>
-                                            <i className="ti ti-book"></i> All Chapters in {selectedCourseBundle.title}
-                                        </h4>
+                            <div className="row" style={{ paddingTop: 20 }}>
+                                <div className="col-md-12">
+                                    <div className="row" style={{ marginBottom: 20 }}>
+                                        <div className="col-md-12">
+                                            <button className="btn btn-default" style={{ marginRight: 10 }} onClick={() => setActiveTab('modules')}>
+                                                <i className="ti ti-arrow-left"></i> Back to Modules
+                                            </button>
+                                            <button className="btn btn-default" style={{ display: 'none' }} onClick={() => { setCreateType('chapter'); setCreateView(true); }}>
+                                                <i className="ti ti-plus"></i> Add New Chapter
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="col-md-6 text-right">
-                                        <button className="btn btn-primary" style={{ background: '#006073', borderColor: '#006073', padding: '8px 16px', borderRadius: 4, color: '#fff', border: 'none' }} onClick={() => { setCreateType('chapter'); setCreateView(true); }}>
-                                            <i className="ti ti-plus"></i> Create New Chapter
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-md-12">
-                                        {filteredChapters.map(chapter => (
-                                            <div key={chapter.id} className="chapter-item" style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: 15, overflow: 'hidden' }}>
-                                                <div className="chapter-header" onClick={() => toggleChapter(chapter.id)} style={{ padding: '15px 20px', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                                        <div className="expand-indicator" style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,123,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
-                                                            <i className={`ti ${expandedChapters[chapter.id] ? 'ti-angle-down' : 'ti-angle-right'}`} style={{ color: '#007bff' }}></i>
-                                                        </div>
-                                                        <div>
-                                                            <h4 style={{ margin: 0, fontWeight: 600 }}>{chapter.title}</h4>
-                                                            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', fontSize: 12, color: '#666' }}>
-                                                                <span style={{ background: '#007bff', color: '#fff', padding: '2px 6px', borderRadius: 4, fontWeight: 'bold', marginRight: 8 }}>{chapter.code}</span>
-                                                                <span style={{ background: '#6c757d', color: '#fff', padding: '2px 6px', borderRadius: 4, fontWeight: 'bold', marginRight: 8 }}>Module {chapter.moduleCode}</span>
-                                                                <span>{getPartsCount(chapter.partsIncluded)} Parts</span>
+                                    <div className="row">
+                                        <div className="col-md-12">
+                                            {filteredChapters.map(chapter => (
+                                                <div key={chapter.id} className="chapter-item" style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: 15, overflow: 'hidden' }}>
+                                                    <div className="chapter-header" onClick={() => toggleChapter(chapter.id)} style={{ padding: '15px 20px', background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                                        <div className="row" style={{ width: '100%', margin: 0, display: 'flex', alignItems: 'center' }}>
+                                                            <div className="col-md-8" style={{ padding: 0 }}>
+                                                                <div className="chapter-info" style={{ display: 'flex', alignItems: 'center' }}>
+                                                                    <div className="expand-indicator" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
+                                                                        <i className={`fa ${expandedChapters[chapter.id] ? 'fa-folder-open-o' : 'fa-folder-o'}`} style={{ color: '#007bff', fontSize: 20 }}></i>
+                                                                    </div>
+                                                                    <div className="chapter-details">
+                                                                        <h4 className="chapter-title" style={{ margin: '0 0 5px 0', fontSize: 16, fontWeight: 'bold' }}>{chapter.title}</h4>
+                                                                        <p className="chapter-meta" style={{ margin: 0, color: '#666', fontSize: 13 }}>
+                                                                            <span><b>Chapter {chapter.code}</b> of Subject<i className="fa fa-circle separator-dot" style={{ margin: '0 8px', fontSize: 5 }}></i>{getPartsCount(chapter.partsIncluded)} parts<i className="fa fa-circle separator-dot" style={{ margin: '0 8px', fontSize: 5 }}></i>0:00:00</span>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {/* Expanded view for Chapters tab */}
-                                                {expandedChapters[chapter.id] && (
-                                                    <div className="parts-list" style={{ background: '#eff8ff', padding: 20, borderTop: '2px solid #aec5dc' }}>
-                                                        {getPartsCount(chapter.partsIncluded) > 0 ? (
-                                                            <div>
-                                                                {chapter.partsIncluded.map((part, pIdx) => (
-                                                                    <div key={pIdx} className="part-item" style={{ display: 'flex', alignItems: 'center', padding: 12, background: '#fff', border: '1px solid #e9ecef', borderRadius: 4, marginBottom: 8 }}>
-                                                                        <div style={{ background: '#28a745', color: '#fff', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 15 }}>
-                                                                            {pIdx + 1}
-                                                                        </div>
-                                                                        <div style={{ color: '#6c757d', marginRight: 10 }}>
-                                                                            <i className={`ti ${part.type === 'VIDEO' ? 'ti-video-camera' : part.type === 'MATERIAL' ? 'ti-file' : 'ti-clipboard'}`} style={{fontSize: 24}}></i>
-                                                                        </div>
-                                                                        <div>
-                                                                            <h6 style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{part.title}</h6>
-                                                                            <span className={`badge badge-${part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : 'secondary'}`} style={{ fontSize: 10 }}>{part.type}</span>
+                                                            <div className="col-md-4" style={{ padding: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                                                {chapter.teacher ? (
+                                                                    <div className="teacher-info-simple" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                                                        <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt="Teacher" style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10 }} />
+                                                                        <div className="teacher-details-simple">
+                                                                            <span style={{ fontWeight: 600, display: 'block' }}>{chapter.teacher.name}</span>
                                                                         </div>
                                                                     </div>
-                                                                ))}
+                                                                ) : (
+                                                                    <div className="teacher-not-mapped" onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer', padding: '8px 10px', border: '2px dashed #ccc', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, background: '#f9f9f9', transition: 'all 0.3s ease' }}>
+                                                                        <i className="ti ti-user" style={{ fontSize: 20, color: '#999' }}></i>
+                                                                        <div style={{ textAlign: 'left', flex: 1 }}>
+                                                                            <span style={{ display: 'block', fontSize: 12, color: '#666', fontWeight: 500 }}>No Instructor</span>
+                                                                            <span style={{ display: 'block', fontSize: 10, color: '#007bff', fontWeight: 'bold' }}>Click to Assign</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        ) : (
-                                                            <div style={{ textAlign: 'center', color: '#6c757d', padding: 20 }}>
-                                                                <i className="ti ti-video-camera-off" style={{ fontSize: 32, opacity: 0.5, marginBottom: 10 }}></i>
-                                                                <p style={{ margin: 0 }}>This chapter doesn't have any parts assigned yet.</p>
-                                                            </div>
-                                                        )}
+                                                        </div>
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                    {expandedChapters[chapter.id] && (
+                                                        <div className="parts-list" style={{ background: '#eff8ff', padding: 20, borderTop: '2px solid #aec5dc' }}>
+                                                            {getPartsCount(chapter.partsIncluded) > 0 ? (
+                                                                <div>
+                                                                    {chapter.partsIncluded.map((part, pIdx) => (
+                                                                        <div key={pIdx} className="part-item" style={{ display: 'flex', alignItems: 'center', padding: 12, background: '#fff', border: '1px solid #e9ecef', borderRadius: 4, marginBottom: 8 }}>
+                                                                            <div style={{ background: '#28a745', color: '#fff', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 15 }}>
+                                                                                {pIdx + 1}
+                                                                            </div>
+                                                                            <div style={{ color: '#6c757d', marginRight: 10 }}>
+                                                                                <i className={`ti ${part.type === 'VIDEO' ? 'ti-video-camera' : part.type === 'MATERIAL' ? 'ti-file' : 'ti-clipboard'}`} style={{fontSize: 24}}></i>
+                                                                            </div>
+                                                                            <div>
+                                                                                <h6 style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{part.title}</h6>
+                                                                                <span className={`badge badge-${part.type === 'VIDEO' ? 'primary' : part.type === 'MATERIAL' ? 'info' : 'secondary'}`} style={{ fontSize: 10 }}>{part.type}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ textAlign: 'center', color: '#6c757d', padding: 20 }}>
+                                                                    <i className="ti ti-video-camera-off" style={{ fontSize: 32, opacity: 0.5, marginBottom: 10 }}></i>
+                                                                    <p style={{ margin: 0 }}>This chapter doesn't have any parts assigned yet.</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         )}
+                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             ) : null}

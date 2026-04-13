@@ -1,8 +1,4 @@
-.course-management-container {
-    padding: 20px;
-    background: #f1f2f6;
-    min-height: 100vh;
-}
+
 
 .courseRow:hover {
     cursor: pointer;
@@ -387,16 +383,16 @@
 }
 
 /* Tabs Panel */
-.course-management-tabs .nav-tabs {
+[data-widget-group="course-management-tabs"] .nav-tabs {
     border-bottom: 2px solid #dee2e6;
     margin-bottom: 20px;
 }
 
-.course-management-tabs .nav-tabs > li {
+[data-widget-group="course-management-tabs"] .nav-tabs > li {
     margin-bottom: -2px;
 }
 
-.course-management-tabs .nav-tabs > li > a {
+[data-widget-group="course-management-tabs"] .nav-tabs > li > a {
     border: none;
     border-bottom: 2px solid transparent;
     border-radius: 0;
@@ -407,22 +403,22 @@
     transition: all 0.3s ease;
 }
 
-.course-management-tabs .nav-tabs > li > a:hover {
+[data-widget-group="course-management-tabs"] .nav-tabs > li > a:hover {
     background: transparent;
     color: #006073;
     border-bottom: 2px solid rgba(0, 96, 115, 0.3);
 }
 
-.course-management-tabs .nav-tabs > li.active > a,
-.course-management-tabs .nav-tabs > li.active > a:hover,
-.course-management-tabs .nav-tabs > li.active > a:focus {
+[data-widget-group="course-management-tabs"] .nav-tabs > li.active > a,
+[data-widget-group="course-management-tabs"] .nav-tabs > li.active > a:hover,
+[data-widget-group="course-management-tabs"] .nav-tabs > li.active > a:focus {
     border: none;
     background: transparent;
     color: #006073;
     border-bottom: 2px solid #006073;
 }
 
-.course-management-tabs .nav-tabs > li > a i {
+[data-widget-group="course-management-tabs"] .nav-tabs > li > a i {
     margin-right: 8px;
     font-size: 16px;
 }
