@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { setToken } from '../lib/auth';
@@ -6,13 +6,35 @@ import { defaultProtectedRoute } from '../lib/legacyScreens';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  
+  // View states: 'password', 'otp', 'forgot'
+  const [view, setView] = useState('password');
+  
+  // Form fields
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [state, setState] = useState({ loading: false, error: '' });
+  const [otp, setOtp] = useState('');
+  
+  // OTP logic
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+  
+  const [state, setState] = useState({ loading: false, error: '', success: '' });
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setState({ loading: true, error: '' });
+  // Handle countdown for OTP
+  useEffect(() => {
+    let interval;
+    if (otpTimer > 0) {
+      interval = setInterval(() => setOtpTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpTimer]);
+
+  const resetState = () => setState({ loading: false, error: '', success: '' });
+
+  async function handlePasswordLogin(e) {
+    if (e) e.preventDefault();
+    setState({ loading: true, error: '', success: '' });
 
     try {
       const response = await api.post(
@@ -26,57 +48,183 @@ export default function LoginPage() {
         navigate(defaultProtectedRoute, { replace: true });
         return;
       }
-
-      setState({
-        loading: false,
-        error: response.data?.error || 'Authentication failed.',
-      });
+      setState({ loading: false, error: response.data?.error || 'Authentication failed.', success: '' });
     } catch (error) {
-      setState({
-        loading: false,
-        error: error.message || 'Authentication failed.',
-      });
+      setState({ loading: false, error: error.message || 'Authentication failed.', success: '' });
     }
   }
 
+  async function handleSendOtp(e) {
+    if (e) e.preventDefault();
+    if (!username) return setState({ loading: false, error: 'Please enter your username/email.', success: '' });
+    
+    setState({ loading: true, error: '', success: '' });
+    // Mocking API delay for OTP
+    setTimeout(() => {
+      setOtpSent(true);
+      setOtpTimer(120); // 2 mins
+      setState({ loading: false, error: '', success: 'OTP sent to your registered email/phone.' });
+    }, 1000);
+  }
+
+  async function handleOtpLogin(e) {
+    if (e) e.preventDefault();
+    setState({ loading: true, error: '', success: '' });
+    // Mock OTP logic, then fallback to standard login
+    setTimeout(() => {
+      // In a real app this would verify OTP. For now, pretend standard login works
+      setState({ loading: false, error: 'Invalid OTP entered. Mock mode prevents real login.', success: '' });
+    }, 1000);
+  }
+
+  async function handleForgotPassword(e) {
+    if (e) e.preventDefault();
+    if (!username) return setState({ loading: false, error: 'Please enter your registered email.', success: '' });
+    
+    setState({ loading: true, error: '', success: '' });
+    // Mocking API delay
+    setTimeout(() => {
+      setState({ loading: false, error: '', success: 'Temporary password sent to your email.' });
+    }, 1500);
+  }
+
   return (
-    <div className="login-page">
-      <section className="login-panel">
-        <p className="eyebrow">React Admin Preview</p>
-        <h1>Crispr Pilot</h1>
-        <p className="panel-copy">
-          This is the new React entry point. Legacy Angular screens remain untouched while the migration is in
-          progress.
-        </p>
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Username</span>
-            <input value={username} onChange={(event) => setUsername(event.target.value)} />
-          </label>
-          <label>
-            <span>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
+    <div className="login-wrapper">
+      <div className="login-card">
+        
+        {/* Left Side: Brand Panel */}
+        <div className="login-brand-side">
+          <div className="login-brand-logo-block">
+            <img
+              src="/assets/logo/crispr-logo-for-dark-bg.png"
+              alt="Crispr Logo"
+              className="login-brand-logo-img"
+              onError={(e) => { e.target.style.display = 'none'; }}
             />
-          </label>
-          <button className="primary-button" disabled={state.loading} type="submit">
-            {state.loading ? 'Signing In...' : 'Sign In'}
-          </button>
-          {state.error ? <p className="error-text">{state.error}</p> : null}
-        </form>
-      </section>
-      <section className="info-panel">
-        <div className="info-card">
-          <h2>Migration Status</h2>
-          <ul>
-            <li>React route map mirrors the existing root `.html` screens.</li>
-            <li>Auth and API helpers are centralized for the new app.</li>
-            <li>Legacy pages remain available until each screen is ported.</li>
-          </ul>
+            <span className="login-brand-wordmark">PILOT</span>
+          </div>
         </div>
-      </section>
+
+        {/* Right Side: Form Panel */}
+        <div className="login-form-side">
+          
+          {view === 'password' && (
+            <div className="login-form-inner fade-in">
+              <div className="login-header">
+                <h3>Welcome!</h3>
+                <p>Continue with your registered credentials</p>
+              </div>
+
+              <form onSubmit={handlePasswordLogin}>
+                <input 
+                  className="login-input" 
+                  placeholder="Username or Email" 
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value)} 
+                />
+                <input 
+                  className="login-input" 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                />
+
+                {state.error && <div className="login-alert error">{state.error}</div>}
+
+                <button type="submit" className="login-btn primary" disabled={state.loading}>
+                  {state.loading ? 'Logging in...' : 'Login'}
+                </button>
+
+                <div className="login-options">
+                  <button type="button" className="text-btn" onClick={() => { setView('otp'); resetState(); }}>Login with OTP</button>
+                  <button type="button" className="text-btn" onClick={() => { setView('forgot'); resetState(); }}>Forgot Password?</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {view === 'otp' && (
+            <div className="login-form-inner fade-in">
+              <div className="login-header">
+                <h3>Login with OTP</h3>
+                <p>Secure login using a One-Time Password.</p>
+              </div>
+
+              <form onSubmit={otpSent ? handleOtpLogin : handleSendOtp}>
+                <input 
+                  className="login-input" 
+                  placeholder="Username or Email" 
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value)} 
+                  disabled={otpSent}
+                />
+                
+                {otpSent && (
+                  <input 
+                    className="login-input" 
+                    placeholder="4-Digit OTP" 
+                    value={otp} 
+                    onChange={(e) => setOtp(e.target.value)} 
+                    maxLength={4}
+                  />
+                )}
+
+                {otpSent && (
+                  <div className="login-options">
+                    {otpTimer > 0 ? (
+                      <span className="timer-text">Resend in {Math.floor(otpTimer/60)}:{(otpTimer%60).toString().padStart(2, '0')}</span>
+                    ) : (
+                      <button type="button" className="text-btn" onClick={handleSendOtp}>Resend OTP</button>
+                    )}
+                  </div>
+                )}
+
+                {state.error && <div className="login-alert error">{state.error}</div>}
+                {state.success && <div className="login-alert success">{state.success}</div>}
+
+                <button type="submit" className="login-btn primary" disabled={state.loading}>
+                  {state.loading ? 'Processing...' : (otpSent ? 'Login' : 'Send OTP')}
+                </button>
+              </form>
+
+              <div className="login-secondary-actions">
+                <button type="button" className="text-btn" onClick={() => { setView('password'); resetState(); }}>Login with Password</button>
+              </div>
+            </div>
+          )}
+
+          {view === 'forgot' && (
+            <div className="login-form-inner fade-in">
+              <div className="login-header">
+                <h3>Recover Password</h3>
+                <p>Enter your registered email to receive a temporary password.</p>
+              </div>
+
+              <form onSubmit={handleForgotPassword}>
+                <input 
+                  className="login-input" 
+                  placeholder="Email Address" 
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value)} 
+                />
+
+                {state.error && <div className="login-alert error">{state.error}</div>}
+                {state.success && <div className="login-alert success">{state.success}</div>}
+
+                <button type="submit" className="login-btn primary" disabled={state.loading}>
+                  {state.loading ? 'Sending...' : 'Send Temporary Password'}
+                </button>
+              </form>
+
+              <div className="login-secondary-actions">
+                <button type="button" className="text-btn" onClick={() => { setView('password'); resetState(); }}>Back to Login</button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }
