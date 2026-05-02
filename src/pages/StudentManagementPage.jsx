@@ -196,7 +196,7 @@ export default function StudentManagementPage() {
       const isLocalWebPreview = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
       try {
-        const response = await api.get('/restricted/people/list-candidates.php', {
+        const response = await api.get('/restricted/people/candidate/list', {
           params: {
             page: currentPage,
             size: itemsPerPage,

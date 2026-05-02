@@ -1,15 +1,12 @@
 import axios from 'axios';
 import { getToken } from './auth';
 
-export function getBaseUrl() {
-  const { protocol, hostname } = window.location;
-  const isLocalPreview = protocol === 'file:' || hostname === 'localhost' || hostname === '127.0.0.1';
-
-  return isLocalPreview ? 'http://192.168.1.100:3000' : 'https://crisprtech.app/crispr-apis';
-}
+export const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:3030/api'
+  : 'https://crisprtech.app/api';
 
 export const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: BASE_URL,
 });
 
 api.interceptors.request.use((config) => {

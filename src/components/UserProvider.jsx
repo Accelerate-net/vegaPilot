@@ -18,7 +18,7 @@ export default function UserProvider({ children }) {
     const token = getToken();
     if (!token) return;
 
-    api.get('/restricted/user/profile.php')
+    api.get('/user-profile/user-profile')
       .then((res) => {
         if (res.data?.status && res.data?.response) {
           const raw = res.data.response;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { getToken, isAuthenticated } from '../lib/auth';
-import { getBaseUrl } from '../lib/api';
+import { BASE_URL } from '../lib/api';
 
 export default function VerifyTokenPage() {
   return (
@@ -15,7 +15,7 @@ export default function VerifyTokenPage() {
           </article>
           <article className="detail-panel">
             <h4>API Base URL</h4>
-            <p>{getBaseUrl()}</p>
+            <p>{BASE_URL}</p>
           </article>
         </div>
         <article className="detail-panel">

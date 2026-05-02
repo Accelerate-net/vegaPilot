@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import { mentorsDemo } from '../data/adminRemainingDemo';
 
@@ -106,14 +107,17 @@ function starClass(rating, index) {
 }
 
 export default function MentorProfilesPage() {
-  const [mentors, setMentors] = useState(() => mentorsDemo.map(normalizeMentor));
+  const [mentors, setMentors] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSpecialization, setFilterSpecialization] = useState('');
-  const [sortColumn, setSortColumn] = useState('');
+  const [sortColumn, setSortColumn] = useState('name');
   const [sortReverse, setSortReverse] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
+  const [totalMentors, setTotalMentors] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
   const [specializationMenuOpen, setSpecializationMenuOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -130,11 +134,16 @@ export default function MentorProfilesPage() {
   const [studentsSearchKey, setStudentsSearchKey] = useState('');
   const [studentsCurrentPage, setStudentsCurrentPage] = useState(1);
   const [studentsPageSize] = useState(5);
+  const [mappedStudents, setMappedStudents] = useState([]);
+  const [mappedStudentsTotal, setMappedStudentsTotal] = useState(0);
+  const [mappedStudentsPages, setMappedStudentsPages] = useState(1);
+  const [isMappedStudentsLoading, setIsMappedStudentsLoading] = useState(false);
+  const [isMentorProfileLoading, setIsMentorProfileLoading] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = useRef(0);
   const [selectedMappedStudents, setSelectedMappedStudents] = useState({});
   const [menteeSearchQuery, setMenteeSearchQuery] = useState('');
   const [selectedMenteesToAdd, setSelectedMenteesToAdd] = useState({});
-  const [toasts, setToasts] = useState([]);
-  const toastIdRef = useRef(0);
   const kebabRef = useRef(null);
   const filterRef = useRef(null);
   const allAvailableStudents = useMemo(() => createAvailableStudents(), []);
@@ -148,10 +157,150 @@ export default function MentorProfilesPage() {
     }, 4500);
   };
 
+  const loadMentors = useCallback(async (isCancelled = { current: false }) => {
+    setIsLoading(true);
+    const isLocalWebPreview = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    try {
+      const response = await api.get('/restricted/people/mentor/list', {
+        params: {
+          page: currentPage,
+          size: pageSize,
+          sortBy: sortColumn || 'name',
+          sortOrder: sortReverse ? 'DESC' : 'ASC',
+          searchKey: searchQuery.trim() || undefined,
+          specialization: filterSpecialization || undefined,
+        },
+      });
+
+      if (response.data?.status === 'success') {
+        const rows = (response.data.data || []).map((mentor, idx) => normalizeMentor(mentor, idx));
+        if (!isCancelled.current) {
+          setMentors(rows);
+          setTotalMentors(response.data.meta?.total || 0);
+          setTotalPages(response.data.meta?.totalPages || 1);
+          setCurrentPage(response.data.meta?.page || 1);
+          setIsDemoMode(false);
+        }
+        return;
+      }
+      throw new Error(response.data?.message || 'Failed to load mentors');
+    } catch (error) {
+      if (isCancelled.current) return;
+      
+      // Demo Fallback
+      let rows = mentorsDemo.map(normalizeMentor);
+      const query = searchQuery.trim().toLowerCase();
+      if (query) {
+        rows = rows.filter((mentor) =>
+          [mentor.name, mentor.specialisation, mentor.almaMater, mentor.brief]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(query))
+        );
+      }
+      if (filterSpecialization) {
+        rows = rows.filter((mentor) => mentor.specialisation === filterSpecialization);
+      }
+      
+      // Sorting for demo
+      rows.sort((a, b) => {
+        let aV = (a[sortColumn] || '').toString().toLowerCase();
+        let bV = (b[sortColumn] || '').toString().toLowerCase();
+        if (aV < bV) return sortReverse ? 1 : -1;
+        if (aV > bV) return sortReverse ? -1 : 1;
+        return 0;
+      });
+
+      const total = rows.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      const page = Math.min(currentPage, pages);
+      const start = (page - 1) * pageSize;
+
+      if (!isCancelled.current) {
+        setMentors(rows.slice(start, start + pageSize));
+        setTotalMentors(total);
+        setTotalPages(pages);
+        setCurrentPage(page);
+        setIsDemoMode(true);
+        if (isLocalWebPreview) {
+          showToast('info', 'Demo Data', 'Loaded demo mentor profiles because the mentor API is unreachable.');
+        } else {
+          showToast('error', 'Network Error', error.message || 'Error loading mentors.');
+        }
+      }
+    } finally {
+      if (!isCancelled.current) setIsLoading(false);
+    }
+  }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery, filterSpecialization]);
+
+  const loadMappedStudents = useCallback(async (isCancelled = { current: false }) => {
+    if (!selectedMentorForStudents) {
+      setMappedStudents([]);
+      setMappedStudentsTotal(0);
+      setMappedStudentsPages(1);
+      return;
+    }
+
+    setIsMappedStudentsLoading(true);
+    try {
+      const response = await api.get('/restricted/people/mentor/get-mapped-candidates', {
+        params: {
+          id: selectedMentorForStudents.id,
+          page: studentsCurrentPage,
+          size: studentsPageSize,
+          searchKey: studentsSearchKey.trim() || undefined,
+        },
+      });
+
+      if (response.data?.status === 'success') {
+        if (!isCancelled.current) {
+          setMappedStudents(response.data.data || []);
+          setMappedStudentsTotal(response.data.meta?.total || 0);
+          setMappedStudentsPages(response.data.meta?.totalPages || 1);
+        }
+        return;
+      }
+    } catch (error) {
+      if (isCancelled.current) return;
+      
+      // Demo Fallback
+      const query = studentsSearchKey.trim().toLowerCase();
+      let items = selectedMentorForStudents.mentoringStudents || [];
+      if (query) {
+        items = items.filter((student) =>
+          [student.name, student.email, student.phone, student.mobile]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(query))
+        );
+      }
+
+      const total = items.length;
+      const pages = Math.max(1, Math.ceil(total / studentsPageSize));
+      const page = Math.min(studentsCurrentPage, pages);
+      const start = (page - 1) * studentsPageSize;
+
+      if (!isCancelled.current) {
+        setMappedStudents(items.slice(start, start + studentsPageSize));
+        setMappedStudentsTotal(total);
+        setMappedStudentsPages(pages);
+        setStudentsCurrentPage(page);
+      }
+    } finally {
+      if (!isCancelled.current) setIsMappedStudentsLoading(false);
+    }
+  }, [selectedMentorForStudents, studentsSearchKey, studentsCurrentPage, studentsPageSize]);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 900);
-    return () => window.clearTimeout(timer);
-  }, []);
+    const isCancelled = { current: false };
+    loadMentors(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [loadMentors]);
+
+  useEffect(() => {
+    const isCancelled = { current: false };
+    loadMappedStudents(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [loadMappedStudents]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -166,61 +315,42 @@ export default function MentorProfilesPage() {
     return Array.from(new Set(mentors.map((mentor) => mentor.specialisation))).sort();
   }, [mentors]);
 
-  const filteredMentors = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return mentors.filter((mentor) => {
-      if (filterSpecialization && mentor.specialisation !== filterSpecialization) return false;
-      if (!query) return true;
-      return [
-        mentor.name,
-        mentor.specialisation,
-        mentor.almaMater,
-        mentor.brief,
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-    });
-  }, [filterSpecialization, mentors, searchQuery]);
-
-  const sortedMentors = useMemo(() => {
-    if (!sortColumn) return filteredMentors;
-    return sortMentors(filteredMentors, sortColumn, sortReverse);
-  }, [filteredMentors, sortColumn, sortReverse]);
-
-  const totalMentors = sortedMentors.length;
-  const totalPages = Math.max(1, Math.ceil(totalMentors / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedMentors = useMemo(() => {
-    const start = (safeCurrentPage - 1) * pageSize;
-    return sortedMentors.slice(start, start + pageSize);
-  }, [pageSize, safeCurrentPage, sortedMentors]);
+  const paginatedMentors = mentors; // In both cases, mentors state holds the current page
   const pageNumbers = useMemo(() => getPageNumbers(safeCurrentPage, totalPages), [safeCurrentPage, totalPages]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
 
-  const visibleMappedStudents = useMemo(() => {
-    if (!selectedMentorForStudents) return [];
-    const query = studentsSearchKey.trim().toLowerCase();
-    let items = selectedMentorForStudents.mentoringStudents || [];
-    if (query) {
-      items = items.filter((student) =>
-        [student.name, student.email, student.phone, student.mobile]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(query))
-      );
-    }
-    return items;
-  }, [selectedMentorForStudents, studentsSearchKey]);
+  useEffect(() => {
+    if (!viewModalOpen || !selectedMentor?.id || isDemoMode) return;
 
-  const studentsTotalCount = visibleMappedStudents.length;
-  const studentsTotalPages = Math.max(1, Math.ceil(studentsTotalCount / studentsPageSize));
-  const safeStudentsPage = Math.min(studentsCurrentPage, studentsTotalPages);
-  const paginatedStudents = useMemo(() => {
-    const start = (safeStudentsPage - 1) * studentsPageSize;
-    return visibleMappedStudents.slice(start, start + studentsPageSize);
-  }, [safeStudentsPage, studentsPageSize, visibleMappedStudents]);
+    let isCancelled = false;
+
+    async function fetchMentorProfile() {
+      setIsMentorProfileLoading(true);
+      try {
+        const response = await api.get(`/restricted/people/mentor/profile?id=${selectedMentor.id}`);
+        if (response.data?.status === 'success' && !isCancelled) {
+          const detailed = normalizeMentor(response.data.data, 0);
+          setSelectedMentor(detailed);
+        }
+      } catch (error) {
+        // Fallback: selectedMentor already has basic data from list
+      } finally {
+        if (!isCancelled) setIsMentorProfileLoading(false);
+      }
+    }
+
+    fetchMentorProfile();
+    return () => { isCancelled = true; };
+  }, [viewModalOpen, selectedMentor?.id, isDemoMode]);
+
+  const safeStudentsPage = Math.min(studentsCurrentPage, mappedStudentsPages);
+  const paginatedStudents = mappedStudents;
+  const studentsTotalCount = mappedStudentsTotal;
+  const studentsTotalPages = mappedStudentsPages;
   const studentPageNumbers = useMemo(() => getPageNumbers(safeStudentsPage, studentsTotalPages), [safeStudentsPage, studentsTotalPages]);
 
   useEffect(() => {
@@ -284,10 +414,42 @@ export default function MentorProfilesPage() {
     setActiveKebabId(null);
   }
 
-  function saveMentor() {
+  async function saveMentor() {
     if (!currentMentor?.name || !currentMentor?.brief || !currentMentor?.specialisation || !currentMentor?.almaMater || !currentMentor?.graduationYear) {
       return;
     }
+
+    // API Update logic
+    if (editMode && currentMentor.id && !isDemoMode) {
+      try {
+        const formData = new FormData();
+        formData.append('name', currentMentor.name);
+        formData.append('brief', currentMentor.brief);
+        formData.append('specialisation', currentMentor.specialisation);
+        formData.append('almaMater', currentMentor.almaMater);
+        formData.append('graduationYear', currentMentor.graduationYear);
+        if (currentMentor.email) formData.append('email', currentMentor.email);
+        if (currentMentor.mobile) formData.append('mobile', currentMentor.mobile);
+
+        const response = await api.post(`/restricted/people/mentor/update?id=${currentMentor.id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.data?.status === 'success') {
+          showToast('success', 'Mentor Updated', `${currentMentor.name} updated successfully.`);
+          setEditModalOpen(false);
+          setCurrentMentor(null);
+          loadMentors();
+          return;
+        }
+        throw new Error(response.data?.message || 'Update failed');
+      } catch (error) {
+        showToast('error', 'Update Error', error.message || 'Error updating mentor profile.');
+      }
+      return;
+    }
+
+    // Fallback/Create logic
     const payload = {
       ...currentMentor,
       active: currentMentor.active !== false,
@@ -637,7 +799,7 @@ export default function MentorProfilesPage() {
         </div>
       )}
 
-      {!isLoading && filteredMentors.length === 0 ? (
+      {!isLoading && totalMentors === 0 ? (
         <div className="mentors-table-container">
           <div className="empty-state">
             <i className="ti ti-id-badge" />
@@ -829,7 +991,12 @@ export default function MentorProfilesPage() {
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="mentor-view-body">
+          <div className={`mentor-view-body ${isMentorProfileLoading ? 'is-loading' : ''}`}>
+            {isMentorProfileLoading && (
+              <div className="mentor-view-loading">
+                <i className="ti ti-reload rotate" /> Loading detailed profile...
+              </div>
+            )}
             {selectedMentor ? (
               <>
                 <div className="mentor-profile-hero">

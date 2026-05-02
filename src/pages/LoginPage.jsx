@@ -38,7 +38,7 @@ export default function LoginPage() {
 
     try {
       const response = await api.post(
-        '/restricted/login/authenticate.php',
+        '/restricted/admin-auth/authenticate',
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );

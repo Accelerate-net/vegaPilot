@@ -59,7 +59,7 @@ export function setLocalPrefs(prefs) {
 // Non-blocking API sync — fire and forget, never throws
 export async function syncPrefsToServer(prefs) {
   try {
-    await api.patch('/restricted/user/preferences.php', { preferences: prefs });
+    await api.patch('/user-profile/update-profile', { preferences: prefs });
   } catch {
     // Silently ignore — local state is the source of truth
   }

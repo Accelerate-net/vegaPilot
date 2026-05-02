@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import { instructorsDemo } from '../data/adminRemainingDemo';
 
@@ -129,7 +130,11 @@ export default function InstructorPortfolioPage() {
   const [sortReverse, setSortReverse] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
+  const [totalInstructors, setTotalInstructors] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isInstructorProfileLoading, setIsInstructorProfileLoading] = useState(false);
   const [subjectMenuOpen, setSubjectMenuOpen] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -155,10 +160,110 @@ export default function InstructorPortfolioPage() {
     }, 4500);
   };
 
+  const loadInstructors = useCallback(async (isCancelled = { current: false }) => {
+    setIsLoading(true);
+    const isLocalWebPreview = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    try {
+      const response = await api.get('/restricted/people/instructor/list', {
+        params: {
+          page: currentPage,
+          size: pageSize,
+          sortBy: sortColumn || 'name',
+          sortOrder: sortReverse ? 'DESC' : 'ASC',
+          searchKey: searchQuery.trim() || undefined,
+          filterBy: filterSubject || undefined,
+        },
+      });
+
+      if (response.data?.status === 'success') {
+        const rows = (response.data.data || []).map((instructor, idx) => normalizeInstructor(instructor, idx));
+        if (!isCancelled.current) {
+          setInstructors(rows);
+          setTotalInstructors(response.data.meta?.total || 0);
+          setTotalPages(response.data.meta?.totalPages || 1);
+          setCurrentPage(response.data.meta?.page || 1);
+          setIsDemoMode(false);
+        }
+        return;
+      }
+      throw new Error(response.data?.message || 'Failed to load instructors');
+    } catch (error) {
+      if (isCancelled.current) return;
+      
+      // Demo Fallback
+      let rows = instructorsDemo.map(normalizeInstructor);
+      const query = searchQuery.trim().toLowerCase();
+      if (query) {
+        rows = rows.filter((instructor) =>
+          [instructor.name, instructor.expertSubject, instructor.qualifications, instructor.brief]
+            .filter(Boolean)
+            .some((v) => String(v).toLowerCase().includes(query))
+        );
+      }
+      if (filterSubject) {
+        rows = rows.filter((instructor) => instructor.expertSubject === filterSubject);
+      }
+      
+      // Sorting for demo
+      rows.sort((a, b) => {
+        let aV = (a[sortColumn] || '').toString().toLowerCase();
+        let bV = (b[sortColumn] || '').toString().toLowerCase();
+        if (aV < bV) return sortReverse ? 1 : -1;
+        if (aV > bV) return sortReverse ? -1 : 1;
+        return 0;
+      });
+
+      const total = rows.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      const page = Math.min(currentPage, pages);
+      const start = (page - 1) * pageSize;
+
+      if (!isCancelled.current) {
+        setInstructors(rows.slice(start, start + pageSize));
+        setTotalInstructors(total);
+        setTotalPages(pages);
+        setCurrentPage(page);
+        setIsDemoMode(true);
+        if (isLocalWebPreview) {
+          showToast('info', 'Demo Data', 'Loaded demo instructor profiles because the instructor API is unreachable.');
+        } else {
+          showToast('error', 'Network Error', error.message || 'Error loading instructors.');
+        }
+      }
+    } finally {
+      if (!isCancelled.current) setIsLoading(false);
+    }
+  }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery, filterSubject]);
+
+  const fetchInstructorProfile = useCallback(async (isCancelled = { current: false }) => {
+    if (!viewModalOpen || !selectedInstructor?.id || isDemoMode) return;
+
+    setIsInstructorProfileLoading(true);
+    try {
+      const response = await api.get(`/restricted/people/instructor/profile?id=${selectedInstructor.id}`);
+      if (response.data?.status === 'success' && !isCancelled.current) {
+        const detailed = normalizeInstructor(response.data.data, 0);
+        setSelectedInstructor(detailed);
+      }
+    } catch (error) {
+      // Fallback: selectedInstructor already has basic data
+    } finally {
+      if (!isCancelled.current) setIsInstructorProfileLoading(false);
+    }
+  }, [viewModalOpen, selectedInstructor?.id, isDemoMode]);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 900);
-    return () => window.clearTimeout(timer);
-  }, []);
+    const isCancelled = { current: false };
+    loadInstructors(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [loadInstructors]);
+
+  useEffect(() => {
+    const isCancelled = { current: false };
+    fetchInstructorProfile(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [fetchInstructorProfile]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -171,29 +276,8 @@ export default function InstructorPortfolioPage() {
 
   const subjectList = useMemo(() => Array.from(new Set(instructors.map((instructor) => instructor.expertSubject))).sort(), [instructors]);
 
-  const filteredInstructors = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return instructors.filter((instructor) => {
-      if (filterSubject && instructor.expertSubject !== filterSubject) return false;
-      if (!query) return true;
-      return [instructor.name, instructor.expertSubject, instructor.qualifications, instructor.brief]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-    });
-  }, [filterSubject, instructors, searchQuery]);
-
-  const sortedInstructors = useMemo(() => {
-    if (!sortColumn) return filteredInstructors;
-    return sortInstructors(filteredInstructors, sortColumn, sortReverse);
-  }, [filteredInstructors, sortColumn, sortReverse]);
-
-  const totalInstructors = sortedInstructors.length;
-  const totalPages = Math.max(1, Math.ceil(totalInstructors / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedInstructors = useMemo(() => {
-    const start = (safeCurrentPage - 1) * pageSize;
-    return sortedInstructors.slice(start, start + pageSize);
-  }, [pageSize, safeCurrentPage, sortedInstructors]);
+  const paginatedInstructors = instructors;
   const pageNumbers = useMemo(() => getPageNumbers(safeCurrentPage, totalPages), [safeCurrentPage, totalPages]);
 
   useEffect(() => {
@@ -242,7 +326,7 @@ export default function InstructorPortfolioPage() {
     setActiveKebabId(null);
   }
 
-  function saveInstructor() {
+  async function saveInstructor() {
     if (
       !currentInstructor?.name ||
       !currentInstructor?.brief ||
@@ -254,6 +338,41 @@ export default function InstructorPortfolioPage() {
       return;
     }
 
+    // API Add/Update logic
+    if (!isDemoMode) {
+      try {
+        const formData = new FormData();
+        formData.append('name', currentInstructor.name);
+        formData.append('brief', currentInstructor.brief);
+        formData.append('expertSubject', currentInstructor.expertSubject);
+        formData.append('qualifications', currentInstructor.qualifications);
+        formData.append('experienceYears', currentInstructor.experienceYears || currentInstructor.experience);
+        if (currentInstructor.email) formData.append('email', currentInstructor.email);
+        if (currentInstructor.mobile || currentInstructor.phone) formData.append('mobile', currentInstructor.mobile || currentInstructor.phone);
+
+        const url = editMode && currentInstructor.id 
+          ? `/restricted/people/instructor/update?id=${currentInstructor.id}`
+          : '/restricted/people/instructor/add';
+
+        const response = await api.post(url, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.data?.status === 'success') {
+          showToast('success', editMode ? 'Instructor Updated' : 'Instructor Created', `${currentInstructor.name} ${editMode ? 'updated' : 'created'} successfully.`);
+          setEditModalOpen(false);
+          setCurrentInstructor(null);
+          loadInstructors();
+          return;
+        }
+        throw new Error(response.data?.message || 'Operation failed');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error processing request.');
+        return;
+      }
+    }
+
+    // Fallback/Create logic
     const experience = Number(currentInstructor.experienceYears || currentInstructor.experience || 0);
     const payload = normalizeInstructor(
       {
@@ -366,7 +485,7 @@ export default function InstructorPortfolioPage() {
         </div>
       </div>
 
-      {(filteredInstructors.length > 0 || isLoading) && (
+      {(totalInstructors > 0 || isLoading) && (
         <div className="students-table-container">
           <table className="students-table">
             <thead>
@@ -496,7 +615,7 @@ export default function InstructorPortfolioPage() {
         </div>
       )}
 
-      {!isLoading && filteredInstructors.length === 0 ? (
+      {!isLoading && totalInstructors === 0 ? (
         <div className="students-table-container">
           <div className="empty-state">
             <h4>No Portfolios Found</h4>
@@ -607,7 +726,12 @@ export default function InstructorPortfolioPage() {
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="instructor-view-body">
+          <div className={`instructor-view-body ${isInstructorProfileLoading ? 'is-loading' : ''}`}>
+            {isInstructorProfileLoading && (
+              <div className="mentor-view-loading">
+                <i className="ti ti-reload rotate" /> Loading detailed profile...
+              </div>
+            )}
             {selectedInstructor ? (
               <>
                 <div className="mentor-profile-hero">
