@@ -1,14 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import { batchesDemo } from '../data/adminRemainingDemo';
 
-const availableCourses = [
-  { id: 'COURSE-001', title: 'IAT 2026 - Exclusive 1 Year Course' },
-  { id: 'COURSE-002', title: 'NEET 2026 Complete Preparation' },
-  { id: 'COURSE-003', title: 'JEE Advanced 2026 Crash Course' },
-  { id: 'COURSE-004', title: 'Foundation Course - Class 11' },
-  { id: 'COURSE-005', title: 'Foundation Course - Class 12' },
-];
 
 function titleToSlug(title) {
   return String(title || '')
@@ -35,34 +29,47 @@ function createStudent(seed, batchName, enrolledToCourse = true) {
 }
 
 function normalizeBatch(batch, index) {
-  const capacity = Number(batch.numberOfStudents) || 0;
+  const batchName = batch.name || batch.batchName || `Batch ${index + 1}`;
+  const strength = Number(batch.strength || batch.numberOfStudents) || 0;
+  const mappedCount = Number(batch.mappedCandidates) || (Array.isArray(batch.students) ? batch.students.length : 0);
+  const startDate = batch.dateStart || batch.startDate || '';
+  const endDate = batch.dateEnd || batch.endDate || '';
+  const courses = Array.isArray(batch.courses) ? batch.courses : (batch.enrolledCourses || []);
+
   const baseStudents = Array.isArray(batch.students) ? batch.students : [];
   const normalizedStudents = baseStudents.map((student, studentIndex) => {
     if (typeof student === 'string') {
       return {
-        ...createStudent(studentIndex + index * 10, batch.batchName, batch.enrolledCourses.length > 0),
+        ...createStudent(studentIndex + index * 10, batchName, courses.length > 0),
         name: student,
       };
     }
     return {
-      ...createStudent(studentIndex + index * 10, batch.batchName, student.enrolledToCourse !== false),
+      ...createStudent(studentIndex + index * 10, batchName, student.enrolledToCourse !== false),
       ...student,
       enrolledToCourse: student.enrolledToCourse !== false,
     };
   });
 
-  const fillerCount = Math.max(0, Math.min(capacity - normalizedStudents.length, normalizedStudents.length > 20 ? 20 : 6));
+  const fillerCount = Math.max(0, Math.min(strength - normalizedStudents.length, normalizedStudents.length > 20 ? 20 : 6));
   for (let fillerIndex = 0; fillerIndex < fillerCount; fillerIndex += 1) {
-    const shouldEnroll = batch.enrolledCourses.length > 0 && fillerIndex < Math.max(fillerCount - 2, 0);
-    normalizedStudents.push(createStudent(index * 100 + fillerIndex + normalizedStudents.length, batch.batchName, shouldEnroll));
+    const shouldEnroll = courses.length > 0 && fillerIndex < Math.max(fillerCount - 2, 0);
+    normalizedStudents.push(createStudent(index * 100 + fillerIndex + normalizedStudents.length, batchName, shouldEnroll));
   }
 
   return {
     ...batch,
+    batchName,
+    numberOfStudents: strength,
+    mappedCandidates: mappedCount,
+    startDate,
+    endDate,
+    enrolledCourses: courses,
     active: batch.active ?? 1,
     isFrozen: Boolean(batch.isFrozen),
     students: normalizedStudents,
-    enrolledCourses: [...(batch.enrolledCourses || [])],
+    prepJourneyType: batch.prepJourneyType || '',
+    prepJourneyYear: batch.prepJourneyYear || '',
   };
 }
 
@@ -80,16 +87,40 @@ function createAvailableStudents() {
 
 function formatDate(value) {
   if (!value) return 'Not set';
-  return new Date(value).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  
+  let date;
+  const numValue = Number(value);
+  
+  if (!isNaN(numValue)) {
+    // If timestamp is in seconds (usually < 10^11), convert to ms
+    date = new Date(numValue < 10000000000 ? numValue * 1000 : numValue);
+  } else {
+    date = new Date(value);
+  }
+
+  if (isNaN(date.getTime())) return 'Not set';
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}-${month}-${year}`;
 }
 
 function formatDateForInput(value) {
   if (!value) return '';
-  const date = new Date(value);
+  
+  let date;
+  const numValue = Number(value);
+  
+  if (!isNaN(numValue)) {
+    date = new Date(numValue < 10000000000 ? numValue * 1000 : numValue);
+  } else {
+    date = new Date(value);
+  }
+
+  if (isNaN(date.getTime())) return '';
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -97,6 +128,7 @@ function formatDateForInput(value) {
 }
 
 function getBatchStatus(batch) {
+  if (batch?.status) return batch.status;
   if (!batch?.startDate) return 'Active';
   const today = new Date();
   const startDate = new Date(batch.startDate);
@@ -180,18 +212,25 @@ export default function BatchManagementPage() {
   const [sortReverse, setSortReverse] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
+  const [totalBatches, setTotalBatches] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState(false);
   const [batchDraft, setBatchDraft] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState('');
+  const [availableCourses, setAvailableCourses] = useState([]);
   const [enrollCourseModalOpen, setEnrollCourseModalOpen] = useState(false);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentFilter, setStudentFilter] = useState('all');
+  const [selectedCourseIdForFilter, setSelectedCourseIdForFilter] = useState('');
+  const [batchEnrolledStudents, setBatchEnrolledStudents] = useState([]);
+  const [isBatchStudentsLoading, setIsBatchStudentsLoading] = useState(false);
   const [selectedBatchStudents, setSelectedBatchStudents] = useState({});
   const [selectedStudentsToAdd, setSelectedStudentsToAdd] = useState({});
   const [batchToFreeze, setBatchToFreeze] = useState(null);
@@ -199,7 +238,8 @@ export default function BatchManagementPage() {
   const [toasts, setToasts] = useState([]);
   const kebabRef = useRef(null);
   const toastIdRef = useRef(0);
-  const availableStudentsPool = useMemo(() => createAvailableStudents(), []);
+  const [allCandidates, setAllCandidates] = useState([]);
+  const [isCandidatesLoading, setIsCandidatesLoading] = useState(false);
 
   const showToast = (type, title, message) => {
     const id = toastIdRef.current + 1;
@@ -210,10 +250,179 @@ export default function BatchManagementPage() {
     }, 4500);
   };
 
+  const loadBatches = useCallback(async (isCancelled = { current: false }) => {
+    setIsLoading(true);
+    const isLocalWebPreview = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    try {
+      const response = await api.get('/restricted/enrollment/list-batches', {
+        params: {
+          page: currentPage,
+          size: pageSize,
+          sortBy: sortColumn === 'batchName' ? 'name' : sortColumn,
+          sortOrder: sortReverse ? 'DESC' : 'ASC',
+          searchKey: searchQuery.trim() || undefined,
+        },
+      });
+
+      if (response.data?.status === 'success') {
+        const rows = (response.data.data || []).map((batch, idx) => normalizeBatch(batch, idx));
+        if (!isCancelled.current) {
+          setBatches(rows);
+          setTotalBatches(response.data.meta?.total || 0);
+          setTotalPages(response.data.meta?.totalPages || 1);
+          setCurrentPage(response.data.meta?.page || 1);
+          setIsDemoMode(false);
+        }
+        return;
+      }
+      throw new Error(response.data?.message || 'Failed to load batches');
+    } catch (error) {
+      if (isCancelled.current) return;
+      
+      // Demo Fallback
+      let rows = batchesDemo.map(normalizeBatch);
+      const query = searchQuery.trim().toLowerCase();
+      if (query) {
+        rows = rows.filter((batch) => {
+          const haystack = [
+            batch.batchName,
+            batch.description,
+            getBatchStatus(batch),
+            ...(batch.enrolledCourses || []).map((c) => (typeof c === 'object' ? c.title || c.name || '' : c)),
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          return haystack.includes(query);
+        });
+      }
+      
+      // Sorting for demo
+      rows = sortBatches(rows, sortColumn, sortReverse);
+
+      const total = rows.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      const page = Math.min(currentPage, pages);
+      const start = (page - 1) * pageSize;
+
+      if (!isCancelled.current) {
+        setBatches(rows.slice(start, start + pageSize));
+        setTotalBatches(total);
+        setTotalPages(pages);
+        setCurrentPage(page);
+        setIsDemoMode(true);
+        if (isLocalWebPreview) {
+          showToast('info', 'Demo Data', 'Loaded demo batch data because the batch API is unreachable.');
+        } else {
+          showToast('error', 'Network Error', error.message || 'Error loading batches.');
+        }
+      }
+    } finally {
+      if (!isCancelled.current) setIsLoading(false);
+    }
+  }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery]);
+
+  const loadAvailableCourses = useCallback(async () => {
+    try {
+      const response = await api.get('/restricted/catalog/list', {
+        params: {
+          page: 1,
+          size: 100,
+          sortBy: 'name',
+          filterBy: 'type',
+          filterValue: 'Course'
+        }
+      });
+      if (response.data?.status === 'success') {
+        setAvailableCourses(response.data.data || []);
+      }
+    } catch (error) {
+      if (isDemoMode) {
+        setAvailableCourses([
+          { id: 'COURSE-001', title: 'IAT 2026 - Exclusive 1 Year Course' },
+          { id: 'COURSE-002', title: 'NEET 2026 Complete Preparation' },
+        ]);
+      }
+    }
+  }, [isDemoMode]);
+  
+  const loadAllCandidates = useCallback(async (query = '') => {
+    setIsCandidatesLoading(true);
+    try {
+      const response = await api.get('/restricted/people/candidate/list', {
+        params: {
+          page: 1,
+          size: 200,
+          sortBy: 'name',
+          searchKey: query || undefined,
+        },
+      });
+      if (response.data?.status === 'success') {
+        setAllCandidates(response.data.data || []);
+      }
+    } catch (error) {
+      if (isDemoMode) {
+        setAllCandidates(createAvailableStudents());
+      }
+    } finally {
+      setIsCandidatesLoading(false);
+    }
+  }, [isDemoMode]);
+
+   useEffect(() => {
+     if (addStudentsModalOpen) {
+       const timer = setTimeout(() => {
+         loadAllCandidates(studentSearchQuery);
+       }, 500);
+       return () => clearTimeout(timer);
+     }
+   }, [studentSearchQuery, addStudentsModalOpen, loadAllCandidates]);
+
+  const loadBatchEnrolledStudents = useCallback(async (isCancelled = { current: false }) => {
+    if (!studentsModalOpen || !selectedBatch?.id || !selectedCourseIdForFilter) {
+      setBatchEnrolledStudents([]);
+      return;
+    }
+
+    setIsBatchStudentsLoading(true);
+    try {
+      const response = await api.get('/restricted/enrollment/get-enrolled-candidates-in-course-part-of-batches', {
+        params: {
+          page: 1,
+          size: 200,
+          courseId: selectedCourseIdForFilter,
+          batchId: selectedBatch.id,
+        },
+      });
+
+      if (response.data?.status === 'success' && !isCancelled.current) {
+        const normalized = (response.data.data || []).map(student => ({
+          ...student,
+          enrolledToCourse: Number(student.enrollmentStatus) === 1
+        }));
+        setBatchEnrolledStudents(normalized);
+      }
+    } catch (error) {
+      if (!isCancelled.current) {
+        setBatchEnrolledStudents([]);
+      }
+    } finally {
+      if (!isCancelled.current) setIsBatchStudentsLoading(false);
+    }
+  }, [studentsModalOpen, selectedBatch?.id, selectedCourseIdForFilter]);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 900);
-    return () => window.clearTimeout(timer);
-  }, []);
+    const isCancelled = { current: false };
+    loadBatchEnrolledStudents(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [loadBatchEnrolledStudents]);
+
+  useEffect(() => {
+    const isCancelled = { current: false };
+    loadBatches(isCancelled);
+    return () => { isCancelled.current = true; };
+  }, [loadBatches]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -225,65 +434,32 @@ export default function BatchManagementPage() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  const searchedBatches = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return batches;
-    return batches.filter((batch) => {
-      const haystack = [
-        batch.batchName,
-        batch.description,
-        getBatchStatus(batch),
-        ...(batch.enrolledCourses || []),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [batches, searchQuery]);
-
-  const sortedBatches = useMemo(
-    () => sortBatches(searchedBatches, sortColumn, sortReverse),
-    [searchedBatches, sortColumn, sortReverse]
-  );
-
-  const totalPages = Math.max(1, Math.ceil(sortedBatches.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedBatches = useMemo(() => {
-    const start = (safeCurrentPage - 1) * pageSize;
-    return sortedBatches.slice(start, start + pageSize);
-  }, [pageSize, safeCurrentPage, sortedBatches]);
-
-  const showingStart = sortedBatches.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
-  const showingEnd = Math.min(safeCurrentPage * pageSize, sortedBatches.length);
+  const paginatedBatches = batches;
+  const showingStart = totalBatches === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+  const showingEnd = Math.min(safeCurrentPage * pageSize, totalBatches);
   const paginationPages = useMemo(() => getPageNumbers(safeCurrentPage, totalPages), [safeCurrentPage, totalPages]);
-
-  const selectedBatchStudentsList = useMemo(() => {
-    if (!selectedBatch) return [];
-    const rows = selectedBatch.students || [];
-    if (studentFilter === 'enrolled') return rows.filter((student) => student.enrolledToCourse);
-    if (studentFilter === 'not-enrolled') return rows.filter((student) => !student.enrolledToCourse);
-    return rows;
-  }, [selectedBatch, studentFilter]);
 
   const visibleBatchStudents = useMemo(() => {
     const query = studentSearchQuery.trim().toLowerCase();
-    if (!query) return selectedBatchStudentsList;
-    return selectedBatchStudentsList.filter((student) =>
+    
+    // If a course filter is active, use the API-provided enrollment data
+    let baseList = selectedCourseIdForFilter ? batchEnrolledStudents : (selectedBatch?.students || []);
+
+    if (studentFilter === 'enrolled') baseList = baseList.filter((student) => student.enrolledToCourse);
+    if (studentFilter === 'not-enrolled') baseList = baseList.filter((student) => !student.enrolledToCourse);
+
+    if (!query) return baseList;
+    return baseList.filter((student) =>
       [student.name, student.email, student.phone].filter(Boolean).some((value) => String(value).toLowerCase().includes(query))
     );
-  }, [selectedBatchStudentsList, studentSearchQuery]);
+  }, [selectedBatch, studentSearchQuery, studentFilter, selectedCourseIdForFilter, batchEnrolledStudents]);
 
   const availableStudentsForBatch = useMemo(() => {
     if (!selectedBatch) return [];
     const existingIds = new Set((selectedBatch.students || []).map((student) => student.id));
-    const query = studentSearchQuery.trim().toLowerCase();
-    return availableStudentsPool.filter((student) => {
-      if (existingIds.has(student.id)) return false;
-      if (!query) return true;
-      return [student.name, student.email, student.phone].some((value) => String(value).toLowerCase().includes(query));
-    });
-  }, [availableStudentsPool, selectedBatch, studentSearchQuery]);
+    return allCandidates.filter((student) => !existingIds.has(student.id));
+  }, [allCandidates, selectedBatch]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -312,6 +488,8 @@ export default function BatchManagementPage() {
       description: '',
       startDate: '',
       endDate: '',
+      prepJourneyType: '',
+      prepJourneyYear: '',
       active: 1,
       isFrozen: false,
       enrolledCourses: [],
@@ -327,13 +505,15 @@ export default function BatchManagementPage() {
       numberOfStudents: String(batch.numberOfStudents || ''),
       startDate: formatDateForInput(batch.startDate),
       endDate: formatDateForInput(batch.endDate),
+      prepJourneyType: batch.prepJourneyType || '',
+      prepJourneyYear: String(batch.prepJourneyYear || ''),
     });
     setBatchModalOpen(true);
     setActiveKebabId(null);
   }
 
-  function saveBatch() {
-    if (!batchDraft?.batchName?.trim() || !batchDraft.numberOfStudents) {
+  async function saveBatch() {
+    if (!batchDraft?.batchName?.trim() || !batchDraft.numberOfStudents || !batchDraft.prepJourneyType || !batchDraft.prepJourneyYear) {
       showToast('info', 'Notification', 'Please fill in all required fields.');
       return;
     }
@@ -342,26 +522,61 @@ export default function BatchManagementPage() {
       return;
     }
 
+    const startEpoch = batchDraft.startDate ? Math.floor(new Date(batchDraft.startDate).getTime() / 1000) : null;
+    const endEpoch = batchDraft.endDate ? Math.floor(new Date(batchDraft.endDate).getTime() / 1000) : null;
+
     const payload = {
-      ...batchDraft,
-      batchName: batchDraft.batchName.trim(),
-      numberOfStudents: Number(batchDraft.numberOfStudents),
-      startDate: batchDraft.startDate || '',
-      endDate: batchDraft.endDate || '',
+      name: batchDraft.batchName.trim(),
+      brief: batchDraft.description || '',
+      strength: Number(batchDraft.numberOfStudents),
+      dateStart: startEpoch,
+      dateEnd: endEpoch,
+      prepJourneyType: batchDraft.prepJourneyType,
+      prepJourneyYear: Number(batchDraft.prepJourneyYear),
     };
 
-    if (editingBatch && payload.id) {
-      setBatches((current) => current.map((batch) => (batch.id === payload.id ? { ...batch, ...payload } : batch)));
-      showToast('success', 'Batch Updated', `${payload.batchName} has been updated successfully.`);
+    if (!isDemoMode) {
+      try {
+        const url = editingBatch && batchDraft.id 
+          ? `/restricted/enrollment/update-batch?id=${batchDraft.id}` 
+          : '/restricted/enrollment/add-new-batch';
+        
+        const response = await api.post(url, payload);
+        if (response.data?.status === 'success') {
+          showToast('success', editingBatch ? 'Batch Updated' : 'Batch Created', `${payload.name} has been ${editingBatch ? 'updated' : 'created'} successfully.`);
+          setBatchModalOpen(false);
+          loadBatches();
+          return;
+        }
+        throw new Error(response.data?.message || 'Operation failed');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error saving batch.');
+        return;
+      }
+    }
+
+    // Fallback logic for demo mode
+    const experience = Number(batchDraft.numberOfStudents);
+    const mockPayload = normalizeBatch({
+      ...batchDraft,
+      batchName: batchDraft.batchName.trim(),
+      numberOfStudents: experience,
+      startDate: batchDraft.startDate || '',
+      endDate: batchDraft.endDate || '',
+    }, batches.length + 1);
+
+    if (editingBatch && mockPayload.id) {
+      setBatches((current) => current.map((batch) => (batch.id === mockPayload.id ? { ...batch, ...mockPayload } : batch)));
+      showToast('success', 'Batch Updated', `${mockPayload.batchName} has been updated successfully.`);
     } else {
       const created = {
-        ...payload,
+        ...mockPayload,
         id: `BATCH-${Date.now()}`,
         students: [],
         enrolledCourses: [],
       };
       setBatches((current) => [created, ...current]);
-      showToast('success', 'Batch Created', `${payload.batchName} has been created successfully.`);
+      showToast('success', 'Batch Created', `${mockPayload.batchName} has been created successfully.`);
     }
 
     setBatchModalOpen(false);
@@ -375,11 +590,38 @@ export default function BatchManagementPage() {
     setStudentsModalOpen(false);
     setAddStudentsModalOpen(false);
     setActiveKebabId(null);
+    loadAvailableCourses();
   }
 
-  function addCourseToBatch() {
+  async function addCourseToBatch() {
     if (!selectedBatch || !selectedCourse) return;
-    if (selectedBatch.enrolledCourses.includes(selectedCourse)) {
+    
+    const courseObj = availableCourses.find(c => c.id === selectedCourse) || { id: selectedCourse, title: selectedCourse };
+    const courseTitle = courseObj.title;
+
+    if (!isDemoMode) {
+      try {
+        const response = await api.post(`/restricted/enrollment/enroll-course-to-a-batch?batchId=${selectedBatch.id}&courseId=${selectedCourse}`);
+        if (response.data?.status === 'success') {
+          showToast('success', 'Course Enrolled', `${courseTitle} has been enrolled to ${selectedBatch.batchName}.`);
+          setSelectedCourse('');
+          loadBatches();
+          // Update selected batch in modal immediately
+          setSelectedBatch((current) => (current ? { 
+            ...current, 
+            enrolledCourses: [...current.enrolledCourses, courseObj] 
+          } : current));
+          return;
+        }
+        throw new Error(response.data?.message || 'Failed to enroll course');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error enrolling course.');
+        return;
+      }
+    }
+
+    // Demo Fallback
+    if (selectedBatch.enrolledCourses.some(c => (typeof c === 'object' ? c.id === selectedCourse : c === selectedCourse))) {
       showToast('info', 'Notification', 'This course is already enrolled to the batch.');
       return;
     }
@@ -389,7 +631,7 @@ export default function BatchManagementPage() {
         batch.id === selectedBatch.id
           ? {
               ...batch,
-              enrolledCourses: [...batch.enrolledCourses, selectedCourse],
+              enrolledCourses: [...batch.enrolledCourses, courseObj],
               students: batch.students.map((student) => ({ ...student, enrolledToCourse: true })),
             }
           : batch
@@ -400,19 +642,43 @@ export default function BatchManagementPage() {
       current
         ? {
             ...current,
-            enrolledCourses: [...current.enrolledCourses, selectedCourse],
+            enrolledCourses: [...current.enrolledCourses, courseObj],
             students: current.students.map((student) => ({ ...student, enrolledToCourse: true })),
           }
         : current
     );
 
-    showToast('success', 'Course Added', `${selectedCourse} has been enrolled to ${selectedBatch.batchName}.`);
+    showToast('success', 'Course Added (Demo)', `${courseTitle} has been added in demo mode.`);
     setSelectedCourse('');
   }
 
-  function removeCourseFromBatch(courseTitle) {
+  async function removeCourseFromBatch(courseObj) {
     if (!selectedBatch) return;
-    const nextCourses = selectedBatch.enrolledCourses.filter((course) => course !== courseTitle);
+    const courseTitle = typeof courseObj === 'object' ? (courseObj.title || courseObj.name || 'Course') : courseObj;
+    const courseId = typeof courseObj === 'object' ? courseObj.id : courseObj;
+
+    if (!isDemoMode) {
+      try {
+        const response = await api.post(`/restricted/enrollment/remove-course-from-a-batch?batchId=${selectedBatch.id}&courseId=${courseId}`);
+        if (response.data?.status === 'success') {
+          showToast('success', 'Course Removed', `${courseTitle} has been removed from ${selectedBatch.batchName}.`);
+          loadBatches();
+          
+          const nextCourses = selectedBatch.enrolledCourses.filter((course) => 
+            (typeof course === 'object' ? course.id !== courseId : course !== courseId)
+          );
+          setSelectedBatch((current) => (current ? { ...current, enrolledCourses: nextCourses } : current));
+          return;
+        }
+        throw new Error(response.data?.message || 'Failed to remove course');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error removing course.');
+        return;
+      }
+    }
+
+    // Demo Fallback
+    const nextCourses = selectedBatch.enrolledCourses.filter((course) => course !== courseObj);
     const nextStudents =
       nextCourses.length === 0
         ? selectedBatch.students.map((student) => ({ ...student, enrolledToCourse: false }))
@@ -424,15 +690,64 @@ export default function BatchManagementPage() {
       )
     );
     setSelectedBatch((current) => (current ? { ...current, enrolledCourses: nextCourses, students: nextStudents } : current));
-    showToast('success', 'Course Removed', `${courseTitle} has been removed from ${selectedBatch.batchName}.`);
+    showToast('success', 'Course Removed (Demo)', `${courseTitle} has been removed in demo mode.`);
   }
 
-  function openStudentsModal(batch) {
-    setSelectedBatch(batch);
-    setStudentSearchQuery('');
-    setStudentFilter('all');
-    setSelectedBatchStudents({});
-    setStudentsModalOpen(true);
+  async function enrollStudentToCourse(studentId) {
+    if (!selectedCourseIdForFilter || !selectedBatch) return;
+
+    try {
+      const response = await api.post('/restricted/enrollment/enroll-candidates-to-course', {
+        candidates: [studentId],
+        course: selectedCourseIdForFilter,
+        prepJourneyType: selectedBatch.prepJourneyType || 'IAT',
+        prepJourneyYear: Number(selectedBatch.prepJourneyYear) || 2026,
+      });
+
+      if (response.data?.status === 'success') {
+        showToast('success', 'Enrollment Successful', 'Student has been enrolled to the course.');
+        loadBatchEnrolledStudents();
+      } else {
+        throw new Error(response.data?.message || 'Enrollment failed');
+      }
+    } catch (error) {
+      showToast('error', 'Error', error.message || 'Error enrolling student.');
+    }
+  }
+
+  async function unenrollStudentFromCourse(studentId) {
+    if (!selectedCourseIdForFilter || !selectedBatch) return;
+
+    try {
+      const response = await api.post('/restricted/enrollment/unenroll-candidates-from-course', {
+        candidates: [studentId],
+        course: selectedCourseIdForFilter,
+        prepJourneyType: selectedBatch.prepJourneyType || 'IAT',
+        prepJourneyYear: Number(selectedBatch.prepJourneyYear) || 2026,
+      });
+
+      if (response.data?.status === 'success') {
+        showToast('success', 'Unenrollment Successful', 'Student has been unenrolled from the course.');
+        loadBatchEnrolledStudents();
+      } else {
+        throw new Error(response.data?.message || 'Unenrollment failed');
+      }
+    } catch (error) {
+      showToast('error', 'Error', error.message || 'Error unenrolling student.');
+    }
+  }
+
+   function openStudentsModal(batch) {
+     setSelectedBatch(batch);
+     setStudentSearchQuery('');
+     setStudentFilter('all');
+     
+     const firstCourse = batch.enrolledCourses?.[0];
+     const firstId = typeof firstCourse === 'object' ? firstCourse.id : (firstCourse || '');
+     setSelectedCourseIdForFilter(firstId);
+     setBatchEnrolledStudents([]);
+     setSelectedBatchStudents({});
+     setStudentsModalOpen(true);
     setAddStudentsModalOpen(false);
     setEnrollCourseModalOpen(false);
     setActiveKebabId(null);
@@ -446,6 +761,7 @@ export default function BatchManagementPage() {
     setStudentsModalOpen(false);
     setEnrollCourseModalOpen(false);
     setActiveKebabId(null);
+    loadAllCandidates();
   }
 
   function toggleBatchStudentSelection(student) {
@@ -469,20 +785,40 @@ export default function BatchManagementPage() {
     setSelectedBatchStudents(next);
   }
 
-  function removeSelectedStudents() {
+  async function removeSelectedStudents() {
     const idsToRemove = Object.keys(selectedBatchStudents);
     if (!selectedBatch || idsToRemove.length === 0) {
       showToast('info', 'Notification', 'Please select at least one student to remove.');
       return;
     }
 
+    if (!isDemoMode) {
+      try {
+        const response = await api.post(`/restricted/enrollment/remove-candidates-from-a-batch?batchId=${selectedBatch.id}`, {
+          candidates: idsToRemove
+        });
+        if (response.data?.status === 'success') {
+          showToast('success', 'Students Removed', `${idsToRemove.length} student(s) removed from ${selectedBatch.batchName} successfully.`);
+          setSelectedBatchStudents({});
+          loadBatches();
+          loadBatchEnrolledStudents();
+          return;
+        }
+        throw new Error(response.data?.message || 'Failed to remove students');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error removing students.');
+        return;
+      }
+    }
+
+    // Demo Fallback
     const nextStudents = selectedBatch.students.filter((student) => !idsToRemove.includes(student.id));
     setBatches((current) =>
       current.map((batch) => (batch.id === selectedBatch.id ? { ...batch, students: nextStudents } : batch))
     );
     setSelectedBatch((current) => (current ? { ...current, students: nextStudents } : current));
     setSelectedBatchStudents({});
-    showToast('success', 'Students Removed', `${idsToRemove.length} student(s) removed from ${selectedBatch.batchName}.`);
+    showToast('success', 'Students Removed (Demo)', `${idsToRemove.length} student(s) removed in demo mode.`);
   }
 
   function toggleStudentToAdd(student) {
@@ -506,13 +842,35 @@ export default function BatchManagementPage() {
     setSelectedStudentsToAdd(next);
   }
 
-  function confirmAddStudents() {
+  async function confirmAddStudents() {
     const studentsToAdd = Object.values(selectedStudentsToAdd);
     if (!selectedBatch || studentsToAdd.length === 0) {
       showToast('info', 'Notification', 'Please select at least one student to add.');
       return;
     }
 
+    const candidateIds = studentsToAdd.map(s => s.id);
+
+    if (!isDemoMode) {
+      try {
+        const response = await api.post(`/restricted/enrollment/add-candidates-to-a-batch?batchId=${selectedBatch.id}`, {
+          candidates: candidateIds
+        });
+        if (response.data?.status === 'success') {
+          showToast('success', 'Students Added', `${studentsToAdd.length} student(s) added to ${selectedBatch.batchName} successfully.`);
+          setAddStudentsModalOpen(false);
+          setSelectedStudentsToAdd({});
+          loadBatches();
+          return;
+        }
+        throw new Error(response.data?.message || 'Failed to add students');
+      } catch (error) {
+        showToast('error', 'Error', error.message || 'Error adding students.');
+        return;
+      }
+    }
+
+    // Demo Fallback
     const additions = studentsToAdd.map((student) => ({
       ...student,
       enrolledToCourse: false,
@@ -526,7 +884,7 @@ export default function BatchManagementPage() {
     setSelectedBatch((current) => (current ? { ...current, students: nextStudents } : current));
     setSelectedStudentsToAdd({});
     setAddStudentsModalOpen(false);
-    showToast('success', 'Students Added', `${studentsToAdd.length} student(s) added to ${selectedBatch.batchName}.`);
+    showToast('success', 'Students Added (Demo)', `${studentsToAdd.length} student(s) added in demo mode.`);
   }
 
   function openFreezeModal(batch) {
@@ -585,7 +943,7 @@ export default function BatchManagementPage() {
         </div>
       </div>
 
-      {sortedBatches.length === 0 && !isLoading ? (
+      {(!isLoading && totalBatches === 0) ? (
         <div className="empty-state">
           <i className="ti ti-layout-grid2" />
           <h3>No Batches Found</h3>
@@ -596,7 +954,7 @@ export default function BatchManagementPage() {
         </div>
       ) : null}
 
-      {(sortedBatches.length > 0 || isLoading) && (
+      {(totalBatches > 0 || isLoading) && (
         <div className="students-table-container">
           <table className="students-table">
             <thead>
@@ -647,12 +1005,19 @@ export default function BatchManagementPage() {
                 {paginatedBatches.map((batch) => (
                   <tr key={batch.id} className={activeKebabId === batch.id ? 'row-active-menu' : ''}>
                     <td>
-                      <div className="batch-name">{batch.batchName}</div>
+                      <div className="batch-name-container">
+                        <div className="batch-name">{batch.batchName}</div>
+                        {batch.prepJourneyType && batch.prepJourneyYear && (
+                          <span className="batch-journey-tag">
+                            {batch.prepJourneyType} - {batch.prepJourneyYear}
+                          </span>
+                        )}
+                      </div>
                       {batch.description ? <div className="batch-description">{batch.description}</div> : null}
                     </td>
                     <td className="center-align">
                       <div className="student-count" onClick={() => openStudentsModal(batch)}>
-                        {batch.students.length} / {batch.numberOfStudents}
+                        {batch.mappedCandidates} / {batch.numberOfStudents}
                       </div>
                       {getUnenrolledStudentsInBatch(batch) > 0 ? (
                         <div className="course-info">
@@ -665,11 +1030,15 @@ export default function BatchManagementPage() {
                     <td>
                       {batch.enrolledCourses.length > 0 ? (
                         <div className="batch-courses">
-                          {batch.enrolledCourses.map((course) => (
-                            <span key={`${batch.id}-${course}`} className="batch-course-badge">
-                              <i className="ti ti-book" /> {course}
-                            </span>
-                          ))}
+                          {batch.enrolledCourses.map((course, idx) => {
+                            const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
+                            const courseKey = typeof course === 'object' ? (course.id || idx) : course;
+                            return (
+                              <span key={`${batch.id}-${courseKey}-${idx}`} className="batch-course-badge">
+                                <i className="ti ti-book" /> {courseTitle}
+                              </span>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="course-info muted">
@@ -728,7 +1097,7 @@ export default function BatchManagementPage() {
           <div className="pagination-container">
             <div className="pagination-info">
               <span>
-                Showing {showingStart} to {showingEnd} of {sortedBatches.length} entries
+                Showing {showingStart} to {showingEnd} of {totalBatches} entries
               </span>
               <select
                 className="page-size-select"
@@ -825,6 +1194,31 @@ export default function BatchManagementPage() {
                   onChange={(event) => setBatchDraft((current) => ({ ...current, description: event.target.value }))}
                 />
               </label>
+               <label>
+                 <span>Prep Journey Type *</span>
+                 <select 
+                   className="search-input"
+                   value={batchDraft?.prepJourneyType || ''}
+                   onChange={(event) => setBatchDraft((current) => ({ ...current, prepJourneyType: event.target.value }))}
+                 >
+                   <option value="">Select Type</option>
+                   <option value="IAT">IAT</option>
+                   <option value="NEST">NEST</option>
+                 </select>
+               </label>
+               <label>
+                 <span>Prep Journey Year *</span>
+                 <select 
+                   className="search-input"
+                   value={batchDraft?.prepJourneyYear || ''}
+                   onChange={(event) => setBatchDraft((current) => ({ ...current, prepJourneyYear: event.target.value }))}
+                 >
+                   <option value="">Select Year</option>
+                   <option value="2026">2026</option>
+                   <option value="2027">2027</option>
+                   <option value="2028">2028</option>
+                 </select>
+               </label>
             </div>
           </div>
           <div className="legacy-modal-footer">
@@ -852,29 +1246,33 @@ export default function BatchManagementPage() {
                   <div className="batch-modal-subtitle">{selectedBatch.students.length} students will inherit access to newly added courses.</div>
                 </div>
                 <div className="batch-course-toolbar">
-                  <select className="search-input" value={selectedCourse} onChange={(event) => setSelectedCourse(event.target.value)}>
-                    <option value="">Select a course to add</option>
-                    {availableCourses.map((course) => (
-                      <option key={course.id} value={course.title}>{course.title}</option>
-                    ))}
-                  </select>
+                   <select className="search-input" value={selectedCourse} onChange={(event) => setSelectedCourse(event.target.value)}>
+                     <option value="">Select a course to add</option>
+                     {availableCourses.map((course) => (
+                       <option key={course.id} value={course.id}>{course.title}</option>
+                     ))}
+                   </select>
                   <button type="button" className="legacy-btn legacy-btn-success" onClick={addCourseToBatch}>
                     <i className="ti ti-plus" /> Add Course
                   </button>
                 </div>
                 <div className="batch-course-list">
                   {selectedBatch.enrolledCourses.length > 0 ? (
-                    selectedBatch.enrolledCourses.map((course) => (
-                      <div key={course} className="batch-course-row">
-                        <div>
-                          <div className="batch-course-row-title">{course}</div>
-                          <div className="batch-course-row-meta">Currently assigned to this batch</div>
+                    selectedBatch.enrolledCourses.map((course, idx) => {
+                      const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
+                      const courseId = typeof course === 'object' ? (course.id || idx) : course;
+                      return (
+                        <div key={`${courseId}-${idx}`} className="batch-course-row">
+                          <div>
+                            <div className="batch-course-row-title">{courseTitle}</div>
+                            <div className="batch-course-row-meta">Currently assigned to this batch</div>
+                          </div>
+                          <button type="button" className="legacy-btn legacy-btn-default" onClick={() => removeCourseFromBatch(course)}>
+                            <i className="ti ti-trash" /> Remove
+                          </button>
                         </div>
-                        <button type="button" className="legacy-btn legacy-btn-default" onClick={() => removeCourseFromBatch(course)}>
-                          <i className="ti ti-trash" /> Remove
-                        </button>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="batch-empty-panel">No courses are currently enrolled to this batch.</div>
                   )}
@@ -908,20 +1306,41 @@ export default function BatchManagementPage() {
                       className="search-input"
                       value={studentSearchQuery}
                       onChange={(event) => setStudentSearchQuery(event.target.value)}
-                      placeholder="Search students by name, email, or phone..."
+                      placeholder="Search students..."
                     />
                   </div>
-                  <div className="student-filter-tabs">
-                    {['all', 'enrolled', 'not-enrolled'].map((filter) => (
-                      <button
-                        key={filter}
-                        type="button"
-                        className={studentFilter === filter ? 'active' : ''}
-                        onClick={() => setStudentFilter(filter)}
-                      >
-                        {filter === 'all' ? 'All Students' : filter === 'enrolled' ? 'Enrolled' : 'Not Enrolled'}
-                      </button>
-                    ))}
+                  
+                  <div className="search-wrapper" style={{ width: 'auto', minWidth: '220px' }}>
+                    <i className="ti ti-book" />
+                    <select 
+                      className="search-input" 
+                      value={selectedCourseIdForFilter}
+                      onChange={(event) => setSelectedCourseIdForFilter(event.target.value)}
+                      style={{ paddingLeft: '36px' }}
+                    >
+                      {selectedBatch.enrolledCourses.length === 0 && (
+                        <option value="">No Courses Enrolled</option>
+                      )}
+                      {selectedBatch.enrolledCourses.map((course, idx) => {
+                        const title = typeof course === 'object' ? course.title || course.name : course;
+                        const id = typeof course === 'object' ? course.id : course;
+                        return <option key={`${id}-${idx}`} value={id}>{title}</option>;
+                      })}
+                    </select>
+                  </div>
+
+                  <div className="search-wrapper" style={{ width: 'auto', minWidth: '160px' }}>
+                    <i className="ti ti-filter" />
+                    <select 
+                      className="search-input" 
+                      value={studentFilter}
+                      onChange={(event) => setStudentFilter(event.target.value)}
+                      style={{ paddingLeft: '36px' }}
+                    >
+                      <option value="all">All Students</option>
+                      <option value="enrolled">Enrolled</option>
+                      <option value="not-enrolled">Not Enrolled</option>
+                    </select>
                   </div>
                 </div>
                 <table className="legacy-modal-table batch-students-table">
@@ -941,7 +1360,14 @@ export default function BatchManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleBatchStudents.map((student) => (
+                    {isBatchStudentsLoading ? (
+                       <tr>
+                         <td colSpan="5" className="center-align" style={{ padding: '40px' }}>
+                           <i className="ti ti-reload rotate" style={{ marginRight: '8px' }} />
+                           Loading course-wise enrollment data...
+                         </td>
+                       </tr>
+                     ) : visibleBatchStudents.map((student) => (
                       <tr key={student.id}>
                         <td className="checkbox-column">
                           <input
@@ -963,11 +1389,24 @@ export default function BatchManagementPage() {
                           <div className="batch-contact-line">{student.email}</div>
                           <div className="batch-contact-line">{student.phone}</div>
                         </td>
-                        <td>
-                          <span className={`batch-student-status ${student.enrolledToCourse ? 'enrolled' : 'not-enrolled'}`}>
-                            {student.enrolledToCourse ? 'Enrolled' : 'Not Enrolled'}
-                          </span>
-                        </td>
+                         <td>
+                           <span 
+                             className={`batch-student-status ${student.enrolledToCourse ? 'enrolled' : 'not-enrolled'} ${selectedCourseIdForFilter ? (student.enrolledToCourse ? 'enroll-hover-action unenroll-hover-action' : 'enroll-hover-action') : ''}`}
+                             onClick={() => {
+                               if (!selectedCourseIdForFilter) return;
+                               if (student.enrolledToCourse) unenrollStudentFromCourse(student.id);
+                               else enrollStudentToCourse(student.id);
+                             }}
+                           >
+                             <span className="status-text-default">{student.enrolledToCourse ? 'Enrolled' : 'Not Enrolled'}</span>
+                             {selectedCourseIdForFilter && (
+                               <span className="status-text-hover">
+                                 <i className={`ti ${student.enrolledToCourse ? 'ti-minus' : 'ti-plus'}`} /> 
+                                 {student.enrolledToCourse ? 'Unenroll' : 'Enroll Now'}
+                               </span>
+                             )}
+                           </span>
+                         </td>
                         <td>{formatDate(student.addedOn)}</td>
                       </tr>
                     ))}
@@ -985,7 +1424,12 @@ export default function BatchManagementPage() {
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => openAddStudentsModal(selectedBatch)}>
               <i className="ti ti-user" /> Add Students
             </button>
-            <button type="button" className="legacy-btn legacy-btn-danger" onClick={removeSelectedStudents}>
+            <button 
+              type="button" 
+              className="legacy-btn legacy-btn-danger" 
+              onClick={removeSelectedStudents}
+              disabled={Object.keys(selectedBatchStudents).length === 0}
+            >
               <i className="ti ti-trash" /> Remove Selected
             </button>
           </div>
@@ -1108,6 +1552,95 @@ export default function BatchManagementPage() {
           </div>
         </div>
       </div>
+      <style>{`
+        .legacy-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .batch-student-status {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          min-width: 100px;
+        }
+        .enroll-hover-action {
+          position: relative;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          overflow: hidden;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 100px;
+        }
+        .enroll-hover-action .status-text-hover {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #10b981;
+          color: white;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          font-weight: 600;
+        }
+        .enroll-hover-action .status-text-default {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .enroll-hover-action:hover {
+          background: #10b981;
+          border-color: #10b981;
+          color: white;
+        }
+        .enroll-hover-action:hover .status-text-default {
+          transform: translateY(-100%);
+          opacity: 0;
+        }
+        .enroll-hover-action:hover .status-text-hover {
+          top: 0;
+        }
+        .batch-student-status.not-enrolled.enroll-hover-action {
+          border: 1px solid #ef4444;
+          color: #ef4444;
+          background: #fef2f2;
+        }
+        .batch-student-status.not-enrolled.enroll-hover-action:hover {
+          border-color: #10b981;
+        }
+        .batch-student-status.enrolled {
+          background: #ecfdf5;
+          color: #10b981;
+          border: 1px solid #10b981;
+        }
+        .unenroll-hover-action .status-text-hover {
+          background: #ef4444;
+        }
+        .unenroll-hover-action:hover {
+          background: #ef4444;
+          border-color: #ef4444;
+        }
+        .batch-name-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .batch-journey-tag {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          background: #eff6ff;
+          color: #2563eb;
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
+          border: 1px solid #dbeafe;
+        }
+      `}</style>
     </section>
   );
 }
