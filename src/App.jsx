@@ -35,6 +35,9 @@ import VerifyTokenPage from './pages/VerifyTokenPage';
 import WebContentManagerPage from './pages/WebContentManagerPage';
 import SupportPage from './pages/SupportPage';
 import MessengerPage from './pages/MessengerPage';
+import ResidenceManagementPage from './pages/ResidenceManagementPage';
+import OfflineAttendancePage from './pages/OfflineAttendancePage';
+import AssetsPage from './pages/AssetsPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
 import { getCachedUser } from './lib/userStore';
@@ -143,6 +146,15 @@ export default function App() {
     }
     if (screen.path === '/messenger') {
       return <MessengerPage />;
+    }
+    if (screen.path === '/residences') {
+      return <ResidenceManagementPage />;
+    }
+    if (screen.path === '/offline-attendance') {
+      return <OfflineAttendancePage />;
+    }
+    if (screen.path === '/assets') {
+      return <AssetsPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken } from './auth';
 
 export const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://127.0.0.1:3030/api'
+  ? 'http://127.0.0.1:3004/api'
   : 'https://crisprtech.app/api';
 
 export const api = axios.create({

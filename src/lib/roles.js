@@ -19,6 +19,9 @@ export const ROLES = {
       '/exam-listing', '/exam-creation-wizard', '/exam-attempt-report', '/test-series-list',
       '/mentor-profiles', '/instructor-portfolio',
       '/leads-management', '/batch',
+      '/residences',
+      '/offline-attendance',
+      '/assets',
     ],
   },
   content_manager: {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { clearToken } from '../lib/auth';
+import { api } from '../lib/api';
 import { protectedScreens, NAV_GROUPS } from '../lib/legacyScreens';
 import { useUser } from '../lib/userStore';
 import { canAccess } from '../lib/roles';
@@ -8,7 +9,7 @@ import { canAccess } from '../lib/roles';
 export default function Layout({ children, currentScreen }) {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { user, prefs, togglePin, reorderPins } = useUser() || {};
+  const { user, prefs, togglePin, reorderPins, updateUser } = useUser() || {};
 
   const pinnedPaths = prefs?.pinnedPaths || [];
 
@@ -143,8 +144,128 @@ export default function Layout({ children, currentScreen }) {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, [showProfileMenu]);
 
+  // ── My Profile modal ──────────────────────────────────────────────
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState('');
+
+  function openProfileModal() {
+    setShowProfileMenu(false);
+    setEditingName(false);
+    setNameError('');
+    setNameDraft(user?.name || '');
+    setShowProfileModal(true);
+  }
+
+  function closeProfileModal() {
+    setShowProfileModal(false);
+    setEditingName(false);
+    setNameError('');
+  }
+
+  async function saveName() {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) {
+      setNameError('Name cannot be empty');
+      return;
+    }
+    if (trimmed === user?.name) {
+      setEditingName(false);
+      return;
+    }
+    setSavingName(true);
+    setNameError('');
+    const res = await updateUser?.({ name: trimmed });
+    setSavingName(false);
+    if (res?.ok === false) {
+      setNameError('Could not update name. Please try again.');
+      return;
+    }
+    setEditingName(false);
+  }
+
+  // ── Change Password modal ─────────────────────────────────────────
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pwdCurrent, setPwdCurrent] = useState('');
+  const [pwdNew, setPwdNew] = useState('');
+  const [pwdConfirm, setPwdConfirm] = useState('');
+  const [pwdShow, setPwdShow] = useState(false);
+  const [pwdError, setPwdError] = useState('');
+  const [pwdSuccess, setPwdSuccess] = useState('');
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  function openPasswordModal() {
+    setShowProfileMenu(false);
+    setPwdCurrent('');
+    setPwdNew('');
+    setPwdConfirm('');
+    setPwdShow(false);
+    setPwdError('');
+    setPwdSuccess('');
+    setShowPasswordModal(true);
+  }
+
+  function closePasswordModal() {
+    if (pwdSaving) return;
+    setShowPasswordModal(false);
+  }
+
+  async function submitPasswordChange(e) {
+    if (e) e.preventDefault();
+    setPwdError('');
+    setPwdSuccess('');
+
+    if (!pwdCurrent || !pwdNew || !pwdConfirm) {
+      setPwdError('Please fill out all fields.');
+      return;
+    }
+    if (pwdNew.length < 8) {
+      setPwdError('New password must be at least 8 characters.');
+      return;
+    }
+    if (pwdNew === pwdCurrent) {
+      setPwdError('New password must be different from current password.');
+      return;
+    }
+    if (pwdNew !== pwdConfirm) {
+      setPwdError('New password and confirmation do not match.');
+      return;
+    }
+
+    setPwdSaving(true);
+    try {
+      await api.post('/user-profile/change-password', {
+        currentPassword: pwdCurrent,
+        newPassword: pwdNew,
+      });
+      setPwdSuccess('Password changed successfully.');
+      setPwdCurrent('');
+      setPwdNew('');
+      setPwdConfirm('');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPwdSuccess('');
+      }, 1200);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Could not change password. Please try again.';
+      setPwdError(msg);
+    } finally {
+      setPwdSaving(false);
+    }
+  }
+
   // ── Logout ────────────────────────────────────────────────────────
-  function handleLogout() {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  function requestLogout() {
+    setShowProfileMenu(false);
+    setShowLogoutConfirm(true);
+  }
+
+  function confirmLogout() {
+    setShowLogoutConfirm(false);
     clearToken();
     navigate('/login', { replace: true });
   }
@@ -286,18 +407,18 @@ export default function Layout({ children, currentScreen }) {
           {showProfileMenu && (
             <div className="sb-profile-menu">
               <button type="button" className="sb-profile-menu-item"
-                onClick={() => { setShowProfileMenu(false); navigate('/profile'); }}>
+                onClick={openProfileModal}>
                 <i className="fa fa-user-circle-o" />
                 <span>My Profile</span>
               </button>
               <button type="button" className="sb-profile-menu-item"
-                onClick={() => { setShowProfileMenu(false); navigate('/change-password'); }}>
+                onClick={openPasswordModal}>
                 <i className="fa fa-lock" />
                 <span>Change Password</span>
               </button>
               <div className="sb-profile-menu-divider" />
               <button type="button" className="sb-profile-menu-item danger"
-                onClick={handleLogout}>
+                onClick={requestLogout}>
                 <i className="fa fa-sign-out" />
                 <span>Logout</span>
               </button>
@@ -321,6 +442,247 @@ export default function Layout({ children, currentScreen }) {
         }}
       >
         {hoverTooltip?.text}
+      </div>
+
+      {/* ── My Profile modal ──────────────────────────────────────── */}
+      <div
+        className={`legacy-modal-backdrop ${showProfileModal ? 'active' : ''}`}
+        onClick={closeProfileModal}
+      >
+        <div
+          className="legacy-modal-dialog legacy-confirm sb-profile-modal"
+          role="dialog"
+          aria-modal="true"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="legacy-modal-header">
+            <h3><i className="fa fa-user-circle-o" /> My Profile</h3>
+            <button
+              type="button"
+              className="legacy-modal-close"
+              onClick={closeProfileModal}
+              aria-label="Close"
+            >
+              <i className="fa fa-times" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            <div className="sb-profile-modal-body">
+              <div className="sb-profile-modal-icon">
+                <i className="fa fa-user-circle" />
+              </div>
+
+              <div className="sb-profile-modal-identity">
+                {editingName ? (
+                  <div className="sb-profile-name-edit">
+                    <input
+                      type="text"
+                      className="sb-profile-name-input"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveName();
+                        if (e.key === 'Escape') { setEditingName(false); setNameError(''); setNameDraft(user?.name || ''); }
+                      }}
+                      autoFocus
+                      disabled={savingName}
+                    />
+                    <button
+                      type="button"
+                      className="legacy-btn legacy-btn-success legacy-btn-small"
+                      onClick={saveName}
+                      disabled={savingName}
+                    >
+                      {savingName ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      className="legacy-btn legacy-btn-default legacy-btn-small"
+                      onClick={() => { setEditingName(false); setNameError(''); setNameDraft(user?.name || ''); }}
+                      disabled={savingName}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="sb-profile-name-row">
+                    <span className="sb-profile-name">{user?.name || 'Admin'}</span>
+                    <button
+                      type="button"
+                      className="sb-profile-edit-btn"
+                      onClick={() => { setNameDraft(user?.name || ''); setEditingName(true); setNameError(''); }}
+                      title="Edit name"
+                    >
+                      <i className="fa fa-pencil" />
+                    </button>
+                  </div>
+                )}
+                {nameError && <div className="sb-profile-name-error">{nameError}</div>}
+                <div
+                  className="sb-profile-modal-role"
+                  style={user?.badgeColor ? { color: user.badgeColor } : undefined}
+                >
+                  {user?.roleLabel || 'Super Admin'}
+                </div>
+              </div>
+
+              <dl className="sb-profile-modal-fields">
+                <div className="sb-profile-field">
+                  <dt>Registered Email</dt>
+                  <dd>{user?.email || '—'}</dd>
+                </div>
+                <div className="sb-profile-field">
+                  <dt>Registered Number</dt>
+                  <dd>{user?.phone || '—'}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+          <div className="legacy-modal-footer">
+            <button
+              type="button"
+              className="legacy-btn legacy-btn-default"
+              onClick={closeProfileModal}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Change Password modal ─────────────────────────────────── */}
+      <div
+        className={`legacy-modal-backdrop ${showPasswordModal ? 'active' : ''}`}
+        onClick={closePasswordModal}
+      >
+        <div
+          className="legacy-modal-dialog legacy-confirm sb-password-modal"
+          role="dialog"
+          aria-modal="true"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="legacy-modal-header">
+            <h3><i className="fa fa-lock" /> Change Password</h3>
+            <button
+              type="button"
+              className="legacy-modal-close"
+              onClick={closePasswordModal}
+              aria-label="Close"
+              disabled={pwdSaving}
+            >
+              <i className="fa fa-times" />
+            </button>
+          </div>
+          <form onSubmit={submitPasswordChange}>
+            <div className="legacy-modal-body">
+              <div className="sb-password-field">
+                <label htmlFor="pwd-current">Current Password</label>
+                <input
+                  id="pwd-current"
+                  type={pwdShow ? 'text' : 'password'}
+                  value={pwdCurrent}
+                  onChange={(e) => setPwdCurrent(e.target.value)}
+                  autoComplete="current-password"
+                  disabled={pwdSaving}
+                />
+              </div>
+              <div className="sb-password-field">
+                <label htmlFor="pwd-new">New Password</label>
+                <input
+                  id="pwd-new"
+                  type={pwdShow ? 'text' : 'password'}
+                  value={pwdNew}
+                  onChange={(e) => setPwdNew(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={pwdSaving}
+                />
+                <div className="sb-password-hint">At least 8 characters.</div>
+              </div>
+              <div className="sb-password-field">
+                <label htmlFor="pwd-confirm">Confirm New Password</label>
+                <input
+                  id="pwd-confirm"
+                  type={pwdShow ? 'text' : 'password'}
+                  value={pwdConfirm}
+                  onChange={(e) => setPwdConfirm(e.target.value)}
+                  autoComplete="new-password"
+                  disabled={pwdSaving}
+                />
+              </div>
+              <label className="sb-password-show">
+                <input
+                  type="checkbox"
+                  checked={pwdShow}
+                  onChange={(e) => setPwdShow(e.target.checked)}
+                />
+                <span>Show passwords</span>
+              </label>
+
+              {pwdError && <div className="sb-password-error">{pwdError}</div>}
+              {pwdSuccess && <div className="sb-password-success">{pwdSuccess}</div>}
+            </div>
+            <div className="legacy-modal-footer">
+              <button
+                type="button"
+                className="legacy-btn legacy-btn-default"
+                onClick={closePasswordModal}
+                disabled={pwdSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="legacy-btn legacy-btn-success"
+                disabled={pwdSaving}
+              >
+                {pwdSaving ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* ── Logout confirmation modal ─────────────────────────────── */}
+      <div
+        className={`legacy-modal-backdrop ${showLogoutConfirm ? 'active' : ''}`}
+        onClick={() => setShowLogoutConfirm(false)}
+      >
+        <div
+          className="legacy-modal-dialog legacy-confirm"
+          role="dialog"
+          aria-modal="true"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="legacy-modal-header legacy-danger-header">
+            <h3><i className="fa fa-sign-out" /> Confirm Logout</h3>
+            <button
+              type="button"
+              className="legacy-modal-close"
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              <i className="fa fa-times" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            <p className="legacy-confirm-copy">Are you sure you want to log out?</p>
+          </div>
+          <div className="legacy-modal-footer">
+            <button
+              type="button"
+              className="legacy-btn legacy-btn-default"
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="legacy-btn legacy-btn-danger"
+              onClick={confirmLogout}
+            >
+              <i className="fa fa-sign-out" /> Logout
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>

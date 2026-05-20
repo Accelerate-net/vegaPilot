@@ -158,6 +158,17 @@ const screens = [
     summary: 'Mentor CRUD plus assigned-student workflows.',
   },
   {
+    path: '/residences',
+    title: 'Residences',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'people',
+    icon: 'fa-home',
+    shortCode: 'RS',
+    summary: 'Residence management, houses, occupancy and student allotments.',
+  },
+  {
     path: '/instructor-portfolio',
     title: 'Instructors',
     legacyHtml: 'instructor-portfolio.html',
@@ -242,6 +253,28 @@ const screens = [
   },
 
   // ── Tools ─────────────────────────────────────────────────────────────
+  {
+    path: '/offline-attendance',
+    title: 'Offline Attendance',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'tools',
+    icon: 'fa-check-square-o',
+    shortCode: 'OA',
+    summary: 'Biometric and offline attendance reporting across batches, residences and locations.',
+  },
+  {
+    path: '/assets',
+    title: 'Assets',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'tools',
+    icon: 'fa-cube',
+    shortCode: 'AS',
+    summary: 'Asset inventory, valuation, depreciation tracking and reports.',
+  },
   {
     path: '/feedback-summary',
     title: 'Feedbacks',

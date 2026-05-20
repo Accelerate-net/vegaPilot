@@ -76,8 +76,22 @@ export default function UserProvider({ children }) {
     });
   }, []);
 
+  // ── Profile update ─────────────────────────────────────────────────
+  const updateUser = useCallback(async (patch) => {
+    const next = { ...(user || {}), ...patch };
+    if (patch.name) next.initials = getInitials(patch.name);
+    setUser(next);
+    setCachedUser(next);
+    try {
+      await api.patch('/user-profile/update-profile', patch);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }, [user]);
+
   return (
-    <UserContext.Provider value={{ user, prefs, togglePin, updatePrefs, reorderPins }}>
+    <UserContext.Provider value={{ user, prefs, togglePin, updatePrefs, reorderPins, updateUser }}>
       {children}
     </UserContext.Provider>
   );
@@ -95,5 +109,6 @@ function normalizeUser(raw) {
     roleLabel: raw.roleLabel || roleMeta.label,
     badgeColor: roleMeta.badgeColor,
     email:     raw.email || '',
+    phone:     raw.phone || raw.mobile || raw.phoneNumber || raw.contactNumber || '',
   };
 }
