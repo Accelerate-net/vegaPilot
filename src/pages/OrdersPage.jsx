@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { ordersDemo } from '../data/ordersDemo';
 
 function formatDate(timestamp) {
@@ -88,6 +90,7 @@ function sortOrders(rows, sortColumn, sortReverse) {
 }
 
 export default function OrdersPage() {
+  const { can } = usePermission();
   const [orders, setOrders] = useState(ordersDemo);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -352,9 +355,15 @@ export default function OrdersPage() {
                         </button>
                         <div className={`kebab-dropdown ${openKebabId === order.id ? 'active' : ''}`}>
                           <button type="button" className="kebab-dropdown-item" onClick={() => viewOrder(order)}><i className="ti ti-eye" /> View Order</button>
-                          <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Invoice</button>
-                          <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Invoice</button>
-                          {order.status === 'completed' ? <button type="button" className="kebab-dropdown-item refund-action" onClick={() => initiateRefund(order)}><i className="ti ti-back-left" /> Initiate Refund</button> : null}
+                          {can(PERMS.ORDERS_INVOICE_DOWNLOAD) && (
+                            <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Invoice</button>
+                          )}
+                          {can(PERMS.ORDERS_INVOICE_SEND) && (
+                            <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Invoice</button>
+                          )}
+                          {order.status === 'completed' && can(PERMS.ORDERS_REFUND) ? (
+                            <button type="button" className="kebab-dropdown-item refund-action" onClick={() => initiateRefund(order)}><i className="ti ti-back-left" /> Initiate Refund</button>
+                          ) : null}
                         </div>
                       </div>
                     </td>

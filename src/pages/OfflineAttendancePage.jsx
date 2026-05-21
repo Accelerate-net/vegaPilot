@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import { Can } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { listAttendance } from '../lib/attendanceApi';
 import { listResidences } from '../lib/residencesApi';
 
@@ -526,14 +528,16 @@ export default function OfflineAttendancePage() {
           {dateFrom && dateTo && dateFrom === dateTo ? ` · ${dateFrom}` : ''}
         </div>
         <div className="qar-action-btns">
-          <button
-            type="button"
-            className="qar-btn-export"
-            disabled={visibleRecords.length === 0}
-            onClick={handleExport}
-          >
-            <i className="ti ti-download" /> Export to CSV
-          </button>
+          <Can permission={PERMS.ATTENDANCE_EXPORT}>
+            <button
+              type="button"
+              className="qar-btn-export"
+              disabled={visibleRecords.length === 0}
+              onClick={handleExport}
+            >
+              <i className="ti ti-download" /> Export to CSV
+            </button>
+          </Can>
         </div>
       </div>
 

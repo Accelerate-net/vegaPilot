@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import {
   ASSET_STATUS,
   ASSET_TYPES,
@@ -139,6 +141,7 @@ const EMPTY_DRAFT = {
 };
 
 export default function AssetsPage() {
+  const { can } = usePermission();
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -534,9 +537,11 @@ export default function AssetsPage() {
           <h2><i className="ti ti-package" /> Assets</h2>
           <p>Track asset inventory, valuation, depreciation and location assignment.</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={openCreateModal}>
-          <i className="ti ti-plus" /> Add Asset
-        </button>
+        <Can permission={PERMS.ASSETS_EDIT}>
+          <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+            <i className="ti ti-plus" /> Add Asset
+          </button>
+        </Can>
       </div>
 
       {/* ── Summary Cards + Filter Card (uses qar-* styles) ── */}
@@ -712,9 +717,11 @@ export default function AssetsPage() {
         <span style={{ color: '#52606d', fontSize: 13 }}>
           <strong>{total}</strong> asset(s) total · <strong>{visibleAssets.length}</strong> on this page
         </span>
-        <button type="button" className="btn btn-default" disabled={visibleAssets.length === 0} onClick={() => setExportOpen(true)}>
-          <i className="ti ti-download" /> Export
-        </button>
+        <Can permission={PERMS.ASSETS_EXPORT}>
+          <button type="button" className="btn btn-default" disabled={visibleAssets.length === 0} onClick={() => setExportOpen(true)}>
+            <i className="ti ti-download" /> Export
+          </button>
+        </Can>
       </div>
 
       {/* ── Table ── */}
@@ -830,36 +837,42 @@ export default function AssetsPage() {
                           <i className="ti ti-more-alt" />
                         </button>
                         <div className={`kebab-dropdown ${activeKebabId === asset.id ? 'active' : ''}`}>
-                          <button type="button" className="kebab-dropdown-item edit-action" onClick={() => { setActiveKebabId(null); openEditModal(asset); }}>
-                            <i className="ti ti-pencil" />
-                            <span className="item-label">Edit Asset</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={`kebab-dropdown-item ${status === 'Active' ? 'draft-action' : 'enable-action'}`}
-                            onClick={() => { setActiveKebabId(null); quickToggleStatus(asset); }}
-                          >
-                            <i className={`ti ${status === 'Active' ? 'ti-na' : 'ti-check'}`} />
-                            <span className="item-label">{status === 'Active' ? 'Mark Inactive' : 'Mark Active'}</span>
-                          </button>
-                          {hasInvoice(asset) ? (
+                          {can(PERMS.ASSETS_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item edit-action" onClick={() => { setActiveKebabId(null); openEditModal(asset); }}>
+                              <i className="ti ti-pencil" />
+                              <span className="item-label">Edit Asset</span>
+                            </button>
+                          )}
+                          {can(PERMS.ASSETS_EDIT) && (
                             <button
                               type="button"
-                              className="kebab-dropdown-item delete-action"
-                              onClick={() => askRemoveInvoice(asset)}
+                              className={`kebab-dropdown-item ${status === 'Active' ? 'draft-action' : 'enable-action'}`}
+                              onClick={() => { setActiveKebabId(null); quickToggleStatus(asset); }}
                             >
-                              <i className="ti ti-trash" />
-                              <span className="item-label">Remove Invoice</span>
+                              <i className={`ti ${status === 'Active' ? 'ti-na' : 'ti-check'}`} />
+                              <span className="item-label">{status === 'Active' ? 'Mark Inactive' : 'Mark Active'}</span>
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="kebab-dropdown-item view-action"
-                              onClick={() => triggerInvoiceUpload(asset)}
-                            >
-                              <i className="ti ti-upload" />
-                              <span className="item-label">Upload Invoice</span>
-                            </button>
+                          )}
+                          {can(PERMS.ASSETS_INVOICE_EDIT) && (
+                            hasInvoice(asset) ? (
+                              <button
+                                type="button"
+                                className="kebab-dropdown-item delete-action"
+                                onClick={() => askRemoveInvoice(asset)}
+                              >
+                                <i className="ti ti-trash" />
+                                <span className="item-label">Remove Invoice</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="kebab-dropdown-item view-action"
+                                onClick={() => triggerInvoiceUpload(asset)}
+                              >
+                                <i className="ti ti-upload" />
+                                <span className="item-label">Upload Invoice</span>
+                              </button>
+                            )
                           )}
                         </div>
                       </div>

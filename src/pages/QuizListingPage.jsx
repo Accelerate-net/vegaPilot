@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { draftQuizzesDemo, publishedQuizzesDemo, withSampleAttempts } from '../data/quizzesDemo';
 
 function getQuizzesFromStorage() {
@@ -100,6 +102,7 @@ function getAttemptStats(attempts = []) {
 }
 
 export default function QuizListingPage() {
+  const { can } = usePermission();
   const navigate = useNavigate();
   const [allQuizzes, setAllQuizzes] = useState(() => getQuizzesFromStorage());
   const [currentTab, setCurrentTab] = useState('all');
@@ -220,9 +223,11 @@ export default function QuizListingPage() {
           <h2><i className="ti ti-files" />Quiz Listing</h2>
           <p>Manage practice quizzes, review student attempts, and publish draft quizzes.</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => navigate('/quiz-creation')}>
-          <i className="ti ti-plus" /> Create Quiz
-        </button>
+        <Can permission={PERMS.QUIZZES_EDIT}>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/quiz-creation')}>
+            <i className="ti ti-plus" /> Create Quiz
+          </button>
+        </Can>
       </div>
 
       {(allQuizzes.length > 0 || quizSearchQuery) ? (
@@ -361,16 +366,18 @@ export default function QuizListingPage() {
                             <span>View Report</span>
                           </button>
                         ) : null}
-                        {quiz.status === 'draft' ? (
+                        {quiz.status === 'draft' && can(PERMS.QUIZZES_EDIT) ? (
                           <button type="button" className="kebab-dropdown-item publish-action" onClick={() => { setQuizToPublish(quiz); setActiveKebabId(null); }}>
                             <i className="ti ti-check" />
                             <span>Publish Quiz</span>
                           </button>
                         ) : null}
-                        <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { setQuizToDelete(quiz); setActiveKebabId(null); }}>
-                          <i className="ti ti-trash" />
-                          <span>Delete Quiz</span>
-                        </button>
+                        {can(PERMS.QUIZZES_DELETE) && (
+                          <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { setQuizToDelete(quiz); setActiveKebabId(null); }}>
+                            <i className="ti ti-trash" />
+                            <span>Delete Quiz</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </td>

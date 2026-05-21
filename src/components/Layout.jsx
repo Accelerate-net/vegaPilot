@@ -4,7 +4,10 @@ import { clearToken } from '../lib/auth';
 import { api } from '../lib/api';
 import { protectedScreens, NAV_GROUPS } from '../lib/legacyScreens';
 import { useUser } from '../lib/userStore';
-import { canAccess } from '../lib/roles';
+import { canAccess, isSuperAdmin } from '../lib/roles';
+import { has as permHas } from '../lib/permissions';
+import { consumeFlash } from '../lib/flash';
+import ToastRegion from './ToastRegion';
 
 export default function Layout({ children, currentScreen }) {
   const navigate  = useNavigate();
@@ -12,6 +15,25 @@ export default function Layout({ children, currentScreen }) {
   const { user, prefs, togglePin, reorderPins, updateUser } = useUser() || {};
 
   const pinnedPaths = prefs?.pinnedPaths || [];
+
+  // Display name + role for the sidebar profile strip. Prefer the RBAC
+  // `roles` array (the new source of truth); fall back to legacy `roleLabel`.
+  const displayName = user?.name || 'User';
+  const displayRole = (() => {
+    const list = Array.isArray(user?.roles) ? user.roles : [];
+    if (list.length > 0) {
+      return list
+        .map((r) =>
+          String(r)
+            .toLowerCase()
+            .split('_')
+            .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ''))
+            .join(' ')
+        )
+        .join(', ');
+    }
+    return user?.roleLabel || '';
+  })();
 
   // ── Sidebar collapsed state ────────────────────────────────────────
   const [collapsed, setCollapsed] = useState(
@@ -55,9 +77,17 @@ export default function Layout({ children, currentScreen }) {
   // ── Allowed screens (role-filtered) ───────────────────────────────
   const role = user?.role || 'super_admin';
 
+  const permissions = user?.permissions;
   const allowedScreens = useMemo(
-    () => protectedScreens.filter((s) => canAccess(role, s.path)),
-    [role]
+    () => protectedScreens.filter((s) => {
+      if (!canAccess(role, s.path)) return false;
+      // If we have a known permission set, also require the view permission.
+      if (s.viewPermission && Array.isArray(permissions) && permissions.length > 0) {
+        return permHas(permissions, s.viewPermission);
+      }
+      return true;
+    }),
+    [role, permissions]
   );
 
   const grouped = useMemo(() =>
@@ -132,6 +162,22 @@ export default function Layout({ children, currentScreen }) {
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef(null);
+  // Temporarily expose Roles & Permissions to every signed-in user.
+  const showSuperAdmin = isSuperAdmin(user)
+    || (Array.isArray(user?.permissions) && user.permissions.includes('*'));
+
+  // ── Flash toasts (e.g. forbidden redirect) ─────────────────────────
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = useRef(0);
+  useEffect(() => {
+    const flash = consumeFlash();
+    if (!flash) return;
+    const id = ++toastIdRef.current;
+    setToasts((cur) => [...cur, { id, ...flash }]);
+    window.setTimeout(() => {
+      setToasts((cur) => cur.filter((t) => t.id !== id));
+    }, 4500);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!showProfileMenu) return;
@@ -267,7 +313,10 @@ export default function Layout({ children, currentScreen }) {
   function confirmLogout() {
     setShowLogoutConfirm(false);
     clearToken();
-    navigate('/login', { replace: true });
+    // Hard navigation: avoids a render race between this navigate() and
+    // ProtectedRoute's own <Navigate to="/login"> when isAuthenticated()
+    // flips mid-transition, and guarantees UserProvider unmounts cleanly.
+    window.location.assign('/login');
   }
 
   return (
@@ -279,9 +328,14 @@ export default function Layout({ children, currentScreen }) {
           className="sb-brand"
           role="button"
           tabIndex={0}
-          onClick={toggleSidebar}
-          onKeyDown={(e) => e.key === 'Enter' && toggleSidebar()}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={() => (collapsed ? toggleSidebar() : navigate('/landing'))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              if (collapsed) toggleSidebar();
+              else navigate('/landing');
+            }
+          }}
+          title={collapsed ? 'Expand sidebar' : 'Go to Home'}
         >
           <img
             src="/assets/icons/favicon.png"
@@ -294,7 +348,19 @@ export default function Layout({ children, currentScreen }) {
               <div className="sb-brand-text">
                 <strong>Crispr Learning</strong>
               </div>
-              <i className="fa fa-angle-left sb-collapse-arrow" />
+              <i
+                className="fa fa-angle-left sb-collapse-arrow"
+                role="button"
+                tabIndex={0}
+                title="Collapse sidebar"
+                onClick={(e) => { e.stopPropagation(); toggleSidebar(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.stopPropagation();
+                    toggleSidebar();
+                  }
+                }}
+              />
             </>
           )}
         </div>
@@ -384,19 +450,22 @@ export default function Layout({ children, currentScreen }) {
             type="button"
             className={`sb-profile-btn${showProfileMenu ? ' open' : ''}`}
             onClick={() => setShowProfileMenu((v) => !v)}
-            title={collapsed ? user?.name || 'User' : undefined}
+            title={collapsed ? `${displayName}${displayRole ? ` — ${displayRole}` : ''}` : undefined}
           >
             <div className="sb-avatar">{user?.initials || 'U'}</div>
             {!collapsed && (
               <>
                 <div className="sb-user-info">
-                  <span className="sb-user-name">{user?.name || 'Admin'}</span>
-                  <span
-                    className="sb-user-role"
-                    style={user?.badgeColor ? { color: user.badgeColor } : undefined}
-                  >
-                    {user?.roleLabel || 'Super Admin'}
-                  </span>
+                  <span className="sb-user-name">{displayName}</span>
+                  {displayRole && (
+                    <span
+                      className="sb-user-role"
+                      style={user?.badgeColor ? { color: user.badgeColor } : undefined}
+                      title={displayRole}
+                    >
+                      {displayRole}
+                    </span>
+                  )}
                 </div>
                 <i className="fa fa-ellipsis-v sb-profile-dots" />
               </>
@@ -416,6 +485,16 @@ export default function Layout({ children, currentScreen }) {
                 <i className="fa fa-lock" />
                 <span>Change Password</span>
               </button>
+              {showSuperAdmin && (
+                <button
+                  type="button"
+                  className="sb-profile-menu-item"
+                  onClick={() => { setShowProfileMenu(false); navigate('/permission'); }}
+                >
+                  <i className="fa fa-shield" />
+                  <span>Roles &amp; Permissions</span>
+                </button>
+              )}
               <div className="sb-profile-menu-divider" />
               <button type="button" className="sb-profile-menu-item danger"
                 onClick={requestLogout}>
@@ -641,6 +720,12 @@ export default function Layout({ children, currentScreen }) {
           </form>
         </div>
       </div>
+
+      {/* ── Global flash toasts ───────────────────────────────────── */}
+      <ToastRegion
+        toasts={toasts}
+        onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))}
+      />
 
       {/* ── Logout confirmation modal ─────────────────────────────── */}
       <div

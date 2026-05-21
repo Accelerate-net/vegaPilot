@@ -18,7 +18,7 @@ export default function UserProvider({ children }) {
     const token = getToken();
     if (!token) return;
 
-    api.get('/user-profile/user-profile')
+    api.get('/user-profile/user-profile', { skipAuthRedirect: true })
       .then((res) => {
         if (res.data?.status && res.data?.response) {
           const raw = res.data.response;
@@ -43,6 +43,30 @@ export default function UserProvider({ children }) {
             setUser(resolved);
           }
         }
+      });
+
+    // Also fetch RBAC identity so `roles` / `permissions` are available for guards.
+    // This is a passive probe — don't tear down the session if it 401s on its own;
+    // a real API call will trigger the global logout if the token is genuinely dead.
+    api.get('/restricted/admin-auth/me', { skipAuthRedirect: true })
+      .then((res) => {
+        const me = res.data?.user;
+        if (!me) return;
+        setUser((prev) => {
+          const next = {
+            ...(prev || {}),
+            roles: Array.isArray(me.roles) ? me.roles : [],
+            permissions: Array.isArray(me.permissions) ? me.permissions : [],
+            email: prev?.email || me.email || '',
+            phone: prev?.phone || me.mobile || '',
+            name: prev?.name || me.name || 'Admin',
+          };
+          setCachedUser(next);
+          return next;
+        });
+      })
+      .catch(() => {
+        // Non-fatal — guards will just deny SUPER_ADMIN-only pages.
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -102,10 +126,14 @@ function normalizeUser(raw) {
   const role      = raw.role || raw.userRole || 'super_admin';
   const roleMeta  = ROLES[role] || ROLES.super_admin;
   const name      = raw.name || raw.fullName || raw.username || 'Admin';
+  const roles     = Array.isArray(raw.roles) ? raw.roles : [];
+  const permissions = Array.isArray(raw.permissions) ? raw.permissions : [];
   return {
     name,
     initials:  getInitials(name),
     role,
+    roles,
+    permissions,
     roleLabel: raw.roleLabel || roleMeta.label,
     badgeColor: roleMeta.badgeColor,
     email:     raw.email || '',

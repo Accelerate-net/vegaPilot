@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { batchesDemo } from '../data/adminRemainingDemo';
 
 
@@ -206,6 +208,7 @@ function getStudentInitials(name) {
 }
 
 export default function BatchManagementPage() {
+  const { can } = usePermission();
   const [batches, setBatches] = useState(() => batchesDemo.map(normalizeBatch));
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('batchName');
@@ -922,9 +925,11 @@ export default function BatchManagementPage() {
           <h2>Batch Management</h2>
           <p>Organize students into batches, manage courses, and control access without changing the existing workflow.</p>
         </div>
-        <button type="button" className="create-batch-button" onClick={openCreateBatchModal}>
-          <i className="ti ti-plus" /> Create New Batch
-        </button>
+        <Can permission={PERMS.BATCHES_EDIT}>
+          <button type="button" className="create-batch-button" onClick={openCreateBatchModal}>
+            <i className="ti ti-plus" /> Create New Batch
+          </button>
+        </Can>
       </div>
 
       <div className="filter-bar">
@@ -1065,26 +1070,34 @@ export default function BatchManagementPage() {
                           <i className="ti ti-more-alt" />
                         </button>
                         <div className={`kebab-dropdown ${activeKebabId === batch.id ? 'active' : ''}`}>
-                          <button type="button" className="kebab-dropdown-item view-profile" onClick={() => openManageCourses(batch)}>
-                            <i className="ti ti-book" />
-                            <span className="item-label">Manage Courses</span>
-                          </button>
-                          <button type="button" className="kebab-dropdown-item manage-students" onClick={() => openAddStudentsModal(batch)}>
-                            <i className="ti ti-user" />
-                            <span className="item-label">Manage Students</span>
-                          </button>
-                          <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditBatchModal(batch)}>
-                            <i className="ti ti-pencil" />
-                            <span className="item-label">Modify Batch Details</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={`kebab-dropdown-item ${batch.isFrozen ? 'enable-action' : 'draft-action'}`}
-                            onClick={() => openFreezeModal(batch)}
-                          >
-                            <i className={`ti ${batch.isFrozen ? 'ti-unlock' : 'ti-lock'}`} />
-                            <span className="item-label">{batch.isFrozen ? 'Unfreeze' : 'Freeze'} Batch</span>
-                          </button>
+                          {can(PERMS.BATCHES_COURSES_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item view-profile" onClick={() => openManageCourses(batch)}>
+                              <i className="ti ti-book" />
+                              <span className="item-label">Manage Courses</span>
+                            </button>
+                          )}
+                          {can(PERMS.BATCHES_STUDENTS_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item manage-students" onClick={() => openAddStudentsModal(batch)}>
+                              <i className="ti ti-user" />
+                              <span className="item-label">Manage Students</span>
+                            </button>
+                          )}
+                          {can(PERMS.BATCHES_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditBatchModal(batch)}>
+                              <i className="ti ti-pencil" />
+                              <span className="item-label">Modify Batch Details</span>
+                            </button>
+                          )}
+                          {can(PERMS.BATCHES_FREEZE) && (
+                            <button
+                              type="button"
+                              className={`kebab-dropdown-item ${batch.isFrozen ? 'enable-action' : 'draft-action'}`}
+                              onClick={() => openFreezeModal(batch)}
+                            >
+                              <i className={`ti ${batch.isFrozen ? 'ti-unlock' : 'ti-lock'}`} />
+                              <span className="item-label">{batch.isFrozen ? 'Unfreeze' : 'Freeze'} Batch</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>

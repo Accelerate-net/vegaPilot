@@ -11265,6 +11265,44 @@ input {
   margin-bottom: 20px;
 }
 
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-header { margin-bottom: 8px; }
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-title { font-size: 13px; }
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-row-1,
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-row-2 {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-row-2 { margin-bottom: 0; }
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-group { gap: 2px; }
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-label {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-filter-input {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-batch-trigger {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-active-filters {
+  margin-top: 8px;
+  gap: 4px;
+}
+.exam-attempt-report-page .ear-filter-section.ear-filter-compact .ear-clear-filters-btn {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
 .exam-attempt-report-page .ear-filter-header {
   display: flex;
   justify-content: space-between;

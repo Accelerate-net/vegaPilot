@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { mentorsDemo } from '../data/adminRemainingDemo';
 
 function getInitials(name) {
@@ -107,6 +109,7 @@ function starClass(rating, index) {
 }
 
 export default function MentorProfilesPage() {
+  const { can } = usePermission();
   const [mentors, setMentors] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSpecialization, setFilterSpecialization] = useState('');
@@ -618,9 +621,11 @@ export default function MentorProfilesPage() {
           <h2>Mentor Management</h2>
           <p>Create mentor profiles, review assignments, and manage mentee mapping without changing the legacy workflow.</p>
         </div>
-        <button type="button" className="create-mentor-button" onClick={openCreateModal}>
-          <i className="ti ti-plus" /> New Mentor Profile
-        </button>
+        <Can permission={PERMS.MENTORS_EDIT}>
+          <button type="button" className="create-mentor-button" onClick={openCreateModal}>
+            <i className="ti ti-plus" /> New Mentor Profile
+          </button>
+        </Can>
       </div>
 
       <div className="filter-bar">
@@ -745,18 +750,24 @@ export default function MentorProfilesPage() {
                             <i className="ti ti-user" />
                             <span>View Profile</span>
                           </button>
-                          <button type="button" className="kebab-dropdown-item manage-students" onClick={() => manageMentees(mentor)}>
-                            <i className="ti ti-user" />
-                            <span>Manage Mentees</span>
-                          </button>
-                          <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(mentor)}>
-                            <i className="ti ti-pencil" />
-                            <span>Edit Mentor</span>
-                          </button>
-                          <button type="button" className="kebab-dropdown-item delete-action" onClick={() => confirmDelete(mentor)}>
-                            <i className="ti ti-trash" />
-                            <span>Delete Mentor</span>
-                          </button>
+                          {can(PERMS.MENTORS_MENTEES_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item manage-students" onClick={() => manageMentees(mentor)}>
+                              <i className="ti ti-user" />
+                              <span>Manage Mentees</span>
+                            </button>
+                          )}
+                          {can(PERMS.MENTORS_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(mentor)}>
+                              <i className="ti ti-pencil" />
+                              <span>Edit Mentor</span>
+                            </button>
+                          )}
+                          {can(PERMS.MENTORS_DELETE) && (
+                            <button type="button" className="kebab-dropdown-item delete-action" onClick={() => confirmDelete(mentor)}>
+                              <i className="ti ti-trash" />
+                              <span>Delete Mentor</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>

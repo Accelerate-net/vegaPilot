@@ -12,6 +12,7 @@ export const ROLES = {
     label: 'Admin',
     badgeColor: '#006073',
     paths: [
+      '/landing',
       '/candidate-profile', '/candidate-detail',
       '/orders',
       '/courses-list', '/course-view', '/course-management', '/catalog', '/video-content', '/bunny-admin',
@@ -28,6 +29,7 @@ export const ROLES = {
     label: 'Content Manager',
     badgeColor: '#0891b2',
     paths: [
+      '/landing',
       '/courses-list', '/course-view', '/course-management', '/catalog',
       '/video-content', '/bunny-admin',
       '/question-bank', '/practice-questions',
@@ -40,6 +42,7 @@ export const ROLES = {
     label: 'Instructor',
     badgeColor: '#059669',
     paths: [
+      '/landing',
       '/courses-list', '/course-view',
       '/quiz-listing', '/quiz-attempt-report',
       '/exam-listing', '/exam-attempt-report',
@@ -49,6 +52,7 @@ export const ROLES = {
     label: 'Mentor',
     badgeColor: '#d97706',
     paths: [
+      '/landing',
       '/candidate-profile', '/candidate-detail',
       '/mentor-profiles',
     ],
@@ -61,6 +65,15 @@ export function canAccess(role, path) {
   const allowed = ROLES[role].paths;
   if (allowed === '*') return true;
   return allowed.includes(path);
+}
+
+// Returns true if the given user is a SUPER_ADMIN.
+// Accepts both the legacy lowercase `role` string and the new RBAC `roles` array.
+export function isSuperAdmin(user) {
+  if (!user) return false;
+  if (Array.isArray(user.roles) && user.roles.includes('SUPER_ADMIN')) return true;
+  if (typeof user.role === 'string' && user.role.toLowerCase() === 'super_admin') return true;
+  return false;
 }
 
 // Returns null (all paths) or string[] of allowed paths for the role

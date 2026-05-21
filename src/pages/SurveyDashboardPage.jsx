@@ -1,7 +1,24 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { availableBatches, availableCourses } from '../data/attemptReportsDemo';
+import {
+  QUESTION_TYPE_LABEL,
+  SURVEY_AUDIENCE,
+  SURVEY_AUDIENCE_LABEL,
+  SURVEY_STATUS,
+  SURVEY_STATUS_LABEL,
+  createSurvey,
+  listResponses,
+  listSurveys,
+  questionsToSchema,
+  recallSurvey,
+  resumeSurvey,
+  pauseSurvey,
+  surveyFromSchema,
+} from '../lib/surveysApi';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDateTime(value) {
@@ -135,7 +152,7 @@ function CourseMultiSelect({ courses, selected, onChange, disabled }) {
   );
 }
 
-function KebabMenu({ survey, onAction }) {
+function KebabMenu({ survey, onAction, can }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -161,59 +178,46 @@ function KebabMenu({ survey, onAction }) {
           <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'view_survey'); }}>
             <i className="ti ti-desktop" /> Preview Survey Form
           </button>
-          {survey.status === 'published' && (
-            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'end'); }}>
-              <i className="ti ti-close" /> End Survey
+          <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'view_responses'); }}>
+            <i className="ti ti-list" /> View Responses
+          </button>
+          {survey.status === SURVEY_STATUS.ACTIVE && can?.('surveys.status.edit') && (
+            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'pause'); }}>
+              <i className="ti ti-control-pause" /> Pause Survey
             </button>
           )}
-          {survey.status === 'scheduled' && (
+          {survey.status === SURVEY_STATUS.PAUSED && can?.('surveys.status.edit') && (
+            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'resume'); }}>
+              <i className="ti ti-control-play" /> Resume Survey
+            </button>
+          )}
+          {survey.status !== SURVEY_STATUS.RECALLED && can?.('surveys.recall') && (
             <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'recall'); }}>
               <i className="ti ti-back-left" /> Recall Survey
             </button>
           )}
-          <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'view_responses'); }}>
-            <i className="ti ti-list" /> View Responses
-          </button>
         </div>
       )}
     </div>
   );
 }
 
-// ─── Default Data ─────────────────────────────────────────────────────────────
-const initialSurveys = [
-  {
-    id: 'SRV-101',
-    title: 'Course Well-being check',
-    targetAudience: 'Batch A',
-    status: 'published',
-    timeWindow: 'Open ended',
-    acceptsAnonymous: true,
-    questions: [
-      { text: 'How stressed were you?', type: 'Star Rating', required: true },
-      { text: 'Any suggestions?', type: 'Text Input', required: false },
-      { text: "What's your mode of commute?", type: 'Multi Select', required: true, options: ['Scooter', 'Car', 'School Bus'] },
-    ],
-    responses: [
-      { id: 'R1', studentName: 'John Doe', studentEmail: 'john@example.com', courseId: 'CR-101', batchId: 'BAT-01', date: '2026-05-10T10:00:00Z', isAnonymous: false, answers: ['4', 'None', 'School Bus'] },
-      { id: 'R2', studentName: 'Jane Smith', studentEmail: 'jane@example.com', courseId: 'CR-101', batchId: 'BAT-01', date: '2026-05-11T14:30:00Z', isAnonymous: true, answers: ['5', 'Loved the course!', 'Scooter'] },
-      { id: 'R3', studentName: 'Amit Singh', studentEmail: 'amit@example.com', courseId: 'CR-101', batchId: 'BAT-01', date: '2026-05-11T16:00:00Z', isAnonymous: false, answers: ['3', '', 'School Bus'] },
-      { id: 'R4', studentName: 'Priya L', studentEmail: 'priya@example.com', courseId: 'CR-101', batchId: 'BAT-01', date: '2026-05-12T09:00:00Z', isAnonymous: false, answers: ['5', 'Awesome', 'Car'] },
-    ]
-  },
-  {
-    id: 'SRV-102',
-    title: 'Mid-term Review',
-    targetAudience: 'All Enrolled',
-    status: 'scheduled',
-    timeWindow: 'Ends May 30 08:00 PM',
-    acceptsAnonymous: false,
-    questions: [],
-    responses: []
-  }
-];
+// ── status visual mapping ────────────────────────────────────────────────────
+function statusBadgeClass(statusInt) {
+  if (statusInt === SURVEY_STATUS.ACTIVE) return 'ear-stat-teal';
+  if (statusInt === SURVEY_STATUS.RECALLED) return 'ear-stat-indigo';
+  return 'ear-status-in-progress';
+}
+
+function timeWindowLabel(survey) {
+  if (!survey.closesAt) return 'Open ended';
+  const d = new Date(Number(survey.closesAt) * 1000);
+  if (Number.isNaN(d.getTime())) return 'Open ended';
+  return `Closes ${d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`;
+}
 
 export default function SurveyDashboardPage() {
+  const { can } = usePermission();
   const [toasts, setToasts] = useState([]);
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
@@ -222,44 +226,59 @@ export default function SurveyDashboardPage() {
   }
 
   const [currentView, setCurrentView] = useState('list'); // 'list' | 'create' | 'responses'
-  const [surveys, setSurveys] = useState(initialSurveys);
+  const [surveys, setSurveys] = useState([]);
+  const [surveysLoading, setSurveysLoading] = useState(false);
   const [activeSurvey, setActiveSurvey] = useState(null);
   const [surveyToView, setSurveyToView] = useState(null);
 
   // ─── Survey List Filters ────────────────────────────────────────────────────
-  const [listStatusFilter, setListStatusFilter] = useState('all');
+  const [listStatusFilter, setListStatusFilter] = useState('all'); // 'all' | '0' | '1' | '2'
   const [listResponseFilter, setListResponseFilter] = useState('all');
-  const [listAudienceFilter, setListAudienceFilter] = useState('');
+  const [listAudienceFilter, setListAudienceFilter] = useState(''); // '' | '0' | '1' | '2'
+
+  // ─── Load surveys ──────────────────────────────────────────────────────────
+  const loadSurveys = useCallback(async () => {
+    setSurveysLoading(true);
+    try {
+      const resp = await listSurveys({
+        status: listStatusFilter === 'all' ? undefined : Number(listStatusFilter),
+        audienceType: listAudienceFilter === '' ? undefined : Number(listAudienceFilter),
+        size: 100,
+      });
+      const rows = resp?.data || resp?.surveys || (Array.isArray(resp) ? resp : []) || [];
+      setSurveys(rows.map(surveyFromSchema));
+    } catch (error) {
+      showToast('error', 'Load failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not load surveys.');
+      setSurveys([]);
+    } finally {
+      setSurveysLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listStatusFilter, listAudienceFilter]);
+
+  useEffect(() => { loadSurveys(); }, [loadSurveys]);
 
   const filteredSurveys = useMemo(() => {
     let next = [...surveys];
-    if (listStatusFilter !== 'all') {
-      next = next.filter(s => s.status === listStatusFilter);
-    }
-    if (listResponseFilter !== 'all') {
-      if (listResponseFilter === 'zero_responses') {
-        next = next.filter(s => s.responses.length === 0);
-      } else if (listResponseFilter === 'has_responses') {
-        next = next.filter(s => s.responses.length > 0);
-      }
-    }
-    if (listAudienceFilter) {
-      next = next.filter(s => s.targetAudience === listAudienceFilter);
-    }
+    if (listResponseFilter === 'zero_responses') next = next.filter((s) => (s.responseCount || 0) === 0);
+    if (listResponseFilter === 'has_responses') next = next.filter((s) => (s.responseCount || 0) > 0);
     return next;
-  }, [surveys, listStatusFilter, listResponseFilter, listAudienceFilter]);
+  }, [surveys, listResponseFilter]);
 
   const hasActiveListFilters = listStatusFilter !== 'all' || listResponseFilter !== 'all' || listAudienceFilter !== '';
 
   // ─── Create Survey State ────────────────────────────────────────────────────
   const [csTitle, setCsTitle] = useState('');
+  const [csBrief, setCsBrief] = useState('');
   const [csAudience, setCsAudience] = useState('All Registered Students');
   const [csSelectedCourses, setCsSelectedCourses] = useState([]);
   const [csSelectedBatches, setCsSelectedBatches] = useState([]);
   const [csWindowType, setCsWindowType] = useState('open'); // 'open', 'strict'
   const [csDeadline, setCsDeadline] = useState('');
   const [csAnonymous, setCsAnonymous] = useState(false);
+  const [csMultipleAllowed, setCsMultipleAllowed] = useState(false);
   const [csQuestions, setCsQuestions] = useState([{ text: '', type: 'Text Input', required: true, options: ['', ''] }]);
+  const [csSaving, setCsSaving] = useState(false);
 
   // ─── Filter State for Responses View ───────────────────────────────────────
   const [rsSearch, setRsSearch] = useState('');
@@ -267,6 +286,10 @@ export default function SurveyDashboardPage() {
   const [rsBatches, setRsBatches] = useState([]);
   const [rsFrom, setRsFrom] = useState('');
   const [rsTo, setRsTo] = useState('');
+  const [rsPage, setRsPage] = useState(1);
+  const [rsPageSize, setRsPageSize] = useState(20);
+  const [rsTotal, setRsTotal] = useState(0);
+  const [rsServerLastPage, setRsServerLastPage] = useState(1);
 
   const filteredBatchesForCourse = useMemo(
     () => availableBatches.filter((b) => !rsCourse || b.courseId === rsCourse),
@@ -294,6 +317,35 @@ export default function SurveyDashboardPage() {
   }, [activeSurvey, rsSearch, rsCourse, rsBatches, rsFrom, rsTo]);
 
   const hasActiveRsFilters = rsSearch || rsCourse || rsBatches.length || rsFrom || rsTo;
+
+  // Pagination is server-driven (rsTotal / rsServerLastPage). Client only
+  // slices when a course filter (not sent to API) shrinks the visible set.
+  const rsTotalPages = Math.max(1, rsServerLastPage || 1);
+  const rsSafePage = Math.min(rsPage, rsTotalPages);
+  const rsStart = (rsSafePage - 1) * rsPageSize;
+  const visibleResponses = filteredResponses;
+  const rsShowingStart = rsTotal === 0 ? 0 : rsStart + 1;
+  const rsShowingEnd = Math.min(rsStart + rsPageSize, rsTotal);
+
+  useEffect(() => { setRsPage(1); }, [rsSearch, rsCourse, rsBatches, rsFrom, rsTo, rsPageSize, activeSurvey?.id]);
+
+  useEffect(() => {
+    if (currentView !== 'responses' || !activeSurvey?.id) return;
+    const timer = setTimeout(() => {
+      fetchResponses(activeSurvey.id, { page: rsPage, size: rsPageSize });
+    }, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView, activeSurvey?.id, rsPage, rsPageSize, rsSearch, rsBatches, rsFrom, rsTo]);
+
+  function rsPageNumbers() {
+    const total = rsTotalPages;
+    const cur = rsSafePage;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (cur <= 4) return [1, 2, 3, 4, 5, '...', total];
+    if (cur >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    return [1, '...', cur - 1, cur, cur + 1, '...', total];
+  }
 
   function handleDownloadCsv() {
     if (!activeSurvey || filteredResponses.length === 0) return showToast('error', 'Error', 'No responses to download.');
@@ -332,61 +384,144 @@ export default function SurveyDashboardPage() {
     showToast('success', 'Download Started', 'Your CSV file is downloading.');
   }
 
-  function handleAction(survey, action) {
-    if (action === 'end') {
-      setSurveys(s => s.map(x => x.id === survey.id ? { ...x, status: 'completed' } : x));
-      showToast('success', 'Survey Ended', 'The survey has been successfully marked as completed.');
-    } else if (action === 'recall') {
-      setSurveys(s => s.map(x => x.id === survey.id ? { ...x, status: 'draft' } : x));
-      showToast('info', 'Survey Recalled', 'The survey has been moved back to drafts.');
-    } else if (action === 'view_responses') {
-      setActiveSurvey(survey);
-      setCurrentView('responses');
-      setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
-    } else if (action === 'view_survey') {
-      setSurveyToView(survey);
+  async function handleAction(survey, action) {
+    try {
+      if (action === 'pause') {
+        await pauseSurvey(survey.id);
+        showToast('info', 'Survey Paused', 'Users will see a warning that responses are no longer accepted.');
+        await loadSurveys();
+      } else if (action === 'resume') {
+        await resumeSurvey(survey.id);
+        showToast('success', 'Survey Resumed', 'The survey is accepting responses again.');
+        await loadSurveys();
+      } else if (action === 'recall') {
+        await recallSurvey(survey.id);
+        showToast('info', 'Survey Recalled', 'The survey has been recalled and is no longer visible to users.');
+        await loadSurveys();
+      } else if (action === 'view_responses') {
+        setActiveSurvey({ ...survey, responses: [] });
+        setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
+        setRsPage(1);
+        setCurrentView('responses');
+        // fetchResponses is fired by the useEffect on currentView/activeSurvey changes
+      } else if (action === 'view_survey') {
+        setSurveyToView(survey);
+      }
+    } catch (error) {
+      showToast('error', 'Action failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Action could not be completed.');
     }
   }
 
-  function handleCreateSurvey(e) {
+  async function fetchResponses(surveyId, opts = {}) {
+    const page = opts.page ?? rsPage;
+    const size = opts.size ?? rsPageSize;
+    try {
+      const resp = await listResponses(surveyId, {
+        page,
+        size,
+        q: rsSearch || undefined,
+        batchId: (rsBatches && rsBatches.length === 1) ? rsBatches[0] : undefined,
+        dateFrom: rsFrom ? rsFrom.slice(0, 10) : undefined,
+        dateTo: rsTo ? rsTo.slice(0, 10) : undefined,
+      });
+      const rows = resp?.data || resp?.responses || (Array.isArray(resp) ? resp : []) || [];
+      const meta = resp?.pagination || resp?.meta || {};
+      setRsTotal(Number(meta.total ?? rows.length));
+      setRsServerLastPage(Number(meta.lastPage ?? meta.totalPages ?? Math.max(1, Math.ceil((meta.total ?? rows.length) / size))));
+      // Schema responses: [{ id, fk_id_registered_candidates, response: JSON, submittedAt }]
+      // Backend is expected to enrich with student name/email/batch when available.
+      const ui = rows.map((r) => {
+        const answersArr = (() => {
+          if (Array.isArray(r.response)) return r.response;
+          try { return JSON.parse(r.response || '[]'); } catch (_e) { return []; }
+        })();
+        const answersByQ = {};
+        answersArr.forEach((a) => { if (a && a.q != null) answersByQ[Number(a.q)] = a.a; });
+        return {
+          id: r.id,
+          studentName: r.studentName || r.candidateName || '',
+          studentEmail: r.studentEmail || r.email || '',
+          candidateId: r.fk_id_registered_candidates ?? r.candidateId ?? null,
+          courseId: r.courseId || '',
+          batchId: r.batchId || '',
+          date: r.submittedAt ? new Date(Number(r.submittedAt) * 1000).toISOString() : (r.submittedAtIso || ''),
+          isAnonymous: !r.studentName && !r.candidateName,
+          // For UI cells indexed by question order
+          answers: (activeSurvey?.questions || []).map((_, i) => {
+            const raw = answersByQ[i + 1];
+            if (Array.isArray(raw)) return raw.join(', ');
+            return raw == null ? '' : String(raw);
+          }),
+          rawAnswers: answersByQ,
+        };
+      });
+      setActiveSurvey((cur) => (cur ? { ...cur, responses: ui } : cur));
+    } catch (error) {
+      showToast('error', 'Load failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not load responses.');
+    }
+  }
+
+  async function handleCreateSurvey(e) {
     e.preventDefault();
     if (!csTitle.trim()) return showToast('error', 'Error', 'Please enter a title.');
+    if (!csQuestions.length) return showToast('error', 'Error', 'Add at least one question.');
 
-    for (let i = 0; i < csQuestions.length; i++) {
-       const q = csQuestions[i];
-       if (q.type === 'Multi Select') {
-          if (!q.options || q.options.length < 2) return showToast('error', 'Error', `Question ${i+1} needs at least 2 options defined.`);
-          if (q.options.some(o => !o.trim())) return showToast('error', 'Error', `All options in Question ${i+1} must be filled.`);
-       }
+    for (let i = 0; i < csQuestions.length; i += 1) {
+      const q = csQuestions[i];
+      if (!q.text || !q.text.trim()) return showToast('error', 'Error', `Question ${i + 1} text is required.`);
+      if (q.type === 'Multi Select') {
+        if (!q.options || q.options.length < 2) return showToast('error', 'Error', `Question ${i + 1} needs at least 2 options.`);
+        if (q.options.some((o) => !o.trim())) return showToast('error', 'Error', `All options in Question ${i + 1} must be filled.`);
+      }
     }
-    
-    let audStr = csAudience;
-    if (csAudience === 'Multi Selected Courses') {
-      if (csSelectedCourses.length === 0) return showToast('error', 'Error', 'Please select at least one course.');
-      audStr = `${csSelectedCourses.length} Courses`;
+
+    let audienceType;
+    let audienceBatchIds;
+    if (csAudience === 'All Registered Students') {
+      audienceType = SURVEY_AUDIENCE.OPEN;
+    } else if (csAudience === 'All Enrolled Students') {
+      audienceType = SURVEY_AUDIENCE.ALL_ENROLLED;
     } else if (csAudience === 'Multi Selected Batches') {
       if (csSelectedBatches.length === 0) return showToast('error', 'Error', 'Please select at least one batch.');
-      audStr = `${csSelectedBatches.length} Batches`;
+      audienceType = SURVEY_AUDIENCE.BATCH;
+      audienceBatchIds = csSelectedBatches;
+    } else if (csAudience === 'Multi Selected Courses') {
+      // Resolve courses → batches (course-to-batch mapping lives in availableBatches)
+      const resolved = availableBatches.filter((b) => csSelectedCourses.includes(b.courseId)).map((b) => b.id);
+      if (resolved.length === 0) return showToast('error', 'Error', 'Selected courses have no associated batches.');
+      audienceType = SURVEY_AUDIENCE.BATCH;
+      audienceBatchIds = resolved;
     }
 
-    const newSurvey = {
-      id: `SRV-${100 + surveys.length + 1}`,
-      title: csTitle,
-      targetAudience: audStr,
-      status: csWindowType === 'open' ? 'published' : 'scheduled',
-      timeWindow: csWindowType === 'open' ? 'Open ended' : `Ends ${new Date(csDeadline).toLocaleString()}`,
-      acceptsAnonymous: csAnonymous,
-      questions: csQuestions,
-      responses: []
-    };
+    if (csWindowType === 'strict' && !csDeadline) return showToast('error', 'Error', 'Please set a deadline.');
 
-    setSurveys([newSurvey, ...surveys]);
-    showToast('success', 'Survey Created', 'Your survey has been published/scheduled.');
-    setCurrentView('list');
-    
-    // Reset
-    setCsTitle(''); setCsWindowType('open'); setCsDeadline(''); setCsAnonymous(false); setCsQuestions([{ text: '', type: 'Text Input', required: true, options: ['', ''] }]);
-    setCsSelectedCourses([]); setCsSelectedBatches([]); setCsAudience('All Registered Students');
+    const payload = {
+      title: csTitle.trim(),
+      brief: csBrief.trim(),
+      surveyContent: questionsToSchema(csQuestions),
+      anonymousSubmissionsAllowed: csAnonymous ? 1 : 0,
+      multipleSubmissionsAllowed: csMultipleAllowed ? 1 : 0,
+      audienceType,
+      closesAt: csWindowType === 'strict' ? Math.floor(new Date(csDeadline).getTime() / 1000) : null,
+    };
+    if (audienceBatchIds) payload.audienceBatchIds = audienceBatchIds;
+
+    setCsSaving(true);
+    try {
+      await createSurvey(payload);
+      showToast('success', 'Survey Created', 'Your survey is now live.');
+      setCurrentView('list');
+      // Reset
+      setCsTitle(''); setCsBrief(''); setCsWindowType('open'); setCsDeadline('');
+      setCsAnonymous(false); setCsMultipleAllowed(false);
+      setCsQuestions([{ text: '', type: 'Text Input', required: true, options: ['', ''] }]);
+      setCsSelectedCourses([]); setCsSelectedBatches([]); setCsAudience('All Registered Students');
+      await loadSurveys();
+    } catch (error) {
+      showToast('error', 'Create failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not create survey.');
+    } finally {
+      setCsSaving(false);
+    }
   }
 
   return (
@@ -402,9 +537,11 @@ export default function SurveyDashboardPage() {
               </h2>
               <p style={{ margin: '6px 0 0', color: '#59757b' }}>Create, dispatch, and review custom surveys for students.</p>
             </div>
-            <button type="button" className="create-course-button" onClick={() => setCurrentView('create')}>
-              <i className="ti ti-plus" /> Create Survey
-            </button>
+            <Can permission={PERMS.SURVEYS_EDIT}>
+              <button type="button" className="create-course-button" onClick={() => setCurrentView('create')}>
+                <i className="ti ti-plus" /> Create Survey
+              </button>
+            </Can>
           </div>
 
           <div className="qar-filter-card" style={{ marginBottom: '24px' }}>
@@ -424,10 +561,9 @@ export default function SurveyDashboardPage() {
                 <label className="qar-filter-label">Status</label>
                 <select className="qar-select" value={listStatusFilter} onChange={(e) => setListStatusFilter(e.target.value)}>
                   <option value="all">All</option>
-                  <option value="draft">Draft</option>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="published">Published</option>
-                  <option value="completed">Completed</option>
+                  <option value={String(SURVEY_STATUS.ACTIVE)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.ACTIVE]}</option>
+                  <option value={String(SURVEY_STATUS.PAUSED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.PAUSED]}</option>
+                  <option value={String(SURVEY_STATUS.RECALLED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.RECALLED]}</option>
                 </select>
               </div>
               <div className="qar-filter-field">
@@ -442,10 +578,9 @@ export default function SurveyDashboardPage() {
                 <label className="qar-filter-label">Target Audience</label>
                 <select className="qar-select" value={listAudienceFilter} onChange={(e) => setListAudienceFilter(e.target.value)}>
                   <option value="">All Audiences</option>
-                  <option value="All Registered Students">All Registered Students</option>
-                  <option value="All Enrolled Students">All Enrolled Students</option>
-                  <option value="Batch A">Batch A</option>
-                  <option value="Batch B">Batch B</option>
+                  <option value={String(SURVEY_AUDIENCE.OPEN)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.OPEN]}</option>
+                  <option value={String(SURVEY_AUDIENCE.ALL_ENROLLED)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.ALL_ENROLLED]}</option>
+                  <option value={String(SURVEY_AUDIENCE.BATCH)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.BATCH]}</option>
                 </select>
               </div>
             </div>
@@ -465,7 +600,9 @@ export default function SurveyDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSurveys.length > 0 ? filteredSurveys.map(s => (
+                {surveysLoading ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading surveys...</td></tr>
+                ) : filteredSurveys.length > 0 ? filteredSurveys.map(s => (
                   <tr key={s.id}>
                     <td>
                       <div className="student-name-cell">
@@ -474,35 +611,35 @@ export default function SurveyDashboardPage() {
                         </div>
                         <div>
                           <div className="student-name">{s.title}</div>
-                          <div className="student-id">ID: {s.id}</div>
+                          <div className="student-id">ID: {s.id}{s.brief ? ` · ${s.brief.slice(0, 60)}${s.brief.length > 60 ? '...' : ''}` : ''}</div>
                         </div>
                       </div>
                     </td>
                     <td>
                       <div className="contact-info">
                         <i className="ti ti-target" style={{ marginRight: '6px' }} />
-                        {s.targetAudience}
+                        {s.audienceLabel}
                       </div>
                     </td>
                     <td>
                       <div className="contact-info">
                         <i className="ti ti-calendar" style={{ marginRight: '6px' }} />
-                        {s.timeWindow}
+                        {timeWindowLabel(s)}
                       </div>
                     </td>
-                    <td>{s.acceptsAnonymous ? <span style={{ color: '#006073', fontWeight: 'bold' }}>Yes</span> : <span style={{ color: '#dc2626', fontWeight: 'bold' }}>No</span>}</td>
+                    <td>{s.anonymousSubmissionsAllowed ? <span style={{ color: '#006073', fontWeight: 'bold' }}>Yes</span> : <span style={{ color: '#dc2626', fontWeight: 'bold' }}>No</span>}</td>
                     <td>
-                      <span className={`ear-status-badge ${s.status === 'published' ? 'ear-stat-teal' : s.status === 'completed' ? 'ear-stat-indigo' : 'ear-status-in-progress'}`} style={{ textTransform: 'uppercase' }}>
-                        {s.status}
+                      <span className={`ear-status-badge ${statusBadgeClass(s.status)}`} style={{ textTransform: 'uppercase' }}>
+                        {s.statusLabel}
                       </span>
                     </td>
                     <td>
                       <span className="courses-badge" style={{ fontWeight: 'bold', background: '#eef4f5', color: '#006073', padding: '4px 12px', borderRadius: '12px' }}>
-                        {s.responses.length}
+                        {s.responseCount}
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <KebabMenu survey={s} onAction={handleAction} />
+                      <KebabMenu survey={s} onAction={handleAction} can={can} />
                     </td>
                   </tr>
                 )) : (
@@ -534,6 +671,8 @@ export default function SurveyDashboardPage() {
               <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontWeight: 'bold' }}>Survey Title <span style={{ color: 'red' }}>*</span></label>
                 <input type="text" className="ear-filter-input" value={csTitle} onChange={e => setCsTitle(e.target.value)} required />
+                <label style={{ fontWeight: 'bold', marginTop: '8px' }}>Brief</label>
+                <textarea className="ear-filter-input" rows={2} value={csBrief} onChange={(e) => setCsBrief(e.target.value)} placeholder="Short description shown to respondents" />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontWeight: 'bold' }}>Target Audience</label>
@@ -575,6 +714,10 @@ export default function SurveyDashboardPage() {
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <input type="checkbox" id="anonToggle" checked={csAnonymous} onChange={e => setCsAnonymous(e.target.checked)} style={{ width: '20px', height: '20px' }} />
                 <label htmlFor="anonToggle" style={{ fontWeight: 'bold', cursor: 'pointer' }}>Accept Anonymous Responses</label>
+              </div>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input type="checkbox" id="multiToggle" checked={csMultipleAllowed} onChange={(e) => setCsMultipleAllowed(e.target.checked)} style={{ width: '20px', height: '20px' }} />
+                <label htmlFor="multiToggle" style={{ fontWeight: 'bold', cursor: 'pointer' }}>Allow Multiple Submissions per User</label>
               </div>
             </div>
 
@@ -651,8 +794,8 @@ export default function SurveyDashboardPage() {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
               <button type="button" className="ear-btn-default" onClick={() => setCurrentView('list')}>Cancel</button>
-              <button type="submit" style={{ background: '#006073', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                Create Survey
+              <button type="submit" disabled={csSaving} style={{ background: '#006073', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: csSaving ? 'not-allowed' : 'pointer', fontWeight: 'bold', opacity: csSaving ? 0.6 : 1 }}>
+                {csSaving ? 'Creating...' : 'Create Survey'}
               </button>
             </div>
           </form>
@@ -722,15 +865,17 @@ export default function SurveyDashboardPage() {
               <strong>{filteredResponses.length}</strong> record(s) found
             </div>
             <div className="qar-action-btns">
-              <button
-                type="button"
-                className="ear-btn-export"
-                disabled={filteredResponses.length === 0}
-                onClick={handleDownloadCsv}
-                style={{ background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: filteredResponses.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: filteredResponses.length === 0 ? 0.5 : 1 }}
-              >
-                <i className="ti ti-download" /> Export to CSV
-              </button>
+              <Can permission={PERMS.SURVEYS_RESPONSES_EXPORT}>
+                <button
+                  type="button"
+                  className="ear-btn-export"
+                  disabled={filteredResponses.length === 0}
+                  onClick={handleDownloadCsv}
+                  style={{ background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: filteredResponses.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: filteredResponses.length === 0 ? 0.5 : 1 }}
+                >
+                  <i className="ti ti-download" /> Export to CSV
+                </button>
+              </Can>
             </div>
           </div>
 
@@ -823,7 +968,7 @@ export default function SurveyDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredResponses.length > 0 ? filteredResponses.map(r => (
+                {visibleResponses.length > 0 ? visibleResponses.map(r => (
                   <tr key={r.id}>
                     <td className="qar-datetime">{formatDateTime(r.date)}</td>
                     <td>
@@ -862,6 +1007,38 @@ export default function SurveyDashboardPage() {
                 )}
               </tbody>
             </table>
+
+            {filteredResponses.length > 0 && (
+              <div className="qar-pagination">
+                <div className="qar-pagination-info">
+                  Showing <strong>{rsShowingStart}</strong> to <strong>{rsShowingEnd}</strong> of <strong>{rsTotal}</strong> responses
+                </div>
+                <div className="qar-pagination-controls">
+                  <div className="qar-page-size">
+                    <select className="qar-select compact" value={rsPageSize} onChange={(e) => setRsPageSize(Number(e.target.value))}>
+                      {[20, 50, 100, 200].map((s) => (
+                        <option key={s} value={s}>{s}/page</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="qar-page-btns">
+                    <button type="button" className="qar-page-btn" disabled={rsSafePage === 1} onClick={() => setRsPage((p) => Math.max(1, p - 1))}>
+                      <i className="ti ti-angle-left" />
+                    </button>
+                    {rsPageNumbers().map((p, idx) => (
+                      p === '...' ? (
+                        <span key={`el-${idx}`} className="qar-page-ellipsis">...</span>
+                      ) : (
+                        <button key={p} type="button" className={`qar-page-btn${rsSafePage === p ? ' active' : ''}`} onClick={() => setRsPage(p)}>{p}</button>
+                      )
+                    ))}
+                    <button type="button" className="qar-page-btn" disabled={rsSafePage === rsTotalPages} onClick={() => setRsPage((p) => Math.min(rsTotalPages, p + 1))}>
+                      <i className="ti ti-angle-right" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -879,12 +1056,14 @@ export default function SurveyDashboardPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--line)', paddingBottom: '16px' }}>
                 <div>
                   <h4 style={{ margin: '0 0 8px 0', color: 'var(--ink)' }}>{surveyToView.title}</h4>
-                  <div style={{ fontSize: '13px', color: '#59757b' }}>Audience: {surveyToView.targetAudience}</div>
-                  <div style={{ fontSize: '13px', color: '#59757b' }}>Anonymous: {surveyToView.acceptsAnonymous ? 'Allowed' : 'Disabled'}</div>
+                  <div style={{ fontSize: '13px', color: '#59757b' }}>Audience: {surveyToView.audienceLabel}</div>
+                  <div style={{ fontSize: '13px', color: '#59757b' }}>Anonymous: {surveyToView.anonymousSubmissionsAllowed ? 'Allowed' : 'Disabled'}</div>
+                  <div style={{ fontSize: '13px', color: '#59757b' }}>Multiple Submissions: {surveyToView.multipleSubmissionsAllowed ? 'Allowed' : 'Disabled'}</div>
+                  {surveyToView.brief ? <div style={{ fontSize: '13px', color: '#59757b', marginTop: 6 }}>{surveyToView.brief}</div> : null}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span className={`ear-status-badge ${surveyToView.status === 'published' ? 'ear-stat-teal' : surveyToView.status === 'completed' ? 'ear-stat-indigo' : 'ear-status-in-progress'}`} style={{ textTransform: 'uppercase' }}>
-                    {surveyToView.status}
+                  <span className={`ear-status-badge ${statusBadgeClass(surveyToView.status)}`} style={{ textTransform: 'uppercase' }}>
+                    {surveyToView.statusLabel}
                   </span>
                 </div>
               </div>

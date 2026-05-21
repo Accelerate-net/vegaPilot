@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import { instructorsDemo } from '../data/adminRemainingDemo';
 
 function getInitials(name) {
@@ -123,6 +125,7 @@ function sortInstructors(rows, sortColumn, sortReverse) {
 }
 
 export default function InstructorPortfolioPage() {
+  const { can } = usePermission();
   const [instructors, setInstructors] = useState(() => instructorsDemo.map(normalizeInstructor));
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
@@ -442,9 +445,11 @@ export default function InstructorPortfolioPage() {
           <h2>Instructor Management</h2>
           <p>Manage instructor portfolios, subject ownership, and lesson contributions without changing the legacy workflow.</p>
         </div>
-        <button type="button" className="create-instructor-button" onClick={openCreateModal}>
-          <i className="ti ti-plus" /> New Portfolio
-        </button>
+        <Can permission={PERMS.INSTRUCTORS_EDIT}>
+          <button type="button" className="create-instructor-button" onClick={openCreateModal}>
+            <i className="ti ti-plus" /> New Portfolio
+          </button>
+        </Can>
       </div>
 
       <div className="filter-bar">
@@ -565,14 +570,18 @@ export default function InstructorPortfolioPage() {
                             <i className="ti ti-user" />
                             <span>View Profile</span>
                           </button>
-                          <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(instructor)}>
-                            <i className="ti ti-pencil" />
-                            <span>Edit Instructor</span>
-                          </button>
-                          <button type="button" className="kebab-dropdown-item delete-action" onClick={() => confirmDelete(instructor)}>
-                            <i className="ti ti-trash" />
-                            <span>Delete Instructor</span>
-                          </button>
+                          {can(PERMS.INSTRUCTORS_EDIT) && (
+                            <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(instructor)}>
+                              <i className="ti ti-pencil" />
+                              <span>Edit Instructor</span>
+                            </button>
+                          )}
+                          {can(PERMS.INSTRUCTORS_DELETE) && (
+                            <button type="button" className="kebab-dropdown-item delete-action" onClick={() => confirmDelete(instructor)}>
+                              <i className="ti ti-trash" />
+                              <span>Delete Instructor</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>

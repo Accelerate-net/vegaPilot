@@ -38,18 +38,59 @@ import MessengerPage from './pages/MessengerPage';
 import ResidenceManagementPage from './pages/ResidenceManagementPage';
 import OfflineAttendancePage from './pages/OfflineAttendancePage';
 import AssetsPage from './pages/AssetsPage';
+import LandingPage from './pages/LandingPage';
+import PermissionsPage from './pages/PermissionsPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
-import { getCachedUser } from './lib/userStore';
-import { canAccess } from './lib/roles';
+import { getCachedUser, useUser } from './lib/userStore';
+import { canAccess, isSuperAdmin } from './lib/roles';
+import { has as permHas } from './lib/permissions';
+import { setFlash } from './lib/flash';
 
 function ProtectedRoute({ screen, children }) {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
-  // Role-based access check (synchronous via cached user)
   const user = getCachedUser();
+
+  // Legacy role-based check (kept for backwards compat with roles.js)
   if (user?.role && !canAccess(user.role, screen.path)) {
+    return <Navigate to={defaultProtectedRoute} replace />;
+  }
+
+  // RBAC permission gate. SUPER_ADMIN (perms === '*' or contains '*') bypasses.
+  // If permissions haven't loaded yet (initial render before /me resolves) and
+  // the user already has a token, allow through — the page itself will receive
+  // a 403 from the API if the user truly lacks access, which is fine.
+  const perms = user?.permissions;
+  if (screen.viewPermission && Array.isArray(perms) && perms.length > 0) {
+    if (!permHas(perms, screen.viewPermission)) {
+      setFlash?.({ type: 'error', title: 'Access denied', message: "You don't have access to this page" });
+      return <Navigate to={defaultProtectedRoute} replace />;
+    }
+  }
+
+  return children;
+}
+
+function SuperAdminRoute({ children }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  const ctx = useUser();
+  const user = ctx?.user || getCachedUser();
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  const perms = Array.isArray(user?.permissions) ? user.permissions : [];
+
+  // Identity from /me hasn't loaded yet — let the page render. The API will
+  // 403 if the user truly isn't SUPER_ADMIN, same pattern as ProtectedRoute.
+  if (roles.length === 0 && perms.length === 0 && !isSuperAdmin(user)) {
+    return children;
+  }
+
+  const sa = isSuperAdmin(user) || perms.includes('*');
+  if (!sa) {
+    setFlash({ type: 'error', title: 'Access denied', message: "You don't have access to this page" });
     return <Navigate to={defaultProtectedRoute} replace />;
   }
   return children;
@@ -156,6 +197,9 @@ export default function App() {
     if (screen.path === '/assets') {
       return <AssetsPage />;
     }
+    if (screen.path === '/landing') {
+      return <LandingPage />;
+    }
 
     return <LegacyScreenPage screen={screen} />;
   }
@@ -163,14 +207,37 @@ export default function App() {
   return (
     <UserProvider>
       <Routes>
-        <Route path="/" element={<Navigate to={isAuthenticated() ? defaultProtectedRoute : '/login'} replace />} />
-        {publicScreens.map((screen) => (
-          <Route
-            key={screen.path}
-            path={screen.path}
-            element={screen.path === '/verify-token' ? <VerifyTokenPage /> : <LoginPage screen={screen} />}
-          />
-        ))}
+        <Route path="/" element={<RootRedirect />} />
+        {publicScreens.map((screen) => {
+          if (screen.path === '/verify-token') {
+            return <Route key={screen.path} path={screen.path} element={<VerifyTokenPage />} />;
+          }
+          if (screen.path === '/login') {
+            // If already authenticated, skip the login form and go to /landing.
+            return (
+              <Route
+                key={screen.path}
+                path={screen.path}
+                element={
+                  isAuthenticated()
+                    ? <Navigate to={defaultProtectedRoute} replace />
+                    : <LoginPage screen={screen} />
+                }
+              />
+            );
+          }
+          return <Route key={screen.path} path={screen.path} element={<LoginPage screen={screen} />} />;
+        })}
+        <Route
+          path="/permission"
+          element={
+            <SuperAdminRoute>
+              <Layout currentScreen={{ path: '/permission', title: 'Roles & Permissions' }}>
+                <PermissionsPage />
+              </Layout>
+            </SuperAdminRoute>
+          }
+        />
         {protectedScreens.map((screen) => (
           <Route
             key={screen.path}
@@ -184,8 +251,12 @@ export default function App() {
             }
           />
         ))}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<RootRedirect />} />
       </Routes>
     </UserProvider>
   );
+}
+
+function RootRedirect() {
+  return <Navigate to={isAuthenticated() ? defaultProtectedRoute : '/login'} replace />;
 }

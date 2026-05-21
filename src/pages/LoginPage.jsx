@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { setToken } from '../lib/auth';
 import { defaultProtectedRoute } from '../lib/legacyScreens';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Where to send the user after a successful login. Honors `?next=`
+  // (set by the 401 interceptor) but only for safe in-app paths.
+  function resolveNextPath() {
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//') && next !== '/login') {
+      return next;
+    }
+    return defaultProtectedRoute;
+  }
   
   // View states: 'password', 'otp', 'forgot'
   const [view, setView] = useState('password');
@@ -44,8 +56,19 @@ export default function LoginPage() {
       );
 
       if (response.data?.status && response.data?.response) {
+        // Wipe any cached identity from a previous session so the new user's
+        // details don't flash before /me resolves.
+        try {
+          window.localStorage.removeItem('vp_user');
+          window.localStorage.removeItem('vp_prefs');
+          window.localStorage.removeItem('sb_collapsed');
+        } catch {
+          // ignore storage errors
+        }
         setToken(response.data.response);
-        navigate(defaultProtectedRoute, { replace: true });
+        // Hard navigation forces UserProvider to remount and refetch identity
+        // from scratch — avoids stale React state carrying over across users.
+        window.location.assign(resolveNextPath());
         return;
       }
       setState({ loading: false, error: response.data?.error || 'Authentication failed.', success: '' });

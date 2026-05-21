@@ -4,6 +4,35 @@ import ToastRegion from '../components/ToastRegion';
 import { availableBatches, availableCourses } from '../data/attemptReportsDemo';
 import { examsDemo } from '../data/examsDemo';
 import { feedbackDemoData } from '../data/feedbackDemo';
+import { feedbackSummary, listFeedback } from '../lib/feedbackApi';
+
+function formatLastReceived(unixSeconds) {
+  if (!unixSeconds) return 'No submissions yet';
+  const d = new Date(unixSeconds * 1000);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (sameDay) return 'Last received today';
+  if (isYesterday) return 'Last received yesterday';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `Last received ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function RatingStars({ rating }) {
+  const full = Math.floor(rating);
+  const hasHalf = rating - full >= 0.25 && rating - full < 0.75;
+  const fullCount = rating - full >= 0.75 ? full + 1 : full;
+  return (
+    <span style={{ color: '#fbbf24', fontSize: '14px', letterSpacing: '1px' }}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        if (i <= fullCount) return <i key={i} className="ti ti-star" style={{ fontWeight: 'bold' }} />;
+        if (i === fullCount + 1 && hasHalf) return <i key={i} className="ti ti-star-half" />;
+        return <i key={i} className="ti ti-star" style={{ opacity: 0.3 }} />;
+      })}
+    </span>
+  );
+}
 
 function formatDateTime(value) {
   if (!value) return 'Not set';
@@ -109,6 +138,24 @@ function StarRating({ rating }) {
   );
 }
 
+const SORT_COL_TO_API = {
+  studentName: 'name',
+  itemType: 'type',
+  rating: 'rating',
+  submittedAt: 'createdAt',
+};
+
+const TYPE_LABEL = { COURSE: 'Course', MODULE: 'Module', CHAPTER: 'Chapter', EXAM: 'Exam' };
+
+function getSummaryTileTitle(item) {
+  if (item.title) return item.title;
+  const parts = [TYPE_LABEL[item.type] || item.type];
+  if (item.courseId != null) parts.push(`C${item.courseId}`);
+  if (item.moduleId != null) parts.push(`M${item.moduleId}`);
+  if (item.chapterId != null) parts.push(`Ch${item.chapterId}`);
+  return parts.join(' · ');
+}
+
 export default function FeedbackSummaryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -117,14 +164,100 @@ export default function FeedbackSummaryPage() {
   const [selectedChapterFilter, setSelectedChapterFilter] = useState('');
   const [selectedExamFilter, setSelectedExamFilter] = useState('');
   const [selectedBatchFilters, setSelectedBatchFilters] = useState([]);
-  
+
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState('submittedAt');
   const [sortDirection, setSortDirection] = useState('desc');
-  
+
   const [toasts, setToasts] = useState([]);
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // ── Summary tiles (from /feedback/summary) ──
+  const [summaryTiles, setSummaryTiles] = useState([]);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
+  const [tilesPage, setTilesPage] = useState(1);
+  const [tilesLastPage, setTilesLastPage] = useState(1);
+  const [selectedTile, setSelectedTile] = useState(null);
+  const TILES_PER_PAGE = 10;
+
+  useEffect(() => {
+    let cancelled = false;
+    setSummaryLoading(true);
+    setSummaryError('');
+    feedbackSummary({ sortBy: 'rating', sortOrder: 'DESC', page: tilesPage, limit: TILES_PER_PAGE })
+      .then((body) => {
+        if (cancelled) return;
+        setSummaryTiles(Array.isArray(body?.data) ? body.data : []);
+        setTilesLastPage(body?.pagination?.lastPage ?? 1);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setSummaryError(err?.message || 'Failed to load summary');
+      })
+      .finally(() => {
+        if (!cancelled) setSummaryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [tilesPage]);
+
+  function tilesMatch(a, b) {
+    if (!a || !b) return false;
+    return a.type === b.type
+      && (a.courseId ?? null) === (b.courseId ?? null)
+      && (a.moduleId ?? null) === (b.moduleId ?? null)
+      && (a.chapterId ?? null) === (b.chapterId ?? null);
+  }
+
+  function handleTileClick(tile) {
+    setSelectedTile((cur) => (tilesMatch(cur, tile) ? null : tile));
+    setCurrentPage(1);
+  }
+
+  // ── List (from /feedback/list) ──
+  const [listRows, setListRows] = useState([]);
+  const [listTotal, setListTotal] = useState(0);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setListLoading(true);
+    setListError('');
+    const params = {
+      page: currentPage,
+      size: pageSize,
+      sortBy: SORT_COL_TO_API[sortColumn] || 'createdAt',
+      sortOrder: sortDirection.toUpperCase(),
+    };
+    if (searchQuery.trim()) {
+      params.filterBy = 'Title';
+      params.searchKey = searchQuery.trim();
+    }
+    if (selectedTile) {
+      params.type = selectedTile.type;
+      if (selectedTile.courseId != null) params.courseId = selectedTile.courseId;
+      if (selectedTile.moduleId != null) params.moduleId = selectedTile.moduleId;
+      if (selectedTile.chapterId != null) params.chapterId = selectedTile.chapterId;
+    }
+    listFeedback(params)
+      .then((body) => {
+        if (cancelled) return;
+        setListRows(Array.isArray(body?.data) ? body.data : []);
+        setListTotal(body?.pagination?.total ?? 0);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setListError(err?.message || 'Failed to load feedback');
+        setListRows([]);
+        setListTotal(0);
+      })
+      .finally(() => {
+        if (!cancelled) setListLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [currentPage, pageSize, sortColumn, sortDirection, searchQuery, selectedTile]);
 
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
@@ -229,11 +362,10 @@ export default function FeedbackSummaryPage() {
 
   const hasActiveFilters = searchQuery || dateFrom || dateTo || selectedCourseFilter || selectedChapterFilter || selectedExamFilter || selectedBatchFilters.length > 0;
 
-  const totalPages = Math.max(1, Math.ceil(filteredFeedbacks.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedFeedbacks = filteredFeedbacks.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const startIndex = filteredFeedbacks.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endIndex = Math.min(safePage * pageSize, filteredFeedbacks.length);
+  const startIndex = listTotal === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endIndex = Math.min(safePage * pageSize, listTotal);
 
   function getCourseName(id) {
     const c = availableCourses.find((course) => course.id === id);
@@ -296,8 +428,116 @@ export default function FeedbackSummaryPage() {
         </div>
       </div>
 
+      {/* ── Summary Tiles (paged 10 at a time, click to filter table) ── */}
+      <div className="ear-summary-tiles-section" style={{ margin: '0 0 16px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
+          <h4 style={{ margin: 0, color: '#16353c', fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="ti ti-medal" style={{ color: '#fbbf24' }} />
+            Top Rated
+            {summaryLoading && <span style={{ fontSize: 12, color: '#59757b', fontWeight: 'normal' }}>Loading…</span>}
+            {summaryError && <span style={{ fontSize: 12, color: '#c0392b', fontWeight: 'normal' }}>{summaryError}</span>}
+          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {selectedTile && (
+              <button
+                type="button"
+                className="ear-btn-default"
+                style={{ fontSize: 12, padding: '4px 10px' }}
+                onClick={() => { setSelectedTile(null); setCurrentPage(1); }}
+              >
+                <i className="ti ti-list" /> Show All Reviews
+              </button>
+            )}
+            <button
+              type="button"
+              className="ear-page-btn"
+              disabled={tilesPage <= 1 || summaryLoading}
+              onClick={() => setTilesPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous tiles"
+            >
+              <i className="ti ti-angle-left" />
+            </button>
+            <span style={{ fontSize: 12, color: '#59757b', minWidth: 56, textAlign: 'center' }}>
+              {tilesPage} / {tilesLastPage}
+            </span>
+            <button
+              type="button"
+              className="ear-page-btn"
+              disabled={tilesPage >= tilesLastPage || summaryLoading}
+              onClick={() => setTilesPage((p) => Math.min(tilesLastPage, p + 1))}
+              aria-label="Next tiles"
+            >
+              <i className="ti ti-angle-right" />
+            </button>
+          </div>
+        </div>
+        {!summaryLoading && !summaryError && summaryTiles.length === 0 ? (
+          <div style={{ padding: 16, background: '#fafbfc', borderRadius: 8, color: '#59757b', fontSize: 13 }}>
+            No feedback summary available yet.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: 12,
+            }}
+          >
+            {summaryTiles.map((item, idx) => {
+              const ratingNum = Number(item.rating) || 0;
+              const isSelected = tilesMatch(selectedTile, item);
+              return (
+                <button
+                  type="button"
+                  key={`${item.type}-${item.courseId}-${item.moduleId}-${item.chapterId}-${idx}`}
+                  onClick={() => handleTileClick(item)}
+                  style={{
+                    background: isSelected ? '#e6f6f9' : '#fff',
+                    border: `1px solid ${isSelected ? '#00a8cc' : '#e3e8ec'}`,
+                    borderRadius: 8,
+                    padding: '12px 14px',
+                    boxShadow: isSelected ? '0 0 0 2px rgba(0,168,204,0.18)' : '0 1px 2px rgba(0,0,0,0.03)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                  }}
+                >
+                  <div
+                    title={getSummaryTileTitle(item)}
+                    style={{
+                      fontWeight: 600,
+                      color: '#16353c',
+                      fontSize: 13,
+                      marginBottom: 6,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {getSummaryTileTitle(item)}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: '#006073' }}>
+                      {ratingNum.toFixed(2)}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#59757b' }}>of 5</span>
+                    <RatingStars rating={ratingNum} />
+                  </div>
+                  <div style={{ fontSize: 11, color: '#59757b' }}>
+                    from <strong>{item.totalCount ?? 0}</strong> review{item.totalCount === 1 ? '' : 's'}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#59757b', marginTop: 2 }}>
+                    {formatLastReceived(item.lastSubmissionAt)}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* ── Filter Section ── */}
-      <div className="ear-filter-section">
+      <div className="ear-filter-section ear-filter-compact">
         <div className="ear-filter-header">
           <h4 className="ear-filter-title"><i className="ti ti-filter" /> Filters</h4>
           {hasActiveFilters && (
@@ -450,16 +690,50 @@ export default function FeedbackSummaryPage() {
         )}
       </div>
 
+      {/* ── Selected-tile banner ── */}
+      {selectedTile && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            padding: '8px 12px',
+            background: '#e6f6f9',
+            border: '1px solid #00a8cc',
+            borderRadius: 6,
+            marginBottom: 10,
+            fontSize: 13,
+            color: '#16353c',
+          }}
+        >
+          <span>
+            <i className="ti ti-filter" style={{ marginRight: 6, color: '#006073' }} />
+            Showing reviews for <strong>{getSummaryTileTitle(selectedTile)}</strong>
+          </span>
+          <button
+            type="button"
+            className="ear-btn-default"
+            style={{ fontSize: 12, padding: '4px 10px' }}
+            onClick={() => { setSelectedTile(null); setCurrentPage(1); }}
+          >
+            <i className="ti ti-list" /> Show All Reviews
+          </button>
+        </div>
+      )}
+
       {/* ── Action Row ── */}
       <div className="ear-action-row">
         <div className="ear-record-count">
-          <strong>{filteredFeedbacks.length}</strong> record(s) found
+          <strong>{listTotal}</strong> record(s) found
+          {listLoading && <span style={{ marginLeft: 8, color: '#59757b', fontSize: 12 }}>Loading…</span>}
+          {listError && <span style={{ marginLeft: 8, color: '#c0392b', fontSize: 12 }}>{listError}</span>}
         </div>
         <div className="ear-action-buttons">
           <button
             type="button"
             className="ear-btn-export"
-            disabled={filteredFeedbacks.length === 0}
+            disabled={listTotal === 0}
             onClick={() => setShowExportModal(true)}
           >
             <i className="ti ti-download" /> Export List to PDF
@@ -468,7 +742,7 @@ export default function FeedbackSummaryPage() {
       </div>
 
       {/* ── Table ── */}
-      {filteredFeedbacks.length > 0 ? (
+      {listRows.length > 0 ? (
         <div className="ear-table-container">
           <table className="ear-rank-table">
             <thead>
@@ -489,42 +763,50 @@ export default function FeedbackSummaryPage() {
               </tr>
             </thead>
             <tbody>
-              {paginatedFeedbacks.map((fb) => (
-                <tr key={fb.id}>
-                  <td>
-                    {fb.isAnonymous ? (
-                      <span className="ear-td-muted"><i className="ti ti-na" /> Anonymous</span>
-                    ) : (
-                      <>
-                        <strong>{fb.studentName}</strong>
-                        <div style={{ fontSize: '11px', color: '#59757b' }}>{fb.studentEmail}</div>
-                      </>
-                    )}
-                  </td>
-                  <td>
-                    <div><strong>{fb.itemName}</strong> <span className="ear-td-muted" style={{ fontSize: '11px' }}>({fb.itemType})</span></div>
-                    {fb.chapterName && <div style={{ fontSize: '12px', color: '#006073' }}><i className="ti ti-book" /> {fb.chapterName}</div>}
-                  </td>
-                  <td>
-                    {fb.remarks ? (
-                      <span style={{ fontStyle: 'italic', color: '#16353c' }}>&quot;{fb.remarks}&quot;</span>
-                    ) : (
-                      <span className="ear-td-muted">-</span>
-                    )}
-                  </td>
-                  <td>
-                    <StarRating rating={fb.rating} />
-                  </td>
-                  <td className="ear-td-datetime">{formatDateTime(fb.submittedAt)}</td>
-                </tr>
-              ))}
+              {listRows.map((fb) => {
+                const candidate = fb.candidate || {};
+                const createdMs = fb.createdAt ? fb.createdAt * 1000 : null;
+                return (
+                  <tr key={fb.id}>
+                    <td>
+                      {candidate.name ? (
+                        <>
+                          <strong>{candidate.name}</strong>
+                          {candidate.email && (
+                            <div style={{ fontSize: '11px', color: '#59757b' }}>{candidate.email}</div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="ear-td-muted"><i className="ti ti-na" /> Anonymous</span>
+                      )}
+                    </td>
+                    <td>
+                      <div>
+                        <strong>{fb.title || '-'}</strong>{' '}
+                        <span className="ear-td-muted" style={{ fontSize: '11px' }}>({TYPE_LABEL[fb.type] || fb.type})</span>
+                      </div>
+                    </td>
+                    <td>
+                      {fb.comments ? (
+                        <span style={{ fontStyle: 'italic', color: '#16353c' }}>&quot;{fb.comments}&quot;</span>
+                      ) : (
+                        <span className="ear-td-muted">-</span>
+                      )}
+                    </td>
+                    <td>
+                      <StarRating rating={fb.rating} />
+                    </td>
+                    <td className="ear-td-datetime">{createdMs ? formatDateTime(createdMs) : '-'}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
           {/* Pagination */}
           <div className="ear-pagination">
             <div className="ear-pagination-info">
-              Showing <strong>{startIndex}</strong> to <strong>{endIndex}</strong> of <strong>{filteredFeedbacks.length}</strong> records
+              Showing <strong>{startIndex}</strong> to <strong>{endIndex}</strong> of <strong>{listTotal}</strong> records
             </div>
             <div className="ear-pagination-controls">
               <button
@@ -589,7 +871,7 @@ export default function FeedbackSummaryPage() {
               <div className="ear-modal-center">
                 <i className="ti ti-file-pdf" style={{ fontSize: 48, color: '#00a8cc', marginBottom: 12 }} />
                 <h4 className="ear-modal-heading">Generate PDF Report</h4>
-                <p className="ear-modal-subtext">You are about to export <strong>{filteredFeedbacks.length}</strong> feedback(s) based on your current filters.</p>
+                <p className="ear-modal-subtext">You are about to export <strong>{listTotal}</strong> feedback(s) based on your current filters.</p>
               </div>
             </div>
             <div className="ear-modal-footer">

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import { availableCourses, demoCandidates } from '../data/candidateProfileDemo';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 
 function normalizeCandidate(candidate) {
   return {
@@ -145,6 +147,7 @@ function statusBadgeClass(status) {
 }
 
 export default function StudentManagementPage() {
+  const { can } = usePermission();
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -558,10 +561,12 @@ export default function StudentManagementPage() {
                           <i className="ti ti-user" />
                           <span className="item-label">View Profile</span>
                         </div>
-                        <div className="kebab-dropdown-item blacklist-profile" onClick={() => toggleBlacklist(student)}>
-                          <i className="ti ti-na" />
-                          <span className="item-label">Blacklist Profile</span>
-                        </div>
+                        {can(PERMS.STUDENTS_BLACKLIST) && (
+                          <div className="kebab-dropdown-item blacklist-profile" onClick={() => toggleBlacklist(student)}>
+                            <i className="ti ti-na" />
+                            <span className="item-label">Blacklist Profile</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -687,9 +692,11 @@ export default function StudentManagementPage() {
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => { setCoursesModalOpen(false); setSelectedStudentForCourses(null); }}>
               <i className="ti ti-close" /> Close
             </button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={() => setEnrollCourseModalOpen(true)}>
-              <i className="ti ti-plus" /> Enroll Course
-            </button>
+            <Can permission={PERMS.STUDENTS_ENROLL}>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={() => setEnrollCourseModalOpen(true)}>
+                <i className="ti ti-plus" /> Enroll Course
+              </button>
+            </Can>
           </div>
         </div>
       </div>

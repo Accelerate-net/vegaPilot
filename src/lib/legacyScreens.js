@@ -6,6 +6,7 @@ export const NAV_GROUPS = [
   { id: 'marketing',   label: 'Marketing',     icon: 'fa-bullhorn'        },
   { id: 'support',     label: 'Support',       icon: 'fa-life-ring'       },
   { id: 'tools',       label: 'Tools',         icon: 'fa-wrench'          },
+  { id: 'admin',       label: 'Admin',         icon: 'fa-shield'          },
 ];
 
 const screens = [
@@ -311,6 +312,16 @@ const screens = [
 
   // ── Hidden (no sidebar entry) ─────────────────────────────────────────
   {
+    path: '/landing',
+    title: 'Home',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: null,
+    icon: 'fa-home',
+    summary: 'Personal landing dashboard with pinned shortcuts.',
+  },
+  {
     path: '/candidate-detail',
     title: 'Student Details',
     legacyHtml: 'candidate-detail.html',
@@ -402,7 +413,62 @@ const screens = [
   },
 ];
 
+// ─── Path → view-permission mapping (RBAC) ─────────────────────────────────
+// Keys must match `src/lib/permissions.js` (PERMS) and the API enum.
+// Paths absent from this map are treated as "no extra permission required"
+// (still gated by authentication).
+const VIEW_PERMISSIONS = {
+  '/landing': null,
+  // Batches
+  '/batch': 'batches.view',
+  '/live-class-scheduler': 'liveClass.view',
+  '/live-class-activity-planner': 'liveClass.view',
+  // Academics
+  '/courses-list': 'courses.view',
+  '/course-view': 'courseView.view',
+  '/course-management': 'courseAuthoring.view',
+  '/test-series-list': 'testSeries.view',
+  '/quiz-listing': 'quizzes.view',
+  '/quiz-creation': 'quizAuthoring.view',
+  '/quiz-attempt-report': 'quizReports.view',
+  '/exam-listing': 'exams.view',
+  '/exam-creation-wizard': 'exams.edit',
+  '/exam-attempt-report': 'exams.view',
+  '/question-bank': 'questionBank.view',
+  '/practice-questions': 'practiceQuestions.view',
+  '/video-content': 'videos.view',
+  '/bunny-admin': 'videoHosting.view',
+  // People
+  '/candidate-profile': 'students.view',
+  '/candidate-detail': 'studentDetail.view',
+  '/mentor-profiles': 'mentors.view',
+  '/instructor-portfolio': 'instructors.view',
+  '/residences': 'residences.view',
+  // Commerce
+  '/orders': 'orders.view',
+  '/catalog': 'catalog.view',
+  // Marketing
+  '/leads-management': 'leads.view',
+  '/messenger': 'broadcast.view',
+  '/web-content-manager': 'webContent.view',
+  // Support
+  '/support': 'support.view',
+  // Tools
+  '/feedback-summary': 'feedback.view',
+  '/survey-dashboard': 'surveys.view',
+  '/offline-attendance': 'attendance.view',
+  '/assets': 'assets.view',
+  '/instructor-payouts': 'payouts.view',
+};
+
+// Attach `viewPermission` to each screen using the map.
+screens.forEach((screen) => {
+  if (Object.prototype.hasOwnProperty.call(VIEW_PERMISSIONS, screen.path)) {
+    screen.viewPermission = VIEW_PERMISSIONS[screen.path];
+  }
+});
+
 export const publicScreens = screens.filter((screen) => !screen.protected);
 export const protectedScreens = screens.filter((screen) => screen.protected);
 export const allScreens = screens;
-export const defaultProtectedRoute = '/candidate-profile';
+export const defaultProtectedRoute = '/landing';

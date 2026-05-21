@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import { Can, usePermission } from '../lib/userStore';
+import { PERMS } from '../lib/permissions';
 import {
   createResidence,
   disableResidence,
@@ -142,6 +144,7 @@ function getPageNumbers(currentPage, totalPages) {
 }
 
 export default function ResidenceManagementPage() {
+  const { can } = usePermission();
   const [residences, setResidences] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -544,9 +547,11 @@ export default function ResidenceManagementPage() {
           <h2>Residences</h2>
           <p>Manage student residences, houses, occupancy, and student allotments.</p>
         </div>
-        <button type="button" className="create-batch-button" onClick={openCreateModal}>
-          <i className="ti ti-plus" /> Add Residence
-        </button>
+        <Can permission={PERMS.RESIDENCES_EDIT}>
+          <button type="button" className="create-batch-button" onClick={openCreateModal}>
+            <i className="ti ti-plus" /> Add Residence
+          </button>
+        </Can>
       </div>
 
       <div className="filter-bar">
@@ -689,15 +694,19 @@ export default function ResidenceManagementPage() {
                               <i className="ti ti-eye" />
                               <span className="item-label">View Details</span>
                             </button>
-                            <button type="button" className="kebab-dropdown-item manage-students" onClick={() => openStudentsModal(residence)}>
-                              <i className="ti ti-user" />
-                              <span className="item-label">Manage Students</span>
-                            </button>
-                            <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(residence)}>
-                              <i className="ti ti-pencil" />
-                              <span className="item-label">Edit Residence</span>
-                            </button>
-                            {status !== 'Disabled' && (
+                            {can(PERMS.RESIDENCES_STUDENTS_EDIT) && (
+                              <button type="button" className="kebab-dropdown-item manage-students" onClick={() => openStudentsModal(residence)}>
+                                <i className="ti ti-user" />
+                                <span className="item-label">Manage Students</span>
+                              </button>
+                            )}
+                            {can(PERMS.RESIDENCES_EDIT) && (
+                              <button type="button" className="kebab-dropdown-item edit-action" onClick={() => openEditModal(residence)}>
+                                <i className="ti ti-pencil" />
+                                <span className="item-label">Edit Residence</span>
+                              </button>
+                            )}
+                            {status !== 'Disabled' && can(PERMS.RESIDENCES_DISABLE) && (
                               <button type="button" className="kebab-dropdown-item draft-action" onClick={() => askDisable(residence)}>
                                 <i className="ti ti-na" />
                                 <span className="item-label">Disable</span>
