@@ -299,6 +299,17 @@ const screens = [
     summary: 'Create custom surveys and view responses across targeted student batches.',
   },
   {
+    path: '/icard-generator',
+    title: 'ID Card Generator',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'tools',
+    icon: 'fa-id-card-o',
+    shortCode: 'IC',
+    summary: 'Generate student ID cards in bulk from a template and view historical generations.',
+  },
+  {
     path: '/instructor-payouts',
     title: 'Instructor Payouts',
     legacyHtml: 'instructor-payouts.html',
@@ -459,6 +470,7 @@ const VIEW_PERMISSIONS = {
   '/offline-attendance': 'attendance.view',
   '/assets': 'assets.view',
   '/instructor-payouts': 'payouts.view',
+  '/icard-generator': 'icard.view',
 };
 
 // Attach `viewPermission` to each screen using the map.

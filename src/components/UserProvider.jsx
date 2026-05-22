@@ -8,6 +8,7 @@ import {
 import { ROLES } from '../lib/roles';
 import { getToken } from '../lib/auth';
 import { api } from '../lib/api';
+import { updateProfileName } from '../lib/userProfileApi';
 
 export default function UserProvider({ children }) {
   const [user, setUser]   = useState(getCachedUser);
@@ -18,7 +19,7 @@ export default function UserProvider({ children }) {
     const token = getToken();
     if (!token) return;
 
-    api.get('/user-profile/user-profile', { skipAuthRedirect: true })
+    api.get('/restricted/user-profile', { skipAuthRedirect: true })
       .then((res) => {
         if (res.data?.status && res.data?.response) {
           const raw = res.data.response;
@@ -101,15 +102,22 @@ export default function UserProvider({ children }) {
   }, []);
 
   // ── Profile update ─────────────────────────────────────────────────
+  // Only `name` is server-mutable on the profile endpoint.
   const updateUser = useCallback(async (patch) => {
     const next = { ...(user || {}), ...patch };
     if (patch.name) next.initials = getInitials(patch.name);
+    const prev = user;
     setUser(next);
     setCachedUser(next);
+    if (typeof patch.name !== 'string') {
+      return { ok: true };
+    }
     try {
-      await api.patch('/user-profile/update-profile', patch);
+      await updateProfileName(patch.name);
       return { ok: true };
     } catch (err) {
+      setUser(prev);
+      setCachedUser(prev);
       return { ok: false, error: err };
     }
   }, [user]);

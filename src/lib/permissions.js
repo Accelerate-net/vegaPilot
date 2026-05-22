@@ -105,6 +105,8 @@ export const PERMS = {
   ASSETS_EXPORT: 'assets.export',
   PAYOUTS_VIEW: 'payouts.view',
   PAYOUTS_PAY: 'payouts.pay',
+  ICARD_VIEW: 'icard.view',
+  ICARD_EDIT: 'icard.edit',
 
   // Admin / Meta — restricted to SUPER_ADMIN
   ROLES_VIEW: 'roles.view',

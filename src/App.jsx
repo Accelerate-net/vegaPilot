@@ -38,8 +38,10 @@ import MessengerPage from './pages/MessengerPage';
 import ResidenceManagementPage from './pages/ResidenceManagementPage';
 import OfflineAttendancePage from './pages/OfflineAttendancePage';
 import AssetsPage from './pages/AssetsPage';
+import IcardGeneratorPage from './pages/IcardGeneratorPage';
 import LandingPage from './pages/LandingPage';
 import PermissionsPage from './pages/PermissionsPage';
+import UserAccountsPage from './pages/UserAccountsPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
 import { getCachedUser, useUser } from './lib/userStore';
@@ -197,6 +199,9 @@ export default function App() {
     if (screen.path === '/assets') {
       return <AssetsPage />;
     }
+    if (screen.path === '/icard-generator') {
+      return <IcardGeneratorPage />;
+    }
     if (screen.path === '/landing') {
       return <LandingPage />;
     }
@@ -234,6 +239,16 @@ export default function App() {
             <SuperAdminRoute>
               <Layout currentScreen={{ path: '/permission', title: 'Roles & Permissions' }}>
                 <PermissionsPage />
+              </Layout>
+            </SuperAdminRoute>
+          }
+        />
+        <Route
+          path="/user-accounts"
+          element={
+            <SuperAdminRoute>
+              <Layout currentScreen={{ path: '/user-accounts', title: 'User Accounts' }}>
+                <UserAccountsPage />
               </Layout>
             </SuperAdminRoute>
           }

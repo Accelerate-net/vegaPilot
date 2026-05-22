@@ -1,0 +1,7 @@
+reference="Student ID Card - Style 1"
+width=3.375in
+height=2.125in
+printQR=true
+printQR.id=placeholder.STUDENT_ID
+placeholder.GUARDIAN_PHONE=+91 9809677798
+placeholder.COMMUNICATION_ADDRESS=Crispr Learning Private Limited

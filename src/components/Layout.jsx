@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { clearToken } from '../lib/auth';
-import { api } from '../lib/api';
+import { changePassword } from '../lib/userProfileApi';
 import { protectedScreens, NAV_GROUPS } from '../lib/legacyScreens';
 import { useUser } from '../lib/userStore';
 import { canAccess, isSuperAdmin } from '../lib/roles';
@@ -282,10 +282,13 @@ export default function Layout({ children, currentScreen }) {
 
     setPwdSaving(true);
     try {
-      await api.post('/user-profile/change-password', {
+      const res = await changePassword({
         currentPassword: pwdCurrent,
         newPassword: pwdNew,
       });
+      if (res && res.status === false) {
+        throw new Error(res.message || 'Could not change password.');
+      }
       setPwdSuccess('Password changed successfully.');
       setPwdCurrent('');
       setPwdNew('');
@@ -493,6 +496,16 @@ export default function Layout({ children, currentScreen }) {
                 >
                   <i className="fa fa-shield" />
                   <span>Roles &amp; Permissions</span>
+                </button>
+              )}
+              {showSuperAdmin && (
+                <button
+                  type="button"
+                  className="sb-profile-menu-item"
+                  onClick={() => { setShowProfileMenu(false); navigate('/user-accounts'); }}
+                >
+                  <i className="fa fa-users" />
+                  <span>User Accounts</span>
                 </button>
               )}
               <div className="sb-profile-menu-divider" />
