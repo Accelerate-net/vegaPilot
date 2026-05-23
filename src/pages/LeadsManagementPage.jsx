@@ -1,6 +1,19 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import ToastRegion from '../components/ToastRegion';
 import { catalogItemsDemo } from '../data/adminRemainingDemo';
+import {
+  listLeads,
+  getLeadStats,
+  getLead,
+  createLead,
+  updateLead,
+  addFollowUp,
+  changeLeadStatus,
+  reassignLead as reassignLeadApi,
+  setLeadCatalogItems,
+  listAssociates,
+  extractApiError,
+} from '../lib/leadsApi';
 
 /* ── Source Origin Config ── */
 const sourceIcons = {
@@ -41,14 +54,6 @@ const statusConfig = {
 };
 const statusOptions = Object.keys(statusConfig);
 
-/* ── Associates ── */
-const associates = [
-  { id: 'A01', name: 'Sales Admin' },
-  { id: 'A02', name: 'Admissions Desk' },
-  { id: 'A03', name: 'Counselor Priya' },
-  { id: 'A04', name: 'Counselor Arun' },
-];
-
 /* ── Auto-calculate next follow-up ── */
 function nextFollowUpDate(interest) {
   const days = interest === 'High' ? 1 : interest === 'Neutral' ? 3 : 7;
@@ -67,33 +72,28 @@ function daysBetween(dateStr) {
   return Math.max(0, Math.floor((now - created) / (1000 * 60 * 60 * 24)));
 }
 
-/* ── Demo Data ── */
-const initialLeads = [
-  { id: 1001, name: 'Akhil Raj', phone: '9876543210', email: 'akhil@test.com', source: 'WhatsApp', interest: 'High', status: 'In Progress', associate: 'Sales Admin', description: 'Asked about JEE crash course fees and scholarship.', nextFollowUp: todayStr(), createdAt: '2026-03-17T09:00:00Z', catalogItems: ['CR0001'], preferredTimeSlot: 'Evening (3–6)', preferredComm: 'WhatsApp', timeline: [
-    { type: 'followup', text: 'Shared brochure and fee structure', addedBy: 'Sales Admin', interest: 'High', at: '2026-04-10T10:15:00Z' },
-    { type: 'followup', text: 'Student confirmed interest, requesting demo class', addedBy: 'Sales Admin', interest: 'High', at: '2026-04-12T14:30:00Z' },
-  ]},
-  { id: 1002, name: 'Megha S', phone: '9123456780', email: 'megha@test.com', source: 'Form', interest: 'Neutral', status: 'Received', associate: 'Admissions Desk', description: 'Interested in NEET repeaters batch and hostel.', nextFollowUp: tomorrowStr(), createdAt: '2026-04-10T16:00:00Z', catalogItems: [], preferredTimeSlot: 'Morning (9–12)', preferredComm: 'Phone Call', timeline: [
-    { type: 'followup', text: 'Requested hostel details and batch timings', addedBy: 'Admissions Desk', interest: 'Neutral', at: '2026-04-10T16:40:00Z' },
-  ]},
-  { id: 1003, name: 'Farhan K', phone: '9988776655', email: '', source: 'Phone', interest: 'Low', status: 'Lost', associate: 'Sales Admin', description: 'Comparing SSC foundation pricing with competitors.', nextFollowUp: '2026-04-20', createdAt: '2026-03-06T11:00:00Z', catalogItems: ['CR0003'], preferredTimeSlot: 'Any Time', preferredComm: 'SMS', timeline: [
-    { type: 'followup', text: 'Budget concern noted. Not willing to pay above 15k.', addedBy: 'Sales Admin', interest: 'Low', at: '2026-04-09T12:05:00Z' },
-    { type: 'reassign', from: 'Sales Admin', to: 'Counselor Priya', at: '2026-04-10T09:00:00Z' },
-    { type: 'reassign', from: 'Counselor Priya', to: 'Sales Admin', at: '2026-04-11T11:30:00Z' },
-  ]},
-  { id: 1004, name: 'Riya Thomas', phone: '9876501234', email: 'riya@example.com', source: 'Social Media', interest: 'High', status: 'Converted', associate: 'Counselor Priya', description: 'Responded to Instagram ad for IAT batch.', nextFollowUp: '', createdAt: '2026-04-01T08:30:00Z', catalogItems: ['CR0001', 'CR0002'], preferredTimeSlot: 'Afternoon (12–3)', preferredComm: 'WhatsApp', timeline: [
-    { type: 'followup', text: 'Initial call done, very enthusiastic', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-02T09:00:00Z' },
-    { type: 'followup', text: 'Demo class attended, wants to enrol immediately', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-04T11:00:00Z' },
-    { type: 'followup', text: 'Payment received, student enrolled', addedBy: 'Counselor Priya', interest: 'High', at: '2026-04-05T15:00:00Z' },
-  ]},
-  { id: 1005, name: 'Arjun Pillai', phone: '9001122334', email: 'arjun.p@mail.com', source: 'Website', interest: 'Neutral', status: 'In Progress', associate: 'Counselor Arun', description: 'Visited pricing page twice. Registered for newsletter.', nextFollowUp: todayStr(), createdAt: '2026-04-11T14:20:00Z', catalogItems: ['CR0002'], preferredTimeSlot: 'Night (6–9)', preferredComm: 'Email', timeline: [
-    { type: 'followup', text: 'Called, wants to discuss with parents first.', addedBy: 'Counselor Arun', interest: 'Neutral', at: '2026-04-12T10:00:00Z' },
-  ]},
-  { id: 1006, name: 'Nandita Menon', phone: '9445566778', email: 'nandita@test.in', source: 'Email', interest: 'High', status: 'Received', associate: 'Admissions Desk', description: 'Emailed inquiry about foundation 2027 batch schedule.', nextFollowUp: todayStr(), createdAt: '2026-04-12T18:00:00Z', catalogItems: [], preferredTimeSlot: '', preferredComm: '', timeline: []},
-];
+/* ── Map server lead → UI lead shape (preserve original UI fields) ── */
+function adaptLead(srv) {
+  if (!srv) return srv;
+  return {
+    ...srv,
+    // UI uses `associate` (display name) — server returns `associateName` + `associateId`
+    associate: srv.associateName || srv.associate || '',
+    associateId: srv.associateId || srv.associate_id || '',
+    catalogItems: Array.isArray(srv.catalogItems) ? srv.catalogItems : [],
+    timeline: Array.isArray(srv.timeline) ? srv.timeline : [],
+    preferredTimeSlot: srv.preferredTimeSlot ?? '',
+    preferredComm: srv.preferredComm ?? '',
+    description: srv.description ?? '',
+    nextFollowUp: srv.nextFollowUp || '',
+    // lastFollowUpAt may come from server (list endpoint omits timeline)
+    lastFollowUpAt: srv.lastFollowUpAt || null,
+  };
+}
 
 export default function LeadsManagementPage() {
-  const [leads, setLeads] = useState(initialLeads);
+  const [leads, setLeads] = useState([]);
+  const [associates, setAssociates] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -102,9 +102,19 @@ export default function LeadsManagementPage() {
   const [dateFilter, setDateFilter] = useState('');      // '' = no filter, 'today', 'tomorrow', or 'YYYY-MM-DD'
   const [customDatePick, setCustomDatePick] = useState('');
 
-  // Pagination
+  // Pagination — server-side
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 8;
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Loading / error
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Stats (from server)
+  const [stats, setStats] = useState({ total: 0, received: 0, inProgress: 0, converted: 0, lost: 0 });
 
   // Modals
   const [selectedLead, setSelectedLead] = useState(null);
@@ -128,11 +138,11 @@ export default function LeadsManagementPage() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  function showToast(type, title, message) {
+  const showToast = useCallback((type, title, message) => {
     const id = Date.now() + Math.random();
     setToasts(c => [...c, { id, type, title, message }]);
     setTimeout(() => setToasts(c => c.filter(t => t.id !== id)), 4000);
-  }
+  }, []);
 
   // resolve date filter to YYYY-MM-DD
   const resolvedDateFilter = useMemo(() => {
@@ -143,145 +153,320 @@ export default function LeadsManagementPage() {
     return '';
   }, [dateFilter, customDatePick]);
 
-  // Filtering
-  const filtered = useMemo(() => {
-    return leads.filter(lead => {
-      if (statusFilter !== 'all' && lead.status !== statusFilter) return false;
-      if (interestFilter !== 'all' && lead.interest !== interestFilter) return false;
-      if (associateFilter !== 'all' && lead.associate !== associateFilter) return false;
-      if (resolvedDateFilter && lead.nextFollowUp !== resolvedDateFilter) return false;
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return [lead.name, lead.phone, lead.email, lead.associate, lead.source].some(v => String(v || '').toLowerCase().includes(q));
-    });
-  }, [leads, searchQuery, statusFilter, interestFilter, associateFilter, resolvedDateFilter]);
+  // ── Resolve associate filter (selected by name in UI) → associateId for the API
+  const associateIdFilter = useMemo(() => {
+    if (associateFilter === 'all') return '';
+    const found = associates.find(a => a.name === associateFilter);
+    return found?.id || '';
+  }, [associateFilter, associates]);
 
-  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
-  const paginated = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  // ── Debounced search query
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-  // Stats
-  const stats = useMemo(() => ({
-    total: leads.length,
-    received: leads.filter(l => l.status === 'Received').length,
-    inProgress: leads.filter(l => l.status === 'In Progress').length,
-    converted: leads.filter(l => l.status === 'Converted').length,
-    lost: leads.filter(l => l.status === 'Lost').length,
-  }), [leads]);
+  // ── Server-side list fetch
+  const reloadLeads = useCallback(async (signal = { cancelled: false }) => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const { items, meta } = await listLeads({
+        page: currentPage,
+        size: rowsPerPage,
+        q: debouncedSearch,
+        status: statusFilter !== 'all' ? statusFilter : '',
+        interest: interestFilter !== 'all' ? interestFilter : '',
+        associateId: associateIdFilter,
+        followUpDate: resolvedDateFilter,
+        sortBy: 'createdAt',
+        sortDir: 'desc',
+      });
+      if (signal.cancelled) return;
+      setLeads(items.map(adaptLead));
+      setTotalItems(Number(meta.total ?? items.length));
+      setTotalPages(Number(meta.totalPages ?? Math.max(1, Math.ceil((meta.total ?? items.length) / rowsPerPage))));
+    } catch (err) {
+      if (signal.cancelled) return;
+      const msg = extractApiError(err, 'Failed to load leads.');
+      setLoadError(msg);
+      setLeads([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      showToast('error', 'Load Error', msg);
+    } finally {
+      if (!signal.cancelled) setIsLoading(false);
+    }
+  }, [currentPage, debouncedSearch, statusFilter, interestFilter, associateIdFilter, resolvedDateFilter, showToast]);
 
-  // Unique associate names
-  const uniqueAssociates = useMemo(() => [...new Set(leads.map(l => l.associate))].sort(), [leads]);
+  const reloadStats = useCallback(async () => {
+    try {
+      const s = await getLeadStats();
+      setStats({
+        total: Number(s.total) || 0,
+        received: Number(s.received) || 0,
+        inProgress: Number(s.inProgress) || 0,
+        converted: Number(s.converted) || 0,
+        lost: Number(s.lost) || 0,
+      });
+    } catch (err) {
+      // Stats are non-critical; surface silently.
+      // eslint-disable-next-line no-console
+      console.warn('Failed to load lead stats:', extractApiError(err));
+    }
+  }, []);
+
+  // Reset to page 1 whenever filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, interestFilter, associateIdFilter, resolvedDateFilter]);
+
+  // Fetch leads when filters/page change
+  useEffect(() => {
+    const signal = { cancelled: false };
+    reloadLeads(signal);
+    return () => { signal.cancelled = true; };
+  }, [reloadLeads]);
+
+  // Fetch associates + initial stats once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listAssociates();
+        if (!cancelled) setAssociates(list.filter(a => a.active !== false));
+      } catch (err) {
+        if (!cancelled) showToast('error', 'Load Error', extractApiError(err, 'Failed to load associates.'));
+      }
+    })();
+    reloadStats();
+    return () => { cancelled = true; };
+  }, [reloadStats, showToast]);
+
+  // Associate names available in the filter dropdown (from the associates list, not just current page)
+  const uniqueAssociates = useMemo(
+    () => associates.map(a => a.name).sort(),
+    [associates]
+  );
+
+  // The list is already server-paginated — render `leads` directly
+  const paginated = leads;
+
+  // ── Mutation helpers ──
+  const applyLeadUpdate = useCallback((updated) => {
+    if (!updated) return;
+    const adapted = adaptLead(updated);
+    setLeads(c => c.map(l => l.id === adapted.id ? { ...l, ...adapted } : l));
+    setSelectedLead(prev => (prev && prev.id === adapted.id ? { ...prev, ...adapted } : prev));
+  }, []);
 
   // ── Handlers ──
-  const handleSaveLead = (e) => {
+  const handleSaveLead = async (e) => {
     e.preventDefault();
     if (!editingLead.name || !editingLead.phone) {
       showToast('error', 'Error', 'Name and phone are required.');
       return;
     }
-    if (editingLead.id) {
-      setLeads(c => c.map(l => l.id === editingLead.id ? editingLead : l));
-    } else {
-      setLeads(c => [{ ...editingLead, id: Date.now(), createdAt: new Date().toISOString(), timeline: [], catalogItems: [] }, ...c]);
+    const isNew = !editingLead.id;
+    setIsSaving(true);
+    try {
+      // Resolve associate name → id (the API expects associateId)
+      const assoc = associates.find(a => a.name === editingLead.associate);
+      const associateId = editingLead.associateId || assoc?.id;
+      if (isNew && !associateId) {
+        showToast('error', 'Error', 'Please pick an associate.');
+        setIsSaving(false);
+        return;
+      }
+      if (isNew) {
+        const payload = {
+          name: editingLead.name,
+          phone: editingLead.phone,
+          email: editingLead.email || '',
+          source: editingLead.source,
+          interest: editingLead.interest,
+          status: editingLead.status,
+          associateId,
+          description: editingLead.description || '',
+        };
+        await createLead(payload);
+        showToast('success', 'Created', 'Lead created successfully.');
+      } else {
+        const payload = {
+          name: editingLead.name,
+          phone: editingLead.phone,
+          email: editingLead.email || '',
+          source: editingLead.source,
+          interest: editingLead.interest,
+          status: editingLead.status,
+          ...(associateId ? { associateId } : {}),
+          description: editingLead.description || '',
+        };
+        const updated = await updateLead(editingLead.id, payload);
+        applyLeadUpdate(updated);
+        showToast('success', 'Saved', 'Lead updated successfully.');
+      }
+      setEditingLead(null);
+      await reloadLeads();
+      reloadStats();
+    } catch (err) {
+      showToast('error', 'Save Failed', extractApiError(err, 'Failed to save lead.'));
+    } finally {
+      setIsSaving(false);
     }
-    setEditingLead(null);
-    showToast('success', 'Saved', 'Lead saved successfully.');
   };
 
-  const handleAddFollowUp = () => {
+  const handleAddFollowUp = async () => {
     if (!followUpText.trim()) { showToast('error', 'Error', 'Follow-up note cannot be empty.'); return; }
-    const note = {
-      type: 'followup',
-      text: followUpText,
-      addedBy: selectedLead.associate,
-      interest: followUpInterest,
-      at: new Date().toISOString(),
-    };
-    const calcDate = followUpNextDate || nextFollowUpDate(followUpInterest);
-    const updatedLead = {
-      ...selectedLead,
-      interest: followUpInterest,
-      nextFollowUp: calcDate,
-      timeline: [...selectedLead.timeline, note],
-    };
-    setLeads(c => c.map(l => l.id === updatedLead.id ? updatedLead : l));
-    setSelectedLead(updatedLead);
-    setFollowUpText('');
-    setFollowUpInterest('Neutral');
-    setFollowUpNextDate('');
-    showToast('success', 'Follow-up Added', 'Follow-up note has been saved.');
+    if (!selectedLead) return;
+    setIsSaving(true);
+    try {
+      const payload = {
+        text: followUpText.trim(),
+        interest: followUpInterest,
+        ...(followUpNextDate ? { nextFollowUp: followUpNextDate } : {}),
+      };
+      const updated = await addFollowUp(selectedLead.id, payload);
+      applyLeadUpdate(updated);
+      setFollowUpText('');
+      setFollowUpInterest('Neutral');
+      setFollowUpNextDate('');
+      showToast('success', 'Follow-up Added', 'Follow-up note has been saved.');
+      reloadStats();
+    } catch (err) {
+      showToast('error', 'Save Failed', extractApiError(err, 'Failed to add follow-up.'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleStatusChange = (leadId, newStatus) => {
-    setLeads(c => c.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
-    if (selectedLead && selectedLead.id === leadId) setSelectedLead(prev => ({ ...prev, status: newStatus }));
-    showToast('success', 'Status Updated', `Lead marked as ${newStatus}.`);
+  const handleStatusChange = async (leadId, newStatus) => {
+    try {
+      const updated = await changeLeadStatus(leadId, newStatus);
+      applyLeadUpdate(updated);
+      showToast('success', 'Status Updated', `Lead marked as ${newStatus}.`);
+      reloadStats();
+    } catch (err) {
+      showToast('error', 'Update Failed', extractApiError(err, 'Failed to change status.'));
+    }
   };
 
-  const handleReassign = (assocName) => {
+  const handleReassign = async (assocName) => {
     const target = reassignLead;
+    if (!target) return;
     if (target.associate === assocName) { setReassignLead(null); return; }
-    const reassignEvent = {
-      type: 'reassign',
-      from: target.associate,
-      to: assocName,
-      at: new Date().toISOString(),
-    };
-    const updated = { ...target, associate: assocName, timeline: [...target.timeline, reassignEvent] };
-    setLeads(c => c.map(l => l.id === target.id ? updated : l));
-    if (selectedLead && selectedLead.id === target.id) setSelectedLead(updated);
-    setReassignLead(null);
-    showToast('success', 'Reassigned', `Lead reassigned to ${assocName}.`);
+    const assoc = associates.find(a => a.name === assocName);
+    if (!assoc) { showToast('error', 'Error', 'Associate not found.'); return; }
+    try {
+      const updated = await reassignLeadApi(target.id, assoc.id);
+      applyLeadUpdate(updated);
+      showToast('success', 'Reassigned', `Lead reassigned to ${assocName}.`);
+    } catch (err) {
+      showToast('error', 'Reassign Failed', extractApiError(err, 'Failed to reassign lead.'));
+    } finally {
+      setReassignLead(null);
+    }
   };
 
-  const toggleCatalogItem = (code) => {
+  const toggleCatalogItem = async (code) => {
     if (!selectedLead) return;
     const items = selectedLead.catalogItems || [];
     const next = items.includes(code) ? items.filter(c => c !== code) : [...items, code];
-    const updated = { ...selectedLead, catalogItems: next };
-    setLeads(c => c.map(l => l.id === updated.id ? updated : l));
-    setSelectedLead(updated);
+    // Optimistic UI
+    const prevSelected = selectedLead;
+    setSelectedLead({ ...selectedLead, catalogItems: next });
+    try {
+      const updated = await setLeadCatalogItems(selectedLead.id, next);
+      applyLeadUpdate(updated);
+    } catch (err) {
+      setSelectedLead(prevSelected); // rollback
+      showToast('error', 'Update Failed', extractApiError(err, 'Failed to update catalog items.'));
+    }
   };
 
+  // Debounce timer for inline preference edits
+  const fieldSaveTimers = useRef({});
   const updateLeadField = (field, value) => {
     if (!selectedLead) return;
-    const updated = { ...selectedLead, [field]: value };
-    setLeads(c => c.map(l => l.id === updated.id ? updated : l));
-    setSelectedLead(updated);
+    // Optimistic local update
+    setSelectedLead(prev => ({ ...prev, [field]: value }));
+    // Debounce save per field
+    const key = `${selectedLead.id}:${field}`;
+    if (fieldSaveTimers.current[key]) clearTimeout(fieldSaveTimers.current[key]);
+    fieldSaveTimers.current[key] = setTimeout(async () => {
+      try {
+        const updated = await updateLead(selectedLead.id, { [field]: value });
+        applyLeadUpdate(updated);
+      } catch (err) {
+        showToast('error', 'Update Failed', extractApiError(err, 'Failed to save preference.'));
+      }
+    }, 400);
   };
 
-  const openLeadDetail = (lead) => {
-    setSelectedLead(lead);
+  const openLeadDetail = async (lead) => {
+    // Open immediately with what we already have, then fetch the full lead (with timeline) in background
+    setSelectedLead({ ...lead, timeline: lead.timeline || [] });
     setFollowUpText('');
     setFollowUpInterest('Neutral');
     setFollowUpNextDate('');
     setCourseSelectOpen(false);
     setActiveDropdown(null);
+    try {
+      const full = await getLead(lead.id);
+      if (full) setSelectedLead(adaptLead(full));
+    } catch (err) {
+      showToast('error', 'Load Error', extractApiError(err, 'Failed to load lead details.'));
+    }
   };
 
   const openNewLead = () => {
-    setEditingLead({ name: '', phone: '', email: '', source: 'Phone', interest: 'Neutral', status: 'Received', associate: associates[0].name, description: '', nextFollowUp: nextFollowUpDate('Neutral'), preferredTimeSlot: '', preferredComm: '' });
+    const first = associates[0];
+    setEditingLead({
+      name: '', phone: '', email: '', source: 'Phone',
+      interest: 'Neutral', status: 'Received',
+      associate: first?.name || '',
+      associateId: first?.id || '',
+      description: '',
+      nextFollowUp: nextFollowUpDate('Neutral'),
+      preferredTimeSlot: '', preferredComm: '',
+    });
   };
 
   // ── PDF Export ──
-  const handleExportPDF = () => {
-    const fmtDate = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
-    const rows = filtered.map(lead => {
-      const lastFu = [...lead.timeline].reverse().find(t => t.type === 'followup');
-      return `<tr>
-        <td>${lead.name}</td>
-        <td>${lead.phone}</td>
-        <td>${lead.source}</td>
-        <td>${lead.associate}</td>
-        <td>${lead.interest}</td>
-        <td>${lead.status}</td>
-        <td>${lastFu ? fmtDate(lastFu.at) : '-'}</td>
-        <td>${lead.nextFollowUp ? fmtDate(lead.nextFollowUp) : '-'}</td>
-        <td>${daysBetween(lead.createdAt)}d</td>
-        <td>${lead.preferredTimeSlot || '-'}</td>
-        <td>${lead.preferredComm || '-'}</td>
-      </tr>`;
-    }).join('');
-    const html = `<!DOCTYPE html><html><head><title>Leads Report</title>
+  // Fetch all leads matching the current filters (capped at backend max page size) and render print HTML.
+  const handleExportPDF = async () => {
+    try {
+      const { items } = await listLeads({
+        page: 1,
+        size: 100,
+        q: debouncedSearch,
+        status: statusFilter !== 'all' ? statusFilter : '',
+        interest: interestFilter !== 'all' ? interestFilter : '',
+        associateId: associateIdFilter,
+        followUpDate: resolvedDateFilter,
+        sortBy: 'createdAt',
+        sortDir: 'desc',
+      });
+      const exportRows = items.map(adaptLead);
+      const fmtDate = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
+      const rows = exportRows.map(lead => {
+        const lastFu = lead.lastFollowUpAt;
+        return `<tr>
+          <td>${lead.name || ''}</td>
+          <td>${lead.phone || ''}</td>
+          <td>${lead.source || ''}</td>
+          <td>${lead.associate || ''}</td>
+          <td>${lead.interest || ''}</td>
+          <td>${lead.status || ''}</td>
+          <td>${lastFu ? fmtDate(lastFu) : '-'}</td>
+          <td>${lead.nextFollowUp ? fmtDate(lead.nextFollowUp) : '-'}</td>
+          <td>${daysBetween(lead.createdAt)}d</td>
+          <td>${lead.preferredTimeSlot || '-'}</td>
+          <td>${lead.preferredComm || '-'}</td>
+        </tr>`;
+      }).join('');
+      const html = `<!DOCTYPE html><html><head><title>Leads Report</title>
 <style>
   body { font-family: 'Source Sans Pro', 'Segoe UI', 'Droid Sans', Tahoma, Arial, sans-serif; padding: 30px; color: #1e293b; }
   h1 { font-size: 22px; color: #006073; margin-bottom: 4px; }
@@ -294,17 +479,20 @@ export default function LeadsManagementPage() {
   @media print { body { padding: 10px; } }
 </style></head><body>
   <h1>Leads Management Report</h1>
-  <div class="meta">Generated on ${new Date().toLocaleString('en-IN')} · ${filtered.length} lead(s) · Filters: Status=${statusFilter}, Interest=${interestFilter}, Associate=${associateFilter}</div>
+  <div class="meta">Generated on ${new Date().toLocaleString('en-IN')} · ${exportRows.length} lead(s) · Filters: Status=${statusFilter}, Interest=${interestFilter}, Associate=${associateFilter}</div>
   <table><thead><tr><th>Name</th><th>Phone</th><th>Source</th><th>Associate</th><th>Interest</th><th>Status</th><th>Last F/U</th><th>Next F/U</th><th>Age</th><th>Pref. Time</th><th>Pref. Comm</th></tr></thead>
   <tbody>${rows}</tbody></table>
   <div class="footer">Crispr Pilot · Leads Management</div>
 </body></html>`;
 
-    const printWindow = window.open('', '_blank', 'width=1100,height=700');
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => { printWindow.print(); }, 400);
+      const printWindow = window.open('', '_blank', 'width=1100,height=700');
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => { printWindow.print(); }, 400);
+    } catch (err) {
+      showToast('error', 'Export Failed', extractApiError(err, 'Failed to export leads.'));
+    }
   };
 
   const formatDate = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return d; } };
@@ -425,7 +613,9 @@ export default function LeadsManagementPage() {
             </thead>
             <tbody>
               {paginated.map((lead) => {
-                const lastFu = [...lead.timeline].reverse().find(t => t.type === 'followup');
+                const lastFu = lead.lastFollowUpAt
+                  ? { at: lead.lastFollowUpAt }
+                  : (Array.isArray(lead.timeline) ? [...lead.timeline].reverse().find(t => t.type === 'followup') : null);
                 const sc = statusConfig[lead.status] || {};
                 const ic = interestConfig[lead.interest] || {};
                 const ageDays = daysBetween(lead.createdAt);
@@ -494,18 +684,21 @@ export default function LeadsManagementPage() {
                   </tr>
                 );
               })}
-              {paginated.length === 0 && (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No leads found.</td></tr>
+              {isLoading && paginated.length === 0 && (
+                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading leads…</td></tr>
+              )}
+              {!isLoading && paginated.length === 0 && (
+                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>{loadError ? loadError : 'No leads found.'}</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        {filtered.length > 0 && (
+        {totalItems > 0 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0 0', marginTop: '15px', borderTop: '1px solid #e9ecef' }}>
             <div style={{ fontSize: '13px', color: '#6c757d' }}>
-              Showing {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, filtered.length)} of {filtered.length} leads
+              Showing {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems} leads
             </div>
             <div style={{ display: 'flex', gap: '5px' }}>
               <button style={pgBtnStyle(false)} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
@@ -763,7 +956,10 @@ export default function LeadsManagementPage() {
                     </div>
                     <div className="form-group">
                       <label>Assigned Associate</label>
-                      <select className="form-control" value={editingLead.associate} onChange={e => setEditingLead({ ...editingLead, associate: e.target.value })}>
+                      <select className="form-control" value={editingLead.associate} onChange={e => {
+                        const picked = associates.find(a => a.name === e.target.value);
+                        setEditingLead({ ...editingLead, associate: e.target.value, associateId: picked?.id || '' });
+                      }}>
                         {associates.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
                       </select>
                     </div>
