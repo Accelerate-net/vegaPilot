@@ -18,6 +18,8 @@ import InstructorPortfolioPage from './pages/InstructorPortfolioPage';
 import LeadsManagementPage from './pages/LeadsManagementPage';
 import LiveClassActivityPlannerPage from './pages/LiveClassActivityPlannerPage';
 import LiveClassSchedulerPage from './pages/LiveClassSchedulerPage';
+import SchedulesPage from './pages/SchedulesPage';
+import SchedulesListPage from './pages/SchedulesListPage';
 import LoginPage from './pages/LoginPage';
 import MentorProfilesPage from './pages/MentorProfilesPage';
 import OrdersPage from './pages/OrdersPage';
@@ -40,8 +42,10 @@ import OfflineAttendancePage from './pages/OfflineAttendancePage';
 import AssetsPage from './pages/AssetsPage';
 import IcardGeneratorPage from './pages/IcardGeneratorPage';
 import LandingPage from './pages/LandingPage';
+import DigitalSignagePage from './pages/DigitalSignagePage';
 import PermissionsPage from './pages/PermissionsPage';
 import UserAccountsPage from './pages/UserAccountsPage';
+import LocationsPage from './pages/LocationsPage';
 import { isAuthenticated } from './lib/auth';
 import { defaultProtectedRoute, protectedScreens, publicScreens } from './lib/legacyScreens';
 import { getCachedUser, useUser } from './lib/userStore';
@@ -181,6 +185,12 @@ export default function App() {
     if (screen.path === '/live-class-scheduler') {
       return <LiveClassSchedulerPage />;
     }
+    if (screen.path === '/schedules') {
+      return <SchedulesPage />;
+    }
+    if (screen.path === '/schedule-list') {
+      return <SchedulesListPage />;
+    }
     if (screen.path === '/live-class-activity-planner') {
       return <LiveClassActivityPlannerPage />;
     }
@@ -204,6 +214,9 @@ export default function App() {
     }
     if (screen.path === '/landing') {
       return <LandingPage />;
+    }
+    if (screen.path === '/digital-signage') {
+      return <DigitalSignagePage />;
     }
 
     return <LegacyScreenPage screen={screen} />;
@@ -239,6 +252,16 @@ export default function App() {
             <SuperAdminRoute>
               <Layout currentScreen={{ path: '/permission', title: 'Roles & Permissions' }}>
                 <PermissionsPage />
+              </Layout>
+            </SuperAdminRoute>
+          }
+        />
+        <Route
+          path="/locations"
+          element={
+            <SuperAdminRoute>
+              <Layout currentScreen={{ path: '/locations', title: 'Locations' }}>
+                <LocationsPage />
               </Layout>
             </SuperAdminRoute>
           }

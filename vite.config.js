@@ -33,6 +33,13 @@ function cleanRouteFallback() {
   const rewrite = (req, _res, next) => {
     const url = req.url ? req.url.split('?')[0] : '/';
 
+    // ── Player runtime route: /player or /player/<screen_code> ──
+    // Routed to the standalone player-app bundle, NOT the admin SPA.
+    if (url === '/player' || url.startsWith('/player/')) {
+      req.url = '/player.html';
+      return next();
+    }
+
     // Known SPA route: rewrite straight to the app entry.
     if (cleanRoutes.has(url)) {
       req.url = '/app.html';
@@ -71,5 +78,11 @@ export default defineConfig({
   build: {
     outDir: 'dist-react',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main:   'app.html',
+        player: 'player.html',
+      },
+    },
   },
 });

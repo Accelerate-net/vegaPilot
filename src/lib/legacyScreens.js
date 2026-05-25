@@ -55,6 +55,27 @@ const screens = [
     shortCode: 'LC',
     summary: 'Schedule, host, and moderate live interactive broadcast sessions.',
   },
+  {
+    path: '/schedule-list',
+    title: 'Schedules',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'batches',
+    icon: 'fa-calendar',
+    shortCode: 'SC',
+    summary: 'Day-schedule listing with batch links, freeze, and quick navigation to the calendar view.',
+  },
+  {
+    path: '/schedules',
+    title: 'Schedule Calendar',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: null,
+    icon: 'fa-calendar',
+    summary: 'Calendar view of a single schedule; reachable from the Schedules list.',
+  },
 
   // ── Academics ─────────────────────────────────────────────────────────
   {
@@ -310,6 +331,17 @@ const screens = [
     summary: 'Generate student ID cards in bulk from a template and view historical generations.',
   },
   {
+    path: '/digital-signage',
+    title: 'Digital Signage',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'tools',
+    icon: 'fa-tv',
+    shortCode: 'DS',
+    summary: 'Manage TV kiosks, build content timelines, broadcast emergency alerts across branches.',
+  },
+  {
     path: '/instructor-payouts',
     title: 'Instructor Payouts',
     legacyHtml: 'instructor-payouts.html',
@@ -434,6 +466,8 @@ const VIEW_PERMISSIONS = {
   '/batch': 'batches.view',
   '/live-class-scheduler': 'liveClass.view',
   '/live-class-activity-planner': 'liveClass.view',
+  '/schedules': 'batches.view',
+  '/schedule-list': 'batches.view',
   // Academics
   '/courses-list': 'courses.view',
   '/course-view': 'courseView.view',

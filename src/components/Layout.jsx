@@ -508,6 +508,16 @@ export default function Layout({ children, currentScreen }) {
                   <span>User Accounts</span>
                 </button>
               )}
+              {showSuperAdmin && (
+                <button
+                  type="button"
+                  className="sb-profile-menu-item"
+                  onClick={() => { setShowProfileMenu(false); navigate('/locations'); }}
+                >
+                  <i className="fa fa-map-marker" />
+                  <span>Locations</span>
+                </button>
+              )}
               <div className="sb-profile-menu-divider" />
               <button type="button" className="sb-profile-menu-item danger"
                 onClick={requestLogout}>

@@ -1,0 +1,59 @@
+/* Player base — fullscreen, dark, no scroll. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #player-root { margin: 0; padding: 0; height: 100%; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+button { font: inherit; }
+
+.kiosk-stage { position: fixed; inset: 0; overflow: hidden; }
+.kiosk-slot   { position: absolute; inset: 0; }
+
+/* Transitions — applied to the outgoing/incoming slot. */
+.kiosk-anim-fade-in       { animation: kFadeIn 700ms ease both; }
+.kiosk-anim-fade-out      { animation: kFadeOut 700ms ease both; }
+.kiosk-anim-slide-in      { animation: kSlideIn 700ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-anim-slide-out     { animation: kSlideOut 700ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-anim-zoom-in       { animation: kZoomIn 700ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-anim-zoom-out      { animation: kZoomOut 700ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-anim-blur-in       { animation: kBlurIn 700ms ease both; }
+.kiosk-anim-blur-out      { animation: kBlurOut 700ms ease both; }
+.kiosk-anim-wipe-in       { animation: kWipeIn 700ms cubic-bezier(.7,0,.2,1) both; }
+.kiosk-anim-wipe-out      { animation: kFadeOut 400ms ease both; }
+.kiosk-anim-cinematic-in  { animation: kCineIn 1100ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-anim-cinematic-out { animation: kCineOut 700ms cubic-bezier(.4,0,.2,1) both; }
+
+@keyframes kFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kFadeOut  { from { opacity: 1; } to { opacity: 0; } }
+@keyframes kSlideIn  { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes kSlideOut { from { transform: none; opacity: 1; } to { transform: translateX(-60px); opacity: 0; } }
+@keyframes kZoomIn   { from { transform: scale(1.08); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes kZoomOut  { from { transform: scale(1); opacity: 1; } to { transform: scale(0.96); opacity: 0; } }
+@keyframes kBlurIn   { from { filter: blur(14px); opacity: 0; } to { filter: blur(0); opacity: 1; } }
+@keyframes kBlurOut  { from { filter: blur(0); opacity: 1; } to { filter: blur(14px); opacity: 0; } }
+@keyframes kWipeIn   { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes kCineIn   { from { transform: scale(1.06); opacity: 0; filter: brightness(.6); } to { transform: scale(1); opacity: 1; filter: brightness(1); } }
+@keyframes kCineOut  { from { transform: scale(1); opacity: 1; } to { transform: scale(1.02); opacity: 0; } }
+
+/* Status badges (offline / loading / debug). */
+.kiosk-badge { position: fixed; bottom: 14px; left: 14px; background: rgba(0,0,0,0.55); color: #fff; padding: 6px 12px; border-radius: 999px; font-size: 11px; z-index: 50; letter-spacing: .04em; }
+.kiosk-badge.warn { background: #b45309; }
+.kiosk-badge.err  { background: #b91c1c; }
+
+/* Slide-common helpers — content components compose these. */
+.kiosk-hero { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 60px; text-align: center; }
+.kiosk-h1   { font-size: clamp(40px, 6vw, 96px); margin: 0; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; }
+.kiosk-h2   { font-size: clamp(22px, 2.6vw, 40px); margin: 0; font-weight: 500; opacity: 0.9; }
+.kiosk-cta  { font-size: clamp(16px, 1.5vw, 22px); padding: 12px 24px; border-radius: 999px; background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+
+/* Overlays */
+.kiosk-checkin-stack { position: fixed; right: 24px; bottom: 24px; display: flex; flex-direction: column-reverse; gap: 12px; z-index: 60; pointer-events: none; }
+.kiosk-checkin       { background: rgba(255,255,255,0.95); color: #0f172a; border-radius: 14px; padding: 14px 18px; min-width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); animation: kCheckinIn 400ms cubic-bezier(.2,.7,.2,1) both; }
+.kiosk-checkin .name { font-weight: 800; letter-spacing: -.01em; font-size: 18px; }
+.kiosk-checkin .msg  { font-size: 13px; color: #475569; margin-top: 4px; }
+@keyframes kCheckinIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+
+.kiosk-emergency { position: fixed; inset: 0; background: #b91c1c; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; z-index: 100; padding: 80px; text-align: center; }
+.kiosk-emergency .title { font-size: clamp(48px, 8vw, 140px); font-weight: 900; letter-spacing: -.02em; animation: kBlink 1s steps(2) infinite; }
+.kiosk-emergency .msg   { font-size: clamp(24px, 3vw, 48px); font-weight: 500; opacity: 0.95; }
+.kiosk-emergency-ticker { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.4); color: #fff; padding: 18px 0; font-size: 28px; font-weight: 700; overflow: hidden; white-space: nowrap; }
+.kiosk-emergency-ticker > span { display: inline-block; padding-left: 100%; animation: kTicker 24s linear infinite; }
+@keyframes kBlink  { 50% { opacity: 0.4; } }
+@keyframes kTicker { from { transform: translateX(0); } to { transform: translateX(-100%); } }

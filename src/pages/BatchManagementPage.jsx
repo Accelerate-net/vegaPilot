@@ -4,6 +4,7 @@ import ToastRegion from '../components/ToastRegion';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { batchesDemo } from '../data/adminRemainingDemo';
+import { listLocations } from '../lib/locationsApi';
 
 
 function titleToSlug(title) {
@@ -72,6 +73,9 @@ function normalizeBatch(batch, index) {
     students: normalizedStudents,
     prepJourneyType: batch.prepJourneyType || '',
     prepJourneyYear: batch.prepJourneyYear || '',
+    type: batch.type || '',
+    locationId: batch.locationId || (typeof batch.location === 'object' ? batch.location?.id : batch.location) || null,
+    locationName: batch.locationName || (typeof batch.location === 'object' ? batch.location?.name : '') || '',
   };
 }
 
@@ -243,6 +247,7 @@ export default function BatchManagementPage() {
   const toastIdRef = useRef(0);
   const [allCandidates, setAllCandidates] = useState([]);
   const [isCandidatesLoading, setIsCandidatesLoading] = useState(false);
+  const [availableLocations, setAvailableLocations] = useState([]);
 
   const showToast = (type, title, message) => {
     const id = toastIdRef.current + 1;
@@ -325,6 +330,15 @@ export default function BatchManagementPage() {
       if (!isCancelled.current) setIsLoading(false);
     }
   }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery]);
+
+  const loadAvailableLocations = useCallback(async () => {
+    try {
+      const resp = await listLocations({ page: 1, size: 100, filterBy: 'open' });
+      setAvailableLocations(resp?.data || []);
+    } catch (error) {
+      setAvailableLocations([]);
+    }
+  }, []);
 
   const loadAvailableCourses = useCallback(async () => {
     try {
@@ -497,12 +511,16 @@ export default function BatchManagementPage() {
       isFrozen: false,
       enrolledCourses: [],
       students: [],
+      type: '',
+      locationId: '',
     });
     setBatchModalOpen(true);
+    loadAvailableLocations();
   }
 
   function openEditBatchModal(batch) {
     setEditingBatch(true);
+    const currentLocationId = batch.locationId || (typeof batch.location === 'object' ? batch.location?.id : batch.location) || '';
     setBatchDraft({
       ...batch,
       numberOfStudents: String(batch.numberOfStudents || ''),
@@ -510,14 +528,21 @@ export default function BatchManagementPage() {
       endDate: formatDateForInput(batch.endDate),
       prepJourneyType: batch.prepJourneyType || '',
       prepJourneyYear: String(batch.prepJourneyYear || ''),
+      type: batch.type || '',
+      locationId: currentLocationId || '',
     });
     setBatchModalOpen(true);
     setActiveKebabId(null);
+    loadAvailableLocations();
   }
 
   async function saveBatch() {
-    if (!batchDraft?.batchName?.trim() || !batchDraft.numberOfStudents || !batchDraft.prepJourneyType || !batchDraft.prepJourneyYear) {
+    if (!batchDraft?.batchName?.trim() || !batchDraft.numberOfStudents || !batchDraft.prepJourneyType || !batchDraft.prepJourneyYear || !batchDraft.type) {
       showToast('info', 'Notification', 'Please fill in all required fields.');
+      return;
+    }
+    if (batchDraft.type === 'OFFLINE' && !batchDraft.locationId) {
+      showToast('info', 'Notification', 'Please select a location for offline batches.');
       return;
     }
     if (Number(batchDraft.numberOfStudents) < 1) {
@@ -536,7 +561,12 @@ export default function BatchManagementPage() {
       dateEnd: endEpoch,
       prepJourneyType: batchDraft.prepJourneyType,
       prepJourneyYear: Number(batchDraft.prepJourneyYear),
+      type: batchDraft.type,
     };
+
+    if (batchDraft.type === 'OFFLINE' && batchDraft.locationId) {
+      payload.locationId = Number(batchDraft.locationId) || batchDraft.locationId;
+    }
 
     if (!isDemoMode) {
       try {
@@ -1017,6 +1047,16 @@ export default function BatchManagementPage() {
                             {batch.prepJourneyType} - {batch.prepJourneyYear}
                           </span>
                         )}
+                        {batch.type && (
+                          <span className={`batch-type-tag ${batch.type === 'OFFLINE' ? 'offline' : 'online'}`}>
+                            <i className={`ti ${batch.type === 'OFFLINE' ? 'ti-home' : 'ti-world'}`} /> {batch.type === 'OFFLINE' ? 'Offline' : 'Online'}
+                          </span>
+                        )}
+                        {(batch.locationName || (typeof batch.location === 'object' && batch.location?.name)) && (
+                          <span className="batch-location-tag">
+                            <i className="ti ti-location-pin" /> {batch.locationName || batch.location?.name}
+                          </span>
+                        )}
                       </div>
                       {batch.description ? <div className="batch-description">{batch.description}</div> : null}
                     </td>
@@ -1221,7 +1261,7 @@ export default function BatchManagementPage() {
                </label>
                <label>
                  <span>Prep Journey Year *</span>
-                 <select 
+                 <select
                    className="search-input"
                    value={batchDraft?.prepJourneyYear || ''}
                    onChange={(event) => setBatchDraft((current) => ({ ...current, prepJourneyYear: event.target.value }))}
@@ -1232,6 +1272,37 @@ export default function BatchManagementPage() {
                    <option value="2028">2028</option>
                  </select>
                </label>
+               <label>
+                 <span>Type *</span>
+                 <select
+                   className="search-input"
+                   value={batchDraft?.type || ''}
+                   onChange={(event) => setBatchDraft((current) => ({
+                     ...current,
+                     type: event.target.value,
+                     locationId: event.target.value === 'OFFLINE' ? current.locationId : '',
+                   }))}
+                 >
+                   <option value="">Select Type</option>
+                   <option value="OFFLINE">Offline</option>
+                   <option value="ONLINE">Online</option>
+                 </select>
+               </label>
+               {batchDraft?.type === 'OFFLINE' && (
+                 <label>
+                   <span>Location *</span>
+                   <select
+                     className="search-input"
+                     value={batchDraft?.locationId || ''}
+                     onChange={(event) => setBatchDraft((current) => ({ ...current, locationId: event.target.value }))}
+                   >
+                     <option value="">Select location</option>
+                     {availableLocations.map((loc) => (
+                       <option key={loc.id} value={loc.id}>{loc.name}</option>
+                     ))}
+                   </select>
+                 </label>
+               )}
             </div>
           </div>
           <div className="legacy-modal-footer">
@@ -1652,6 +1723,41 @@ export default function BatchManagementPage() {
           border-radius: 4px;
           letter-spacing: 0.5px;
           border: 1px solid #dbeafe;
+        }
+        .batch-type-tag {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .batch-type-tag.offline {
+          background: #fef3c7;
+          color: #b45309;
+          border: 1px solid #fde68a;
+        }
+        .batch-type-tag.online {
+          background: #ecfdf5;
+          color: #047857;
+          border: 1px solid #a7f3d0;
+        }
+        .batch-location-tag {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          background: #f5f3ff;
+          color: #7c3aed;
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.5px;
+          border: 1px solid #ede9fe;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
       `}</style>
     </section>
