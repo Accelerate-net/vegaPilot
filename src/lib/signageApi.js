@@ -1,13 +1,22 @@
-// Thin HTTP layer for the Digital Signage admin module.
+// Thin HTTP layer for the Digital Signage admin module + player surface.
 // Reuses the project-wide axios instance (X-Access-Token + 401 handling),
 // unwraps the `{ data: ... }` envelope, and normalises errors so callers
-// can switch on `err.code` (e.g. 'CODE_TAKEN', 'MEDIA_IN_USE').
+// can switch on `err.code` (e.g. 'SCREEN_CODE_TAKEN', 'MEDIA_IN_USE').
 //
 // Backend contract: DIGITAL_SIGNAGE_API_CONTRACT.md (admin §4, player §7).
+// Branches are NOT owned by signage — use `listLocations` from
+// ./locationsApi.js for the branch/location dropdown.
 
+import axios from 'axios';
 import { api } from './api';
 
 const BASE = '/restricted/signage';
+const PLAYER_BASE = '/signage/player';
+
+// Player calls go through a dedicated axios instance so we can attach the
+// `Authorization: Bearer <screen_token>` header without colliding with the
+// admin app's X-Access-Token interceptor.
+const playerHttp = axios.create({ baseURL: api.defaults.baseURL });
 
 // ── Error normalisation ──────────────────────────────────────────────
 class SignageError extends Error {
@@ -25,7 +34,7 @@ function normaliseError(err) {
   const body = err?.response?.data || {};
   const env = body?.error || {};
   return new SignageError(
-    env.code || (status === 404 ? 'NOT_FOUND' : 'SERVER_ERROR'),
+    env.code || (status === 404 ? 'NOT_FOUND' : status === 401 ? 'UNAUTHENTICATED' : status === 403 ? 'FORBIDDEN' : 'SERVER_ERROR'),
     env.message || err?.message || 'Request failed',
     env.details || null,
     status,
@@ -48,17 +57,8 @@ async function del(path, params)      { try { return unwrap(await api.delete(`${
 // ── Dashboard ────────────────────────────────────────────────────────
 export const dashboard = () => get('/dashboard');
 
-// ── Content-type catalog (icons/colors stay in the FE; this is metadata) ─
+// ── Content-type catalog ─────────────────────────────────────────────
 export const contentTypes = () => get('/content-types');
-
-// ── Branches ─────────────────────────────────────────────────────────
-export const Branches = {
-  list:   (params) => getList('/branches', params),
-  get:    (id)     => get(`/branches/${id}`),
-  create: (body)   => post('/branches', body),
-  update: (id, b)  => patch(`/branches/${id}`, b),
-  remove: (id)     => del(`/branches/${id}`),
-};
 
 // ── Screens ──────────────────────────────────────────────────────────
 export const Screens = {
@@ -118,14 +118,65 @@ export const Media = {
   remove: (id, opts = {}) => del(`/media/${id}`, opts.force ? { force: true } : undefined),
 
   // Uploads use multipart/form-data. Pass a File from <input type="file">.
-  upload: (file, { branch_id, name, tags } = {}) => {
+  upload: (file, { location_id, name, tags } = {}) => {
     const fd = new FormData();
     fd.append('file', file);
-    if (branch_id) fd.append('branch_id', branch_id);
-    if (name)      fd.append('name', name);
+    if (location_id != null) fd.append('location_id', String(location_id));
+    if (name)                fd.append('name', name);
     if (Array.isArray(tags)) tags.forEach((t) => fd.append('tags[]', t));
     // Do NOT set Content-Type manually — browser sets the boundary.
     return post('/media', fd);
+  },
+};
+
+// ── Player surface (kiosk) ───────────────────────────────────────────
+// Auth is `Authorization: Bearer <screen_id>:<token_secret>` except /pair.
+// Bearer is stored locally by the kiosk shell; pass it on every call here.
+async function playerCall(method, path, { token, body, headers } = {}) {
+  try {
+    const h = { Accept: 'application/json', ...(headers || {}) };
+    if (token) h.Authorization = `Bearer ${token}`;
+    const res = await playerHttp.request({
+      method, url: `${PLAYER_BASE}${path}`,
+      data: body, headers: h,
+      // Allow 304 through so ETag polling works
+      validateStatus: (s) => (s >= 200 && s < 300) || s === 304,
+    });
+    return res;
+  } catch (e) { throw normaliseError(e); }
+}
+
+export const Player = {
+  pair: async ({ screen_code, pairing_code }) => {
+    const res = await playerCall('POST', '/pair', { body: { screen_code, pairing_code } });
+    return res.data?.data ?? res.data;
+  },
+  unpair: async (token) => {
+    await playerCall('POST', '/unpair', { token });
+  },
+  // ETag-aware. Pass the previous `config_version` in `ifNoneMatch`.
+  // Returns `{ status, etag, data }` where status === 304 means "unchanged".
+  fetchPayload: async ({ token, screen_code, ifNoneMatch } = {}) => {
+    const headers = ifNoneMatch ? { 'If-None-Match': `"${ifNoneMatch}"` } : undefined;
+    const res = await playerCall('GET', `/screens/${encodeURIComponent(screen_code)}`, { token, headers });
+    const etag = (res.headers?.etag || res.headers?.ETag || '').replace(/(^"|"$)/g, '') || null;
+    return {
+      status: res.status,
+      etag,
+      data: res.status === 304 ? null : (res.data?.data ?? res.data),
+    };
+  },
+  fetchLoop:   async ({ token, screen_code }) => {
+    const res = await playerCall('GET', `/screens/${encodeURIComponent(screen_code)}/loop`, { token });
+    return res.data?.data ?? res.data;
+  },
+  fetchAlerts: async ({ token, screen_code }) => {
+    const res = await playerCall('GET', `/screens/${encodeURIComponent(screen_code)}/alerts`, { token });
+    return res.data?.data ?? res.data;
+  },
+  heartbeat: async ({ token, screen_code, payload }) => {
+    const res = await playerCall('POST', `/screens/${encodeURIComponent(screen_code)}/heartbeat`, { token, body: payload });
+    return res.data?.data ?? res.data;
   },
 };
 

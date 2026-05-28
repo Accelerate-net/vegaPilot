@@ -12,7 +12,8 @@
 //     to avoid touching the page). The toUi/fromUi helpers translate.
 
 import { useEffect, useState } from 'react';
-import { Alerts, Branches, Loops, Media, Schedules, Screens, SignageError } from './signageApi';
+import { Alerts, Loops, Media, Schedules, Screens, SignageError, dashboard as fetchDashboard, contentTypes as fetchContentTypes } from './signageApi';
+import { listLocations } from './locationsApi';
 
 // ─── Static option pools (used by the page; unchanged) ───────────────
 export const ORIENTATIONS = ['landscape', 'portrait'];
@@ -67,17 +68,33 @@ export const WEEKDAYS = [
 // ─── Field-name translation (API ↔ UI) ───────────────────────────────
 // The page was built against an earlier shape; keep its names stable so
 // the page itself doesn't have to change.
+// Translate the location_id field returned by the API into the page's
+// legacy `branch_id` name (and back). Same trick for alerts' array form.
+function withBranchAlias(o) {
+  if (!o) return o;
+  if ('location_id' in o && !('branch_id' in o)) return { ...o, branch_id: o.location_id };
+  return o;
+}
+function stripBranchAlias(o) {
+  if (!o) return o;
+  if ('branch_id' in o) {
+    const { branch_id, ...rest } = o;
+    return { ...rest, location_id: branch_id };
+  }
+  return o;
+}
+
 function toUiLoop(loop) {
   if (!loop) return loop;
-  return {
+  return withBranchAlias({
     ...loop,
     loop_enabled: loop.auto_replay,
     items: Array.isArray(loop.items) ? loop.items.map(toUiItem) : [],
-  };
+  });
 }
 function fromUiLoop(input) {
   const { loop_enabled, items, ...rest } = input;
-  const out = { ...rest };
+  const out = stripBranchAlias({ ...rest });
   if (loop_enabled !== undefined) out.auto_replay = loop_enabled;
   return out;
 }
@@ -93,21 +110,51 @@ function fromUiItem(input) {
 }
 function toUiScreen(screen) {
   if (!screen) return screen;
-  return { ...screen, assigned_timeline_id: screen.assigned_loop_id ?? null };
+  return withBranchAlias({ ...screen, assigned_timeline_id: screen.assigned_loop_id ?? null });
 }
 function fromUiScreen(input) {
   const { assigned_timeline_id, ...rest } = input;
-  const out = { ...rest };
+  const out = stripBranchAlias({ ...rest });
   if (assigned_timeline_id !== undefined) out.assigned_loop_id = assigned_timeline_id;
   return out;
 }
 function toUiMedia(m) {
   if (!m) return m;
-  return {
+  return withBranchAlias({
     ...m,
     size: m.size_bytes,
     thumb: m.thumbnail_url || mediaTypeIcon(m.type),
-  };
+  });
+}
+function toUiAlert(a) {
+  if (!a) return a;
+  if (Array.isArray(a.location_ids) && !Array.isArray(a.branch_ids)) {
+    return { ...a, branch_ids: a.location_ids };
+  }
+  return a;
+}
+function fromUiAlert(input) {
+  if (!input) return input;
+  if (Array.isArray(input.branch_ids)) {
+    const { branch_ids, ...rest } = input;
+    return { ...rest, location_ids: branch_ids };
+  }
+  return input;
+}
+// Schedules reference their loop via `loop_id` on the API; the page uses
+// the legacy `timeline_id` name. Alias both directions.
+function toUiSchedule(s) {
+  if (!s) return s;
+  if ('loop_id' in s && !('timeline_id' in s)) return { ...s, timeline_id: s.loop_id };
+  return s;
+}
+function fromUiSchedule(input) {
+  if (!input) return input;
+  if ('timeline_id' in input) {
+    const { timeline_id, ...rest } = input;
+    return { ...rest, loop_id: timeline_id };
+  }
+  return input;
 }
 function mediaTypeIcon(type) {
   return type === 'video' ? '🎞️' : type === 'audio' ? '🔊' : type === 'lottie' ? '🎬' : '🖼️';
@@ -115,15 +162,17 @@ function mediaTypeIcon(type) {
 
 // ─── Pub/sub state ───────────────────────────────────────────────────
 let _state = {
-  branches:  [],
-  screens:   [],
-  timelines: [],   // a.k.a. loops
-  schedules: [],
-  alerts:    [],
-  media:     [],
+  branches:     [],   // sourced from the existing Locations API (see §4.0 of the contract)
+  screens:      [],
+  timelines:    [],   // a.k.a. loops
+  schedules:    [],
+  alerts:       [],
+  media:        [],
+  dashboard:    null,
+  contentTypes: null,
 };
-const _loaded = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false };
-const _loading = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false };
+const _loaded = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, dashboard: false, contentTypes: false };
+const _loading = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, dashboard: false, contentTypes: false };
 const _subs = new Set();
 
 function notify() { for (const fn of _subs) { try { fn(_state); } catch { /* ignore subscriber errors */ } } }
@@ -146,12 +195,30 @@ async function ensureLoaded(slice) {
   if (_loaded[slice] || _loading[slice]) return;
   _loading[slice] = true;
   try {
-    if (slice === 'branches')  { const { data } = await Branches.list({ per_page: 200 });  patch('branches', data); }
-    if (slice === 'screens')   { const { data } = await Screens.list({ per_page: 200 });   patch('screens', data.map(toUiScreen)); }
-    if (slice === 'timelines') { const { data } = await Loops.list({ per_page: 200 });     patch('timelines', data.map(toUiLoop)); }
-    if (slice === 'schedules') { const { data } = await Schedules.list({ per_page: 200 }); patch('schedules', data); }
-    if (slice === 'alerts')    { const { data } = await Alerts.list({ per_page: 200 });    patch('alerts', data); }
-    if (slice === 'media')     { const { data } = await Media.list({ per_page: 200 });     patch('media', data.map(toUiMedia)); }
+    if (slice === 'branches') {
+      // Branches are now sourced from the existing Locations API. We
+      // normalise to {id, name, code, city, timezone, active} so the
+      // page's existing lookups keep working.
+      const resp = await listLocations({ page: 1, size: 200, filterBy: 'all' });
+      const rows = (resp?.data || []).map((l) => ({
+        id:       l.id,
+        name:     l.name,
+        code:     l.code || '',
+        city:     l.city || '',
+        address:  l.address || '',
+        timezone: l.timezone || 'Asia/Kolkata',
+        active:   l.open !== false,
+        raw:      l,
+      }));
+      patch('branches', rows);
+    }
+    if (slice === 'screens')      { const { data } = await Screens.list({ per_page: 200 });   patch('screens', data.map(toUiScreen)); }
+    if (slice === 'timelines')    { const { data } = await Loops.list({ per_page: 200 });     patch('timelines', data.map(toUiLoop)); }
+    if (slice === 'schedules')    { const { data } = await Schedules.list({ per_page: 200 }); patch('schedules', data.map(toUiSchedule)); }
+    if (slice === 'alerts')       { const { data } = await Alerts.list({ per_page: 200 });    patch('alerts', data.map(toUiAlert)); }
+    if (slice === 'media')        { const { data } = await Media.list({ per_page: 200 });     patch('media', data.map(toUiMedia)); }
+    if (slice === 'dashboard')    { const d = await fetchDashboard();                         patch('dashboard', d); }
+    if (slice === 'contentTypes') { const d = await fetchContentTypes();                      patch('contentTypes', d); }
     _loaded[slice] = true;
   } finally {
     _loading[slice] = false;
@@ -167,12 +234,15 @@ function useSlice(slice, selector) {
   return val;
 }
 
-export const useBranches  = () => useSlice('branches',  (s) => s.branches);
-export const useScreens   = () => useSlice('screens',   (s) => s.screens);
-export const useTimelines = () => useSlice('timelines', (s) => s.timelines);
-export const useSchedules = () => useSlice('schedules', (s) => s.schedules);
-export const useAlerts    = () => useSlice('alerts',    (s) => s.alerts);
-export const useMedia     = () => useSlice('media',     (s) => s.media);
+export const useBranches     = () => useSlice('branches',     (s) => s.branches);
+export const useLocations    = useBranches;                                            // canonical alias
+export const useScreens      = () => useSlice('screens',      (s) => s.screens);
+export const useTimelines    = () => useSlice('timelines',    (s) => s.timelines);
+export const useSchedules    = () => useSlice('schedules',    (s) => s.schedules);
+export const useAlerts       = () => useSlice('alerts',       (s) => s.alerts);
+export const useMedia        = () => useSlice('media',        (s) => s.media);
+export const useDashboard    = () => useSlice('dashboard',    (s) => s.dashboard);
+export const useContentTypesCatalog = () => useSlice('contentTypes', (s) => s.contentTypes);
 
 // Force-refresh helpers, for after destructive ops where the cache drift
 // matters (e.g. media `uses` count after deleting a loop item).
@@ -192,20 +262,15 @@ export async function ensureLoopDetail(loopId) {
 }
 
 // ─── Branches ────────────────────────────────────────────────────────
-export async function createBranch(input) {
-  const b = await Branches.create(input);
-  patch('branches', (cur) => upsert(cur, b));
-  return b;
+// CRUD is owned by the Locations module — see `src/pages/LocationsPage.jsx`
+// and `src/lib/locationsApi.js`. The signage Branches tab has been removed.
+// These stubs exist only so callers in old code paths fail loudly.
+function branchOpRemoved() {
+  throw new SignageError('NOT_IMPLEMENTED', 'Branch CRUD lives in the Locations module — open /locations.');
 }
-export async function updateBranch(id, patchBody) {
-  const b = await Branches.update(id, patchBody);
-  patch('branches', (cur) => upsert(cur, b));
-  return b;
-}
-export async function deleteBranch(id) {
-  await Branches.remove(id);
-  patch('branches', (cur) => removeById(cur, id));
-}
+export const createBranch = branchOpRemoved;
+export const updateBranch = branchOpRemoved;
+export const deleteBranch = branchOpRemoved;
 
 // ─── Screens ─────────────────────────────────────────────────────────
 export async function createScreen(input) {
@@ -311,16 +376,65 @@ export async function bulkUpdateItemDurations(timeline_id, seconds) {
   replaceLoopItems(timeline_id, (items) => items.map((x) => ({ ...x, duration_seconds: seconds })));
 }
 
+// ─── Draft commit (loop editor) ──────────────────────────────────────
+// The loop editor stages all item changes locally. `commitLoopDraft` diffs
+// the desired final list (`draftItems`, in order) against the cached server
+// items and replays the minimal set of add/update/delete calls, then reorders
+// to match and re-fetches the canonical loop.
+const DRAFT_ITEM_FIELDS = ['title', 'content_type', 'duration_seconds', 'transition_type', 'content_reference_id', 'overlay_enabled', 'background_audio_enabled'];
+function itemFieldsChanged(a, b) {
+  return DRAFT_ITEM_FIELDS.some((k) => (a?.[k] ?? null) !== (b?.[k] ?? null));
+}
+function isNewDraftItem(d) {
+  return d._new === true || d.id == null || String(d.id).startsWith('tmp-');
+}
+export async function commitLoopDraft(loopId, draftItems) {
+  const loop = _state.timelines.find((t) => t.id === loopId);
+  const original = Array.isArray(loop?.items) ? loop.items : [];
+  const keptIds = new Set(draftItems.filter((d) => !isNewDraftItem(d)).map((d) => d.id));
+
+  // 1. Deletions (in original, gone from draft)
+  for (const o of original) {
+    if (!keptIds.has(o.id)) await Loops.deleteItem(loopId, o.id);
+  }
+  // 2. Adds + 3. Updates → build the final ordered id list
+  const orderedIds = [];
+  for (const d of draftItems) {
+    if (isNewDraftItem(d)) {
+      const { _new, id, ...rest } = d; // eslint-disable-line no-unused-vars
+      const created = await Loops.addItem(loopId, fromUiItem(rest));
+      orderedIds.push(created.id);
+    } else {
+      const orig = original.find((o) => o.id === d.id);
+      if (orig && itemFieldsChanged(orig, d)) {
+        await Loops.updateItem(loopId, d.id, fromUiItem(d));
+      }
+      orderedIds.push(d.id);
+    }
+  }
+  // 4. Reorder to the draft order (API requires the exact current id set)
+  if (orderedIds.length > 1) {
+    try { await Loops.reorderItems(loopId, orderedIds); } catch { /* tolerate no-op / mismatch */ }
+  }
+  // 5. Re-fetch the canonical loop and patch the cache
+  const full = await Loops.get(loopId);
+  const ui = { ...toUiLoop(full), _detailed: true };
+  patch('timelines', (cur) => upsert(cur, ui));
+  return ui;
+}
+
 // ─── Schedules ───────────────────────────────────────────────────────
 export async function createSchedule(input) {
-  const sch = await Schedules.create(input);
-  patch('schedules', (cur) => upsert(cur, sch));
-  return sch;
+  const sch = await Schedules.create(fromUiSchedule(input));
+  const ui = toUiSchedule(sch);
+  patch('schedules', (cur) => upsert(cur, ui));
+  return ui;
 }
 export async function updateSchedule(id, body) {
-  const sch = await Schedules.update(id, body);
-  patch('schedules', (cur) => upsert(cur, sch));
-  return sch;
+  const sch = await Schedules.update(id, fromUiSchedule(body));
+  const ui = toUiSchedule(sch);
+  patch('schedules', (cur) => upsert(cur, ui));
+  return ui;
 }
 export async function deleteSchedule(id) {
   await Schedules.remove(id);
@@ -329,14 +443,16 @@ export async function deleteSchedule(id) {
 
 // ─── Alerts ──────────────────────────────────────────────────────────
 export async function createAlert(input) {
-  const al = await Alerts.create(input);
-  patch('alerts', (cur) => upsert(cur, al));
-  return al;
+  const al = await Alerts.create(fromUiAlert(input));
+  const ui = toUiAlert(al);
+  patch('alerts', (cur) => upsert(cur, ui));
+  return ui;
 }
 export async function updateAlert(id, body) {
-  const al = await Alerts.update(id, body);
-  patch('alerts', (cur) => upsert(cur, al));
-  return al;
+  const al = await Alerts.update(id, fromUiAlert(body));
+  const ui = toUiAlert(al);
+  patch('alerts', (cur) => upsert(cur, ui));
+  return ui;
 }
 export async function deleteAlert(id) {
   await Alerts.remove(id);
@@ -344,22 +460,29 @@ export async function deleteAlert(id) {
 }
 export async function broadcastAlert(id) {
   const al = await Alerts.broadcast(id);
-  patch('alerts', (cur) => upsert(cur, al));
-  return al;
+  const ui = toUiAlert(al);
+  patch('alerts', (cur) => upsert(cur, ui));
+  return ui;
 }
 export async function dismissAlert(id) {
   const al = await Alerts.dismiss(id);
-  patch('alerts', (cur) => upsert(cur, al));
-  return al;
+  const ui = toUiAlert(al);
+  patch('alerts', (cur) => upsert(cur, ui));
+  return ui;
 }
 
 // ─── Media ───────────────────────────────────────────────────────────
 // `createMedia` is called from the page with either a File (real upload)
 // or a synthesised payload (the current upload modal mocks an entry).
-// Real uploads must arrive as `{ file, branch_id, name, tags }`.
+// Real uploads must arrive as `{ file, branch_id, name, tags }` (the page
+// still uses the legacy field name; we translate to location_id here).
 export async function createMedia(input) {
   if (input?.file instanceof File) {
-    const m = await Media.upload(input.file, { branch_id: input.branch_id, name: input.name, tags: input.tags });
+    const m = await Media.upload(input.file, {
+      location_id: input.branch_id ?? input.location_id ?? null,
+      name: input.name,
+      tags: input.tags,
+    });
     const ui = toUiMedia(m);
     patch('media', (cur) => upsert(cur, ui));
     return ui;
@@ -370,7 +493,9 @@ export async function createMedia(input) {
   throw new SignageError('VALIDATION_FAILED', 'Pick a file to upload.');
 }
 export async function updateMedia(id, body) {
-  const m = await Media.update(id, body);
+  const { branch_id, ...rest } = body || {};
+  const apiBody = branch_id !== undefined ? { ...rest, location_id: branch_id } : rest;
+  const m = await Media.update(id, apiBody);
   const ui = toUiMedia(m);
   patch('media', (cur) => upsert(cur, ui));
   return ui;

@@ -21,6 +21,25 @@ function authHeader(screenCode) {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// The server is canonical on `location_id` / `location_name`; the player-app
+// renderers were originally written against `branch_id` / `branch_name`. We
+// alias both directions here so all downstream code keeps working without
+// touching every content renderer.
+function aliasScreen(screen) {
+  if (!screen) return screen;
+  return {
+    ...screen,
+    branch_id:   screen.branch_id   ?? screen.location_id   ?? null,
+    branch_name: screen.branch_name ?? screen.location_name ?? null,
+  };
+}
+function aliasPayload(payload) {
+  if (!payload || typeof payload !== 'object') return payload;
+  const out = { ...payload };
+  if (out.screen) out.screen = aliasScreen(out.screen);
+  return out;
+}
+
 async function parseError(res) {
   let body = null;
   try { body = await res.json(); } catch { /* ignore */ }
@@ -43,6 +62,7 @@ export async function pair(screen_code, pairing_code) {
   const body = await res.json();
   const data = body.data || body;                       // tolerate either envelope
   tokenStore.write(screen_code, data.screen_token);
+  if (data.screen) data.screen = aliasScreen(data.screen);
   return data;
 }
 
@@ -71,7 +91,7 @@ export async function fetchScreen(screen_code, { etag } = {}) {
   }
   if (!res.ok) throw await parseError(res);
   const body = await res.json();
-  return { unchanged: false, data: body.data || body };
+  return { unchanged: false, data: aliasPayload(body.data || body) };
 }
 
 // ── Heartbeat ────────────────────────────────────────────────────────
