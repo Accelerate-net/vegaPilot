@@ -215,7 +215,7 @@ export default function QuizListingPage() {
   const selectedTabLabel = currentTab === 'published' ? 'Published' : currentTab === 'draft' ? 'Drafts' : 'All Quizzes';
 
   return (
-    <section className="quiz-listing-page">
+    <section className="quiz-listing-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -224,7 +224,7 @@ export default function QuizListingPage() {
           <p>Manage practice quizzes, review student attempts, and publish draft quizzes.</p>
         </div>
         <Can permission={PERMS.QUIZZES_EDIT}>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/quiz-creation')}>
+          <button type="button" className="create-quiz-button" onClick={() => navigate('/quiz-creation')}>
             <i className="ti ti-plus" /> Create Quiz
           </button>
         </Can>

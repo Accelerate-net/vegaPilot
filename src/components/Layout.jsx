@@ -341,30 +341,25 @@ export default function Layout({ children, currentScreen }) {
           title={collapsed ? 'Expand sidebar' : 'Go to Home'}
         >
           <img
-            src="/assets/icons/favicon.png"
+            src="/assets/logo/logo.svg"
             alt="Crispr"
             className="sb-logo-img"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
           {!collapsed && (
-            <>
-              <div className="sb-brand-text">
-                <strong>Crispr Learning</strong>
-              </div>
-              <i
-                className="fa fa-angle-left sb-collapse-arrow"
-                role="button"
-                tabIndex={0}
-                title="Collapse sidebar"
-                onClick={(e) => { e.stopPropagation(); toggleSidebar(); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.stopPropagation();
-                    toggleSidebar();
-                  }
-                }}
-              />
-            </>
+            <i
+              className="fa fa-angle-double-left sb-collapse-arrow"
+              role="button"
+              tabIndex={0}
+              title="Collapse sidebar"
+              onClick={(e) => { e.stopPropagation(); toggleSidebar(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.stopPropagation();
+                  toggleSidebar();
+                }
+              }}
+            />
           )}
         </div>
 
@@ -492,7 +487,7 @@ export default function Layout({ children, currentScreen }) {
                 <button
                   type="button"
                   className="sb-profile-menu-item"
-                  onClick={() => { setShowProfileMenu(false); navigate('/permission'); }}
+                  onClick={() => { setShowProfileMenu(false); navigate('/permission?tab=roles'); }}
                 >
                   <i className="fa fa-shield" />
                   <span>Roles &amp; Permissions</span>

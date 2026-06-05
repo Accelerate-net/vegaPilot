@@ -1,72 +1,36 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import {
+  listLiveClasses,
+  createLiveClass,
+  cancelLiveClass,
+  launchLiveClass,
+  endLiveClass,
+  provisionYoutube,
+  rotateYoutubeKey,
+  liveClassError,
+  isYoutubeError,
+} from '../lib/liveClassApi';
 
 const studentPool = ['All Registered', 'Unrestricted', 'Batch A', 'Batch B', 'Course: IAT 2026', 'Course: NEET 2026'];
 const hostPool = ['Rajesh Kumar', 'Priya Sharma', 'Vikram Singh', 'Anjali Gupta'];
 
-const demoLiveClasses = [
-  {
-    id: 'LC-1001',
-    title: 'Solving HCV Mechanics - Part 1',
-    host: 'Vikram Singh',
-    participants: 'Batch A',
-    scheduledAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    isInstant: false,
-    status: 'completed',
-    duration: '1h 30m',
-    mode: 'System',
-    rating: 4.8,
-  },
-  {
-    id: 'LC-1002',
-    title: 'Organic Chemistry Revision',
-    host: 'Priya Sharma',
-    participants: 'Course: NEET 2026',
-    scheduledAt: new Date(Date.now() + 3600000 * 24).toISOString(),
-    isInstant: false,
-    status: 'scheduled',
-    duration: '2h',
-    mode: 'YouTube',
-    rating: null,
-  },
-  {
-    id: 'LC-1003',
-    title: 'Live Doubt Clearing',
-    host: 'Rajesh Kumar',
-    participants: 'All Registered',
-    scheduledAt: new Date(Date.now() - 1800000).toISOString(),
-    isInstant: true,
-    status: 'live',
-    duration: '30m (ongoing)',
-    mode: 'System',
-    rating: null,
-  },
-  {
-    id: 'LC-1004',
-    title: 'Biology Masterclass',
-    host: 'Anjali Gupta',
-    participants: 'Unrestricted',
-    scheduledAt: new Date(Date.now() + 3600000 * 48).toISOString(),
-    isInstant: false,
-    status: 'scheduled',
-    duration: '1h',
-    mode: 'System',
-    rating: null,
-  },
-  {
-    id: 'LC-1005',
-    title: 'Physics Mock Test Discussion',
-    host: 'Vikram Singh',
-    participants: 'Batch B',
-    scheduledAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    isInstant: false,
-    status: 'completed',
-    duration: '2h 15m',
-    mode: 'YouTube',
-    rating: 4.5,
-  }
-];
+const MODE_LABEL = { system: 'System', youtube: 'YouTube' };
+
+const YT_LIFECYCLE_LABEL = {
+  created: 'Created',
+  ready: 'Ready',
+  testing: 'Testing',
+  live: 'Live',
+  complete: 'Complete',
+  revoked: 'Revoked',
+};
+
+function maskKey(key) {
+  if (!key) return '';
+  return key.replace(/[^-]/g, '•');
+}
 
 function formatDateTime(value) {
   if (!value) return 'Not set';
@@ -78,6 +42,28 @@ function formatDateTime(value) {
   const h12 = hours % 12 || 12;
   const mm = String(minutes).padStart(2, '0');
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${h12}:${mm} ${ampm}`;
+}
+
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (currentPage <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  } else if (currentPage >= totalPages - 3) {
+    pages.push(1);
+    pages.push('...');
+    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    pages.push('...');
+    for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  }
+  return pages;
 }
 
 function StarRating({ rating }) {
@@ -103,28 +89,37 @@ function KebabMenu({ cls, onAction }) {
   }, []);
 
   return (
-    <div className="ear-kebab-container" ref={ref}>
+    <div className="kebab-menu-container" ref={ref}>
       <button
         type="button"
-        className="ear-kebab-button"
+        className="kebab-button"
         onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
       >
         <i className="ti ti-more-alt" />
       </button>
-      {open && (
-        <div className="ear-kebab-dropdown">
+        <div className={`kebab-dropdown${open ? ' active' : ''}`}>
           <button
             type="button"
-            className="ear-kebab-item"
+            className="kebab-dropdown-item"
             onClick={() => { setOpen(false); onAction(cls, 'attendance'); }}
           >
             <i className="ti ti-user" /> View Attendance Report
           </button>
-          
+
+          {cls.mode === 'youtube' && cls.status !== 'completed' && (
+            <button
+              type="button"
+              className="kebab-dropdown-item"
+              onClick={() => { setOpen(false); onAction(cls, 'stream-setup'); }}
+            >
+              <i className="ti ti-brand-youtube" /> Stream Setup (OBS)
+            </button>
+          )}
+
           {cls.status !== 'completed' && (
             <button
               type="button"
-              className="ear-kebab-item"
+              className="kebab-dropdown-item"
               onClick={() => { setOpen(false); onAction(cls, 'plan-activity'); }}
             >
               <i className="ti ti-layout-media-overlay" /> Plan Activity
@@ -134,10 +129,20 @@ function KebabMenu({ cls, onAction }) {
           {cls.status === 'completed' && (
             <button
               type="button"
-              className="ear-kebab-item"
+              className="kebab-dropdown-item"
               onClick={() => { setOpen(false); onAction(cls, 'feedback'); }}
             >
               <i className="ti ti-comments" /> Feedback Summary
+            </button>
+          )}
+
+          {cls.status === 'live' && (
+            <button
+              type="button"
+              className="kebab-dropdown-item"
+              onClick={() => { setOpen(false); onAction(cls, 'end'); }}
+            >
+              <i className="ti ti-player-stop" /> End Class
             </button>
           )}
 
@@ -145,14 +150,21 @@ function KebabMenu({ cls, onAction }) {
             <>
               <button
                 type="button"
-                className="ear-kebab-item"
+                className="kebab-dropdown-item"
+                onClick={() => { setOpen(false); onAction(cls, 'launch'); }}
+              >
+                <i className="ti ti-player-play" /> Go Live Now
+              </button>
+              <button
+                type="button"
+                className="kebab-dropdown-item"
                 onClick={() => { setOpen(false); onAction(cls, 'reschedule'); }}
               >
                 <i className="ti ti-calendar" /> Reschedule
               </button>
               <button
                 type="button"
-                className="ear-kebab-item ear-kebab-reset"
+                className="kebab-dropdown-item danger-action"
                 onClick={() => { setOpen(false); onAction(cls, 'cancel'); }}
               >
                 <i className="ti ti-close" /> Cancel Class
@@ -160,32 +172,38 @@ function KebabMenu({ cls, onAction }) {
             </>
           )}
         </div>
-      )}
     </div>
   );
 }
 
 export default function LiveClassSchedulerPage() {
   const navigate = useNavigate();
-  const [classesList, setClassesList] = useState(demoLiveClasses);
-  
+  const [classesList, setClassesList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [modeFilter, setModeFilter] = useState('');
-  
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
   // Create Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+  const [submitting, setSubmitting] = useState(false);
+
   // Form State
   const [formTitle, setFormTitle] = useState('');
   const [formHost, setFormHost] = useState(hostPool[0]);
   const [formParticipants, setFormParticipants] = useState(studentPool[0]);
-  const [formMode, setFormMode] = useState('System');
+  const [formMode, setFormMode] = useState('system');
   const [formIsInstant, setFormIsInstant] = useState(false);
   const [formScheduledAt, setFormScheduledAt] = useState('');
   const [formDuration, setFormDuration] = useState('1h');
-  
+
   // Toggles
   const [tglStrictModeration, setTglStrictModeration] = useState(false);
   const [tglAutoFeedback, setTglAutoFeedback] = useState(false);
@@ -194,68 +212,217 @@ export default function LiveClassSchedulerPage() {
 
   const [toasts, setToasts] = useState([]);
 
+  // OBS / YouTube stream setup panel
+  const [obsClassId, setObsClassId] = useState(null);
+  const [showStreamKey, setShowStreamKey] = useState(false);
+
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
     setToasts((current) => [...current, { id, type, title, message }]);
     window.setTimeout(() => setToasts((current) => current.filter((t) => t.id !== id)), 5000);
   }
 
+  // ── Data loading (server-side search/status/mode filters) ─────────────────
+  const loadClasses = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await listLiveClasses({
+        search: searchQuery || undefined,
+        status: statusFilter || undefined,
+        mode: modeFilter || undefined,
+      });
+      setClassesList(Array.isArray(res?.data) ? res.data : []);
+    } catch (err) {
+      const e = liveClassError(err);
+      setLoadError(e.message);
+      setClassesList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery, statusFilter, modeFilter]);
+
+  // Debounce so typing in the search box doesn't fire a request per keystroke.
+  useEffect(() => {
+    const t = window.setTimeout(loadClasses, 250);
+    return () => window.clearTimeout(t);
+  }, [loadClasses]);
+
+  function replaceClass(updated) {
+    if (!updated) return;
+    setClassesList((current) => current.map((c) => (c.id === updated.id ? updated : c)));
+  }
+
+  // Derive the live class object the OBS panel is showing from the list so it
+  // always reflects the latest provisioning state.
+  const obsClass = useMemo(
+    () => classesList.find((c) => c.id === obsClassId) || null,
+    [classesList, obsClassId],
+  );
+
+  function copyToClipboard(text, label) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('success', 'Copied', `${label} copied to clipboard.`))
+        .catch(() => showToast('error', 'Copy failed', 'Could not access the clipboard.'));
+    } else {
+      showToast('error', 'Copy failed', 'Clipboard is not available in this browser.');
+    }
+  }
+
+  // POST /{id}/youtube/provision (§6.4). force=true regenerates the broadcast.
+  async function handleProvision(cls, force = false) {
+    try {
+      const updated = await provisionYoutube(cls.id, { force });
+      replaceClass(updated);
+      showToast('success', 'Stream provisioned', 'YouTube broadcast created and bound. OBS credentials are ready.');
+    } catch (err) {
+      const e = liveClassError(err);
+      showToast('error', 'Provisioning failed', e.message);
+    }
+  }
+
+  // POST /{id}/youtube/rotate-key (§6.4) — new stream key, same broadcast.
+  async function handleRotateKey(cls) {
+    if (!cls.youtube || !cls.youtube.provisioned_at) return;
+    const ok = window.confirm('Rotate the stream key? This invalidates the key currently configured in OBS — the teacher will need to paste the new one.');
+    if (!ok) return;
+    try {
+      const updated = await rotateYoutubeKey(cls.id);
+      replaceClass(updated);
+      setShowStreamKey(true);
+      showToast('success', 'Key rotated', 'A new stream key was generated. Update OBS with the new key.');
+    } catch (err) {
+      const e = liveClassError(err);
+      showToast('error', 'Rotate failed', e.message);
+    }
+  }
+
+  function openStreamSetup(cls) {
+    setShowStreamKey(false);
+    setObsClassId(cls.id);
+  }
+
+  // Client-side guard only — list is already filtered server-side, but we keep a
+  // local pass so the count + table stay in sync between reloads.
   const filteredClasses = useMemo(() => {
     let next = [...classesList];
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      next = next.filter(c => c.title.toLowerCase().includes(q) || c.host.toLowerCase().includes(q));
-    }
-    if (statusFilter) {
-      next = next.filter(c => c.status === statusFilter);
-    }
-    if (modeFilter) {
-      next = next.filter(c => c.mode === modeFilter);
-    }
-    // Sort by scheduledAt descending by default
-    next.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
+    next.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime());
     return next;
-  }, [classesList, searchQuery, statusFilter, modeFilter]);
+  }, [classesList]);
 
-  function handleAction(cls, actionName) {
+  // ── Pagination derivations ────────────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(filteredClasses.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = filteredClasses.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endIndex = Math.min(safePage * pageSize, filteredClasses.length);
+  const paginatedClasses = useMemo(
+    () => filteredClasses.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [filteredClasses, safePage, pageSize],
+  );
+
+  // Reset to the first page whenever the filters change the result set.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, modeFilter]);
+
+  async function handleAction(cls, actionName) {
     if (actionName === 'cancel') {
-      setClassesList(current => current.filter(c => c.id !== cls.id));
-      showToast('success', 'Class Cancelled', `"${cls.title}" has been removed.`);
+      try {
+        await cancelLiveClass(cls.id);
+        setClassesList((current) => current.filter((c) => c.id !== cls.id));
+        showToast('success', 'Class Cancelled', `"${cls.title}" has been removed.`);
+      } catch (err) {
+        const e = liveClassError(err);
+        showToast('error', 'Cancel failed', e.message);
+      }
+    } else if (actionName === 'launch') {
+      try {
+        const updated = await launchLiveClass(cls.id);
+        replaceClass(updated);
+        showToast('success', 'Class Live', `"${cls.title}" is now live.`);
+      } catch (err) {
+        const e = liveClassError(err);
+        showToast('error', 'Launch failed', e.message);
+      }
+    } else if (actionName === 'end') {
+      try {
+        const updated = await endLiveClass(cls.id);
+        replaceClass(updated);
+        showToast('success', 'Class Ended', `"${cls.title}" has been completed.`);
+      } catch (err) {
+        const e = liveClassError(err);
+        showToast('error', 'End failed', e.message);
+      }
     } else if (actionName === 'feedback') {
       navigate('/feedback-summary');
     } else if (actionName === 'plan-activity') {
       navigate(`/live-class-activity-planner?classId=${cls.id}`);
+    } else if (actionName === 'stream-setup') {
+      openStreamSetup(cls);
     } else {
       showToast('info', 'Action Triggered', `Triggered ${actionName} for "${cls.title}".`);
     }
   }
 
-  function handleCreateSubmit(e) {
+  async function handleCreateSubmit(e) {
     e.preventDefault();
     if (!formTitle) return showToast('error', 'Error', 'Please enter a title.');
     if (!formIsInstant && !formScheduledAt) return showToast('error', 'Error', 'Please provide a schedule time.');
 
-    const newClass = {
-      id: `LC-${1000 + classesList.length + 1}`,
+    const isYoutube = formMode === 'youtube';
+    const body = {
       title: formTitle,
-      host: formHost,
-      participants: formParticipants,
-      scheduledAt: formIsInstant ? new Date().toISOString() : new Date(formScheduledAt).toISOString(),
-      isInstant: formIsInstant,
-      status: formIsInstant ? 'live' : 'scheduled',
-      duration: formDuration,
+      host_name: formHost,
+      participants_label: formParticipants,
       mode: formMode,
-      rating: null,
+      is_instant: formIsInstant,
+      duration_label: formDuration,
+      strict_moderation: tglStrictModeration,
+      auto_feedback: tglAutoFeedback,
+      // webinar_mode is forced true server-side for youtube; ask_to_join ignored.
+      webinar_mode: isYoutube ? true : tglWebinarMode,
+      ask_to_join: isYoutube ? false : tglAskToJoin,
     };
+    if (!formIsInstant) {
+      body.scheduled_at = new Date(formScheduledAt).toISOString();
+    }
 
-    setClassesList(current => [newClass, ...current]);
-    setShowCreateModal(false);
-    showToast('success', 'Class Created', `"${formTitle}" is successfully added.`);
-    
-    // Reset form
-    setFormTitle('');
-    setFormIsInstant(false);
-    setFormScheduledAt('');
+    setSubmitting(true);
+    try {
+      const created = await createLiveClass(body);
+      setClassesList((current) => [created, ...current.filter((c) => c.id !== created.id)]);
+      setShowCreateModal(false);
+      showToast('success', 'Class Created', `"${formTitle}" is successfully added.`);
+
+      // For YouTube classes, surface the OBS setup panel right away.
+      if (created.mode === 'youtube') {
+        setShowStreamKey(false);
+        setObsClassId(created.id);
+      }
+
+      // Reset form
+      setFormTitle('');
+      setFormIsInstant(false);
+      setFormScheduledAt('');
+    } catch (err) {
+      const e = liveClassError(err);
+      if (isYoutubeError(e.code)) {
+        // The class row exists but YouTube provisioning failed — refresh and let
+        // the admin retry via the "Provision stream" affordance.
+        setShowCreateModal(false);
+        showToast('error', 'Stream not provisioned', `${e.message} You can retry from the class's Stream Setup.`);
+        loadClasses();
+      } else if (e.fields) {
+        const first = Object.values(e.fields)[0];
+        showToast('error', 'Validation failed', first || e.message);
+      } else {
+        showToast('error', 'Could not create class', e.message);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const hasActiveFilters = searchQuery || statusFilter || modeFilter;
@@ -267,81 +434,78 @@ export default function LiveClassSchedulerPage() {
   }
 
   return (
-    <section className="courses-list-page exam-attempt-report-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '40px' }}>
+    <section className="courses-list-page exam-attempt-report-page data-table-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '40px' }}>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
-      {/* ── Page Header (Courses-list style) ── */}
-      <div className="page-header-section" style={{ background: 'white', padding: '24px', borderRadius: '18px', border: '1px solid var(--line)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* ── Standard Page Header ── */}
+      <div className="page-header-section">
         <div>
-          <h2 style={{ margin: 0, fontSize: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <i className="ti ti-video-camera" style={{ color: '#006073' }} /> Live Class Scheduler
-          </h2>
-          <p style={{ margin: '6px 0 0', color: '#59757b' }}>Schedule, manage, and monitor live streaming classes and interactive webinars.</p>
+          <h2><i className="ti ti-video-camera" /> Live Class Scheduler</h2>
+          <p>Schedule, manage, and monitor live streaming classes and interactive webinars.</p>
         </div>
-        <button type="button" className="create-course-button" style={{ background: '#006073', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }} onClick={() => setShowCreateModal(true)}>
+        <button type="button" className="page-action-button" onClick={() => setShowCreateModal(true)}>
           <i className="ti ti-video-clapper" /> Schedule Live
         </button>
       </div>
 
-      {/* ── Filters (Exam-attempt-report style) ── */}
-      <div className="ear-filter-section" style={{ background: 'white', border: '1px solid var(--line)' }}>
-        <div className="ear-filter-header">
-          <h4 className="ear-filter-title"><i className="ti ti-filter" /> Filters</h4>
-          {hasActiveFilters && (
-            <button type="button" className="ear-clear-filters-btn" onClick={clearFilters}>
-              <i className="ti ti-reload" /> Clear Filters
-            </button>
-          )}
+      {/* ── Search bar + quick filters (standard) ── */}
+      <div className="filter-bar">
+        <div className="search-wrapper">
+          <i className={`ti ${searchQuery ? 'ti-close' : 'ti-search'} search-icon`} onClick={() => setSearchQuery('')} aria-hidden="true" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by title or host..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-        <div className="ear-filter-row-1">
-          <div className="ear-filter-group">
-            <label className="ear-filter-label">Search</label>
-            <input
-              type="text"
-              className="ear-filter-input"
-              placeholder="Search by title or host..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="ear-filter-group">
-            <label className="ear-filter-label">Status</label>
-            <select
-              className="ear-filter-input"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="live">Live Now</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-          <div className="ear-filter-group">
-            <label className="ear-filter-label">Mode</label>
-            <select
-              className="ear-filter-input"
-              value={modeFilter}
-              onChange={(e) => setModeFilter(e.target.value)}
-            >
-              <option value="">All</option>
-              <option value="System">System</option>
-              <option value="YouTube">YouTube</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="ear-action-row" style={{ marginTop: '24px' }}>
-        <div className="ear-record-count">
-          <strong>{filteredClasses.length}</strong> record(s) found
-        </div>
+        <select
+          className="filter-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
+        >
+          <option value="">All Statuses</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="live">Live Now</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select
+          className="filter-select"
+          value={modeFilter}
+          onChange={(e) => setModeFilter(e.target.value)}
+          aria-label="Filter by mode"
+        >
+          <option value="">All Modes</option>
+          <option value="system">System</option>
+          <option value="youtube">YouTube</option>
+        </select>
+        {hasActiveFilters && (
+          <button type="button" className="filter-clear-btn" onClick={clearFilters}>
+            <i className="ti ti-reload" /> Clear
+          </button>
+        )}
       </div>
 
       {/* ── Table (Exam-attempt-report style) ── */}
-      {filteredClasses.length > 0 ? (
-        <div className="ear-table-container" style={{ background: 'white', border: '1px solid var(--line)' }}>
-          <table className="ear-rank-table">
+      {loading ? (
+        <div className="ear-empty-state" style={{ background: 'white', border: '1px solid var(--line)', marginTop: '24px' }}>
+          <i className="ti ti-loader" />
+          <h4>Loading live classes…</h4>
+        </div>
+      ) : loadError ? (
+        <div className="ear-empty-state" style={{ background: 'white', border: '1px solid var(--line)', marginTop: '24px' }}>
+          <i className="ti ti-alert-triangle" style={{ color: '#dc2626' }} />
+          <h4>Couldn't load live classes</h4>
+          <p>{loadError}</p>
+          <button type="button" onClick={loadClasses} style={{ marginTop: '8px', background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+            <i className="ti ti-reload" /> Retry
+          </button>
+        </div>
+      ) : filteredClasses.length > 0 ? (
+        <div className="students-table-container" style={{ background: 'white', border: '1px solid var(--line)' }}>
+          <table className="students-table">
             <thead>
               <tr>
                 <th>Title</th>
@@ -356,7 +520,7 @@ export default function LiveClassSchedulerPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredClasses.map((cls) => (
+              {paginatedClasses.map((cls) => (
                 <tr key={cls.id}>
                   <td>
                     <strong>{cls.title}</strong>
@@ -364,24 +528,43 @@ export default function LiveClassSchedulerPage() {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#006073', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
-                        {cls.host.slice(0, 2).toUpperCase()}
+                        {(cls.host_name || '??').slice(0, 2).toUpperCase()}
                       </div>
-                      {cls.host}
+                      {cls.host_name}
                     </div>
                   </td>
                   <td className="ear-td-muted">
                     <span style={{ display: 'inline-block', background: '#f4f7f8', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
-                      {cls.participants}
+                      {cls.participants_label}
                     </span>
                   </td>
                   <td>
-                    {cls.status === 'live' && <span className="ear-status-badge" style={{ background: '#fca5a5', color: '#991b1b' }}><span className="pulsing-dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', marginRight: '4px', animation: 'blink 1.5s infinite' }}></span>Live Now</span>}
-                    {cls.status === 'scheduled' && <span className="ear-status-badge ear-status-in-progress">Scheduled</span>}
-                    {cls.status === 'completed' && <span className="ear-status-badge ear-status-completed">Completed</span>}
+                    {cls.status === 'live' && <span className="status-pill status-danger"><span className="pulsing-dot" style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', marginRight: '4px', animation: 'blink 1.5s infinite' }}></span>Live Now</span>}
+                    {cls.status === 'scheduled' && <span className="status-pill status-upcoming">Scheduled</span>}
+                    {cls.status === 'completed' && <span className="status-pill status-completed">Completed</span>}
+                    {cls.status === 'cancelled' && <span className="status-pill status-inactive">Cancelled</span>}
                   </td>
-                  <td className="ear-td-datetime">{formatDateTime(cls.scheduledAt)}</td>
-                  <td>{cls.duration}</td>
-                  <td>{cls.mode}</td>
+                  <td className="ear-td-datetime">{formatDateTime(cls.scheduled_at)}</td>
+                  <td>{cls.duration_label}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {cls.mode === 'youtube' && <i className="ti ti-brand-youtube" style={{ color: '#dc2626' }} />}
+                        {MODE_LABEL[cls.mode] || cls.mode}
+                      </span>
+                      {cls.mode === 'youtube' && (
+                        cls.youtube && cls.youtube.provisioned_at ? (
+                          <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0369a1', background: '#e0f2fe', padding: '2px 6px', borderRadius: '4px' }}>
+                            {YT_LIFECYCLE_LABEL[cls.youtube.lifecycle_status] || 'Provisioned'}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>
+                            Not Provisioned
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </td>
                   <td><StarRating rating={cls.rating} /></td>
                   <td>
                     <KebabMenu cls={cls} onAction={handleAction} />
@@ -390,6 +573,42 @@ export default function LiveClassSchedulerPage() {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>Showing {startIndex} to {endIndex} of {filteredClasses.length} entries</span>
+              <select
+                className="page-size-select"
+                value={pageSize}
+                onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}
+              >
+                {[20, 50, 100, 200].map((size) => <option key={size} value={size}>Show {size}</option>)}
+              </select>
+            </div>
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={safePage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                <i className="ti ti-angle-left" /> Previous
+              </button>
+              {getPageNumbers(safePage, totalPages).map((page, index) => (
+                page === '...'
+                  ? <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                  : (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`pagination-btn${safePage === page ? ' active' : ''}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  )
+              ))}
+              <button type="button" className="pagination-btn" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+                Next <i className="ti ti-angle-right" />
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="ear-empty-state" style={{ background: 'white', border: '1px solid var(--line)', marginTop: '24px' }}>
@@ -401,26 +620,26 @@ export default function LiveClassSchedulerPage() {
 
       {/* ── Create Modal ── */}
       {showCreateModal && (
-        <div className="ear-modal-scrim" style={{ zIndex: 9999, background: 'rgba(0,0,0,0.6)' }} role="presentation" onClick={() => setShowCreateModal(false)}>
-          <div className="ear-modal" style={{ maxWidth: '560px' }} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <div className="ear-modal-header" style={{ background: '#006073', color: 'white' }}>
+        <div className="crispr-modal-backdrop active" role="presentation" onClick={() => setShowCreateModal(false)}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: '560px' }} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="crispr-modal-header">
               <h3><i className="ti ti-video-clapper" /> Schedule Live Class</h3>
-              <button type="button" className="ear-modal-close" style={{ color: 'white' }} onClick={() => setShowCreateModal(false)}>
+              <button type="button" className="crispr-modal-close" onClick={() => setShowCreateModal(false)}>
                 <i className="ti ti-close" />
               </button>
             </div>
-            <form onSubmit={handleCreateSubmit}>
-              <div className="ear-modal-body" style={{ padding: '24px' }}>
+            <form onSubmit={handleCreateSubmit} style={{ display: 'contents' }}>
+              <div className="crispr-modal-body">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Class Title <span style={{ color: '#dc2626' }}>*</span></label>
-                    <input 
-                      type="text" 
-                      className="ear-filter-input" 
+                    <input
+                      type="text"
+                      className="ear-filter-input"
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="e.g. Physics Revision Class" 
+                      placeholder="e.g. Physics Revision Class"
                       autoFocus
                       required
                     />
@@ -445,8 +664,8 @@ export default function LiveClassSchedulerPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
                       <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Streaming Mode</label>
                       <select className="ear-filter-input" value={formMode} onChange={(e) => setFormMode(e.target.value)}>
-                        <option value="System">System Integrated</option>
-                        <option value="YouTube">YouTube Live</option>
+                        <option value="system">System Integrated</option>
+                        <option value="youtube">YouTube Live</option>
                       </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
@@ -457,14 +676,14 @@ export default function LiveClassSchedulerPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}>
-                      Schedule Time 
+                      Schedule Time
                       <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'normal', cursor: 'pointer' }}>
                         <input type="checkbox" checked={formIsInstant} onChange={(e) => setFormIsInstant(e.target.checked)} /> Go Live Instantly
                       </label>
                     </label>
-                    <input 
-                      type="datetime-local" 
-                      className="ear-filter-input" 
+                    <input
+                      type="datetime-local"
+                      className="ear-filter-input"
                       value={formScheduledAt}
                       onChange={(e) => setFormScheduledAt(e.target.value)}
                       disabled={formIsInstant}
@@ -473,9 +692,9 @@ export default function LiveClassSchedulerPage() {
                   </div>
 
                   <hr style={{ borderTop: '1px solid var(--line)', borderBottom: 'none', margin: '8px 0' }} />
-                  
+
                   <div style={{ fontWeight: 'bold', fontSize: '14px' }}>Advanced Settings</div>
-                  
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={tglStrictModeration} onChange={(e) => setTglStrictModeration(e.target.checked)} style={{ marginTop: '4px' }} />
@@ -491,31 +710,128 @@ export default function LiveClassSchedulerPage() {
                         <div style={{ fontSize: '11px', color: '#59757b' }}>Trigger survey at session end.</div>
                       </div>
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={tglWebinarMode} onChange={(e) => setTglWebinarMode(e.target.checked)} style={{ marginTop: '4px' }} />
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: formMode === 'youtube' ? 'not-allowed' : 'pointer', opacity: formMode === 'youtube' ? 0.6 : 1 }}>
+                      <input type="checkbox" checked={formMode === 'youtube' ? true : tglWebinarMode} disabled={formMode === 'youtube'} onChange={(e) => setTglWebinarMode(e.target.checked)} style={{ marginTop: '4px' }} />
                       <div>
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>Webinar Mode</div>
-                        <div style={{ fontSize: '11px', color: '#59757b' }}>One-way video streaming.</div>
+                        <div style={{ fontSize: '11px', color: '#59757b' }}>{formMode === 'youtube' ? 'Always on for YouTube Live (one-way).' : 'One-way video streaming.'}</div>
                       </div>
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={tglAskToJoin} onChange={(e) => setTglAskToJoin(e.target.checked)} style={{ marginTop: '4px' }} />
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: formMode === 'youtube' ? 'not-allowed' : 'pointer', opacity: formMode === 'youtube' ? 0.6 : 1 }}>
+                      <input type="checkbox" checked={formMode === 'youtube' ? false : tglAskToJoin} disabled={formMode === 'youtube'} onChange={(e) => setTglAskToJoin(e.target.checked)} style={{ marginTop: '4px' }} />
                       <div>
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>Ask To Join</div>
-                        <div style={{ fontSize: '11px', color: '#59757b' }}>Host manual admission.</div>
+                        <div style={{ fontSize: '11px', color: '#59757b' }}>{formMode === 'youtube' ? 'Not applicable to YouTube Live.' : 'Host manual admission.'}</div>
                       </div>
                     </label>
                   </div>
 
                 </div>
               </div>
-              <div className="ear-modal-footer">
-                <button type="button" className="ear-btn-default" onClick={() => setShowCreateModal(false)}>Cancel</button>
-                <button type="submit" style={{ background: '#006073', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                  {formIsInstant ? 'Launch Live Now' : 'Schedule Class'}
+              <div className="crispr-modal-footer">
+                <button type="button" className="btn btn-default" onClick={() => setShowCreateModal(false)}>
+                  <i className="ti ti-close" /> Cancel
+                </button>
+                <button type="submit" className="btn btn-success" disabled={submitting}>
+                  <i className="ti ti-check" /> {submitting ? 'Saving…' : (formIsInstant ? 'Launch Live Now' : 'Schedule Class')}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── OBS / YouTube Stream Setup Panel ── */}
+      {obsClass && (
+        <div className="ear-modal-scrim" style={{ zIndex: 9999, background: 'rgba(0,0,0,0.6)' }} role="presentation" onClick={() => setObsClassId(null)}>
+          <div className="ear-modal" style={{ maxWidth: '620px' }} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="ear-modal-header" style={{ background: '#1f2937', color: 'white' }}>
+              <h3><i className="ti ti-brand-youtube" style={{ color: '#f87171' }} /> Stream Setup &mdash; {obsClass.title}</h3>
+              <button type="button" className="ear-modal-close" style={{ color: 'white' }} onClick={() => setObsClassId(null)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="ear-modal-body" style={{ padding: '24px' }}>
+              {(!obsClass.youtube || !obsClass.youtube.provisioned_at) ? (
+                /* Not provisioned → Provision / Retry (§6.4) */
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center', padding: '20px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>
+                    <i className="ti ti-alert-triangle" />
+                  </div>
+                  <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Stream not provisioned</div>
+                  <div style={{ fontSize: '13px', color: '#59757b', maxWidth: '380px' }}>
+                    This YouTube class has no broadcast yet. Provision the stream to generate the OBS server URL and stream key the teacher needs.
+                  </div>
+                  <button type="button" onClick={() => handleProvision(obsClass)} style={{ background: '#006073', color: 'white', border: 'none', padding: '12px 22px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="ti ti-bolt" /> Provision Stream
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Status row */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
+                    <span style={{ fontSize: '13px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ti ti-circle-check" /> Provisioned &middot; Privacy: <strong>Unlisted</strong>
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0369a1', background: '#e0f2fe', padding: '3px 8px', borderRadius: '4px' }}>
+                      {YT_LIFECYCLE_LABEL[obsClass.youtube.lifecycle_status] || 'Ready'}
+                    </span>
+                  </div>
+
+                  <div style={{ fontWeight: 'bold', fontSize: '13px', color: '#1f2937' }}>OBS Studio configuration</div>
+
+                  {/* RTMP server URL */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '12px', color: '#59757b' }}>Server (RTMP URL)</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input readOnly value={obsClass.youtube.rtmp_url || ''} style={{ flex: 1, border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '13px', background: '#f8fafc' }} />
+                      <button type="button" onClick={() => copyToClipboard(obsClass.youtube.rtmp_url, 'RTMP URL')} style={{ border: '1px solid var(--line)', background: 'white', padding: '0 14px', borderRadius: '8px', cursor: 'pointer' }} title="Copy"><i className="ti ti-copy" /></button>
+                    </div>
+                  </div>
+
+                  {/* Stream key (masked) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '12px', color: '#59757b' }}>Stream Key <span style={{ color: '#dc2626' }}>(secret)</span></label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input readOnly value={showStreamKey ? (obsClass.youtube.stream_key || '') : maskKey(obsClass.youtube.stream_key)} style={{ flex: 1, border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '13px', background: '#f8fafc', letterSpacing: showStreamKey ? 'normal' : '1px' }} />
+                      <button type="button" onClick={() => setShowStreamKey((v) => !v)} style={{ border: '1px solid var(--line)', background: 'white', padding: '0 14px', borderRadius: '8px', cursor: 'pointer' }} title={showStreamKey ? 'Hide' : 'Reveal'}>
+                        <i className={showStreamKey ? 'ti ti-eye-off' : 'ti ti-eye'} />
+                      </button>
+                      <button type="button" onClick={() => copyToClipboard(obsClass.youtube.stream_key, 'Stream key')} style={{ border: '1px solid var(--line)', background: 'white', padding: '0 14px', borderRadius: '8px', cursor: 'pointer' }} title="Copy"><i className="ti ti-copy" /></button>
+                    </div>
+                  </div>
+
+                  <hr style={{ borderTop: '1px solid var(--line)', borderBottom: 'none', margin: '4px 0' }} />
+
+                  {/* Watch / embed */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontWeight: 'bold', fontSize: '12px', color: '#59757b' }}>Embed URL (students)</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input readOnly value={obsClass.youtube.embed_url || ''} style={{ flex: 1, border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px', fontFamily: 'monospace', fontSize: '13px', background: '#f8fafc' }} />
+                      <button type="button" onClick={() => copyToClipboard(obsClass.youtube.embed_url, 'Embed URL')} style={{ border: '1px solid var(--line)', background: 'white', padding: '0 14px', borderRadius: '8px', cursor: 'pointer' }} title="Copy"><i className="ti ti-copy" /></button>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '11px', color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 12px', display: 'flex', gap: '8px' }}>
+                    <i className="ti ti-shield-lock" style={{ marginTop: '1px' }} />
+                    <span>The RTMP URL and stream key are secrets &mdash; share them only with the host. The Unlisted broadcast is link-accessible, so never expose the embed URL outside the class audience.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="ear-modal-footer">
+              {obsClass.youtube && obsClass.youtube.provisioned_at && (
+                <>
+                  <button type="button" className="ear-btn-default" onClick={() => handleRotateKey(obsClass)}>
+                    <i className="ti ti-refresh" /> Rotate Key
+                  </button>
+                  <button type="button" className="ear-btn-default" onClick={() => { setShowStreamKey(false); handleProvision(obsClass, true); }}>
+                    <i className="ti ti-reload" /> Re-provision
+                  </button>
+                </>
+              )}
+              <button type="button" style={{ background: '#006073', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => setObsClassId(null)}>Done</button>
+            </div>
           </div>
         </div>
       )}

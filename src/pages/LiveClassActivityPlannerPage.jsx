@@ -1,33 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import {
+  listActivities,
+  createActivity,
+  deleteActivity,
+  liveClassError,
+} from '../lib/liveClassApi';
 
 export default function LiveClassActivityPlannerPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const classId = params.get('classId') || 'LC-Unknown';
+  const classId = params.get('classId') || '';
 
   const [toasts, setToasts] = useState([]);
-  const [activities, setActivities] = useState([
-    {
-      id: 'ACT-01',
-      type: 'poll',
-      title: 'How well do you understand thermodynamics?',
-      options: ['Very well', 'Somewhat', 'Not really', 'Completely lost'],
-      status: 'draft',
-    },
-    {
-      id: 'ACT-02',
-      type: 'quiz',
-      title: 'Mid-session Checkpoint Quiz',
-      duration: 10,
-      questions: [
-        { q: 'What is the First Law of Thermodynamics?', options: ['Conservation of Energy', 'Entropy increases', 'F=ma', 'E=mc2'], correct: 0 },
-      ],
-      status: 'draft',
-    }
-  ]);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const [showPollModal, setShowPollModal] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
@@ -50,23 +41,53 @@ export default function LiveClassActivityPlannerPage() {
     window.setTimeout(() => setToasts((current) => current.filter((t) => t.id !== id)), 5000);
   }
 
-  function handleSavePoll() {
+  const loadActivities = useCallback(async () => {
+    if (!classId) {
+      setLoadError('No class selected.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const rows = await listActivities(classId);
+      setActivities(Array.isArray(rows) ? rows : []);
+    } catch (err) {
+      const e = liveClassError(err);
+      setLoadError(e.message);
+      setActivities([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [classId]);
+
+  useEffect(() => { loadActivities(); }, [loadActivities]);
+
+  async function handleSavePoll() {
     if (!pollQuestion.trim()) return showToast('error', 'Error', 'Poll question cannot be empty.');
     if (pollOptions.some(opt => !opt.trim())) return showToast('error', 'Error', 'All options must be filled.');
     if (pollOptions.length < 2) return showToast('error', 'Error', 'A poll requires at least 2 options.');
 
-    const newPoll = {
-      id: `ACT-${Date.now()}`,
+    const body = {
       type: 'poll',
-      title: pollQuestion,
-      options: pollOptions,
-      status: 'draft',
+      title: pollQuestion.trim(),
+      payload: { options: pollOptions.map((o) => o.trim()) },
+      position: activities.length,
     };
-    setActivities(curr => [...curr, newPoll]);
-    setShowPollModal(false);
-    showToast('success', 'Draft Saved', 'Poll activity has been pre-configured successfully.');
-    setPollQuestion('');
-    setPollOptions(['', '']);
+    setSaving(true);
+    try {
+      const created = await createActivity(classId, body);
+      setActivities((curr) => [...curr, created]);
+      setShowPollModal(false);
+      showToast('success', 'Draft Saved', 'Poll activity has been pre-configured successfully.');
+      setPollQuestion('');
+      setPollOptions(['', '']);
+    } catch (err) {
+      const e = liveClassError(err);
+      showToast('error', 'Could not save poll', e.fields ? Object.values(e.fields)[0] : e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function addPollOption() {
@@ -83,7 +104,7 @@ export default function LiveClassActivityPlannerPage() {
     setPollOptions(pollOptions.filter((_, i) => i !== idx));
   }
 
-  function handleSaveQuiz() {
+  async function handleSaveQuiz() {
     if (!quizTitle.trim()) return showToast('error', 'Error', 'Quiz title cannot be empty.');
     for (let i = 0; i < quizQuestions.length; i++) {
       const q = quizQuestions[i];
@@ -91,20 +112,35 @@ export default function LiveClassActivityPlannerPage() {
       if (q.options.some(o => !o.trim())) return showToast('error', 'Error', `All 4 options must be filled for Question ${i + 1}.`);
     }
 
-    const newQuiz = {
-      id: `ACT-${Date.now()}`,
+    const body = {
       type: 'quiz',
-      title: quizTitle,
-      duration: quizDuration,
-      questions: quizQuestions,
-      status: 'draft',
+      title: quizTitle.trim(),
+      duration_minutes: Number(quizDuration),
+      payload: {
+        questions: quizQuestions.map((q) => ({
+          question: q.question.trim(),
+          image_url: q.imageUrl.trim() || null,
+          options: q.options.map((o) => o.trim()),
+          correct_index: q.correctIndex,
+        })),
+      },
+      position: activities.length,
     };
-    setActivities(curr => [...curr, newQuiz]);
-    setShowQuizModal(false);
-    showToast('success', 'Draft Saved', 'Quiz activity has been pre-configured successfully.');
-    setQuizTitle('');
-    setQuizDuration(10);
-    setQuizQuestions([{ question: '', imageUrl: '', options: ['', '', '', ''], correctIndex: 0 }]);
+    setSaving(true);
+    try {
+      const created = await createActivity(classId, body);
+      setActivities((curr) => [...curr, created]);
+      setShowQuizModal(false);
+      showToast('success', 'Draft Saved', 'Quiz activity has been pre-configured successfully.');
+      setQuizTitle('');
+      setQuizDuration(10);
+      setQuizQuestions([{ question: '', imageUrl: '', options: ['', '', '', ''], correctIndex: 0 }]);
+    } catch (err) {
+      const e = liveClassError(err);
+      showToast('error', 'Could not save quiz', e.fields ? Object.values(e.fields)[0] : e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function addQuizQuestion() {
@@ -130,41 +166,56 @@ export default function LiveClassActivityPlannerPage() {
     setQuizQuestions(next);
   }
 
+  async function handleDeleteActivity(act) {
+    try {
+      await deleteActivity(classId, act.id);
+      setActivities((curr) => curr.filter((a) => a.id !== act.id));
+      showToast('success', 'Deleted', 'Activity removed.');
+    } catch (err) {
+      const e = liveClassError(err);
+      showToast('error', 'Delete failed', e.message);
+    }
+  }
+
   function renderActivityCard(act) {
     const isPoll = act.type === 'poll';
+    const options = act.payload?.options || [];
+    const questions = act.payload?.questions || [];
     return (
       <div key={act.id} style={{
-        background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', 
+        background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px',
         display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, minWidth: '300px', maxWidth: '400px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className={`ear-status-badge ${isPoll ? 'ear-stat-indigo' : 'ear-stat-teal'}`} style={{ color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', textTransform: 'uppercase', fontWeight: 'bold' }}>
             {isPoll ? 'Poll' : 'Quiz'}
           </span>
-          <span style={{ fontSize: '12px', background: '#eef4f5', color: '#59757b', padding: '4px 8px', borderRadius: '4px' }}>Draft Configured</span>
+          <span style={{ fontSize: '12px', background: '#eef4f5', color: '#59757b', padding: '4px 8px', borderRadius: '4px' }}>
+            {act.status === 'published' ? 'Published' : act.status === 'closed' ? 'Closed' : 'Draft Configured'}
+          </span>
         </div>
-        
+
         <h4 style={{ margin: 0, color: 'var(--ink)' }}>{act.title}</h4>
-        
+
         {isPoll ? (
           <div style={{ fontSize: '13px', color: '#59757b' }}>
-            <strong>{act.options.length}</strong> options defined.
+            <strong>{options.length}</strong> options defined.
           </div>
         ) : (
           <div style={{ fontSize: '13px', color: '#59757b' }}>
-            <span style={{ marginRight: '16px' }}><i className="ti ti-timer" /> {act.duration} Minutes Timer</span>
-            <span><i className="ti ti-hand-drag" /> {act.questions.length} Questions</span>
+            <span style={{ marginRight: '16px' }}><i className="ti ti-timer" /> {act.duration_minutes} Minutes Timer</span>
+            <span><i className="ti ti-hand-drag" /> {questions.length} Questions</span>
           </div>
         )}
-        
+
         <div style={{ marginTop: 'auto', paddingTop: '12px', display: 'flex', gap: '8px' }}>
           <button type="button" onClick={() => setViewingActivity(act)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #006073', background: 'transparent', color: '#006073', cursor: 'pointer', fontSize: '13px', flex: 1 }}>
             Quick View
           </button>
-          <button type="button" onClick={() => setActivities(activities.filter(a => a.id !== act.id))} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #fca5a5', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: '13px', flex: 1 }}>
+          <button type="button" onClick={() => handleDeleteActivity(act)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #fca5a5', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: '13px', flex: 1 }}>
             Delete
           </button>
-          <button type="button" style={{ padding: '8px 12px', borderRadius: '6px', border: 'none', background: '#006073', color: 'white', opacity: 0.5, cursor: 'not-allowed', fontSize: '13px', flex: 1 }}>
+          <button type="button" disabled style={{ padding: '8px 12px', borderRadius: '6px', border: 'none', background: '#006073', color: 'white', opacity: 0.5, cursor: 'not-allowed', fontSize: '13px', flex: 1 }}>
             Publish
           </button>
         </div>
@@ -173,20 +224,18 @@ export default function LiveClassActivityPlannerPage() {
   }
 
   return (
-    <section className="courses-list-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '40px' }}>
+    <section className="courses-list-page data-table-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '40px' }}>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       {/* ── Page Header ── */}
-      <div className="page-header-section" style={{ background: 'white', padding: '24px', borderRadius: '18px', border: '1px solid var(--line)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <i className="ti ti-layout-media-overlay" style={{ color: '#006073' }} /> Activity Planner
-          </h2>
-          <p style={{ margin: '6px 0 0', color: '#59757b' }}>
-            Pre-configure Polls and Quizzes for <strong>{classId}</strong>. These drafts will be available in the Studio to publish during the live stream.
+          <h2><i className="ti ti-layout-media-overlay" /> Activity Planner</h2>
+          <p>
+            Pre-configure Polls and Quizzes for <strong>{classId || 'this class'}</strong>. These drafts will be available in the Studio to publish during the live stream.
           </p>
         </div>
-        <button type="button" className="ghost-button" style={{ border: '1px solid #006073', color: '#006073', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }} onClick={() => navigate(-1)}>
+        <button type="button" className="page-action-button" onClick={() => navigate(-1)}>
           <i className="ti ti-arrow-left" /> Back to Scheduler
         </button>
       </div>
@@ -210,8 +259,23 @@ export default function LiveClassActivityPlannerPage() {
 
       <div style={{ background: 'white', border: '1px solid var(--line)', borderRadius: '18px', padding: '24px' }}>
         <h3 style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ti ti-layers" /> Planned Drafts ({activities.length})</h3>
-        
-        {activities.length > 0 ? (
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#59757b' }}>
+            <i className="ti ti-loader" style={{ fontSize: '36px', opacity: 0.4, marginBottom: '12px', display: 'block' }} />
+            Loading activities…
+          </div>
+        ) : loadError ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#dc2626' }}>
+            <i className="ti ti-alert-triangle" style={{ fontSize: '36px', opacity: 0.5, marginBottom: '12px', display: 'block' }} />
+            {loadError}
+            <div>
+              <button type="button" onClick={loadActivities} style={{ marginTop: '12px', background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <i className="ti ti-reload" /> Retry
+              </button>
+            </div>
+          </div>
+        ) : activities.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
             {activities.map(renderActivityCard)}
           </div>
@@ -231,16 +295,16 @@ export default function LiveClassActivityPlannerPage() {
               <h3 style={{ margin: 0, fontSize: '18px' }}><i className="ti ti-bar-chart" /> Configure Poll</h3>
               <button type="button" onClick={() => setShowPollModal(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><i className="ti ti-close" /></button>
             </div>
-            
+
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '70vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Question Prompt <span style={{ color: '#dc2626' }}>*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={pollQuestion}
                   onChange={(e) => setPollQuestion(e.target.value)}
                   style={{ width: '100%', border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px' }}
-                  placeholder="e.g. Is everyone able to hear me clearly?" 
+                  placeholder="e.g. Is everyone able to hear me clearly?"
                   autoFocus
                 />
               </div>
@@ -249,12 +313,12 @@ export default function LiveClassActivityPlannerPage() {
                 <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Options <span style={{ color: '#dc2626' }}>*</span></label>
                 {pollOptions.map((opt, index) => (
                   <div key={`opt-${index}`} style={{ display: 'flex', gap: '8px' }}>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={opt}
                       onChange={(e) => updatePollOption(e.target.value, index)}
                       style={{ flex: 1, border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px' }}
-                      placeholder={`Option ${index + 1}`} 
+                      placeholder={`Option ${index + 1}`}
                     />
                     {pollOptions.length > 2 && (
                       <button type="button" onClick={() => removePollOption(index)} style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', padding: '0 12px', borderRadius: '8px', cursor: 'pointer' }}>
@@ -270,10 +334,10 @@ export default function LiveClassActivityPlannerPage() {
                 )}
               </div>
             </div>
-            
+
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: '#f8fafc' }}>
               <button type="button" onClick={() => setShowPollModal(false)} style={{ border: '1px solid var(--line)', background: 'white', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
-              <button type="button" onClick={handleSavePoll} style={{ border: 'none', background: '#006073', color: 'white', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Save as Draft</button>
+              <button type="button" onClick={handleSavePoll} disabled={saving} style={{ border: 'none', background: '#006073', color: 'white', padding: '10px 16px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 'bold', opacity: saving ? 0.6 : 1 }}>{saving ? 'Saving…' : 'Save as Draft'}</button>
             </div>
           </div>
         </div>
@@ -287,25 +351,25 @@ export default function LiveClassActivityPlannerPage() {
               <h3 style={{ margin: 0, fontSize: '18px' }}><i className="ti ti-hand-point-up" /> Configure Quiz</h3>
               <button type="button" onClick={() => setShowQuizModal(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><i className="ti ti-close" /></button>
             </div>
-            
+
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', maxHeight: '75vh', overflowY: 'auto' }}>
-              
+
               <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 2 }}>
                   <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Quiz Title <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={quizTitle}
                     onChange={(e) => setQuizTitle(e.target.value)}
                     style={{ width: '100%', border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px' }}
-                    placeholder="e.g. End of Session Exam" 
+                    placeholder="e.g. End of Session Exam"
                     autoFocus
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
                   <label style={{ fontWeight: 'bold', fontSize: '13px' }}>Duration (Minutes) <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={quizDuration}
                     onChange={(e) => setQuizDuration(Number(e.target.value))}
                     style={{ width: '100%', border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px' }}
@@ -328,32 +392,32 @@ export default function LiveClassActivityPlannerPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <textarea 
+                      <textarea
                         value={q.question}
                         onChange={(e) => updateQuizQuestion(qIndex, 'question', e.target.value)}
                         style={{ width: '100%', border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px', minHeight: '60px', resize: 'vertical', fontFamily: 'inherit' }}
-                        placeholder="Type the question content here..." 
+                        placeholder="Type the question content here..."
                       />
-                      <input 
-                        type="url" 
+                      <input
+                        type="url"
                         value={q.imageUrl}
                         onChange={(e) => updateQuizQuestion(qIndex, 'imageUrl', e.target.value)}
                         style={{ width: '100%', border: '1px solid var(--line)', borderRadius: '8px', padding: '10px 12px', fontSize: '13px' }}
-                        placeholder="Optional: Enter an image URL for the question context" 
+                        placeholder="Optional: Enter an image URL for the question context"
                       />
 
                       <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
                         {q.options.map((opt, oIndex) => (
                           <div key={`q${qIndex}-o${oIndex}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: q.correctIndex === oIndex ? '#ecfdf5' : 'white', border: `1px solid ${q.correctIndex === oIndex ? '#10b981' : 'var(--line)'}`, borderRadius: '8px', padding: '8px 12px' }}>
-                            <input 
-                              type="radio" 
-                              name={`correct-q${qIndex}`} 
+                            <input
+                              type="radio"
+                              name={`correct-q${qIndex}`}
                               checked={q.correctIndex === oIndex}
                               onChange={() => updateQuizQuestion(qIndex, 'correctIndex', oIndex)}
                               style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                             />
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={opt}
                               onChange={(e) => updateQuizOption(qIndex, oIndex, e.target.value)}
                               style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '14px' }}
@@ -374,10 +438,10 @@ export default function LiveClassActivityPlannerPage() {
 
               </div>
             </div>
-            
+
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: '#f8fafc' }}>
               <button type="button" onClick={() => setShowQuizModal(false)} style={{ border: '1px solid var(--line)', background: 'white', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
-              <button type="button" onClick={handleSaveQuiz} style={{ border: 'none', background: '#006073', color: 'white', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Save Quiz Draft</button>
+              <button type="button" onClick={handleSaveQuiz} disabled={saving} style={{ border: 'none', background: '#006073', color: 'white', padding: '10px 16px', borderRadius: '8px', cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 'bold', opacity: saving ? 0.6 : 1 }}>{saving ? 'Saving…' : 'Save Quiz Draft'}</button>
             </div>
           </div>
         </div>
@@ -391,20 +455,20 @@ export default function LiveClassActivityPlannerPage() {
               <h3 style={{ margin: 0, fontSize: '18px' }}><i className="ti ti-eye" /> Quick View: {viewingActivity.type === 'poll' ? 'Poll' : 'Quiz'}</h3>
               <button type="button" onClick={() => setViewingActivity(null)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><i className="ti ti-close" /></button>
             </div>
-            
+
             <div style={{ padding: '24px', maxHeight: '75vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <h4 style={{ margin: '0 0 8px 0', color: 'var(--ink)' }}>{viewingActivity.title}</h4>
                 {viewingActivity.type === 'quiz' && (
                   <div style={{ fontSize: '13px', color: '#59757b' }}>
-                    <i className="ti ti-timer" /> Duration: {viewingActivity.duration} Minutes
+                    <i className="ti ti-timer" /> Duration: {viewingActivity.duration_minutes} Minutes
                   </div>
                 )}
               </div>
 
               {viewingActivity.type === 'poll' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {viewingActivity.options.map((opt, i) => (
+                  {(viewingActivity.payload?.options || []).map((opt, i) => (
                     <div key={i} style={{ padding: '12px 16px', background: '#f8fafc', border: '1px solid var(--line)', borderRadius: '8px', fontSize: '14px' }}>
                       {opt}
                     </div>
@@ -414,18 +478,18 @@ export default function LiveClassActivityPlannerPage() {
 
               {viewingActivity.type === 'quiz' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {viewingActivity.questions.map((q, i) => {
-                    // Handle both new dynamically created format and initial mocked format gracefully
-                    const content = q.question || q.q; 
-                    const correctIdx = q.correctIndex !== undefined ? q.correctIndex : q.correct;
-                    
+                  {(viewingActivity.payload?.questions || []).map((q, i) => {
+                    const content = q.question;
+                    const correctIdx = q.correct_index;
+                    const imageUrl = q.image_url;
+
                     return (
                       <div key={i} style={{ border: '1px solid var(--line)', borderRadius: '12px', padding: '16px' }}>
                         <div style={{ fontWeight: 'bold', marginBottom: '12px', color: '#006073' }}>Question {i + 1}</div>
                         <div style={{ marginBottom: '16px', whiteSpace: 'pre-wrap', fontSize: '14px' }}>{content}</div>
-                        {q.imageUrl && (
+                        {imageUrl && (
                           <div style={{ marginBottom: '16px' }}>
-                            <img src={q.imageUrl} alt={`Img ${i}`} style={{ maxWidth: '100%', borderRadius: '8px', border: '1px solid var(--line)' }} />
+                            <img src={imageUrl} alt={`Img ${i}`} style={{ maxWidth: '100%', borderRadius: '8px', border: '1px solid var(--line)' }} />
                           </div>
                         )}
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px' }}>

@@ -1,6 +1,28 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ToastRegion from '../components/ToastRegion';
 
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (currentPage <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  } else if (currentPage >= totalPages - 3) {
+    pages.push(1);
+    pages.push('...');
+    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    pages.push('...');
+    for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  }
+  return pages;
+}
+
 const ledgerMock = {
   'I-001': [
     { id: 1, date: '2 April 2026', type: 'WORK', description: 'Chapter 2', hours: '5 hours', amount: 5000 },
@@ -28,7 +50,7 @@ export default function InstructorPayoutsPage() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(20);
 
   // Modals
   const [ledgerModalOpen, setLedgerModalOpen] = useState(false);
@@ -169,104 +191,110 @@ export default function InstructorPayoutsPage() {
   };
 
   return (
-    <div className="container-fluid" style={{ paddingTop: '1%' }}>
+    <div className="container-fluid data-table-page" style={{ paddingTop: '1%' }}>
         <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
-        {/* Header matching standard pattern */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '20px', background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)', borderRadius: '8px', color: 'white' }}>
+        {/* ── Standard Page Header ── */}
+        <div className="page-header-section">
             <div>
-               <h2 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: 600, color: 'white' }}>
-                   <i className="ti ti-time" style={{ marginRight: '10px' }}></i> Instructor Payouts
-               </h2>
-               <p style={{ margin: 0, opacity: 0.9, fontSize: '14px', color: 'rgba(255, 255, 255, 0.9)' }}>Track payments made and pending settlements for instructors.</p>
+               <h2><i className="ti ti-time" /> Instructor Payouts</h2>
+               <p>Track payments made and pending settlements for instructors.</p>
             </div>
         </div>
 
-        {/* List Section */}
-        <div style={{ background: 'white', borderRadius: '8px', padding: '25px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', marginBottom: '25px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#006073', margin: 0 }}>Payout Summary Directory</h2>
-                
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ position: 'relative' }}>
-                       <input type="text" style={{ padding: '8px 12px 8px 35px', borderRadius: '6px', border: '1px solid #d1d5db', width: '250px', fontSize: '14px' }} placeholder="Search instructor..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
-                       <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#9ca3af' }}></i>
-                    </div>
-                </div>
+        {/* ── Search bar (standard) ── */}
+        <div className="filter-bar">
+            <div className="search-wrapper">
+                <i className={`ti ${searchQuery ? 'ti-close' : 'ti-search'} search-icon`} onClick={() => setSearchQuery('')} aria-hidden="true" />
+                <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Search instructor..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                />
             </div>
+        </div>
 
-            <div style={{ width: '100%', background: 'white', borderRadius: '8px', overflow: 'visible' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', color: 'white' }}>
-                        <tr>
-                            <th style={{ padding: '15px 20px', textAlign: 'left', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Instructor</th>
-                            <th style={{ padding: '15px 20px', textAlign: 'left', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Earnings</th>
-                            <th style={{ padding: '15px 20px', textAlign: 'left', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Paid</th>
-                            <th style={{ padding: '15px 20px', textAlign: 'left', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Balance Due</th>
-                            <th style={{ padding: '15px 20px', textAlign: 'center', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', width: '100px' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedSummaries.map((inst, index) => (
-                            <tr key={inst.id} style={{ borderBottom: '1px solid #e9ecef', transition: 'all 0.2s ease' }} className="po-tr-hover">
-                                <td style={{ padding: '18px 20px', verticalAlign: 'middle', color: '#4b5563' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#e0f2f1', color: '#006073', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '16px' }}>
-                                             {inst.name.charAt(4)}
-                                        </div>
-                                        <div>
-                                            <strong style={{ display: 'block', fontSize: '15px', color: '#2c3e50' }}>{inst.name}</strong>
-                                            <span style={{ fontSize: '12px', color: '#6b7280' }}>{inst.specialization}</span>
-                                        </div>
+        {/* ── Table ── */}
+        <div className="students-table-container">
+            <table className="students-table">
+                <thead>
+                    <tr>
+                        <th>Instructor</th>
+                        <th>Total Earnings</th>
+                        <th>Total Paid</th>
+                        <th>Balance Due</th>
+                        <th style={{ textAlign: 'center', width: '100px' }}>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {paginatedSummaries.map((inst, index) => (
+                        <tr key={inst.id}>
+                            <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#e0f2f1', color: '#006073', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '16px' }}>
+                                         {inst.name.charAt(4)}
                                     </div>
-                                </td>
-                                <td style={{ padding: '18px 20px', verticalAlign: 'middle', fontWeight: 500, color: '#4b5563' }}>Rs. {inst.totalEarnings.toLocaleString()}</td>
-                                <td style={{ padding: '18px 20px', verticalAlign: 'middle', fontWeight: 500, color: '#10b981' }}>Rs. {inst.totalPaid.toLocaleString()}</td>
-                                <td style={{ padding: '18px 20px', verticalAlign: 'middle' }}>
-                                    <span style={{ display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, background: inst.balanceDue > 0 ? '#fff3cd' : '#d4edda', color: inst.balanceDue > 0 ? '#856404' : '#155724' }}>
-                                        Rs. {inst.balanceDue.toLocaleString()} {inst.balanceDue > 0 ? 'due' : 'cleared'}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '18px 20px', verticalAlign: 'middle', textAlign: 'center', position: 'relative' }}>
-                                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#6b7280' }} onClick={(e) => handleKebabClick(e, index)}>
-                                        <i className="ti ti-more-alt" style={{ fontSize: '20px' }}></i>
+                                    <div>
+                                        <strong style={{ display: 'block', fontSize: '15px', color: '#2c3e50' }}>{inst.name}</strong>
+                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{inst.specialization}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style={{ fontWeight: 500, color: '#4b5563' }}>Rs. {inst.totalEarnings.toLocaleString()}</td>
+                            <td style={{ fontWeight: 500, color: '#10b981' }}>Rs. {inst.totalPaid.toLocaleString()}</td>
+                            <td>
+                                <span style={{ display: 'inline-block', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, background: inst.balanceDue > 0 ? '#fff3cd' : '#d4edda', color: inst.balanceDue > 0 ? '#856404' : '#155724' }}>
+                                    Rs. {inst.balanceDue.toLocaleString()} {inst.balanceDue > 0 ? 'due' : 'cleared'}
+                                </span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                                <div className="kebab-menu-container">
+                                    <button type="button" className="kebab-button" onClick={(e) => handleKebabClick(e, index)}>
+                                        <i className="ti ti-more-alt" />
                                     </button>
-                                    
-                                    {/* Dropdown menu */}
-                                    {activeDropdown === index && (
-                                        <div style={{ position: 'absolute', right: '40px', top: '25px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', zIndex: 100, minWidth: '160px', padding: '5px 0' }} onClick={e => e.stopPropagation()}>
-                                            <div style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', color: '#4b5563' }} className="po-dp-hover" onClick={() => openLedgerModal(inst.id)}>
-                                                <i className="ti ti-eye"></i> View Details
-                                            </div>
-                                            <div style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981' }} className="po-dp-hover" onClick={() => openPaymentModal(inst.id)}>
-                                                <i className="ti ti-money"></i> Record Payment
-                                            </div>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        {paginatedSummaries.length === 0 && (
-                            <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No instructors found matching query.</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                    <div className={`kebab-dropdown${activeDropdown === index ? ' active' : ''}`} onClick={e => e.stopPropagation()}>
+                                        <button type="button" className="kebab-dropdown-item" onClick={() => openLedgerModal(inst.id)}>
+                                            <i className="ti ti-eye" /> View Details
+                                        </button>
+                                        <button type="button" className="kebab-dropdown-item" onClick={() => openPaymentModal(inst.id)}>
+                                            <i className="ti ti-money" /> Record Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                    {paginatedSummaries.length === 0 && (
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No instructors found matching query.</td></tr>
+                    )}
+                </tbody>
+            </table>
 
-            {/* Pagination matched to candidate profiles */}
+            {/* Pagination */}
             {filteredSummaries.length > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8f9fa', borderTop: '1px solid #e9ecef', borderRadius: '0 0 8px 8px', marginTop: '15px' }}>
-                    <div style={{ fontSize: '13px', color: '#6c757d' }}>
-                        Showing {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, filteredSummaries.length)} of {filteredSummaries.length} entries
+                <div className="pagination-container">
+                    <div className="pagination-info">
+                        <span>Showing {(currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, filteredSummaries.length)} of {filteredSummaries.length} entries</span>
+                        <select
+                            className="page-size-select"
+                            value={rowsPerPage}
+                            onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                        >
+                            {[10, 20, 50, 100].map((size) => <option key={size} value={size}>Show {size}</option>)}
+                        </select>
                     </div>
-                    <div style={{ display: 'flex', gap: '5px' }}>
-                        <button style={{ padding: '5px 12px', background: 'white', border: '1px solid #dee2e6', borderRadius: '4px', color: '#495057', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: currentPage === 1 ? 0.5 : 1 }} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                    <div className="pagination-controls">
+                        <button type="button" className="pagination-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                             <i className="ti ti-angle-left"></i> Previous
                         </button>
-                        {Array.from({ length: totalPages }).map((_, idx) => (
-                           <button key={idx} style={{ padding: '5px 12px', background: currentPage === idx + 1 ? '#006073' : 'white', border: '1px solid', borderColor: currentPage === idx + 1 ? '#006073' : '#dee2e6', borderRadius: '4px', color: currentPage === idx + 1 ? 'white' : '#495057', cursor: 'pointer', fontSize: '13px', fontWeight: currentPage === idx + 1 ? 600 : 400 }} onClick={() => setCurrentPage(idx + 1)}>{idx + 1}</button>
+                        {getPageNumbers(currentPage, totalPages).map((page, idx) => (
+                            page === '...'
+                                ? <span key={`ellipsis-${idx}`} className="pagination-ellipsis">...</span>
+                                : <button key={page} type="button" className={`pagination-btn ${currentPage === page ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
                         ))}
-                        <button style={{ padding: '5px 12px', background: 'white', border: '1px solid #dee2e6', borderRadius: '4px', color: '#495057', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: currentPage >= totalPages ? 0.5 : 1 }} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+                        <button type="button" className="pagination-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
                             Next <i className="ti ti-angle-right"></i>
                         </button>
                     </div>
@@ -278,14 +306,14 @@ export default function InstructorPayoutsPage() {
         {ledgerModalOpen && selectedInstructorInfo && (
             <div className="crispr-modal-backdrop active" onClick={() => setLedgerModalOpen(false)}>
                 <div className="crispr-modal-dialog" style={{ maxWidth: '900px', width: '100%' }} onClick={e => e.stopPropagation()}>
-                    <div className="crispr-modal-header" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#1e293b' }}>
-                        <h3 style={{ margin: 0, fontWeight: 700 }}><i className="ti ti-agenda" style={{ color: '#006073' }}></i> Payout Ledger: {selectedInstructorInfo.name}</h3>
-                        <button className="crispr-modal-close" style={{ color: '#64748b' }} onClick={() => setLedgerModalOpen(false)}>
+                    <div className="crispr-modal-header">
+                        <h3><i className="ti ti-agenda" /> Payout Ledger: {selectedInstructorInfo.name}</h3>
+                        <button type="button" className="crispr-modal-close" onClick={() => setLedgerModalOpen(false)}>
                             <i className="ti ti-close"></i>
                         </button>
                     </div>
-                    
-                    <div className="crispr-modal-body" style={{ padding: '20px', background: '#f1f5f9' }}>
+
+                    <div className="crispr-modal-body">
                         <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
                              <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                                  <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Total Earnings</div>
@@ -301,30 +329,30 @@ export default function InstructorPayoutsPage() {
                              </div>
                         </div>
 
-                        <div style={{ background: 'white', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <div className="students-table-container">
+                            <table className="students-table">
+                                <thead>
                                     <tr>
-                                        <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Date</th>
-                                        <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Description</th>
-                                        <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Hours</th>
-                                        <th style={{ padding: '12px 15px', textAlign: 'right', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Amount</th>
-                                        <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '13px', color: '#475569', fontWeight: 600 }}>Status</th>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Hours</th>
+                                        <th style={{ textAlign: 'right' }}>Amount</th>
+                                        <th style={{ textAlign: 'center' }}>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {selectedLedgerWithFifo.map((r, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9', background: r.type === 'PAYMENT' ? '#f0fdfa' : 'white' }}>
-                                            <td style={{ padding: '12px 15px', fontSize: '14px', color: '#334155' }}>{r.date}</td>
-                                            <td style={{ padding: '12px 15px', fontSize: '14px', color: r.type === 'PAYMENT' ? '#0f766e' : '#334155', fontWeight: r.type === 'PAYMENT' ? 600 : 400 }}>
+                                        <tr key={i} style={{ background: r.type === 'PAYMENT' ? '#f0fdfa' : 'white' }}>
+                                            <td style={{ color: '#334155' }}>{r.date}</td>
+                                            <td style={{ color: r.type === 'PAYMENT' ? '#0f766e' : '#334155', fontWeight: r.type === 'PAYMENT' ? 600 : 400 }}>
                                                  {r.type === 'PAYMENT' && <i className="ti ti-money" style={{ marginRight: '5px' }}></i>}
                                                  {r.description}
                                             </td>
-                                            <td style={{ padding: '12px 15px', fontSize: '14px', color: '#64748b' }}>{r.hours}</td>
-                                            <td style={{ padding: '12px 15px', fontSize: '14px', color: '#0f172a', textAlign: 'right', fontWeight: 500 }}>
+                                            <td style={{ color: '#64748b' }}>{r.hours}</td>
+                                            <td style={{ color: '#0f172a', textAlign: 'right', fontWeight: 500 }}>
                                                 {r.amount > 0 ? `+ Rs. ${r.amount}` : `- Rs. ${Math.abs(r.amount)}`}
                                             </td>
-                                            <td style={{ padding: '12px 15px', textAlign: 'center' }}>
+                                            <td style={{ textAlign: 'center' }}>
                                                 {r.type === 'WORK' && r.status && (
                                                     <span style={{ 
                                                         display: 'inline-block', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
@@ -348,7 +376,7 @@ export default function InstructorPayoutsPage() {
                     </div>
                     <div className="crispr-modal-footer">
                         <button type="button" className="btn btn-default" onClick={() => setLedgerModalOpen(false)}>Close Ledger</button>
-                        <button type="button" style={{ background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setLedgerModalOpen(false); openPaymentModal(selectedInstructorInfo.id); }}>
+                        <button type="button" className="btn btn-success" onClick={() => { setLedgerModalOpen(false); openPaymentModal(selectedInstructorInfo.id); }}>
                              <i className="ti ti-plus"></i> Record New Payment
                         </button>
                     </div>

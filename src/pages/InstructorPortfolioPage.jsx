@@ -1,16 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { instructorsDemo } from '../data/adminRemainingDemo';
 
-function getInitials(name) {
-  if (!name) return '??';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 function getPageNumbers(currentPage, totalPages) {
   const pages = [];
@@ -437,7 +432,7 @@ export default function InstructorPortfolioPage() {
   const endIndex = Math.min(safeCurrentPage * pageSize, totalInstructors);
 
   return (
-    <section className="instructor-portfolio-page">
+    <section className="instructor-portfolio-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -541,11 +536,12 @@ export default function InstructorPortfolioPage() {
                   <tr key={instructor.id}>
                     <td>
                       <div className="profile-cell">
-                        {instructor.photo ? (
-                          <img src={instructor.photo} alt={instructor.name} className="avatar" />
-                        ) : (
-                          <div className="avatar-placeholder">{getInitials(instructor.name)}</div>
-                        )}
+                        <Avatar
+                          src={instructor.photo}
+                          name={instructor.name}
+                          className="avatar"
+                          placeholderClassName="avatar-placeholder"
+                        />
                         <div>
                           <div className="profile-name">{instructor.name}</div>
                         </div>
@@ -633,15 +629,15 @@ export default function InstructorPortfolioPage() {
         </div>
       ) : null}
 
-      <div className={`instructor-modal-backdrop ${editModalOpen ? 'active' : ''}`} onClick={() => setEditModalOpen(false)}>
-        <div className="instructor-modal-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="instructor-modal-header">
+      <div className={`legacy-modal-backdrop ${editModalOpen ? 'active' : ''}`} onClick={() => setEditModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
             <h3><i className="ti ti-id-badge" /> {editMode ? 'Edit' : 'Add New'} Instructor</h3>
-            <button type="button" className="instructor-modal-close" onClick={() => setEditModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setEditModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="instructor-modal-body">
+          <div className="legacy-modal-body">
             <div className="mentor-form-section">
               <div className="mentor-form-title">Basic Information</div>
               <div className="mentor-form-group">
@@ -697,7 +693,7 @@ export default function InstructorPortfolioPage() {
               </div>
             </div>
           </div>
-          <div className="instructor-modal-footer">
+          <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
             <button type="button" className="legacy-btn legacy-btn-success" onClick={saveInstructor}>
               <i className="ti ti-check" /> {editMode ? 'Update' : 'Create'} Instructor
@@ -706,19 +702,19 @@ export default function InstructorPortfolioPage() {
         </div>
       </div>
 
-      <div className={`instructor-modal-backdrop ${deleteModalOpen ? 'active' : ''}`} onClick={() => setDeleteModalOpen(false)}>
-        <div className="instructor-delete-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="instructor-delete-header">
+      <div className={`legacy-modal-backdrop ${deleteModalOpen ? 'active' : ''}`} onClick={() => setDeleteModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header legacy-danger-header">
             <h3><i className="ti ti-alert" /> Confirm Delete</h3>
-            <button type="button" className="instructor-modal-close" onClick={() => setDeleteModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setDeleteModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="instructor-modal-body">
+          <div className="legacy-modal-body">
             <p className="legacy-confirm-copy">Are you sure you want to delete <strong>{instructorToDelete?.name}</strong>?</p>
             <p className="instructor-delete-note">This action cannot be undone. All course chapter assignments for this instructor will need to be reassigned.</p>
           </div>
-          <div className="instructor-modal-footer">
+          <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setDeleteModalOpen(false)}>Cancel</button>
             <button type="button" className="legacy-btn legacy-btn-danger" onClick={deleteInstructor}>
               <i className="ti ti-trash" /> Delete Instructor
@@ -727,11 +723,11 @@ export default function InstructorPortfolioPage() {
         </div>
       </div>
 
-      <div className={`instructor-modal-backdrop ${viewModalOpen ? 'active' : ''}`} onClick={() => setViewModalOpen(false)}>
-        <div className="instructor-view-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="instructor-modal-header">
+      <div className={`legacy-modal-backdrop ${viewModalOpen ? 'active' : ''}`} onClick={() => setViewModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
             <h3><i className="ti ti-user" /> Instructor Profile</h3>
-            <button type="button" className="instructor-modal-close" onClick={() => setViewModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setViewModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
@@ -745,11 +741,12 @@ export default function InstructorPortfolioPage() {
               <>
                 <div className="mentor-profile-hero">
                   <div className="mentor-profile-avatar-shell">
-                    {selectedInstructor.photo ? (
-                      <img src={selectedInstructor.photo} alt={selectedInstructor.name} className="mentor-profile-avatar" />
-                    ) : (
-                      <div className="mentor-profile-avatar placeholder">{getInitials(selectedInstructor.name)}</div>
-                    )}
+                    <Avatar
+                      src={selectedInstructor.photo}
+                      name={selectedInstructor.name}
+                      className="mentor-profile-avatar"
+                      placeholderClassName="mentor-profile-avatar placeholder"
+                    />
                     {selectedInstructor.active ? <div className="mentor-profile-active-dot" /> : null}
                   </div>
                   <div className="mentor-profile-copy">
@@ -805,7 +802,7 @@ export default function InstructorPortfolioPage() {
               </>
             ) : null}
           </div>
-          <div className="instructor-modal-footer">
+          <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-success" onClick={editFromView}>
               <i className="ti ti-pencil" /> Edit Instructor
             </button>

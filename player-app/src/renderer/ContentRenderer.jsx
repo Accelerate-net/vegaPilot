@@ -14,9 +14,11 @@ import EmergencySlide     from './content/EmergencySlide.jsx';
 import AiHighlights       from './content/AiHighlights.jsx';
 import VideoLoop          from './content/VideoLoop.jsx';
 import Poster             from './content/Poster.jsx';
+import SimpleText         from './content/SimpleText.jsx';
 
 const RENDERERS = {
   BRANDING:         BrandingSlide,
+  SIMPLE_TEXT:      SimpleText,
   LIVE_CLASSES:     LiveClassBoard,
   FACULTY_SCHEDULE: FacultySchedule,
   ATTENDANCE:       AttendanceSummary,

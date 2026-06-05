@@ -273,7 +273,7 @@ export default function ExamListingPage() {
   const showingEnd = Math.min(safeCurrentPage * pageSize, filteredExams.length);
 
   return (
-    <section className="exam-listing-page">
+    <section className="exam-listing-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">

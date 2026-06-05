@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import LocationPicker from '../components/LocationPicker';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import {
@@ -11,6 +12,7 @@ import {
   removeInvoice,
   updateAsset,
   uploadInvoice,
+  validateInvoiceFile,
 } from '../lib/assetsApi';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
@@ -133,6 +135,7 @@ const EMPTY_DRAFT = {
   type: '',
   code: '',
   locationId: '',
+  locationLabel: '',
   valueOriginal: '',
   valueAtPurchase: '',
   yearlyDepreciationPercentage: '',
@@ -151,6 +154,7 @@ export default function AssetsPage() {
   const [valueMin, setValueMin] = useState('');
   const [valueMax, setValueMax] = useState('');
   const [locationId, setLocationId] = useState('');
+  const [locationLabel, setLocationLabel] = useState('');
 
   // Pagination / sort
   const [page, setPage] = useState(1);
@@ -174,6 +178,9 @@ export default function AssetsPage() {
 
   const [exportOpen, setExportOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Modal-based filters (search stays inline; everything else lives in the modal)
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const [activeKebabId, setActiveKebabId] = useState(null);
   const kebabRef = useRef(null);
@@ -286,6 +293,18 @@ export default function AssetsPage() {
       || !!dateFrom || !!dateTo || !!valueMin || !!valueMax || !!locationId
   ), [searchQuery, typeFilter, statusFilter, dateFrom, dateTo, valueMin, valueMax, locationId]);
 
+  // Count of filters housed in the modal (search bar is separate/inline).
+  const modalFilterCount = useMemo(() => (
+    (typeFilter ? 1 : 0)
+      + (statusFilter !== 'all' ? 1 : 0)
+      + (dateFrom ? 1 : 0)
+      + (dateTo ? 1 : 0)
+      + (valueMin ? 1 : 0)
+      + (valueMax ? 1 : 0)
+      + (locationId ? 1 : 0)
+  ), [typeFilter, statusFilter, dateFrom, dateTo, valueMin, valueMax, locationId]);
+  const hasModalFilters = modalFilterCount > 0;
+
   function clearFilters() {
     setSearchQuery('');
     setTypeFilter('');
@@ -295,6 +314,7 @@ export default function AssetsPage() {
     setValueMin('');
     setValueMax('');
     setLocationId('');
+    setLocationLabel('');
   }
 
   function toggleSort(col) {
@@ -329,6 +349,7 @@ export default function AssetsPage() {
       type: String(asset.type ?? ''),
       code: asset.code || asset.serialNumber || '',
       locationId: String(asset.locationId ?? ''),
+      locationLabel: asset.locationName || asset.location || (asset.locationId ? `#${asset.locationId}` : ''),
       valueOriginal: asset.valueOriginal != null ? String(Number(asset.valueOriginal) / PAISE_DIVISOR) : '',
       valueAtPurchase: asset.valueAtPurchase != null ? String(Number(asset.valueAtPurchase) / PAISE_DIVISOR) : '',
       yearlyDepreciationPercentage: asset.yearlyDepreciationPercentage != null ? String(asset.yearlyDepreciationPercentage) : '',
@@ -420,6 +441,12 @@ export default function AssetsPage() {
     const assetId = invoiceUploadAssetId;
     event.target.value = '';
     if (!file || !assetId) return;
+    const invalid = validateInvoiceFile(file);
+    if (invalid) {
+      showToast('error', 'Invalid file', invalid);
+      setInvoiceUploadAssetId(null);
+      return;
+    }
     setIsInvoiceBusy(true);
     try {
       await uploadInvoice(assetId, file);
@@ -528,7 +555,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <section className="quiz-listing-page">
+    <section className="quiz-listing-page data-table-page assets-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       {/* ── Page Header ── */}
@@ -538,7 +565,7 @@ export default function AssetsPage() {
           <p>Track asset inventory, valuation, depreciation and location assignment.</p>
         </div>
         <Can permission={PERMS.ASSETS_EDIT}>
-          <button type="button" className="btn btn-primary" onClick={openCreateModal}>
+          <button type="button" className="create-quiz-button" onClick={openCreateModal}>
             <i className="ti ti-plus" /> Add Asset
           </button>
         </Can>
@@ -577,148 +604,49 @@ export default function AssetsPage() {
               </div>
             </div>
           </div>
-
-          {/* By-type chip row */}
-          <div className="qar-active-filters" style={{ marginTop: 12 }}>
-            <span className="qar-active-label">By Type:</span>
-            {ASSET_TYPE_OPTIONS.map((opt) => {
-              const active = typeFilter === String(opt.value);
-              return (
-                <span
-                  key={opt.value}
-                  role="button"
-                  tabIndex={0}
-                  className={`qar-filter-badge${active ? ' active' : ''}`}
-                  onClick={() => setTypeFilter(active ? '' : String(opt.value))}
-                  onKeyDown={(e) => { if (e.key === 'Enter') setTypeFilter(active ? '' : String(opt.value)); }}
-                >
-                  <i className={`ti ${TYPE_ICONS[opt.value]}`} /> {opt.label}: {summary.byType[opt.value] || 0}
-                </span>
-              );
-            })}
-          </div>
         </div>
-
-      {/* ── Filters ── */}
-      <div className="qar-filter-card">
-        <div className="qar-filter-header">
-          <h4><i className="ti ti-filter" /> Filters</h4>
-          {hasActiveFilters && (
-            <button type="button" className="qar-clear-btn" onClick={clearFilters}>
-              <i className="ti ti-reload" /> Clear Filters
-            </button>
-          )}
-        </div>
-
-        <div className="qar-filter-row1">
-          <div className="qar-filter-field qar-filter-field-wide">
-            <label className="qar-filter-label">Search</label>
-            <input
-              type="text"
-              className="qar-input"
-              placeholder="Search by asset name, code or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-tag" /> Type</label>
-            <select className="qar-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="">All Types</option>
-              {ASSET_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-info-alt" /> Status</label>
-            <select className="qar-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">All Statuses</option>
-              <option value="active">Active only</option>
-              <option value="inactive">Inactive only</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="qar-filter-row2">
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Purchased From</label>
-            <input type="date" className="qar-input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Purchased To</label>
-            <input type="date" className="qar-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-money" /> Value Min (₹)</label>
-            <input type="number" min="0" className="qar-input" value={valueMin} onChange={(e) => setValueMin(e.target.value)} placeholder="0" />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-money" /> Value Max (₹)</label>
-            <input type="number" min="0" className="qar-input" value={valueMax} onChange={(e) => setValueMax(e.target.value)} placeholder="No limit" />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-location-pin" /> Location ID</label>
-            <input type="text" className="qar-input" value={locationId} onChange={(e) => setLocationId(e.target.value)} placeholder="optional" />
-          </div>
-        </div>
-
-        {hasActiveFilters && (
-          <div className="qar-active-filters">
-            <span className="qar-active-label">Active Filters:</span>
-            {searchQuery && (
-              <span className="qar-filter-badge">Search: &ldquo;{searchQuery}&rdquo;
-                <i className="ti ti-close" onClick={() => setSearchQuery('')} />
-              </span>
-            )}
-            {typeFilter && (
-              <span className="qar-filter-badge">Type: {ASSET_TYPES[typeFilter]}
-                <i className="ti ti-close" onClick={() => setTypeFilter('')} />
-              </span>
-            )}
-            {statusFilter !== 'all' && (
-              <span className="qar-filter-badge">Status: {statusFilter}
-                <i className="ti ti-close" onClick={() => setStatusFilter('all')} />
-              </span>
-            )}
-            {dateFrom && (
-              <span className="qar-filter-badge">From: {dateFrom}
-                <i className="ti ti-close" onClick={() => setDateFrom('')} />
-              </span>
-            )}
-            {dateTo && (
-              <span className="qar-filter-badge">To: {dateTo}
-                <i className="ti ti-close" onClick={() => setDateTo('')} />
-              </span>
-            )}
-            {valueMin && (
-              <span className="qar-filter-badge">Min: ₹{valueMin}
-                <i className="ti ti-close" onClick={() => setValueMin('')} />
-              </span>
-            )}
-            {valueMax && (
-              <span className="qar-filter-badge">Max: ₹{valueMax}
-                <i className="ti ti-close" onClick={() => setValueMax('')} />
-              </span>
-            )}
-            {locationId && (
-              <span className="qar-filter-badge">Location: {locationId}
-                <i className="ti ti-close" onClick={() => setLocationId('')} />
-              </span>
-            )}
-          </div>
-        )}
-      </div>
 
       </div>{/* /quiz-attempt-report-page inner wrapper */}
 
-      {/* ── Toolbar ── */}
-      <div className="filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ color: '#52606d', fontSize: 13 }}>
-          <strong>{total}</strong> asset(s) total · <strong>{visibleAssets.length}</strong> on this page
-        </span>
+      {/* ── Toolbar: search + modal filter trigger ── */}
+      <div className="filter-bar" style={{ marginTop: 20 }}>
+        <div className="search-wrapper">
+          <i className="ti ti-search search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by asset name, code or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <i
+              className="ti ti-close search-clear"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSearchQuery('')}
+              onKeyDown={(e) => { if (e.key === 'Enter') setSearchQuery(''); }}
+            />
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={`filter-toggle-btn${hasModalFilters ? ' active' : ''}`}
+          onClick={() => setShowFilterModal(true)}
+        >
+          <i className="ti ti-filter" /> Filters
+          {hasModalFilters && <span className="filter-count">{modalFilterCount}</span>}
+        </button>
+
+        {hasActiveFilters && (
+          <button type="button" className="filter-clear-btn" onClick={clearFilters}>
+            <i className="ti ti-close" /> Clear
+          </button>
+        )}
+
         <Can permission={PERMS.ASSETS_EXPORT}>
-          <button type="button" className="btn btn-default" disabled={visibleAssets.length === 0} onClick={() => setExportOpen(true)}>
+          <button type="button" className="assets-export-btn" style={{ marginLeft: 'auto' }} disabled={visibleAssets.length === 0} onClick={() => setExportOpen(true)}>
             <i className="ti ti-download" /> Export
           </button>
         </Can>
@@ -935,6 +863,141 @@ export default function AssetsPage() {
         </div>
       )}
 
+      {/* ── Filter Modal ────────────────────────────────────────────── */}
+      {showFilterModal && (
+        <div className="crispr-modal-backdrop active" onClick={() => setShowFilterModal(false)}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-filter" /> Filter Assets</h3>
+              <button className="crispr-modal-close" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body af-filter-body">
+              <style>{`
+                .af-filter-body { display: flex; flex-direction: column; gap: 20px; }
+                .af-fld { display: flex; flex-direction: column; gap: 8px; }
+                .af-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
+                .af-fld-label i { color: #006073; font-size: 15px; }
+                .af-segment { display: inline-flex; background: #f1f5f8; border: 1px solid #d7e1e7; border-radius: 8px; padding: 3px; gap: 3px; }
+                .af-seg-btn { border: none; background: transparent; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #52606d; cursor: pointer; transition: all .15s ease; }
+                .af-seg-btn:hover { color: #006073; }
+                .af-seg-btn.active { background: #006073; color: #fff; box-shadow: 0 1px 3px rgba(0,96,115,.3); }
+                .af-range { display: flex; align-items: center; gap: 10px; }
+                .af-range .search-input { flex: 1; min-width: 0; }
+                .af-range-sep { color: #94a3b8; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+                .af-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                .af-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 16px; border-top: 1px dashed #e2e8f0; }
+                .af-chips .qar-active-label { font-size: 13px; font-weight: 600; color: #52606d; margin-right: 2px; }
+                .af-chips .qar-filter-badge { display: inline-flex; align-items: center; gap: 6px; background: #eef6f8; color: #006073; border: 1px solid #cfe6ec; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; line-height: 1; }
+                .af-chips .qar-filter-badge i { cursor: pointer; font-size: 13px; color: #4a7a85; border-radius: 50%; transition: all .15s ease; }
+                .af-chips .qar-filter-badge i:hover { color: #fff; background: #006073; }
+              `}</style>
+
+              <div className="af-grid-2">
+                <div className="af-fld">
+                  <label className="af-fld-label"><i className="ti ti-info-alt" /> Status</label>
+                  <select className="search-input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div className="af-fld">
+                  <label className="af-fld-label"><i className="ti ti-tag" /> Asset Type</label>
+                  <select className="search-input" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                    <option value="">All Types</option>
+                    {ASSET_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="af-fld">
+                <label className="af-fld-label"><i className="ti ti-location-pin" /> Location</label>
+                <LocationPicker
+                  value={locationId || null}
+                  initialLabel={locationLabel}
+                  placeholder="Any location"
+                  onChange={(sel) => {
+                    if (sel) { setLocationId(String(sel.id)); setLocationLabel(sel.name); }
+                    else { setLocationId(''); setLocationLabel(''); }
+                  }}
+                />
+              </div>
+
+              <div className="af-fld">
+                <label className="af-fld-label"><i className="ti ti-calendar" /> Purchase Date</label>
+                <div className="af-range">
+                  <input type="date" className="search-input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                  <span className="af-range-sep">to</span>
+                  <input type="date" className="search-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="af-fld">
+                <label className="af-fld-label"><i className="ti ti-money" /> Current Value (₹)</label>
+                <div className="af-range">
+                  <input type="number" min="0" className="search-input" value={valueMin} onChange={(e) => setValueMin(e.target.value)} placeholder="Min" />
+                  <span className="af-range-sep">–</span>
+                  <input type="number" min="0" className="search-input" value={valueMax} onChange={(e) => setValueMax(e.target.value)} placeholder="Max" />
+                </div>
+              </div>
+
+              {hasModalFilters && (
+                <div className="qar-active-filters af-chips">
+                  <span className="qar-active-label">Active:</span>
+                  {typeFilter && (
+                    <span className="qar-filter-badge">Type: {ASSET_TYPES[typeFilter]}
+                      <i className="ti ti-close" onClick={() => setTypeFilter('')} />
+                    </span>
+                  )}
+                  {statusFilter !== 'all' && (
+                    <span className="qar-filter-badge">Status: {statusFilter}
+                      <i className="ti ti-close" onClick={() => setStatusFilter('all')} />
+                    </span>
+                  )}
+                  {dateFrom && (
+                    <span className="qar-filter-badge">From: {dateFrom}
+                      <i className="ti ti-close" onClick={() => setDateFrom('')} />
+                    </span>
+                  )}
+                  {dateTo && (
+                    <span className="qar-filter-badge">To: {dateTo}
+                      <i className="ti ti-close" onClick={() => setDateTo('')} />
+                    </span>
+                  )}
+                  {valueMin && (
+                    <span className="qar-filter-badge">Min: ₹{valueMin}
+                      <i className="ti ti-close" onClick={() => setValueMin('')} />
+                    </span>
+                  )}
+                  {valueMax && (
+                    <span className="qar-filter-badge">Max: ₹{valueMax}
+                      <i className="ti ti-close" onClick={() => setValueMax('')} />
+                    </span>
+                  )}
+                  {locationId && (
+                    <span className="qar-filter-badge">Location: {locationLabel || `#${locationId}`}
+                      <i className="ti ti-close" onClick={() => { setLocationId(''); setLocationLabel(''); }} />
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={clearFilters}>
+                <i className="ti ti-reload" /> Clear Filters
+              </button>
+              <button type="button" className="btn btn-success" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-check" /> Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Create / Edit Modal ─────────────────────────────────────── */}
       {formOpen && (
         <div className="crispr-modal-backdrop active" onClick={() => !isSaving && setFormOpen(false)}>
@@ -946,64 +1009,90 @@ export default function AssetsPage() {
               </button>
             </div>
             <div className="crispr-modal-body">
-              <div className="batch-form-grid">
-                <label>
-                  <span>Name *</span>
-                  <input type="text" className="search-input" value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} />
-                  {formErrors.name ? <small style={{ color: '#dc2626' }}>{formErrors.name}</small> : null}
-                </label>
-                <label>
-                  <span>Type *</span>
-                  <select className="search-input" value={draft.type} onChange={(e) => updateDraft('type', e.target.value)}>
-                    <option value="">Select Type</option>
-                    {ASSET_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  {formErrors.type ? <small style={{ color: '#dc2626' }}>{formErrors.type}</small> : null}
-                </label>
-                <label>
-                  <span>Code / Serial</span>
-                  <input type="text" className="search-input" value={draft.code} onChange={(e) => updateDraft('code', e.target.value)} />
-                </label>
-                <label>
-                  <span>Location ID</span>
-                  <input type="number" className="search-input" value={draft.locationId} onChange={(e) => updateDraft('locationId', e.target.value)} />
-                </label>
-                <label>
-                  <span>Original Value (₹) *</span>
-                  <input type="number" min="0" step="0.01" className="search-input" value={draft.valueOriginal} onChange={(e) => updateDraft('valueOriginal', e.target.value)} />
-                  {formErrors.valueOriginal ? <small style={{ color: '#dc2626' }}>{formErrors.valueOriginal}</small> : null}
-                </label>
-                <label>
-                  <span>Current Value (₹) *</span>
-                  <input type="number" min="0" step="0.01" className="search-input" value={draft.valueAtPurchase} onChange={(e) => updateDraft('valueAtPurchase', e.target.value)} />
-                  {formErrors.valueAtPurchase ? <small style={{ color: '#dc2626' }}>{formErrors.valueAtPurchase}</small> : null}
-                </label>
-                <label>
-                  <span>Yearly Depreciation % *</span>
-                  <input type="number" min="0" max="100" step="0.01" className="search-input" value={draft.yearlyDepreciationPercentage} onChange={(e) => updateDraft('yearlyDepreciationPercentage', e.target.value)} />
-                  {formErrors.yearlyDepreciationPercentage ? <small style={{ color: '#dc2626' }}>{formErrors.yearlyDepreciationPercentage}</small> : null}
-                </label>
-                <label>
-                  <span>Purchase Date *</span>
-                  <input type="date" className="search-input" value={draft.purchasedDate} onChange={(e) => updateDraft('purchasedDate', e.target.value)} />
-                  {formErrors.purchasedDate ? <small style={{ color: '#dc2626' }}>{formErrors.purchasedDate}</small> : null}
-                </label>
-                {isEditing && (
-                  <label>
-                    <span>Status</span>
-                    <select className="search-input" value={draft.status} onChange={(e) => updateDraft('status', Number(e.target.value))}>
-                      <option value={1}>Active</option>
-                      <option value={0}>Inactive</option>
-                    </select>
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-package" /> Asset Details</div>
+                <div className="asset-form-grid">
+                  <label className="full-span">
+                    <span>Name <span className="req">*</span></span>
+                    <input type="text" className="search-input" placeholder="e.g. Dell Latitude Laptop" value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} />
+                    {formErrors.name ? <small className="field-error">{formErrors.name}</small> : null}
                   </label>
-                )}
+                  <label>
+                    <span>Type <span className="req">*</span></span>
+                    <select className="search-input" value={draft.type} onChange={(e) => updateDraft('type', e.target.value)}>
+                      <option value="">Select Type</option>
+                      {ASSET_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    {formErrors.type ? <small className="field-error">{formErrors.type}</small> : null}
+                  </label>
+                  <label>
+                    <span>Code / Serial</span>
+                    <input type="text" className="search-input" placeholder="Serial or asset tag" value={draft.code} onChange={(e) => updateDraft('code', e.target.value)} />
+                  </label>
+                  <label>
+                    <span>Location</span>
+                    <LocationPicker
+                      value={draft.locationId || null}
+                      initialLabel={draft.locationLabel}
+                      placeholder="Select location…"
+                      onChange={(sel) => {
+                        if (sel) {
+                          setDraft((cur) => ({ ...cur, locationId: String(sel.id), locationLabel: sel.name }));
+                        } else {
+                          setDraft((cur) => ({ ...cur, locationId: '', locationLabel: '' }));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
+
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-coin" /> Valuation</div>
+                <div className="asset-form-grid">
+                  <label>
+                    <span>Original Value (₹) <span className="req">*</span></span>
+                    <input type="number" min="0" step="0.01" className="search-input" value={draft.valueOriginal} onChange={(e) => updateDraft('valueOriginal', e.target.value)} />
+                    {formErrors.valueOriginal ? <small className="field-error">{formErrors.valueOriginal}</small> : null}
+                  </label>
+                  <label>
+                    <span>Current Value (₹) <span className="req">*</span></span>
+                    <input type="number" min="0" step="0.01" className="search-input" value={draft.valueAtPurchase} onChange={(e) => updateDraft('valueAtPurchase', e.target.value)} />
+                    {formErrors.valueAtPurchase ? <small className="field-error">{formErrors.valueAtPurchase}</small> : null}
+                  </label>
+                  <label>
+                    <span>Yearly Depreciation % <span className="req">*</span></span>
+                    <input type="number" min="0" max="100" step="0.01" className="search-input" value={draft.yearlyDepreciationPercentage} onChange={(e) => updateDraft('yearlyDepreciationPercentage', e.target.value)} />
+                    {formErrors.yearlyDepreciationPercentage ? <small className="field-error">{formErrors.yearlyDepreciationPercentage}</small> : null}
+                  </label>
+                  <label>
+                    <span>Purchase Date <span className="req">*</span></span>
+                    <input type="date" className="search-input" value={draft.purchasedDate} onChange={(e) => updateDraft('purchasedDate', e.target.value)} />
+                    {formErrors.purchasedDate ? <small className="field-error">{formErrors.purchasedDate}</small> : null}
+                  </label>
+                </div>
+              </div>
+
+              {isEditing && (
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-toggle-right" /> Status</div>
+                  <div className="asset-form-grid">
+                    <label>
+                      <span>Status</span>
+                      <select className="search-input" value={draft.status} onChange={(e) => updateDraft('status', Number(e.target.value))}>
+                        <option value={1}>Active</option>
+                        <option value={0}>Inactive</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="crispr-modal-footer">
-              <button type="button" className="qar-clear-btn" disabled={isSaving} onClick={() => setFormOpen(false)}>Cancel</button>
-              <button type="button" className="qar-btn-export" disabled={isSaving} onClick={saveAsset}>
+              <button type="button" className="btn btn-default" disabled={isSaving} onClick={() => setFormOpen(false)}>Cancel</button>
+              <button type="button" className="btn btn-success" disabled={isSaving} onClick={saveAsset}>
                 {isSaving ? (<><i className="ti ti-reload" /> Saving...</>) : (<><i className="ti ti-check" /> {isEditing ? 'Save Changes' : 'Create Asset'}</>)}
               </button>
             </div>
@@ -1023,11 +1112,11 @@ export default function AssetsPage() {
             </div>
             <div className="crispr-modal-body">
               <p>Choose the scope for the CSV export. Active filters will be applied to both options.</p>
-              <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-                <button type="button" className="qar-btn-export" disabled={isExporting} onClick={() => exportCSV('page')}>
+              <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                <button type="button" className="assets-export-btn" style={{ width: '100%', justifyContent: 'center' }} disabled={isExporting} onClick={() => exportCSV('page')}>
                   <i className="ti ti-file-text" /> Current Page ({visibleAssets.length})
                 </button>
-                <button type="button" className="qar-btn-export" disabled={isExporting} onClick={() => exportCSV('all')}>
+                <button type="button" className="assets-export-btn" style={{ width: '100%', justifyContent: 'center' }} disabled={isExporting} onClick={() => exportCSV('all')}>
                   <i className="ti ti-files" /> All Matching ({total})
                 </button>
               </div>

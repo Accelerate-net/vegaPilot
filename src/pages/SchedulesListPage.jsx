@@ -117,20 +117,16 @@ export default function SchedulesListPage() {
   }
 
   return (
-    <section className="schedules-list-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: 40 }}>
+    <section className="schedules-list-page data-table-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: 40 }}>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       {/* Page header */}
-      <div style={{ background: 'white', padding: 24, borderRadius: 18, border: '1px solid var(--line)', marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div className="page-header-section">
         <div>
-          <h2 style={{ margin: 0, fontSize: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <i className="ti ti-calendar" style={{ color: 'var(--brand)' }} /> Schedules
-          </h2>
-          <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>
-            All planned day-schedules across batches. Pick a row to view it on the calendar.
-          </p>
+          <h2><i className="ti ti-calendar" /> Schedules</h2>
+          <p>All planned day-schedules across batches. Pick a row to view it on the calendar.</p>
         </div>
-        <button type="button" onClick={createNew} style={btnPrimary}>
+        <button type="button" className="page-action-button" onClick={createNew}>
           <i className="ti ti-plus" /> New schedule
         </button>
       </div>
@@ -165,12 +161,12 @@ export default function SchedulesListPage() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative' }}>
-            <i className="ti ti-search" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: 12 }} />
+          <div className="search-wrapper" style={{ width: 260 }}>
+            <i className="ti ti-search" />
             <input
-              type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+              type="text" className="search-input"
+              value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or batch…"
-              style={{ ...inputStyle, paddingLeft: 30, width: 240 }}
             />
           </div>
           <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} style={{ ...selStyle, width: 'auto', minWidth: 200, paddingRight: 28 }}>
@@ -367,17 +363,60 @@ function ScheduleRow({ schedule: s, onView, onEdit, onCancel }) {
         <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{s.events.length}</span>
       </td>
       <td style={{ ...tdStyle, textAlign: 'right' }}>
-        <div style={{ display: 'inline-flex', gap: 6 }}>
-          <button type="button" style={btnGhost} onClick={() => onView(s)}><i className="ti ti-eye" /> View</button>
-          <button type="button" style={btnGhost} onClick={() => onEdit(s)} disabled={s.published} title={s.published ? 'Published schedules cannot be edited' : 'Edit details'}>
-            <i className="ti ti-pencil" /> Edit
-          </button>
-          <button type="button" style={btnDanger} onClick={() => onCancel(s)} title="Cancel schedule">
-            <i className="ti ti-trash" /> Cancel
-          </button>
-        </div>
+        <ScheduleKebab schedule={s} onView={onView} onEdit={onEdit} onCancel={onCancel} />
       </td>
     </tr>
+  );
+}
+
+// ─── Row actions as kebab dropdown ───────────────────────────────────
+function ScheduleKebab({ schedule: s, onView, onEdit, onCancel }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handler(event) {
+      if (ref.current && !ref.current.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="kebab-menu-container" ref={ref}>
+      <button
+        type="button"
+        className="kebab-button"
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+      >
+        <i className="ti ti-more-alt" />
+      </button>
+      <div className={`kebab-dropdown${open ? ' active' : ''}`}>
+        <button
+          type="button"
+          className="kebab-dropdown-item"
+          onClick={() => { setOpen(false); onView(s); }}
+        >
+          <i className="ti ti-eye" /> View
+        </button>
+        <button
+          type="button"
+          className="kebab-dropdown-item"
+          disabled={s.published}
+          title={s.published ? 'Published schedules cannot be edited' : 'Edit details'}
+          onClick={() => { setOpen(false); onEdit(s); }}
+        >
+          <i className="ti ti-pencil" /> Edit
+        </button>
+        <button
+          type="button"
+          className="kebab-dropdown-item danger-action"
+          onClick={() => { setOpen(false); onCancel(s); }}
+        >
+          <i className="ti ti-trash" /> Cancel
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -569,22 +608,23 @@ function ConfirmModal({ title, message, confirmLabel, confirmStyle, onCancel, on
   );
 }
 
-function Modal({ title, children, onClose, maxWidth = 520 }) {
+function Modal({ title, children, onClose, maxWidth = 520, icon = 'ti-calendar' }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 30, 35, 0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
-    >
-      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth, boxShadow: '0 20px 50px rgba(0,0,0,0.25)', overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 17, color: 'var(--ink)' }}>{title}</h3>
-          <button type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 18 }}><i className="ti ti-close" /></button>
+    <div className="crispr-modal-backdrop active" role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="crispr-modal-dialog" style={{ maxWidth }} role="dialog" aria-modal="true">
+        <div className="crispr-modal-header">
+          <h3>{icon && <i className={`ti ${icon}`} />} {title}</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}>
+            <i className="ti ti-close" />
+          </button>
         </div>
-        <div style={{ padding: 20, overflow: 'auto' }}>{children}</div>
+        <div className="crispr-modal-body">{children}</div>
       </div>
     </div>
   );

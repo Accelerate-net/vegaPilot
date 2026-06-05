@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './CourseManagementPage.css';
 import { courseManagementDemo } from '../data/courseManagementDemo';
 import ToastRegion from '../components/ToastRegion';
+import Avatar from '../components/Avatar';
 
 const data = courseManagementDemo;
 
@@ -810,7 +811,7 @@ export default function CourseManagementPage() {
                                                                                                 <td>
                                                                                                     {chapter.teacher && (
                                                                                                         <div className="teacher-info-compact">
-                                                                                                            <img src={chapter.teacher.photo || 'assets/img/default_user.png'} alt={chapter.teacher.name} className="teacher-photo-tiny" />
+                                                                                                            <Avatar src={chapter.teacher.photo} name={chapter.teacher.name} className="teacher-photo-tiny" placeholderClassName="teacher-photo-tiny placeholder" />
                                                                                                             <span>{chapter.teacher.name}</span>
                                                                                                         </div>
                                                                                                     )}
@@ -895,10 +896,11 @@ export default function CourseManagementPage() {
                                                                                             style={{ cursor: 'pointer' }}
                                                                                             onClick={e => { e.stopPropagation(); showTeacherProfile(chapter); }}
                                                                                         >
-                                                                                            <img
-                                                                                                src={chapter.teacher.photo || 'assets/img/default_user.png'}
-                                                                                                alt={chapter.teacher.name}
+                                                                                            <Avatar
+                                                                                                src={chapter.teacher.photo}
+                                                                                                name={chapter.teacher.name}
                                                                                                 className="teacher-photo-small"
+                                                                                                placeholderClassName="teacher-photo-small placeholder"
                                                                                             />
                                                                                             <div className="teacher-details-simple">
                                                                                                 <span className="teacher-name-simple">{chapter.teacher.name}</span>
@@ -1164,8 +1166,9 @@ export default function CourseManagementPage() {
                                                                                         onClick={e => { e.stopPropagation(); togglePartSelection(part); }}
                                                                                         title={isPartSelected(part.libraryId) ? 'Remove from Parts' : 'Add to Parts'}
                                                                                     >
-                                                                                        <i className={`fa ${isPartSelected(part.libraryId) ? 'fa-check' : 'fa-plus'}`}></i>
-                                                                                        {' '}{isPartSelected(part.libraryId) ? 'Added' : 'Add'}
+                                                                                        {isPartSelected(part.libraryId)
+                                                                                            ? 'Added'
+                                                                                            : <><i className="fa fa-plus"></i> Add</>}
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
@@ -1222,55 +1225,59 @@ export default function CourseManagementPage() {
 
             {/* Course Bundle Creation Modal */}
             {showBundleModal && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowBundleModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" onClick={() => setShowBundleModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-book-open"></i> Create New Course Bundle</h4>
+                <div className="crispr-modal-backdrop active" onClick={() => setShowBundleModal(false)}>
+                    <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+                        <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)' }}>
+                            <h3><i className="ti ti-book-open"></i> Create New Course Bundle</h3>
+                            <button className="crispr-modal-close" onClick={() => setShowBundleModal(false)}>
+                                <i className="ti ti-close"></i>
+                            </button>
+                        </div>
+                        <div className="crispr-modal-body cmb-form-body">
+                            <style>{`
+                                .cmb-form-body { display: flex; flex-direction: column; gap: 20px; }
+                                .cmb-fld { display: flex; flex-direction: column; gap: 6px; }
+                                .cmb-fld-label { font-size: 13px; font-weight: 600; color: #334155; }
+                                .cmb-fld-label .req { color: #b42318; }
+                                .cmb-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
+                                .cmb-help { font-size: 12px; color: var(--muted); }
+                            `}</style>
+
+                            <div className="cmb-fld">
+                                <label className="cmb-fld-label">Bundle Title <span className="req">*</span></label>
+                                <input type="text" className="cmb-input" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({ ...newBundle, title: e.target.value })} />
+                                <small className="cmb-help">Enter a descriptive title for your course bundle</small>
                             </div>
-                            <div className="modal-body">
-                                <form className="form-horizontal">
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">Bundle Title <span style={{ color: 'red' }}>*</span></label>
-                                        <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({ ...newBundle, title: e.target.value })} />
-                                            <small className="help-block">Enter a descriptive title for your course bundle</small>
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">Bundle Code <span style={{ color: 'red' }}>*</span></label>
-                                        <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Enter bundle code (e.g., IAT-2024)" value={newBundle.bundleCode} onChange={e => setNewBundle({ ...newBundle, bundleCode: e.target.value })} />
-                                            <small className="help-block">Unique identifier for the course bundle</small>
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">Select Syllabus <span style={{ color: 'red' }}>*</span></label>
-                                        <div className="col-sm-9">
-                                            <select className="form-control" value={newBundle.syllabusCode} onChange={e => setNewBundle({ ...newBundle, syllabusCode: e.target.value })}>
-                                                <option value="">-- Select a Syllabus --</option>
-                                                {uniqueSyllabi.map(syl => (
-                                                    <option key={syl.code} value={syl.code}>{syl.name}</option>
-                                                ))}
-                                            </select>
-                                            <small className="help-block">Select a syllabus to initialize modules and chapters.</small>
-                                        </div>
-                                    </div>
-                                    {newBundle.syllabusCode && (
-                                        <div className="alert alert-info" style={{ margin: '20px 15px' }}>
-                                            <i className="ti ti-info-alt"></i> <strong>Syllabus Selected:</strong> {uniqueSyllabi.find(s => s.code === newBundle.syllabusCode)?.name}
-                                            <br /><small>Modules will be organized by segments for easier classification</small>
-                                        </div>
-                                    )}
-                                </form>
+
+                            <div className="cmb-fld">
+                                <label className="cmb-fld-label">Bundle Code <span className="req">*</span></label>
+                                <input type="text" className="cmb-input" placeholder="Enter bundle code (e.g., IAT-2024)" value={newBundle.bundleCode} onChange={e => setNewBundle({ ...newBundle, bundleCode: e.target.value })} />
+                                <small className="cmb-help">Unique identifier for the course bundle</small>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => setShowBundleModal(false)}><i className="ti ti-close"></i> Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={saveCourseBundle} disabled={!newBundle.title || !newBundle.bundleCode || !newBundle.syllabusCode}>
-                                    <i className="ti ti-check"></i> Create Course Bundle
-                                </button>
+
+                            <div className="cmb-fld">
+                                <label className="cmb-fld-label">Select Syllabus <span className="req">*</span></label>
+                                <select className="cmb-input" value={newBundle.syllabusCode} onChange={e => setNewBundle({ ...newBundle, syllabusCode: e.target.value })}>
+                                    <option value="">-- Select a Syllabus --</option>
+                                    {uniqueSyllabi.map(syl => (
+                                        <option key={syl.code} value={syl.code}>{syl.name}</option>
+                                    ))}
+                                </select>
+                                <small className="cmb-help">Select a syllabus to initialize modules and chapters.</small>
                             </div>
+
+                            {newBundle.syllabusCode && (
+                                <div className="alert alert-info" style={{ margin: 0 }}>
+                                    <i className="ti ti-info-alt"></i> <strong>Syllabus Selected:</strong> {uniqueSyllabi.find(s => s.code === newBundle.syllabusCode)?.name}
+                                    <br /><small>Modules will be organized by segments for easier classification</small>
+                                </div>
+                            )}
+                        </div>
+                        <div className="crispr-modal-footer">
+                            <button type="button" className="btn btn-default" onClick={() => setShowBundleModal(false)}><i className="ti ti-close"></i> Cancel</button>
+                            <button type="button" className="btn btn-success" onClick={saveCourseBundle} disabled={!newBundle.title || !newBundle.bundleCode || !newBundle.syllabusCode}>
+                                <i className="ti ti-check"></i> Create Course Bundle
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1385,10 +1392,11 @@ export default function CourseManagementPage() {
                             <div className="modal-body">
                                 <div className="row">
                                     <div className="col-md-4 text-center">
-                                        <img
-                                            src={selectedTeacherProfile.photo || 'assets/img/default_user.png'}
-                                            alt={selectedTeacherProfile.name}
+                                        <Avatar
+                                            src={selectedTeacherProfile.photo}
+                                            name={selectedTeacherProfile.name}
                                             style={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073', marginBottom: 15 }}
+                                            placeholderStyle={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073', marginBottom: 15, background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 48, fontWeight: 700 }}
                                         />
                                         <div className="star-rating" style={{ fontSize: 20, marginBottom: 10 }}>
                                             {[0, 1, 2, 3, 4].map(i => (
@@ -1465,7 +1473,7 @@ export default function CourseManagementPage() {
                                                 >
                                                     <div className="row">
                                                         <div className="col-md-2 text-center">
-                                                            <img src={instructor.photo || 'assets/img/default_user.png'} alt={instructor.name} style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid #ddd', objectFit: 'cover' }} />
+                                                            <Avatar src={instructor.photo} name={instructor.name} style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid #ddd', objectFit: 'cover' }} placeholderStyle={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid #ddd', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 22, fontWeight: 700 }} />
                                                         </div>
                                                         <div className="col-md-10">
                                                             <h4 style={{ margin: '0 0 8px 0', color: '#006073', fontWeight: 600 }}>

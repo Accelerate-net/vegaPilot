@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import { availableCourses, demoCandidates } from '../data/candidateProfileDemo';
 import ToastRegion from '../components/ToastRegion';
+import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 
@@ -78,12 +79,6 @@ function getDemoResponse({ searchQuery, filterStatus, currentPage, itemsPerPage,
   };
 }
 
-function getInitials(name) {
-  if (!name) return '??';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 function formatDateFromSeconds(timestamp) {
   if (!timestamp) return 'Unknown';
@@ -358,7 +353,7 @@ export default function StudentManagementPage() {
   const showingEnd = Math.min(currentPage * itemsPerPage, totalStudents);
 
   return (
-    <section className="candidate-profile-page">
+    <section className="candidate-profile-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -497,11 +492,12 @@ export default function StudentManagementPage() {
                 <tr key={student.id} className={activeKebabId === student.id ? 'row-active-menu' : ''}>
                   <td>
                     <div className="student-name-cell">
-                      {student.avatar ? (
-                        <img alt={student.name} src={student.avatar} className="student-avatar" />
-                      ) : (
-                        <div className="student-avatar-placeholder">{getInitials(student.name)}</div>
-                      )}
+                      <Avatar
+                        src={student.avatar}
+                        name={student.name}
+                        className="student-avatar"
+                        placeholderClassName="student-avatar-placeholder"
+                      />
                       <div>
                         <div className="student-name">{student.name}</div>
                         <div className="student-id">ID: {student.id}</div>
@@ -631,11 +627,12 @@ export default function StudentManagementPage() {
           <div className="legacy-modal-body">
             {selectedStudentForCourses ? (
               <div className="legacy-candidate-card">
-                {selectedStudentForCourses.avatar ? (
-                  <img alt={selectedStudentForCourses.name} src={selectedStudentForCourses.avatar} className="legacy-candidate-avatar" />
-                ) : (
-                  <div className="legacy-candidate-avatar placeholder">{getInitials(selectedStudentForCourses.name)}</div>
-                )}
+                <Avatar
+                  src={selectedStudentForCourses.avatar}
+                  name={selectedStudentForCourses.name}
+                  className="legacy-candidate-avatar"
+                  placeholderClassName="legacy-candidate-avatar placeholder"
+                />
                 <div className="legacy-candidate-info">
                   <div className="legacy-candidate-name">{selectedStudentForCourses.name}</div>
                   <div className="legacy-candidate-email">{selectedStudentForCourses.email}</div>

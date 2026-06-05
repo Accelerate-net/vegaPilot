@@ -257,7 +257,7 @@ export default function TestSeriesListPage() {
   const selectedExamItems = Object.values(selectedExamsMap);
 
   return (
-    <section className="test-series-list-page">
+    <section className="test-series-list-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">

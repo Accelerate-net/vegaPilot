@@ -22,7 +22,23 @@ import {
 } from '../lib/icardTemplate';
 
 const TEMPLATE_ROOT = '/templates/id-card-student';
-const PAGE_SIZE = 20;
+
+// Standard 7-slot pagination window with '…' ellipsis, shared across pages.
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i += 1) pages.push(i);
+    return pages;
+  }
+  pages.push(1);
+  if (currentPage > 4) pages.push('...');
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  for (let i = start; i <= end; i += 1) pages.push(i);
+  if (currentPage < totalPages - 3) pages.push('...');
+  pages.push(totalPages);
+  return pages;
+}
 
 // Walk a (possibly nested) object and return a flat list of `{ path, label }`
 // entries for every leaf value.  Leaves are: strings, numbers, booleans, null,
@@ -130,7 +146,6 @@ const SAMPLE_PROFILE_ID = 1;
 
 export default function IcardGeneratorPage() {
   const { can } = usePermission();
-  const canEdit = can(PERMS.ICARD_EDIT);
 
   // Templates available under /templates/id-card-student/*
   const [templates, setTemplates] = useState([]);
@@ -153,6 +168,7 @@ export default function IcardGeneratorPage() {
   const [auditError, setAuditError] = useState(null);
   const [auditSearch, setAuditSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
 
   // Generate modal (batches)
@@ -174,6 +190,15 @@ export default function IcardGeneratorPage() {
   const [singleEditOpen, setSingleEditOpen] = useState(false);
   const [singleEditStudent, setSingleEditStudent] = useState(null);
   const [singleEditValues, setSingleEditValues] = useState({}); // placeholder → string
+
+  // "Preview for a Student" preview picker (drives the live preview pane)
+  const [previewPickerOpen, setPreviewPickerOpen] = useState(false);
+  const [previewSearch, setPreviewSearch] = useState('');
+  const [previewCandidates, setPreviewCandidates] = useState([]);
+  const [previewCandidatesLoading, setPreviewCandidatesLoading] = useState(false);
+  const [previewStudent, setPreviewStudent] = useState(null); // loaded profile shown in preview
+  const [previewStudentLabel, setPreviewStudentLabel] = useState('');
+  const [previewLoadingId, setPreviewLoadingId] = useState(null);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -239,7 +264,7 @@ export default function IcardGeneratorPage() {
     try {
       const data = await listIcardAudit({
         page,
-        size: PAGE_SIZE,
+        size: pageSize,
         searchKey: auditSearch.trim() || undefined,
       });
       const rows = data?.data || [];
@@ -252,7 +277,7 @@ export default function IcardGeneratorPage() {
     } finally {
       setAuditLoading(false);
     }
-  }, [page, auditSearch]);
+  }, [page, pageSize, auditSearch]);
 
   // Debounce search-driven reloads so the user isn't hammering the API on
   // every keystroke. Also reset to page 1 whenever the search text changes.
@@ -267,8 +292,8 @@ export default function IcardGeneratorPage() {
   // preview agree on the shape of the data.
   const previewValues = useMemo(() => {
     if (!template) return {};
-    return valuesForStudent(sampleProfile || {}, mapping, template.metadata.placeholders, template.metadata);
-  }, [template, mapping, sampleProfile]);
+    return valuesForStudent(previewStudent || sampleProfile || {}, mapping, template.metadata.placeholders, template.metadata);
+  }, [template, mapping, sampleProfile, previewStudent]);
 
   const previewFront = useMemo(
     () => (template ? absolutifyAssets(renderTemplate(template.front, previewValues), template.baseHref) : ''),
@@ -317,6 +342,58 @@ export default function IcardGeneratorPage() {
       return next;
     });
   };
+
+  const openPreviewPicker = useCallback(() => {
+    setPreviewPickerOpen(true);
+    setPreviewSearch('');
+  }, []);
+
+  // Debounced search against the candidate list API while the preview picker is open.
+  useEffect(() => {
+    if (!previewPickerOpen) return undefined;
+    let cancelled = false;
+    setPreviewCandidatesLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const data = await listCandidates({ page: 1, size: 50, searchKey: previewSearch.trim() || undefined });
+        if (!cancelled) setPreviewCandidates(data?.data || []);
+      } catch (err) {
+        if (!cancelled) {
+          setPreviewCandidates([]);
+          showToast('error', 'Students', err?.response?.data?.message || 'Could not load students');
+        }
+      } finally {
+        if (!cancelled) setPreviewCandidatesLoading(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [previewPickerOpen, previewSearch, showToast]);
+
+  const choosePreviewStudent = useCallback(async (cand) => {
+    const id = cand.id || cand.candidateId || cand.candidateKey;
+    if (!id) return;
+    setPreviewLoadingId(id);
+    try {
+      const profile = await getCandidateProfile(id)
+        .then((resp) => resp?.data || resp || null);
+      if (!profile) {
+        showToast('error', 'Profile', 'Could not load this student’s profile.');
+        return;
+      }
+      setPreviewStudent(profile);
+      setPreviewStudentLabel(cand.name || profile.name || `ID ${id}`);
+      setPreviewPickerOpen(false);
+    } catch (err) {
+      showToast('error', 'Profile', err?.response?.data?.message || 'Could not load this student’s profile.');
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  }, [showToast]);
+
+  const clearPreviewStudent = useCallback(() => {
+    setPreviewStudent(null);
+    setPreviewStudentLabel('');
+  }, []);
 
   const handleGenerateForSelected = useCallback(async () => {
     if (!template) {
@@ -589,56 +666,71 @@ export default function IcardGeneratorPage() {
     }
   }, [template, selectedBatchIds, batches, mapping, showToast, loadAudit, selectedTemplatePath]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // Card dimensions for preview iframes — use what the metadata declares.
   const cardW = template?.metadata.width || '85.6mm';
   const cardH = template?.metadata.height || '53.98mm';
 
   return (
-    <div className="page-wrap" style={{ padding: 16 }}>
+    <section className="icard-generator-page data-table-page">
       <ToastRegion toasts={toasts} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <h1 style={{ margin: 0, fontSize: 20 }}>ID Card Generator</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <label htmlFor="icard-template-select" style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>
-              Template:
-            </label>
-            <select
-              id="icard-template-select"
-              value={selectedTemplatePath || ''}
-              onChange={(e) => setSelectedTemplatePath(e.target.value)}
-              disabled={templates.length === 0}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, minWidth: 240 }}
-            >
-              {templates.length === 0 && <option value="">No templates available</option>}
-              {templates.map((t) => (
-                <option key={t.path} value={t.path}>{t.reference}</option>
-              ))}
-            </select>
-            <span style={{ fontSize: 12, color: '#6b7280' }}>
-              {template ? `${cardW} × ${cardH}` : (templatesError ? '' : 'loading…')}
-            </span>
-          </div>
-          {templatesError && (
-            <div style={{ fontSize: 12, color: '#991b1b' }}>{templatesError}</div>
-          )}
+      <div className="page-header-section">
+        <div>
+          <h2><i className="ti ti-id-badge" /> ID Card Generator</h2>
+          <p>Generate and print student ID cards from your saved templates.</p>
         </div>
         <Can permission={PERMS.ICARD_EDIT}>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" onClick={openStudentsModal} disabled={!template} style={btnGhost}>
-              <i className="fa fa-user" style={{ marginRight: 6 }} />
+            <button
+              type="button"
+              onClick={openStudentsModal}
+              disabled={!template}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid rgba(255,255,255,0.6)', borderRadius: 6, padding: '10px 18px', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: template ? 'pointer' : 'not-allowed', opacity: template ? 1 : 0.6, whiteSpace: 'nowrap' }}
+            >
+              <i className="fa fa-user" />
               Generate for Individual
             </button>
-            <button type="button" onClick={openModal} disabled={!template} style={btnPrimary}>
-              <i className="fa fa-id-card-o" style={{ marginRight: 6 }} />
+            <button
+              type="button"
+              className="page-action-button"
+              onClick={openModal}
+              disabled={!template}
+              style={{ opacity: template ? 1 : 0.6, cursor: template ? 'pointer' : 'not-allowed' }}
+            >
+              <i className="fa fa-id-card-o" />
               Generate for Batches
             </button>
           </div>
         </Can>
       </div>
+
+      {!template && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          <label htmlFor="icard-template-select" style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>
+            Template:
+          </label>
+          <select
+            id="icard-template-select"
+            value={selectedTemplatePath || ''}
+            onChange={(e) => setSelectedTemplatePath(e.target.value)}
+            disabled={templates.length === 0}
+            style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, minWidth: 240 }}
+          >
+            {templates.length === 0 && <option value="">No templates available</option>}
+            {templates.map((t) => (
+              <option key={t.path} value={t.path}>{t.reference}</option>
+            ))}
+          </select>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>
+            {templatesError ? '' : 'loading…'}
+          </span>
+          {templatesError && (
+            <div style={{ fontSize: 12, color: '#991b1b' }}>{templatesError}</div>
+          )}
+        </div>
+      )}
 
       {templateError && (
         <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 6, marginBottom: 16 }}>
@@ -653,7 +745,31 @@ export default function IcardGeneratorPage() {
           fallback={null}
         >
           <section style={card}>
-            <div style={cardHead}>Map Placeholders and Preview</div>
+            <div style={{ ...cardHead, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span>Choose a Template</span>
+                <select
+                  id="icard-template-select"
+                  value={selectedTemplatePath || ''}
+                  onChange={(e) => setSelectedTemplatePath(e.target.value)}
+                  disabled={templates.length === 0}
+                  style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, minWidth: 220, fontWeight: 400 }}
+                >
+                  {templates.length === 0 && <option value="">No templates available</option>}
+                  {templates.map((t) => (
+                    <option key={t.path} value={t.path}>{t.reference}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={openPreviewPicker}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid #006073', borderRadius: 6, padding: '6px 14px', background: '#fff', color: '#006073', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                <i className="fa fa-user" />
+                Preview for a Student
+              </button>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: 18, padding: 16 }}>
               {/* Mapping table */}
               <div>
@@ -696,8 +812,25 @@ export default function IcardGeneratorPage() {
 
               {/* Preview pane */}
               <div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>
-                  LIVE PREVIEW
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>LIVE PREVIEW</div>
+                  {previewStudent ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#006073', background: '#e6f6f9', border: '1px solid #bfe9f2', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>
+                      <i className="fa fa-user" />
+                      {previewStudentLabel}
+                      <i
+                        className="ti ti-close"
+                        role="button"
+                        tabIndex={0}
+                        title="Show sample profile"
+                        onClick={clearPreviewStudent}
+                        onKeyDown={(e) => { if (e.key === 'Enter') clearPreviewStudent(); }}
+                        style={{ cursor: 'pointer', marginLeft: 2 }}
+                      />
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 12, color: '#9ca3af' }}>Sample profile</span>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', background: '#f9fafb', padding: 14, borderRadius: 6 }}>
                   <PreviewFrame
@@ -718,143 +851,182 @@ export default function IcardGeneratorPage() {
       )}
 
       {/* ── History table ─────────────────────────────────────────────── */}
-      <section style={{ ...card, marginTop: 16 }}>
-        <div style={{ ...cardHead, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <span>Generate History</span>
-          <input
-            type="search"
-            value={auditSearch}
-            onChange={(e) => setAuditSearch(e.target.value)}
-            placeholder="Search by student, admin, type…"
-            style={{
-              padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6,
-              fontSize: 12, minWidth: 240, background: '#fff', fontWeight: 400,
-            }}
-          />
-        </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ textAlign: 'left', background: '#f9fafb', color: '#6b7280' }}>
-              <th style={th}>ID</th>
-              <th style={th}>Student</th>
-              <th style={th}>Type</th>
-              <th style={th}>Style</th>
-              <th style={th}>Date</th>
-              <th style={th}>Admin</th>
-            </tr>
-          </thead>
-          <tbody>
-            {auditLoading && <tr><td colSpan={6} style={td}>Loading…</td></tr>}
-            {!auditLoading && audit.length === 0 && (
-              <tr>
-                <td colSpan={6} style={{ ...td, color: '#6b7280', textAlign: 'center', padding: 32 }}>
-                  {auditError
-                    ? `No audit log available (${auditError}).`
-                    : 'No ID cards have been printed yet.'}
-                  {canEdit && !auditError && (
-                    <div style={{ marginTop: 8 }}>
-                      <button type="button" onClick={openModal} style={linkBtn}>
-                        Print your first batch →
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            )}
-            {!auditLoading && audit.map((row, idx) => {
-              const id = row.candidateId || row.studentId || row.id || '—';
-              const name = row.candidateName || row.studentName || row.name || '—';
-              const type = row.type || row.batchName || 'Individual';
-              const printedAt = row.printedAt || row.createdAt || row.generatedAt;
-              const admin = row.admin || row.adminName || row.generatedByName || row.createdByName || '—';
-              const tplPath = row.templatePath || '';
-              const matched = templates.find((t) => t.path === tplPath);
-              // Prefer the resolved `reference` from metadata; fall back to
-              // the last path segment (e.g. "template-1") when unknown.
-              const style = matched?.reference
-                || matched?.metadata?.reference
-                || (tplPath ? tplPath.split('/').filter(Boolean).pop() : '—');
-              return (
-                <tr key={row.id || `${id}-${printedAt}-${idx}`} style={{ borderTop: '1px solid #f1f4f9' }}>
-                  <td style={{ ...td, fontFamily: 'ui-monospace, monospace' }}>{id}</td>
-                  <td style={td}>{name}</td>
-                  <td style={td}>
-                    <span style={{
-                      padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600,
-                      background: type === 'Individual' ? '#fef3c7' : '#dbeafe',
-                      color: type === 'Individual' ? '#92400e' : '#1d4ed8',
-                    }}>
-                      {type}
-                    </span>
-                  </td>
-                  <td style={td} title={tplPath || undefined}>{style}</td>
-                  <td style={td}>printed on {formatTimestamp(printedAt)}</td>
-                  <td style={td}>{admin}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, padding: 10, borderTop: '1px solid #e5e7eb' }}>
-            <button type="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} style={pgBtn}>Prev</button>
-            <span style={{ fontSize: 12, color: '#6b7280', alignSelf: 'center' }}>Page {page} of {totalPages}</span>
-            <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={pgBtn}>Next</button>
+      <div style={{ marginTop: 24 }}>
+        <div className="filter-bar">
+          <div className="search-wrapper">
+            <i className={`ti ${auditSearch ? 'ti-close' : 'ti-search'}`} onClick={() => setAuditSearch('')} aria-hidden="true" />
+            <input
+              type="text"
+              className="search-input"
+              value={auditSearch}
+              onChange={(e) => setAuditSearch(e.target.value)}
+              placeholder="Search by student, admin, type…"
+            />
           </div>
-        )}
-      </section>
+          <h3 style={{ margin: 0, marginLeft: 'auto', fontSize: 20, fontWeight: 300, color: '#aab2bd', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="ti ti-history" /> ID Card Generation History
+          </h3>
+        </div>
+        <div className="students-table-container">
+          <table className="students-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Style</th>
+                <th>Date</th>
+                <th>Admin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {auditLoading && <tr><td colSpan={6}>Loading…</td></tr>}
+              {!auditLoading && audit.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ color: '#6b7280', textAlign: 'center', padding: 32 }}>
+                    {auditError
+                      ? `No audit log available (${auditError}).`
+                      : 'No ID cards have been printed yet.'}
+                  </td>
+                </tr>
+              )}
+              {!auditLoading && audit.map((row, idx) => {
+                const id = row.candidateId || row.studentId || row.id || '—';
+                const name = row.candidateName || row.studentName || row.name || '—';
+                const type = row.type || row.batchName || 'Individual';
+                const printedAt = row.printedAt || row.createdAt || row.generatedAt;
+                const admin = row.admin || row.adminName || row.generatedByName || row.createdByName || '—';
+                const tplPath = row.templatePath || '';
+                const matched = templates.find((t) => t.path === tplPath);
+                // Prefer the resolved `reference` from metadata; fall back to
+                // the last path segment (e.g. "template-1") when unknown.
+                const style = matched?.reference
+                  || matched?.metadata?.reference
+                  || (tplPath ? tplPath.split('/').filter(Boolean).pop() : '—');
+                return (
+                  <tr key={row.id || `${id}-${printedAt}-${idx}`}>
+                    <td style={{ fontFamily: 'ui-monospace, monospace' }}>{id}</td>
+                    <td>{name}</td>
+                    <td>
+                      <span className="status-pill" style={{
+                        background: type === 'Individual' ? '#fef3c7' : '#dbeafe',
+                        color: type === 'Individual' ? '#92400e' : '#1d4ed8',
+                      }}>
+                        {type}
+                      </span>
+                    </td>
+                    <td title={tplPath || undefined}>{style}</td>
+                    <td>printed on {formatTimestamp(printedAt)}</td>
+                    <td>{admin}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {total > 0 && (
+            <div className="pagination-container">
+              <div className="pagination-info">
+                <span>Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} entries</span>
+                <select
+                  className="page-size-select"
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                >
+                  {[10, 20, 50, 100].map((n) => (
+                    <option key={n} value={n}>Show {n}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <i className="ti ti-angle-left" /> Previous
+                </button>
+                {getPageNumbers(page, totalPages).map((p, i) => (
+                  p === '...' ? (
+                    <span key={`e${i}`} className="pagination-ellipsis">...</span>
+                  ) : (
+                    <button
+                      type="button"
+                      key={p}
+                      className={`pagination-btn${p === page ? ' active' : ''}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  )
+                ))}
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next <i className="ti ti-angle-right" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ── Generate modal ────────────────────────────────────────────── */}
       {modalOpen && (
-        <div style={overlay} onClick={() => !generating && setModalOpen(false)}>
-          <div style={modal} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h2 style={{ margin: 0, fontSize: 16 }}>Generate ID Cards</h2>
-              <button type="button" onClick={() => !generating && setModalOpen(false)} style={closeBtn}>×</button>
+        <div className="legacy-modal-backdrop active" onClick={() => !generating && setModalOpen(false)}>
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-id-badge" /> Generate ID Cards</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => !generating && setModalOpen(false)}>
+                <i className="ti ti-close" />
+              </button>
             </div>
-            <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
-              Pick one or more batches. A PDF with one page per student (front &amp; back side-by-side) will open in a new tab.
-            </p>
-            <input
-              type="search"
-              placeholder="Search batches…"
-              value={batchSearch}
-              onChange={(e) => setBatchSearch(e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, marginBottom: 10, fontSize: 13 }}
-            />
-            <div style={{ maxHeight: 320, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6 }}>
-              {batchesLoading && <div style={{ padding: 14, color: '#6b7280' }}>Loading batches…</div>}
-              {!batchesLoading && filteredBatches.length === 0 && (
-                <div style={{ padding: 14, color: '#6b7280' }}>No batches found.</div>
-              )}
-              {!batchesLoading && filteredBatches.map((b) => {
-                const checked = selectedBatchIds.includes(b.id);
-                return (
-                  <label key={b.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-                    borderBottom: '1px solid #f1f4f9', cursor: 'pointer',
-                    background: checked ? '#eff6ff' : 'transparent',
-                  }}>
-                    <input type="checkbox" checked={checked} onChange={() => toggleBatch(b.id)} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 13 }}>{b.name || b.id}</div>
-                      {b.description && <div style={{ fontSize: 11, color: '#6b7280' }}>{b.description}</div>}
-                    </div>
-                    <span style={{ fontSize: 11, color: '#6b7280' }}>
-                      {b.totalStudents ?? b.studentCount ?? ''}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>{selectedBatchIds.length} batch(es) selected</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setModalOpen(false)} disabled={generating} style={btnGhost}>Cancel</button>
-                <button type="button" onClick={handleGenerateForAll} disabled={generating || selectedBatchIds.length === 0} style={btnPrimary}>
-                  {generating ? 'Generating…' : 'Generate for All'}
-                </button>
+            <div className="legacy-modal-body">
+              <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
+                Pick one or more batches. A PDF with one page per student (front &amp; back side-by-side) will open in a new tab.
+              </p>
+              <input
+                type="search"
+                placeholder="Search batches…"
+                value={batchSearch}
+                onChange={(e) => setBatchSearch(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, marginBottom: 10, fontSize: 13 }}
+              />
+              <div style={{ maxHeight: 320, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                {batchesLoading && <div style={{ padding: 14, color: '#6b7280' }}>Loading batches…</div>}
+                {!batchesLoading && filteredBatches.length === 0 && (
+                  <div style={{ padding: 14, color: '#6b7280' }}>No batches found.</div>
+                )}
+                {!batchesLoading && filteredBatches.map((b) => {
+                  const checked = selectedBatchIds.includes(b.id);
+                  return (
+                    <label key={b.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                      borderBottom: '1px solid #f1f4f9', cursor: 'pointer',
+                      background: checked ? '#eff6ff' : 'transparent',
+                    }}>
+                      <input type="checkbox" checked={checked} onChange={() => toggleBatch(b.id)} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{b.name || b.id}</div>
+                        {b.description && <div style={{ fontSize: 11, color: '#6b7280' }}>{b.description}</div>}
+                      </div>
+                      <span style={{ fontSize: 11, color: '#6b7280' }}>
+                        {b.totalStudents ?? b.studentCount ?? ''}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
+            </div>
+            <div className="legacy-modal-footer">
+              <span style={{ fontSize: 12, color: '#6b7280', marginRight: 'auto' }}>{selectedBatchIds.length} batch(es) selected</span>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setModalOpen(false)} disabled={generating}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={handleGenerateForAll} disabled={generating || selectedBatchIds.length === 0}>
+                {generating ? 'Generating…' : 'Generate for All'}
+              </button>
             </div>
           </div>
         </div>
@@ -862,12 +1034,15 @@ export default function IcardGeneratorPage() {
 
       {/* ── Students picker modal ─────────────────────────────────────── */}
       {studentsModalOpen && (
-        <div style={overlay} onClick={() => !generating && setStudentsModalOpen(false)}>
-          <div style={modalWide} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h2 style={{ margin: 0, fontSize: 16 }}>Generate ID Cards for Selected Students</h2>
-              <button type="button" onClick={() => !generating && setStudentsModalOpen(false)} style={closeBtn}>×</button>
+        <div className="legacy-modal-backdrop active" onClick={() => !generating && setStudentsModalOpen(false)}>
+          <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-id-badge" /> Generate ID Cards for Selected Students</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => !generating && setStudentsModalOpen(false)}>
+                <i className="ti ti-close" />
+              </button>
             </div>
+            <div className="legacy-modal-body">
             <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
               Search and pick one or more students. A PDF with one page per student (front &amp; back side-by-side) will open in a new tab.
             </p>
@@ -953,14 +1128,88 @@ export default function IcardGeneratorPage() {
                 </table>
               )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>{Object.keys(selectedCandidates).length} student(s) selected</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => setStudentsModalOpen(false)} disabled={generating} style={btnGhost}>Cancel</button>
-                <button type="button" onClick={handleGenerateForSelected} disabled={generating || Object.keys(selectedCandidates).length === 0} style={btnPrimary}>
-                  {generating ? 'Generating…' : `Generate (${Object.keys(selectedCandidates).length})`}
-                </button>
+            </div>
+            <div className="legacy-modal-footer">
+              <span style={{ fontSize: 12, color: '#6b7280', marginRight: 'auto' }}>{Object.keys(selectedCandidates).length} student(s) selected</span>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setStudentsModalOpen(false)} disabled={generating}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={handleGenerateForSelected} disabled={generating || Object.keys(selectedCandidates).length === 0}>
+                {generating ? 'Generating…' : `Generate (${Object.keys(selectedCandidates).length})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── "Preview for a Student" preview picker modal ──────────────────── */}
+      {previewPickerOpen && (
+        <div className="legacy-modal-backdrop active" onClick={() => setPreviewPickerOpen(false)}>
+          <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-user" /> Preview ID Card for a Student</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setPreviewPickerOpen(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="legacy-modal-body">
+              <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
+                Search and select a registered student to see how their ID card will look with the current placeholder mapping.
+              </p>
+              <input
+                type="search"
+                placeholder="Search by name, email, or phone…"
+                value={previewSearch}
+                onChange={(e) => setPreviewSearch(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, marginBottom: 10, fontSize: 13 }}
+                autoFocus
+              />
+              <div style={{ maxHeight: 380, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                {previewCandidatesLoading && <div style={{ padding: 14, color: '#6b7280' }}>Loading students…</div>}
+                {!previewCandidatesLoading && previewCandidates.length === 0 && (
+                  <div style={{ padding: 14, color: '#6b7280', textAlign: 'center' }}>
+                    {previewSearch ? 'No students match your search.' : 'No students found.'}
+                  </div>
+                )}
+                {!previewCandidatesLoading && previewCandidates.length > 0 && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', background: '#f9fafb', color: '#6b7280' }}>
+                        <th style={th}>Student</th>
+                        <th style={th}>Email</th>
+                        <th style={th}>Phone</th>
+                        <th style={{ ...th, width: 110 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewCandidates.map((c) => {
+                        const id = c.id || c.candidateId || c.candidateKey;
+                        const loading = previewLoadingId === id;
+                        return (
+                          <tr
+                            key={id}
+                            onClick={() => !previewLoadingId && choosePreviewStudent(c)}
+                            style={{ borderTop: '1px solid #f1f4f9', cursor: previewLoadingId ? 'default' : 'pointer' }}
+                          >
+                            <td style={td}>
+                              <div style={{ fontWeight: 600 }}>{c.name || 'Unknown'}</div>
+                              <div style={{ fontSize: 11, color: '#6b7280' }}>ID: {id}</div>
+                            </td>
+                            <td style={{ ...td, color: '#374151' }}>{c.email || '—'}</td>
+                            <td style={{ ...td, color: '#374151' }}>{c.mobile || c.registeredMobile || '—'}</td>
+                            <td style={{ ...td, textAlign: 'right' }}>
+                              <span style={{ color: '#006073', fontWeight: 600 }}>
+                                {loading ? 'Loading…' : 'Preview →'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
+            </div>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setPreviewPickerOpen(false)}>Close</button>
             </div>
           </div>
         </div>
@@ -968,15 +1217,20 @@ export default function IcardGeneratorPage() {
 
       {/* ── Single-student preview + edit modal ───────────────────────── */}
       {singleEditOpen && template && (
-        <div style={overlay} onClick={() => !generating && setSingleEditOpen(false)}>
-          <div style={modalWide} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h2 style={{ margin: 0, fontSize: 16 }}>
-                Review &amp; Edit — {singleEditStudent?.name || 'Student'}
-              </h2>
-              <button type="button" onClick={() => !generating && setSingleEditOpen(false)} style={closeBtn}>×</button>
+        <div
+          className="crispr-modal-backdrop active"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !generating) setSingleEditOpen(false); }}
+        >
+          <div className="crispr-modal-dialog" style={{ maxWidth: 820 }} role="dialog" aria-modal="true">
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-id-badge" /> Review &amp; Edit — {singleEditStudent?.name || 'Student'}</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => !generating && setSingleEditOpen(false)}>
+                <i className="ti ti-close" />
+              </button>
             </div>
 
+            <div className="crispr-modal-body">
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: 18 }}>
               {/* Editable fields */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 460, overflowY: 'auto', paddingRight: 6 }}>
@@ -1042,17 +1296,24 @@ export default function IcardGeneratorPage() {
                 </div>
               </div>
             </div>
+            </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14, borderTop: '1px solid #f1f4f9', paddingTop: 12 }}>
-              <button type="button" onClick={() => setSingleEditOpen(false)} disabled={generating} style={btnGhost}>Cancel</button>
-              <button type="button" onClick={handleConfirmSingleEdit} disabled={generating} style={btnPrimary}>
-                {generating ? 'Generating…' : 'Confirm & Generate PDF'}
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setSingleEditOpen(false)} disabled={generating}>Cancel</button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={handleConfirmSingleEdit}
+                disabled={generating}
+                style={generating ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+              >
+                <i className="ti ti-check" /> {generating ? 'Generating…' : 'Confirm & Generate PDF'}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -1102,20 +1363,3 @@ const card = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
 const cardHead = { padding: '10px 14px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', fontSize: 13, fontWeight: 600, color: '#374151' };
 const th = { padding: '10px 14px', fontWeight: 600, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.3 };
 const td = { padding: '10px 14px', verticalAlign: 'middle' };
-const pgBtn = { padding: '4px 10px', border: '1px solid #d1d5db', background: '#fff', borderRadius: 4, cursor: 'pointer', fontSize: 12 };
-const overlay = {
-  position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-};
-const modal = {
-  background: '#fff', borderRadius: 10, padding: 18, width: 'min(560px, 92vw)',
-  boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
-};
-const modalWide = {
-  background: '#fff', borderRadius: 10, padding: 18, width: 'min(820px, 95vw)',
-  boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
-};
-const btnPrimary = { background: '#2563eb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' };
-const btnGhost = { background: '#f3f4f6', color: '#111', border: '1px solid #d1d5db', padding: '8px 16px', borderRadius: 6, fontWeight: 600, cursor: 'pointer' };
-const linkBtn = { background: 'transparent', color: '#2563eb', border: 'none', cursor: 'pointer', fontWeight: 600 };
-const closeBtn = { background: 'transparent', border: 'none', fontSize: 18, cursor: 'pointer', color: '#6b7280' };

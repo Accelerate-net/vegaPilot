@@ -21,17 +21,35 @@ import {
   extractApiError,
 } from '../lib/locationsApi';
 
-const LOC_FILTERS = [
-  { value: 'all', label: 'All Locations' },
-  { value: 'open', label: 'Open' },
-  { value: 'closed', label: 'Closed' },
-];
+function KebabMenu({ children }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
-const VENUE_FILTERS = [
-  { value: 'all', label: 'All Venues' },
-  { value: 'active', label: 'Active' },
-  { value: 'disabled', label: 'Disabled' },
-];
+  useEffect(() => {
+    function handler(event) {
+      if (ref.current && !ref.current.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="kebab-menu-container" ref={ref}>
+      <button
+        type="button"
+        className="kebab-button"
+        onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
+      >
+        <i className="ti ti-more-alt" />
+      </button>
+      {open && (
+        <div className="kebab-dropdown active">
+          {children({ close: () => setOpen(false) })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function locationTypeLabel(type) {
   return LOCATION_TYPES.find((t) => t.value === type)?.label || '—';
@@ -54,12 +72,12 @@ export default function LocationsPage() {
   const navigate = useNavigate();
 
   const [locations, setLocations] = useState([]);
-  const [locFilter, setLocFilter] = useState('all');
+  const [locFilter] = useState('all');
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
   const [venues, setVenues] = useState([]);
-  const [venueFilter, setVenueFilter] = useState('all');
+  const [venueFilter] = useState('all');
   const [loadingVenues, setLoadingVenues] = useState(false);
 
   const [locModalOpen, setLocModalOpen] = useState(false);
@@ -279,7 +297,7 @@ export default function LocationsPage() {
   }
 
   return (
-    <section className="locations-page mentor-profiles-page">
+    <section className="locations-page mentor-profiles-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
@@ -295,21 +313,6 @@ export default function LocationsPage() {
       <div className="loc-split">
         {/* ── Master: locations list ───────────────────────── */}
         <aside className="loc-master">
-          <div className="loc-master-head">
-            <div className="loc-tabs">
-              {LOC_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  className={`loc-tab ${locFilter === f.value ? 'active' : ''}`}
-                  onClick={() => setLocFilter(f.value)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="loc-list">
             {loadingLocations && locations.length === 0 ? (
               <div className="loc-empty">Loading…</div>
@@ -328,9 +331,12 @@ export default function LocationsPage() {
                 >
                   <div className="loc-item-row">
                     <span className="loc-item-name">{loc.name}</span>
-                    <span className={`loc-pill ${loc.open ? 'ok' : 'off'}`}>
-                      {loc.open ? 'Open' : 'Closed'}
-                    </span>
+                    <span
+                      className="loc-status-dot"
+                      title={loc.open ? 'Open' : 'Permanently Closed Location'}
+                      aria-label={loc.open ? 'Open' : 'Permanently Closed Location'}
+                      style={{ background: loc.open ? '#16a34a' : '#dc2626' }}
+                    />
                   </div>
                   <div className="loc-item-meta">
                     <span className="subject-badge">{locationTypeLabel(loc.type)}</span>
@@ -355,30 +361,36 @@ export default function LocationsPage() {
             <>
               <header className="loc-detail-head">
                 <div>
-                  <h3>{selected.name}</h3>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      className="loc-status-dot"
+                      title={selected.open ? 'Open' : 'Permanently Closed Location'}
+                      aria-label={selected.open ? 'Open' : 'Permanently Closed Location'}
+                      style={{ background: selected.open ? '#16a34a' : '#dc2626' }}
+                    />
+                    {selected.name}
+                  </h3>
                   <div className="loc-detail-sub">
                     <span className="subject-badge">{locationTypeLabel(selected.type)}</span>
-                    <span className={`loc-pill ${selected.open ? 'ok' : 'off'}`}>
-                      {selected.open ? 'Open' : 'Closed'}
-                    </span>
                     {selected.isPublicAccessible && <span className="loc-mini-pill">Public access</span>}
                   </div>
                 </div>
                 <div className="loc-detail-actions">
-                  <button type="button" className="legacy-btn legacy-btn-default" onClick={() => openEditLocation(selected)}>
-                    <i className="ti ti-pencil" /> Edit
-                  </button>
-                  <button type="button" className="legacy-btn legacy-btn-default" onClick={() => togglePublicAccess(selected)}>
-                    <i className="ti ti-eye" /> {selected.isPublicAccessible ? 'Make Private' : 'Make Public'}
-                  </button>
-                  <button
-                    type="button"
-                    className={`legacy-btn ${selected.open ? 'legacy-btn-default' : 'legacy-btn-success'}`}
-                    onClick={() => toggleLocationOpen(selected)}
-                  >
-                    <i className={`ti ${selected.open ? 'ti-na' : 'ti-check'}`} />
-                    {selected.open ? 'Close' : 'Open'}
-                  </button>
+                  <KebabMenu>
+                    {({ close }) => (
+                      <>
+                        <button type="button" className="kebab-dropdown-item" onClick={() => { close(); openEditLocation(selected); }}>
+                          <i className="ti ti-pencil" /><span>Edit</span>
+                        </button>
+                        <button type="button" className="kebab-dropdown-item" onClick={() => { close(); togglePublicAccess(selected); }}>
+                          <i className="ti ti-eye" /><span>{selected.isPublicAccessible ? 'Make Private' : 'Make Public'}</span>
+                        </button>
+                        <button type="button" className="kebab-dropdown-item" onClick={() => { close(); toggleLocationOpen(selected); }}>
+                          <i className={`ti ${selected.open ? 'ti-na' : 'ti-check'}`} /><span>{selected.open ? 'Close Permanently' : 'Re-open Location'}</span>
+                        </button>
+                      </>
+                    )}
+                  </KebabMenu>
                 </div>
               </header>
 
@@ -392,28 +404,20 @@ export default function LocationsPage() {
               <section className="loc-venues">
                 <div className="loc-venues-head">
                   <div>
-                    <h4>Venues</h4>
-                    <p>Halls, studios, classrooms, and cabins at this location.</p>
+                    <h4>Venues at this Location</h4>
                   </div>
                   <div className="loc-venues-head-actions">
-                    <div className="loc-tabs">
-                      {VENUE_FILTERS.map((f) => (
-                        <button
-                          key={f.value}
-                          type="button"
-                          className={`loc-tab ${venueFilter === f.value ? 'active' : ''}`}
-                          onClick={() => setVenueFilter(f.value)}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-                    <button type="button" className="create-mentor-button" onClick={openAddVenue}>
+                    <button type="button" className="loc-add-venue-btn" onClick={openAddVenue}>
                       <i className="ti ti-plus" /> Add Venue
                     </button>
                   </div>
                 </div>
 
+                {loadingVenues ? (
+                  <div className="loc-empty-row">Loading…</div>
+                ) : venues.length === 0 ? (
+                  <div className="loc-empty-row">No venues here yet.</div>
+                ) : (
                 <div className="students-table-container">
                   <table className="students-table">
                     <thead>
@@ -422,19 +426,23 @@ export default function LocationsPage() {
                         <th>Type</th>
                         <th>Capacity</th>
                         <th>Amenities</th>
-                        <th className="centered-cell">Status</th>
                         <th className="actions-column" />
                       </tr>
                     </thead>
                     <tbody>
-                      {loadingVenues ? (
-                        <tr><td colSpan={6} className="loc-empty-row">Loading…</td></tr>
-                      ) : venues.length === 0 ? (
-                        <tr><td colSpan={6} className="loc-empty-row">No venues here yet.</td></tr>
-                      ) : (
-                        venues.map((v) => (
+                      {venues.map((v) => (
                           <tr key={v.id}>
-                            <td><div className="profile-name">{v.name}</div></td>
+                            <td>
+                              <div className="profile-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span
+                                  className="loc-status-dot"
+                                  title={v.active ? 'Enabled' : 'Disabled'}
+                                  aria-label={v.active ? 'Enabled' : 'Disabled'}
+                                  style={{ background: v.active ? '#16a34a' : '#dc2626' }}
+                                />
+                                {v.name}
+                              </div>
+                            </td>
                             <td><span className="subject-badge">{venueTypeLabel(v.type)}</span></td>
                             <td>{v.capacity ?? '—'}</td>
                             <td>
@@ -447,23 +455,26 @@ export default function LocationsPage() {
                                 )}
                               </div>
                             </td>
-                            <td className="centered-cell">
-                              <label className="ua-toggle" title={v.active ? 'Disable venue' : 'Enable venue'}>
-                                <input type="checkbox" checked={!!v.active} onChange={() => toggleVenueActive(v)} />
-                                <span className="ua-toggle-slider" />
-                              </label>
-                            </td>
                             <td className="mentor-actions-cell">
-                              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => openEditVenue(v)}>
-                                <i className="ti ti-pencil" /> Edit
-                              </button>
+                              <KebabMenu>
+                                {({ close }) => (
+                                  <>
+                                    <button type="button" className="kebab-dropdown-item" onClick={() => { close(); toggleVenueActive(v); }}>
+                                      <i className={`ti ${v.active ? 'ti-na' : 'ti-check'}`} /><span>{v.active ? 'Disable Venue' : 'Enable Venue'}</span>
+                                    </button>
+                                    <button type="button" className="kebab-dropdown-item" onClick={() => { close(); openEditVenue(v); }}>
+                                      <i className="ti ti-pencil" /><span>Edit</span>
+                                    </button>
+                                  </>
+                                )}
+                              </KebabMenu>
                             </td>
                           </tr>
-                        ))
-                      )}
+                        ))}
                     </tbody>
                   </table>
                 </div>
+                )}
               </section>
             </>
           )}
@@ -471,15 +482,15 @@ export default function LocationsPage() {
       </div>
 
       {/* ── Location modal ─────────────────────────────── */}
-      <div className={`mentor-edit-modal ${locModalOpen ? 'active' : ''}`} onClick={() => setLocModalOpen(false)}>
-        <div className="mentor-edit-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-          <div className="mentor-edit-header">
+      <div className={`legacy-modal-backdrop ${locModalOpen ? 'active' : ''}`} onClick={() => setLocModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="legacy-modal-header">
             <h3><i className="ti ti-map-2" /> {locEditMode ? 'Edit Location' : 'New Location'}</h3>
-            <button type="button" className="mentor-edit-close" onClick={() => setLocModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setLocModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="mentor-edit-body">
+          <div className="legacy-modal-body">
             <div className="mentor-form-section">
               <div className="mentor-form-title">Details</div>
               <div className="mentor-form-group">
@@ -578,7 +589,7 @@ export default function LocationsPage() {
               )}
             </div>
           </div>
-          <div className="mentor-edit-footer">
+          <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setLocModalOpen(false)} disabled={savingLoc}>
               Cancel
             </button>
@@ -590,15 +601,15 @@ export default function LocationsPage() {
       </div>
 
       {/* ── Venue modal ────────────────────────────────── */}
-      <div className={`mentor-edit-modal ${venueModalOpen ? 'active' : ''}`} onClick={() => setVenueModalOpen(false)}>
-        <div className="mentor-edit-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-          <div className="mentor-edit-header">
+      <div className={`legacy-modal-backdrop ${venueModalOpen ? 'active' : ''}`} onClick={() => setVenueModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="legacy-modal-header">
             <h3><i className="ti ti-home" /> {venueEditMode ? 'Edit Venue' : 'New Venue'}</h3>
-            <button type="button" className="mentor-edit-close" onClick={() => setVenueModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setVenueModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="mentor-edit-body">
+          <div className="legacy-modal-body">
             <div className="mentor-form-section">
               <div className="mentor-form-title">Details</div>
               <div className="mentor-form-group">
@@ -659,7 +670,7 @@ export default function LocationsPage() {
               </div>
             </div>
           </div>
-          <div className="mentor-edit-footer">
+          <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setVenueModalOpen(false)} disabled={savingVenue}>
               Cancel
             </button>
@@ -707,6 +718,7 @@ export default function LocationsPage() {
         .loc-item.active { background: #eff6ff; border-color: #bfdbfe; }
         .loc-item-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .loc-item-name { font-weight: 600; color: #0f172a; }
+        .loc-status-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; cursor: default; }
         .loc-item-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .loc-item-addr { color: #64748b; font-size: 12px; line-height: 1.4; }
 
@@ -759,6 +771,14 @@ export default function LocationsPage() {
         .loc-venues-head h4 { margin: 0 0 2px; }
         .loc-venues-head p { margin: 0; color: #64748b; font-size: 13px; }
         .loc-venues-head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .loc-add-venue-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          background: transparent; color: #006073;
+          border: 1px solid #cbd5e1; border-radius: 6px;
+          padding: 6px 12px; font-size: 13px; font-weight: 500;
+          cursor: pointer; transition: background .15s ease, border-color .15s ease;
+        }
+        .loc-add-venue-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
 
         .loc-amen-row { display: flex; gap: 4px; flex-wrap: wrap; }
         .loc-amen-grid {

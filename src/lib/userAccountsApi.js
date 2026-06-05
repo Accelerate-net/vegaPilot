@@ -19,11 +19,20 @@ export async function listUsers(params = {}) {
   return ensureOk(data);
 }
 
+/**
+ * Create an admin user.
+ * @param {{ name: string, email: string, mobile?: string|null, roleIds: number[], active?: boolean }} payload
+ */
 export async function createUser(payload) {
   const { data } = await api.post(BASE, payload);
   return ensureOk(data);
 }
 
+/**
+ * Update an admin user. `roleIds` (if sent) REPLACES the user's full role set.
+ * @param {number|string} id seq id
+ * @param {{ name: string, email: string, mobile?: string|null, roleIds: number[], active?: boolean }} payload
+ */
 export async function updateUser(id, payload) {
   const { data } = await api.put(`${BASE}/${id}`, payload);
   return ensureOk(data);
@@ -34,8 +43,13 @@ export async function setUserActive(id, active) {
   return ensureOk(data);
 }
 
-export async function assignUserRole(id, roleId) {
-  const { data } = await api.put(`${BASE}/${id}/role`, { roleId });
+/**
+ * Quick multi-role reassign without touching other fields. Replaces the set.
+ * @param {number|string} id
+ * @param {number[]} roleIds
+ */
+export async function assignUserRoles(id, roleIds) {
+  const { data } = await api.put(`${BASE}/${id}/role`, { roleIds });
   return ensureOk(data);
 }
 
@@ -55,10 +69,13 @@ export function extractApiError(err) {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_REGEX = /^\+?[0-9\s-]{7,15}$/;
 
-export function validateUser({ name, email, mobile }) {
+export function validateUser({ name, email, mobile, roleIds }) {
   const fields = {};
   if (!name || !name.trim()) fields.name = 'Name is required.';
   if (!email || !EMAIL_REGEX.test(email.trim())) fields.email = 'Valid email is required.';
   if (mobile && !MOBILE_REGEX.test(mobile.trim())) fields.mobile = 'Invalid mobile number.';
+  if (!Array.isArray(roleIds) || roleIds.length === 0) {
+    fields.roleIds = 'At least one role is required.';
+  }
   return Object.keys(fields).length ? fields : null;
 }

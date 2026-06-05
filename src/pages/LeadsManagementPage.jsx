@@ -15,6 +15,22 @@ import {
   extractApiError,
 } from '../lib/leadsApi';
 
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i += 1) pages.push(i);
+    return pages;
+  }
+  pages.push(1);
+  if (currentPage > 3) pages.push('...');
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  for (let i = start; i <= end; i += 1) pages.push(i);
+  if (currentPage < totalPages - 2) pages.push('...');
+  pages.push(totalPages);
+  return pages;
+}
+
 /* ── Source Origin Config ── */
 const sourceIcons = {
   'Phone': 'ti-mobile',
@@ -101,10 +117,14 @@ export default function LeadsManagementPage() {
   const [associateFilter, setAssociateFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');      // '' = no filter, 'today', 'tomorrow', or 'YYYY-MM-DD'
   const [customDatePick, setCustomDatePick] = useState('');
+  const [followUpMenuOpen, setFollowUpMenuOpen] = useState(false);
+  const [pickingDate, setPickingDate] = useState(false);
+  const followUpRef = useRef(null);
+  const followUpDateRef = useRef(null);
 
   // Pagination — server-side
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 8;
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -138,6 +158,21 @@ export default function LeadsManagementPage() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  useEffect(() => {
+    if (!followUpMenuOpen) { setPickingDate(false); return undefined; }
+    const handleClick = (event) => {
+      if (followUpRef.current && !followUpRef.current.contains(event.target)) setFollowUpMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [followUpMenuOpen]);
+
+  useEffect(() => {
+    if (pickingDate && followUpDateRef.current?.showPicker) {
+      try { followUpDateRef.current.showPicker(); } catch { /* ignore */ }
+    }
+  }, [pickingDate]);
+
   const showToast = useCallback((type, title, message) => {
     const id = Date.now() + Math.random();
     setToasts(c => [...c, { id, type, title, message }]);
@@ -151,6 +186,18 @@ export default function LeadsManagementPage() {
     if (dateFilter && dateFilter !== 'custom') return dateFilter;
     if (dateFilter === 'custom' && customDatePick) return customDatePick;
     return '';
+  }, [dateFilter, customDatePick]);
+
+  const followUpLabel = useMemo(() => {
+    if (dateFilter === 'today') return 'Today';
+    if (dateFilter === 'tomorrow') return 'Tomorrow';
+    if (dateFilter === 'custom') {
+      if (!customDatePick) return 'Select a Date';
+      const d = new Date(`${customDatePick}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return 'Select a Date';
+      return `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}, ${d.getFullYear()}`;
+    }
+    return 'All';
   }, [dateFilter, customDatePick]);
 
   // ── Resolve associate filter (selected by name in UI) → associateId for the API
@@ -198,7 +245,7 @@ export default function LeadsManagementPage() {
     } finally {
       if (!signal.cancelled) setIsLoading(false);
     }
-  }, [currentPage, debouncedSearch, statusFilter, interestFilter, associateIdFilter, resolvedDateFilter, showToast]);
+  }, [currentPage, rowsPerPage, debouncedSearch, statusFilter, interestFilter, associateIdFilter, resolvedDateFilter, showToast]);
 
   const reloadStats = useCallback(async () => {
     try {
@@ -505,7 +552,7 @@ export default function LeadsManagementPage() {
   }, []);
 
   return (
-    <div className="container-fluid" style={{ paddingTop: '1%' }}>
+    <div className="container-fluid data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts(c => c.filter(t => t.id !== id))} />
 
       {/* Page Header */}
@@ -529,14 +576,14 @@ export default function LeadsManagementPage() {
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', marginBottom: '25px' }}>
         {[
-          { label: 'Total Leads', value: stats.total, icon: 'ti-layers-alt', bg: '#006073' },
-          { label: 'Received', value: stats.received, icon: 'ti-import', bg: '#0284c7' },
-          { label: 'In Progress', value: stats.inProgress, icon: 'ti-reload', bg: '#ca8a04' },
-          { label: 'Converted', value: stats.converted, icon: 'ti-check-box', bg: '#16a34a' },
-          { label: 'Lost', value: stats.lost, icon: 'ti-na', bg: '#dc2626' },
+          { label: 'Total Leads', value: stats.total, icon: 'ti-layers-alt', bg: '#e7f5f7', color: '#006073' },
+          { label: 'Received', value: stats.received, icon: 'ti-import', bg: '#e0f2fe', color: '#075985' },
+          { label: 'In Progress', value: stats.inProgress, icon: 'ti-reload', bg: '#fff3cd', color: '#856404' },
+          { label: 'Converted', value: stats.converted, icon: 'ti-check-box', bg: '#d4edda', color: '#155724' },
+          { label: 'Lost', value: stats.lost, icon: 'ti-na', bg: '#f8d7da', color: '#721c24' },
         ].map(s => (
           <div key={s.label} style={{ background: 'white', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
               <i className={`ti ${s.icon}`}></i>
             </div>
             <div>
@@ -547,10 +594,8 @@ export default function LeadsManagementPage() {
         ))}
       </div>
 
-      {/* Listing Table Card */}
-      <div style={{ background: 'white', borderRadius: '8px', padding: '25px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: '25px' }}>
-        {/* Filter Row 1: Search + dropdowns */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #eee', flexWrap: 'wrap', gap: '10px' }}>
+      {/* Filter Row 1: Search + dropdowns */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ position: 'relative' }}>
             <input type="text" placeholder="Search by name, phone, email..." style={{ padding: '8px 12px 8px 35px', borderRadius: '6px', border: '1px solid #d1d5db', width: '300px', fontSize: '14px' }} value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
             <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#9ca3af' }}></i>
@@ -570,45 +615,76 @@ export default function LeadsManagementPage() {
               <option value="all">All Associates</option>
               {uniqueAssociates.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
-          </div>
-        </div>
-
-        {/* Filter Row 2: Quick Date Filters */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569', marginRight: '4px' }}><i className="ti ti-calendar" style={{ marginRight: '4px' }}></i>Follow-up on:</span>
-          {[
-            { key: '', label: 'All' },
-            { key: 'today', label: 'Today' },
-            { key: 'tomorrow', label: 'Tomorrow' },
-          ].map(f => (
-            <button key={f.key} onClick={() => { setDateFilter(f.key); setCurrentPage(1); }} style={{ padding: '5px 14px', borderRadius: '20px', border: '1px solid', borderColor: dateFilter === f.key ? '#006073' : '#d1d5db', background: dateFilter === f.key ? '#006073' : 'white', color: dateFilter === f.key ? 'white' : '#4b5563', fontSize: '13px', fontWeight: dateFilter === f.key ? 600 : 400, cursor: 'pointer', transition: 'all 0.15s' }}>
-              {f.label}
+            <div ref={followUpRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setFollowUpMenuOpen(o => !o)}
+              style={{ ...selStyle, display: 'flex', alignItems: 'center', gap: '8px', minWidth: '160px', justifyContent: 'space-between', cursor: 'pointer', borderColor: dateFilter ? '#006073' : '#d1d5db' }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><i className="ti ti-calendar" style={{ fontSize: '13px', color: '#6b7280' }}></i>{followUpLabel}</span>
+              <i className={`ti ti-angle-${followUpMenuOpen ? 'up' : 'down'}`} style={{ fontSize: '12px' }}></i>
             </button>
-          ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <input type="date" value={dateFilter === 'custom' ? customDatePick : ''} onChange={e => { setDateFilter('custom'); setCustomDatePick(e.target.value); setCurrentPage(1); }} style={{ padding: '4px 10px', borderRadius: '20px', border: '1px solid', borderColor: dateFilter === 'custom' ? '#006073' : '#d1d5db', fontSize: '13px', color: '#4b5563', cursor: 'pointer', background: dateFilter === 'custom' ? '#e0f2f1' : 'white' }} />
+            {followUpMenuOpen && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 30, minWidth: '180px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+                {[
+                  { key: '', label: 'All' },
+                  { key: 'today', label: 'Today' },
+                  { key: 'tomorrow', label: 'Tomorrow' },
+                ].map(f => (
+                  <button
+                    key={f.key || 'all'}
+                    type="button"
+                    onClick={() => { setDateFilter(f.key); setCustomDatePick(''); setCurrentPage(1); setFollowUpMenuOpen(false); }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', background: (dateFilter === f.key && f.key !== 'custom') ? '#e0f2f1' : 'white', color: '#374151', fontSize: '13px', textAlign: 'left', cursor: 'pointer', fontWeight: dateFilter === f.key ? 600 : 400 }}
+                  >
+                    {f.label}
+                    {dateFilter === f.key && <i className="ti ti-check" style={{ color: '#006073', fontSize: '12px' }}></i>}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPickingDate(true)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '9px 14px', border: 'none', borderTop: '1px solid #f1f5f9', background: dateFilter === 'custom' ? '#e0f2f1' : 'white', color: '#374151', fontSize: '13px', textAlign: 'left', cursor: 'pointer', fontWeight: dateFilter === 'custom' ? 600 : 400 }}
+                >
+                  Select a Date
+                  {dateFilter === 'custom' && <i className="ti ti-check" style={{ color: '#006073', fontSize: '12px' }}></i>}
+                </button>
+                {(pickingDate || dateFilter === 'custom') && (
+                  <div style={{ padding: '10px 14px', borderTop: '1px solid #f1f5f9' }}>
+                    <input
+                      ref={followUpDateRef}
+                      type="date"
+                      value={dateFilter === 'custom' ? customDatePick : ''}
+                      onChange={e => { setDateFilter('custom'); setCustomDatePick(e.target.value); setCurrentPage(1); setPickingDate(false); setFollowUpMenuOpen(false); }}
+                      style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', color: '#4b5563', cursor: 'pointer' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           {dateFilter && (
             <button onClick={() => { setDateFilter(''); setCustomDatePick(''); setCurrentPage(1); }} style={{ padding: '3px 10px', borderRadius: '20px', border: '1px solid #fecaca', background: '#fee2e2', color: '#dc2626', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
               <i className="ti ti-close" style={{ fontSize: '10px' }}></i> Clear
             </button>
           )}
+          </div>
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead style={{ background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', color: 'white' }}>
+        <div className="students-table-container">
+          <table className="students-table">
+            <thead>
               <tr>
-                <th style={thStyle}>Lead</th>
-                <th style={thStyle}>Origin</th>
-                <th style={thStyle}>Associate</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Interest</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Status</th>
-                <th style={thStyle}>Last Follow-up</th>
-                <th style={thStyle}>Next Follow-up</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Age</th>
-                <th style={{ ...thStyle, textAlign: 'center', width: '80px' }}>Actions</th>
+                <th>Lead</th>
+                <th>Origin</th>
+                <th>Associate</th>
+                <th style={{ textAlign: 'center' }}>Interest</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th>Last Follow-up</th>
+                <th>Next Follow-up</th>
+                <th style={{ textAlign: 'center' }}>Age</th>
+                <th style={{ textAlign: 'center', width: '80px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -663,23 +739,22 @@ export default function LeadsManagementPage() {
                         {ageDays}d
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', position: 'relative' }}>
-                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#6b7280' }} onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === lead.id ? null : lead.id); }}>
-                        <i className="ti ti-more-alt" style={{ fontSize: '20px' }}></i>
-                      </button>
-                      {activeDropdown === lead.id && (
-                        <div style={{ position: 'absolute', right: '40px', top: '15px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', zIndex: 100, minWidth: '170px', padding: '5px 0' }} onClick={e => e.stopPropagation()}>
-                          <div style={dropStyle} className="lm-dp-hover" onClick={() => openLeadDetail(lead)}><i className="ti ti-eye"></i> View Details</div>
-                          <div style={dropStyle} className="lm-dp-hover" onClick={() => { setEditingLead(lead); setActiveDropdown(null); }}><i className="ti ti-pencil"></i> Edit Lead</div>
-                          <div style={dropStyle} className="lm-dp-hover" onClick={() => { setReassignLead(lead); setActiveDropdown(null); }}><i className="ti ti-exchange-vertical"></i> Reassign</div>
-                          <div style={{ borderTop: '1px solid #eee', margin: '4px 0' }}></div>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      <div className="kebab-menu-container">
+                        <button type="button" className="kebab-button" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === lead.id ? null : lead.id); }}>
+                          <i className="ti ti-more-alt"></i>
+                        </button>
+                        <div className={`kebab-dropdown ${activeDropdown === lead.id ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => openLeadDetail(lead)}><i className="ti ti-eye"></i> View Details</button>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => { setEditingLead(lead); setActiveDropdown(null); }}><i className="ti ti-pencil"></i> Edit Lead</button>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => { setReassignLead(lead); setActiveDropdown(null); }}><i className="ti ti-exchange-vertical"></i> Reassign</button>
                           {statusOptions.filter(s => s !== lead.status).map(s => (
-                            <div key={s} style={{ ...dropStyle, color: statusConfig[s].color }} className="lm-dp-hover" onClick={() => { handleStatusChange(lead.id, s); setActiveDropdown(null); }}>
+                            <button key={s} type="button" className="kebab-dropdown-item" style={{ color: statusConfig[s].color }} onClick={() => { handleStatusChange(lead.id, s); setActiveDropdown(null); }}>
                               Mark as {s}
-                            </div>
+                            </button>
                           ))}
                         </div>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -696,24 +771,41 @@ export default function LeadsManagementPage() {
 
         {/* Pagination */}
         {totalItems > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0 0', marginTop: '15px', borderTop: '1px solid #e9ecef' }}>
-            <div style={{ fontSize: '13px', color: '#6c757d' }}>
-              Showing {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems} leads
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>Showing {(currentPage - 1) * rowsPerPage + 1} to {Math.min(currentPage * rowsPerPage, totalItems)} of {totalItems} entries</span>
+              <select
+                className="page-size-select"
+                value={rowsPerPage}
+                onChange={(event) => { setRowsPerPage(Number(event.target.value)); setCurrentPage(1); }}
+              >
+                {[20, 50, 100, 200].map((size) => <option key={size} value={size}>Show {size}</option>)}
+              </select>
             </div>
-            <div style={{ display: 'flex', gap: '5px' }}>
-              <button style={pgBtnStyle(false)} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                <i className="ti ti-angle-left"></i> Prev
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
+                <i className="ti ti-angle-left" /> Previous
               </button>
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button key={i} style={pgBtnStyle(currentPage === i + 1)} onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+              {getPageNumbers(currentPage, totalPages).map((page, index) => (
+                page === '...'
+                  ? <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                  : (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`pagination-btn${currentPage === page ? ' active' : ''}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  )
               ))}
-              <button style={pgBtnStyle(false)} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
-                Next <i className="ti ti-angle-right"></i>
+              <button type="button" className="pagination-btn" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
+                Next <i className="ti ti-angle-right" />
               </button>
             </div>
           </div>
         )}
-      </div>
 
       {/* ══════ Lead Detail / Follow-up Modal ══════ */}
       {selectedLead && (
@@ -1024,9 +1116,6 @@ export default function LeadsManagementPage() {
 }
 
 /* ── Shared inline styles ── */
-const thStyle = { padding: '14px 16px', textAlign: 'left', fontWeight: 600, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const tdStyle = { padding: '14px 16px', verticalAlign: 'middle', color: '#4b5563', fontSize: '14px' };
-const dropStyle = { padding: '8px 16px', fontSize: '14px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', color: '#4b5563' };
 const selStyle = { padding: '8px 15px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', fontWeight: 500, background: 'white', color: '#4b5563' };
 const metaLabel = { fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' };
-const pgBtnStyle = (active) => ({ padding: '5px 12px', background: active ? '#006073' : 'white', border: '1px solid', borderColor: active ? '#006073' : '#dee2e6', borderRadius: '4px', color: active ? 'white' : '#495057', cursor: 'pointer', fontSize: '13px', fontWeight: active ? 600 : 400 });

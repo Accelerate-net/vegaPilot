@@ -1,14 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import Avatar from '../components/Avatar';
 import { availableMentors, candidateDetailFallback } from '../data/candidateDetailDemo';
 
 /* ── Helpers ── */
-function getInitials(name) {
-  if (!name) return '??';
-  const p = name.trim().split(/\s+/);
-  return p.length >= 2 ? `${p[0][0]}${p[p.length - 1][0]}`.toUpperCase() : name.slice(0, 2).toUpperCase();
-}
 function fmtDate(ts) {
   if (!ts) return 'Unknown';
   return new Date(ts * 1000).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -117,9 +113,12 @@ export default function CandidateDetailPage() {
       {/* ═══ Student Header ═══ */}
       <div style={{ background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', color: 'white', padding: '30px', borderRadius: '8px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-          {candidate.photo
-            ? <img src={candidate.photo} alt={candidate.name} style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid white', objectFit: 'cover' }} />
-            : <div style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid white', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 700, color: 'white', flexShrink: 0 }}>{getInitials(candidate.name)}</div>}
+          <Avatar
+            src={candidate.photo}
+            name={candidate.name}
+            style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid white', objectFit: 'cover' }}
+            placeholderStyle={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid white', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 700, color: 'white', flexShrink: 0 }}
+          />
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '28px', color: 'white' }}>{candidate.name}</h2>
             <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: '14px' }}>
@@ -391,9 +390,12 @@ export default function CandidateDetailPage() {
             <div style={{ display: 'flex', gap: '25px', alignItems: 'start' }}>
               {/* Avatar */}
               <div style={{ flexShrink: 0 }}>
-                {candidate.mentor.photo
-                  ? <img src={candidate.mentor.photo} alt={candidate.mentor.name} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #006073' }} />
-                  : <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '36px', fontWeight: 700 }}>{getInitials(candidate.mentor.name)}</div>}
+                <Avatar
+                  src={candidate.mentor.photo}
+                  name={candidate.mentor.name}
+                  style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #006073' }}
+                  placeholderStyle={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '36px', fontWeight: 700 }}
+                />
               </div>
               {/* Details */}
               <div style={{ flex: 1 }}>
@@ -538,9 +540,12 @@ export default function CandidateDetailPage() {
                       style={{ border: `2px solid ${isSel ? '#006073' : '#e9ecef'}`, borderRadius: '8px', padding: '15px', cursor: 'pointer', transition: 'all 0.2s', background: isSel ? '#f8f9fa' : 'white' }}>
                       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                         <div style={{ flexShrink: 0 }}>
-                          {m.photo
-                            ? <img src={m.photo} alt={m.name} style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }} />
-                            : <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 700 }}>{getInitials(m.name)}</div>}
+                          <Avatar
+                            src={m.photo}
+                            name={m.name}
+                            style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                            placeholderStyle={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 700 }}
+                          />
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '5px' }}>

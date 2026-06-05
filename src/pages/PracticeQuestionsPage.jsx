@@ -74,13 +74,11 @@ export default function PracticeQuestionsPage() {
   const navigate = useNavigate();
   const [questions, setQuestionsState] = useState(loadQuestions);
   const [toasts, setToasts] = useState([]);
-  const [batchLabel, setBatchLabel] = useState('');
   const [batchSearch, setBatchSearch] = useState('');
   const [batchPage, setBatchPage] = useState(1);
   const batchesPerPage = 6;
 
   // Processing
-  const [isProcessing, setIsProcessing] = useState(false);
   const [processingMessage, setProcessingMessage] = useState('');
   const [processingProgress, setProcessingProgress] = useState(0);
 
@@ -92,7 +90,12 @@ export default function PracticeQuestionsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editQuestion, setEditQuestion] = useState(null);
 
-  const fileInputRef = useRef(null);
+  const modalFileInputRef = useRef(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadModalName, setUploadModalName] = useState('');
+  const [uploadModalFile, setUploadModalFile] = useState(null);
+  const [uploadModalProcessing, setUploadModalProcessing] = useState(false);
+  const [uploadModalDone, setUploadModalDone] = useState(false);
 
   // Persist wrapper
   const setQ = useCallback((updater) => {
@@ -169,19 +172,16 @@ export default function PracticeQuestionsPage() {
     return String(max + 1).padStart(5, '0');
   };
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || file.type !== 'application/pdf') { if (file) showToast('info', 'Info', 'Please select a valid PDF file.'); return; }
-    e.target.value = '';
+  const processPdf = async (file, labelText) => {
+    if (!file || file.type !== 'application/pdf') { showToast('info', 'Info', 'Please select a valid PDF file.'); return; }
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
     if (!pdfjsLib) { showToast('error', 'Error', 'PDF.js library not loaded. Please refresh.'); return; }
 
     const batchNumber = getNextBatchNumber();
-    const label = sanitizeLabel(batchLabel) || file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+    const label = sanitizeLabel(labelText) || file.name.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
     const generatedBatchId = `${batchNumber}-${label}`;
 
-    setIsProcessing(true);
     setProcessingMessage('Loading PDF...');
     setProcessingProgress(0);
 
@@ -240,7 +240,6 @@ export default function PracticeQuestionsPage() {
 
       newQuestions.sort((a, b) => a.pageNumber - b.pageNumber);
       setQ(prev => [...prev, ...newQuestions]);
-      setBatchLabel('');
       setProcessingMessage(`Successfully created ${totalPages} question${totalPages > 1 ? 's' : ''} in batch ${generatedBatchId}!`);
       showToast('success', 'Upload Complete', `${totalPages} questions created from PDF.`);
 
@@ -249,11 +248,35 @@ export default function PracticeQuestionsPage() {
         setTimeout(() => runOCR(newQuestions), 200);
       }
 
-      setTimeout(() => { setIsProcessing(false); setProcessingProgress(0); }, 2500);
+      setTimeout(() => { setProcessingProgress(0); }, 2500);
     } catch (err) {
       console.error('PDF processing error:', err);
-      setIsProcessing(false);
       showToast('error', 'Error', 'Error processing PDF. Please try again.');
+    }
+  };
+
+  /* ── Upload Question Bundle modal ── */
+  const openUploadModal = () => { setUploadModalName(''); setUploadModalFile(null); setUploadModalProcessing(false); setUploadModalDone(false); setUploadModalOpen(true); };
+  const closeUploadModal = () => {
+    if (uploadModalProcessing) return;
+    setUploadModalOpen(false); setUploadModalName(''); setUploadModalFile(null); setUploadModalDone(false);
+  };
+  const handleModalFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || file.type !== 'application/pdf') { if (file) showToast('info', 'Info', 'Please select a valid PDF file.'); setUploadModalFile(null); return; }
+    setUploadModalFile(file);
+  };
+  const proceedUploadModal = async () => {
+    if (!uploadModalFile || !uploadModalName.trim()) return;
+    const file = uploadModalFile;
+    const name = uploadModalName;
+    setUploadModalDone(false);
+    setUploadModalProcessing(true);
+    try {
+      await processPdf(file, name);
+    } finally {
+      setUploadModalProcessing(false);
+      setUploadModalDone(true);
     }
   };
 
@@ -331,51 +354,23 @@ export default function PracticeQuestionsPage() {
   }, []);
 
   return (
-    <div className="container-fluid" style={{ paddingTop: '1%' }}>
+    <div className="container-fluid data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts(c => c.filter(t => t.id !== id))} />
-      <input ref={fileInputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleFileSelect} />
 
-      {/* ═══ Batch Management + Upload Section ═══ */}
-      <div style={{ background: 'white', padding: '20px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-
-        {/* Upload Bar */}
-        <div style={{ background: 'linear-gradient(135deg, #006073 0%, #008a9e 100%)', borderRadius: '10px', padding: '20px 25px', marginBottom: '20px', color: 'white' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1, minWidth: '300px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <i className="ti ti-cloud-up" style={{ fontSize: '24px' }}></i>
-              </div>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>Upload New Questions Bundle</div>
-                <div style={{ fontSize: '13px', opacity: 0.9 }}>Each page in the PDF becomes a question</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px' }}>
-                <i className="ti ti-file" style={{ fontSize: '16px', opacity: 0.9 }}></i>
-                <input type="text" value={batchLabel} onChange={e => setBatchLabel(e.target.value)} placeholder="Enter bundle name..." style={{ fontSize: '14px', padding: '4px 0', border: 'none', borderBottom: '2px dotted rgba(255,255,255,0.5)', background: 'transparent', color: 'white', width: '160px', outline: 'none' }} onFocus={e => e.target.style.borderBottomColor = 'rgba(255,255,255,0.9)'} onBlur={e => e.target.style.borderBottomColor = 'rgba(255,255,255,0.5)'} />
-              </div>
-              <button disabled={!batchLabel.trim() || isProcessing} onClick={() => fileInputRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 25px', fontSize: '14px', fontWeight: 600, background: 'white', color: '#006073', border: 'none', cursor: batchLabel.trim() && !isProcessing ? 'pointer' : 'not-allowed', opacity: batchLabel.trim() && !isProcessing ? 1 : 0.5, transition: 'all 0.2s' }}>
-                <i className="ti ti-upload" style={{ fontSize: '18px' }}></i> Upload PDF
-              </button>
-            </div>
-          </div>
-
-          {/* Processing Status */}
-          {isProcessing && (
-            <div style={{ marginTop: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <i className="ti ti-reload" style={{ fontSize: '18px', animation: 'spin 1s linear infinite' }}></i>
-                <strong>{processingMessage}</strong>
-              </div>
-              <div style={{ width: '100%', height: '24px', background: 'rgba(255,255,255,0.2)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${processingProgress}%`, background: 'white', color: '#006073', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, transition: 'width 0.3s ease' }}>
-                  {processingProgress}%
-                </div>
-              </div>
-            </div>
-          )}
+      <div className="page-header-section">
+        <div>
+          <h2>Practice Questions</h2>
+          <p>Upload question bundles, organize them into practice sets, and manage the practice repository.</p>
         </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="page-action-button" onClick={openUploadModal}>
+            <i className="ti ti-cloud-up" /> Upload Question Bundle
+          </button>
+        </div>
+      </div>
+
+      {/* ═══ Batch Management Section ═══ */}
+      <div style={{ background: 'white', padding: '20px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
 
         {/* Batch Search */}
         {batchesList.length > 0 && (
@@ -618,6 +613,77 @@ export default function PracticeQuestionsPage() {
               <button onClick={() => setEditModalOpen(false)} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: '14px', cursor: 'pointer' }}>
                 <i className="ti ti-close"></i> Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {uploadModalOpen && (
+        <div className="legacy-modal-backdrop active" onClick={closeUploadModal}>
+          <div className="legacy-modal-dialog" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-cloud-up" /> Upload Question Bundle</h3>
+              {!uploadModalProcessing && (
+                <button className="legacy-modal-close" onClick={closeUploadModal}><i className="ti ti-close" /></button>
+              )}
+            </div>
+            <div className="legacy-modal-body">
+              {uploadModalDone ? (
+                <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>
+                    <i className="ti ti-check" />
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: '#333' }}>Questions are processed, you can close the window</div>
+                </div>
+              ) : uploadModalProcessing ? (
+                <div style={{ padding: '10px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', color: '#006073' }}>
+                    <i className="ti ti-reload" style={{ fontSize: '18px', animation: 'spin 1s linear infinite' }} />
+                    <strong>{processingMessage || 'Processing...'}</strong>
+                  </div>
+                  <div style={{ width: '100%', height: '24px', background: '#e9ecef', borderRadius: '12px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${processingProgress}%`, background: 'linear-gradient(135deg, #006073 0%, #008a9e 100%)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, transition: 'width 0.3s ease' }}>
+                      {processingProgress}%
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="form-group" style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontWeight: 600, color: '#333', marginBottom: '8px', fontSize: '14px' }}>Bundle Name</label>
+                    <input type="text" value={uploadModalName} onChange={e => setUploadModalName(e.target.value)} className="form-control" placeholder="Enter bundle name..." autoFocus />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontWeight: 600, color: '#333', marginBottom: '8px', fontSize: '14px' }}>PDF File</label>
+                    <input ref={modalFileInputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleModalFileSelect} />
+                    <button type="button" onClick={() => modalFileInputRef.current?.click()} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '14px', fontWeight: 500, background: '#f1f5f9', color: '#006073', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer' }}>
+                      <i className="ti ti-file" /> Choose File
+                    </button>
+                    {uploadModalFile && (
+                      <span style={{ marginLeft: '12px', fontSize: '13px', color: '#333' }}>
+                        <i className="ti ti-check" style={{ color: '#16a34a', marginRight: '4px' }} />{uploadModalFile.name}
+                      </span>
+                    )}
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px' }}>Each page in the PDF becomes a question.</div>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="legacy-modal-footer">
+              {uploadModalDone ? (
+                <button className="legacy-btn legacy-btn-success" onClick={closeUploadModal}>
+                  <i className="ti ti-close" /> Close
+                </button>
+              ) : uploadModalProcessing ? (
+                <button className="legacy-btn legacy-btn-default" disabled>Processing…</button>
+              ) : (
+                <>
+                  <button className="legacy-btn legacy-btn-default" onClick={closeUploadModal}>Cancel</button>
+                  <button className="legacy-btn legacy-btn-success" onClick={proceedUploadModal} disabled={!uploadModalFile || !uploadModalName.trim()}>
+                    <i className="ti ti-check" /> Proceed
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@
 //     to avoid touching the page). The toUi/fromUi helpers translate.
 
 import { useEffect, useState } from 'react';
-import { Alerts, Loops, Media, Schedules, Screens, SignageError, dashboard as fetchDashboard, contentTypes as fetchContentTypes } from './signageApi';
+import { Alerts, BrandingKits, Loops, Media, Schedules, Screens, SignageError, dashboard as fetchDashboard, contentTypes as fetchContentTypes } from './signageApi';
 import { listLocations } from './locationsApi';
 
 // ─── Static option pools (used by the page; unchanged) ───────────────
@@ -40,6 +40,7 @@ export const SEVERITIES = [
 // React picker doesn't have to wait on /content-types.
 export const CONTENT_TYPES = [
   { id: 'BRANDING',          label: 'Animated Branding',    icon: 'ti-stamp',         color: '#7c3aed', scope: 'GLOBAL', desc: 'Logo, slogans, particle backgrounds, stat counters.' },
+  { id: 'SIMPLE_TEXT',       label: 'Simple Text',          icon: 'ti-align-left',    color: '#0f766e', scope: 'GLOBAL', desc: 'A title and a block of text to display.' },
   { id: 'LIVE_CLASSES',      label: 'Live Class Board',     icon: 'ti-blackboard',    color: '#0d9488', scope: 'CENTER', desc: 'Ongoing classes, rooms, faculty.' },
   { id: 'FACULTY_SCHEDULE',  label: 'Faculty Schedule',     icon: 'ti-calendar-time', color: '#1d4ed8', scope: 'CENTER', desc: 'Today\'s faculty timetable and substitutions.' },
   { id: 'ATTENDANCE',        label: 'Attendance Summary',   icon: 'ti-checks',        color: '#059669', scope: 'CENTER', desc: 'Realtime branch attendance from biometric.' },
@@ -47,10 +48,10 @@ export const CONTENT_TYPES = [
   { id: 'TESTIMONIALS',      label: 'Testimonials',         icon: 'ti-quote',         color: '#be185d', scope: 'GLOBAL', desc: 'Carousel with optional QR for reviews.' },
   { id: 'TOPPERS',           label: 'Topper Hall of Fame',  icon: 'ti-trophy',        color: '#b45309', scope: 'GLOBAL', desc: 'Rank holders, college, exam, year.' },
   { id: 'COUNTDOWN',         label: 'Countdown Timer',      icon: 'ti-hourglass',     color: '#c026d3', scope: 'GLOBAL', desc: 'Days/hrs/min/sec to a target event.' },
-  { id: 'EMERGENCY',         label: 'Emergency Broadcast',  icon: 'ti-alert',         color: '#dc2626', scope: 'CENTER', desc: 'Fullscreen override for critical alerts.' },
+  { id: 'EMERGENCY',         label: 'Alert Broadcast',      icon: 'ti-alert',         color: '#dc2626', scope: 'CENTER', desc: 'Fullscreen override for critical alerts.' },
   { id: 'AI_HIGHLIGHTS',     label: 'AI Highlights',        icon: 'ti-sparkles',      color: '#7c3aed', scope: 'CENTER', desc: 'Weekly achievers, charts, AI captions.' },
   { id: 'VIDEO',             label: 'Silent Video Loop',    icon: 'ti-video',         color: '#0369a1', scope: 'GLOBAL', desc: 'Looped mp4/webm with poster.' },
-  { id: 'POSTER',            label: 'Poster / Image',       icon: 'ti-photo',         color: '#475569', scope: 'CENTER', desc: 'Fullscreen poster with CTA.' },
+  { id: 'POSTER',            label: 'Simple Image',         icon: 'ti-photo',         color: '#475569', scope: 'CENTER', desc: 'Fullscreen image with optional CTA.' },
 ];
 
 export const SCOPE_STYLES = {
@@ -156,6 +157,19 @@ function fromUiSchedule(input) {
   }
   return input;
 }
+
+function toUiBrandingKit(k) {
+  if (!k) return k;
+  return {
+    ...k,
+    display_name: k.display_name || '',
+    logo_url:     k.logo_url || '',
+    taglines:     Array.isArray(k.taglines) ? k.taglines : [],
+    keywords:     Array.isArray(k.keywords) ? k.keywords : [],
+    branch_ids:   Array.isArray(k.branch_ids) ? k.branch_ids : [],
+    is_active:    k.is_active !== false,
+  };
+}
 function mediaTypeIcon(type) {
   return type === 'video' ? '🎞️' : type === 'audio' ? '🔊' : type === 'lottie' ? '🎬' : '🖼️';
 }
@@ -168,11 +182,12 @@ let _state = {
   schedules:    [],
   alerts:       [],
   media:        [],
+  brandingKits: [],
   dashboard:    null,
   contentTypes: null,
 };
-const _loaded = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, dashboard: false, contentTypes: false };
-const _loading = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, dashboard: false, contentTypes: false };
+const _loaded = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, brandingKits: false, dashboard: false, contentTypes: false };
+const _loading = { branches: false, screens: false, timelines: false, schedules: false, alerts: false, media: false, brandingKits: false, dashboard: false, contentTypes: false };
 const _subs = new Set();
 
 function notify() { for (const fn of _subs) { try { fn(_state); } catch { /* ignore subscriber errors */ } } }
@@ -217,6 +232,7 @@ async function ensureLoaded(slice) {
     if (slice === 'schedules')    { const { data } = await Schedules.list({ per_page: 200 }); patch('schedules', data.map(toUiSchedule)); }
     if (slice === 'alerts')       { const { data } = await Alerts.list({ per_page: 200 });    patch('alerts', data.map(toUiAlert)); }
     if (slice === 'media')        { const { data } = await Media.list({ per_page: 200 });     patch('media', data.map(toUiMedia)); }
+    if (slice === 'brandingKits') { const { data } = await BrandingKits.list({ per_page: 200 }); patch('brandingKits', data.map(toUiBrandingKit)); }
     if (slice === 'dashboard')    { const d = await fetchDashboard();                         patch('dashboard', d); }
     if (slice === 'contentTypes') { const d = await fetchContentTypes();                      patch('contentTypes', d); }
     _loaded[slice] = true;
@@ -241,6 +257,7 @@ export const useTimelines    = () => useSlice('timelines',    (s) => s.timelines
 export const useSchedules    = () => useSlice('schedules',    (s) => s.schedules);
 export const useAlerts       = () => useSlice('alerts',       (s) => s.alerts);
 export const useMedia        = () => useSlice('media',        (s) => s.media);
+export const useBrandingKits = () => useSlice('brandingKits', (s) => s.brandingKits);
 export const useDashboard    = () => useSlice('dashboard',    (s) => s.dashboard);
 export const useContentTypesCatalog = () => useSlice('contentTypes', (s) => s.contentTypes);
 
@@ -300,6 +317,14 @@ export async function regenerateScreenPairingCode(id) {
   return res;
 }
 export async function restartScreen(id) { return Screens.restart(id); }
+// Fetch the canonical screen (GET /screens/{id}) — includes `pairing_code`
+// + `pairing_expires_at` while the screen is still unpaired.
+export async function getScreenDetail(id) {
+  const sc = await Screens.get(id);
+  const ui = toUiScreen(sc);
+  patch('screens', (cur) => upsert(cur, ui));
+  return ui;
+}
 
 // ─── Loops (timelines) ───────────────────────────────────────────────
 export async function createTimeline(input) {
@@ -383,7 +408,9 @@ export async function bulkUpdateItemDurations(timeline_id, seconds) {
 // to match and re-fetches the canonical loop.
 const DRAFT_ITEM_FIELDS = ['title', 'content_type', 'duration_seconds', 'transition_type', 'content_reference_id', 'overlay_enabled', 'background_audio_enabled'];
 function itemFieldsChanged(a, b) {
-  return DRAFT_ITEM_FIELDS.some((k) => (a?.[k] ?? null) !== (b?.[k] ?? null));
+  if (DRAFT_ITEM_FIELDS.some((k) => (a?.[k] ?? null) !== (b?.[k] ?? null))) return true;
+  // `payload` is a free-form object (e.g. Simple Text body) — compare deeply.
+  return JSON.stringify(a?.payload ?? null) !== JSON.stringify(b?.payload ?? null);
 }
 function isNewDraftItem(d) {
   return d._new === true || d.id == null || String(d.id).startsWith('tmp-');
@@ -503,6 +530,24 @@ export async function updateMedia(id, body) {
 export async function deleteMedia(id, { force = false } = {}) {
   await Media.remove(id, { force });
   patch('media', (cur) => removeById(cur, id));
+}
+
+// ─── Branding kits ───────────────────────────────────────────────────
+export async function createBrandingKit(input) {
+  const k = await BrandingKits.create(input);
+  const ui = toUiBrandingKit(k);
+  patch('brandingKits', (cur) => upsert(cur, ui));
+  return ui;
+}
+export async function updateBrandingKit(id, body) {
+  const k = await BrandingKits.update(id, body);
+  const ui = toUiBrandingKit(k);
+  patch('brandingKits', (cur) => upsert(cur, ui));
+  return ui;
+}
+export async function deleteBrandingKit(id) {
+  await BrandingKits.remove(id);
+  patch('brandingKits', (cur) => removeById(cur, id));
 }
 
 // ─── Formatting helpers (re-exported for the page) ──────────────────

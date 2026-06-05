@@ -202,7 +202,7 @@ function KebabMenu({ question, onView, onEdit, onToggleVerify, onToggleChallenge
             className="kebab-dropdown-item"
             onClick={() => { setOpen(false); onToggleVerify(); }}
           >
-            <i className="ti ti-check" /> {question.verified ? 'Unverify' : 'Mark Verified'}
+            <i className={`ti ${question.verified ? 'ti-close' : 'ti-check'}`} /> {question.verified ? 'Unverify' : 'Mark Verified'}
           </button>
           <button
             type="button"
@@ -621,8 +621,15 @@ export default function QuestionBankPage() {
   const skeletonRows = Array.from({ length: Math.min(5, pageSize) });
 
   return (
-    <section className="question-bank-page screen-card">
+    <section className="question-bank-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
+
+      <div className="page-header-section">
+        <div>
+          <h2>Question Bank</h2>
+          <p>Browse, verify, and manage the question repository across subjects, chapters, and difficulty levels.</p>
+        </div>
+      </div>
 
       {/* Stat tiles */}
       <div className="qb-stats-row">

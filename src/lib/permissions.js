@@ -99,6 +99,7 @@ export const PERMS = {
   SURVEYS_RESPONSES_EXPORT: 'surveys.responses.export',
   ATTENDANCE_VIEW: 'attendance.view',
   ATTENDANCE_EXPORT: 'attendance.export',
+  ATTENDANCE_MARK: 'attendance.mark',
   ASSETS_VIEW: 'assets.view',
   ASSETS_EDIT: 'assets.edit',
   ASSETS_INVOICE_EDIT: 'assets.invoice.edit',

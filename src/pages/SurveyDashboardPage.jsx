@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
@@ -165,34 +165,34 @@ function KebabMenu({ survey, onAction, can }) {
   }, []);
 
   return (
-    <div className="ear-kebab-container" ref={ref}>
+    <div className="kebab-menu-container" ref={ref}>
       <button
         type="button"
-        className="ear-kebab-button"
+        className="kebab-button"
         onClick={(event) => { event.stopPropagation(); setOpen((v) => !v); }}
       >
         <i className="ti ti-more-alt" />
       </button>
       {open && (
-        <div className="ear-kebab-dropdown">
-          <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'view_survey'); }}>
+        <div className="kebab-dropdown active">
+          <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onAction(survey, 'view_survey'); }}>
             <i className="ti ti-desktop" /> Preview Survey Form
           </button>
-          <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'view_responses'); }}>
+          <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onAction(survey, 'view_responses'); }}>
             <i className="ti ti-list" /> View Responses
           </button>
           {survey.status === SURVEY_STATUS.ACTIVE && can?.('surveys.status.edit') && (
-            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'pause'); }}>
+            <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onAction(survey, 'pause'); }}>
               <i className="ti ti-control-pause" /> Pause Survey
             </button>
           )}
           {survey.status === SURVEY_STATUS.PAUSED && can?.('surveys.status.edit') && (
-            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'resume'); }}>
+            <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onAction(survey, 'resume'); }}>
               <i className="ti ti-control-play" /> Resume Survey
             </button>
           )}
           {survey.status !== SURVEY_STATUS.RECALLED && can?.('surveys.recall') && (
-            <button type="button" className="ear-kebab-item" onClick={() => { setOpen(false); onAction(survey, 'recall'); }}>
+            <button type="button" className="kebab-dropdown-item danger-action" onClick={() => { setOpen(false); onAction(survey, 'recall'); }}>
               <i className="ti ti-back-left" /> Recall Survey
             </button>
           )}
@@ -225,16 +225,21 @@ export default function SurveyDashboardPage() {
     setTimeout(() => setToasts((cur) => cur.filter((t) => t.id !== id)), 5000);
   }
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentView, setCurrentView] = useState('list'); // 'list' | 'create' | 'responses'
   const [surveys, setSurveys] = useState([]);
   const [surveysLoading, setSurveysLoading] = useState(false);
   const [activeSurvey, setActiveSurvey] = useState(null);
   const [surveyToView, setSurveyToView] = useState(null);
+  const [audienceModalSurvey, setAudienceModalSurvey] = useState(null);
 
   // ─── Survey List Filters ────────────────────────────────────────────────────
+  const [listSearch, setListSearch] = useState('');
   const [listStatusFilter, setListStatusFilter] = useState('all'); // 'all' | '0' | '1' | '2'
   const [listResponseFilter, setListResponseFilter] = useState('all');
   const [listAudienceFilter, setListAudienceFilter] = useState(''); // '' | '0' | '1' | '2'
+  const [listPage, setListPage] = useState(1);
+  const [listPageSize, setListPageSize] = useState(20);
 
   // ─── Load surveys ──────────────────────────────────────────────────────────
   const loadSurveys = useCallback(async () => {
@@ -262,10 +267,31 @@ export default function SurveyDashboardPage() {
     let next = [...surveys];
     if (listResponseFilter === 'zero_responses') next = next.filter((s) => (s.responseCount || 0) === 0);
     if (listResponseFilter === 'has_responses') next = next.filter((s) => (s.responseCount || 0) > 0);
+    const q = listSearch.trim().toLowerCase();
+    if (q) next = next.filter((s) => (s.title || '').toLowerCase().includes(q) || (s.brief || '').toLowerCase().includes(q));
     return next;
-  }, [surveys, listResponseFilter]);
+  }, [surveys, listResponseFilter, listSearch]);
 
-  const hasActiveListFilters = listStatusFilter !== 'all' || listResponseFilter !== 'all' || listAudienceFilter !== '';
+  const hasActiveListFilters = listSearch.trim() !== '' || listStatusFilter !== 'all' || listResponseFilter !== 'all' || listAudienceFilter !== '';
+
+  // ─── Survey List Pagination (client-side) ───────────────────────────────────
+  const listTotalPages = Math.max(1, Math.ceil(filteredSurveys.length / listPageSize));
+  const listSafePage = Math.min(listPage, listTotalPages);
+  const listStart = (listSafePage - 1) * listPageSize;
+  const pagedSurveys = filteredSurveys.slice(listStart, listStart + listPageSize);
+  const listShowingStart = filteredSurveys.length === 0 ? 0 : listStart + 1;
+  const listShowingEnd = Math.min(listStart + listPageSize, filteredSurveys.length);
+
+  useEffect(() => { setListPage(1); }, [listSearch, listStatusFilter, listResponseFilter, listAudienceFilter, listPageSize, surveys]);
+
+  function listPageNumbers() {
+    const total = listTotalPages;
+    const cur = listSafePage;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (cur <= 4) return [1, 2, 3, 4, 5, '...', total];
+    if (cur >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    return [1, '...', cur - 1, cur, cur + 1, '...', total];
+  }
 
   // ─── Create Survey State ────────────────────────────────────────────────────
   const [csTitle, setCsTitle] = useState('');
@@ -286,6 +312,7 @@ export default function SurveyDashboardPage() {
   const [rsBatches, setRsBatches] = useState([]);
   const [rsFrom, setRsFrom] = useState('');
   const [rsTo, setRsTo] = useState('');
+  const [showRsFilterModal, setShowRsFilterModal] = useState(false);
   const [rsPage, setRsPage] = useState(1);
   const [rsPageSize, setRsPageSize] = useState(20);
   const [rsTotal, setRsTotal] = useState(0);
@@ -317,6 +344,8 @@ export default function SurveyDashboardPage() {
   }, [activeSurvey, rsSearch, rsCourse, rsBatches, rsFrom, rsTo]);
 
   const hasActiveRsFilters = rsSearch || rsCourse || rsBatches.length || rsFrom || rsTo;
+  const rsModalFilterCount = (rsCourse ? 1 : 0) + (rsBatches.length ? 1 : 0) + (rsFrom ? 1 : 0) + (rsTo ? 1 : 0);
+  const hasRsModalFilters = rsModalFilterCount > 0;
 
   // Pagination is server-driven (rsTotal / rsServerLastPage). Client only
   // slices when a course filter (not sent to API) shrinks the visible set.
@@ -345,6 +374,16 @@ export default function SurveyDashboardPage() {
     if (cur <= 4) return [1, 2, 3, 4, 5, '...', total];
     if (cur >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
     return [1, '...', cur - 1, cur, cur + 1, '...', total];
+  }
+
+  function openStudentProfile(r) {
+    if (!r || r.isAnonymous) return;
+    window.localStorage.setItem('selectedStudent', JSON.stringify({
+      id: r.candidateId,
+      name: r.studentName,
+      email: r.studentEmail,
+    }));
+    window.open(`${window.location.origin}/candidate-detail`, '_blank', 'noopener,noreferrer');
   }
 
   function handleDownloadCsv() {
@@ -403,6 +442,11 @@ export default function SurveyDashboardPage() {
         setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
         setRsPage(1);
         setCurrentView('responses');
+        setSearchParams((sp) => {
+          const next = new URLSearchParams(sp);
+          next.set('id', String(survey.id));
+          return next;
+        }, { replace: true });
         // fetchResponses is fired by the useEffect on currentView/activeSurvey changes
       } else if (action === 'view_survey') {
         setSurveyToView(survey);
@@ -525,65 +569,62 @@ export default function SurveyDashboardPage() {
   }
 
   return (
-    <div className="quiz-attempt-report-page" style={{ minHeight: '100vh', padding: '24px' }}>
+    <div className="quiz-attempt-report-page data-table-page" style={{ minHeight: '100vh' }}>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
-      {currentView === 'list' && (
+      {(currentView === 'list' || currentView === 'create') && (
         <section className="courses-list-page" style={{ padding: 0 }}>
-          <div className="page-header-section" style={{ background: 'white', padding: '24px', borderRadius: '18px', border: '1px solid var(--line)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="page-header-section">
             <div>
-              <h2 style={{ margin: 0, fontSize: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <i className="ti ti-bar-chart-alt" style={{ color: '#006073' }} /> Survey Dashboard
-              </h2>
-              <p style={{ margin: '6px 0 0', color: '#59757b' }}>Create, dispatch, and review custom surveys for students.</p>
+              <h2><i className="ti ti-bar-chart-alt" /> Survey Dashboard</h2>
+              <p>Create, dispatch, and review custom surveys for students.</p>
             </div>
             <Can permission={PERMS.SURVEYS_EDIT}>
-              <button type="button" className="create-course-button" onClick={() => setCurrentView('create')}>
+              <button type="button" className="page-action-button" onClick={() => setCurrentView('create')}>
                 <i className="ti ti-plus" /> Create Survey
               </button>
             </Can>
           </div>
 
-          <div className="qar-filter-card" style={{ marginBottom: '24px' }}>
-            <div className="qar-filter-header">
-              <h4><i className="ti ti-filter" /> Filter Surveys</h4>
-              {hasActiveListFilters && (
-                <button type="button" className="qar-clear-btn" onClick={() => {
-                  setListStatusFilter('all'); setListResponseFilter('all'); setListAudienceFilter('');
-                }}>
-                  <i className="ti ti-reload" /> Clear Filters
-                </button>
-              )}
+          <div className="filter-bar" style={{ marginBottom: '24px' }}>
+            <div className="search-wrapper">
+              <i className={`ti ${listSearch ? 'ti-close' : 'ti-search'}`} onClick={() => setListSearch('')} aria-hidden="true" />
+              <input
+                type="text"
+                className="search-input"
+                value={listSearch}
+                onChange={(e) => setListSearch(e.target.value)}
+                placeholder="Search surveys by title or brief..."
+              />
             </div>
 
-            <div className="qar-filter-row1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label">Status</label>
-                <select className="qar-select" value={listStatusFilter} onChange={(e) => setListStatusFilter(e.target.value)}>
-                  <option value="all">All</option>
-                  <option value={String(SURVEY_STATUS.ACTIVE)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.ACTIVE]}</option>
-                  <option value={String(SURVEY_STATUS.PAUSED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.PAUSED]}</option>
-                  <option value={String(SURVEY_STATUS.RECALLED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.RECALLED]}</option>
-                </select>
-              </div>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label">Responses</label>
-                <select className="qar-select" value={listResponseFilter} onChange={(e) => setListResponseFilter(e.target.value)}>
-                  <option value="all">All</option>
-                  <option value="has_responses">Has Responses (&gt; 0)</option>
-                  <option value="zero_responses">No Responses (0)</option>
-                </select>
-              </div>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label">Target Audience</label>
-                <select className="qar-select" value={listAudienceFilter} onChange={(e) => setListAudienceFilter(e.target.value)}>
-                  <option value="">All Audiences</option>
-                  <option value={String(SURVEY_AUDIENCE.OPEN)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.OPEN]}</option>
-                  <option value={String(SURVEY_AUDIENCE.ALL_ENROLLED)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.ALL_ENROLLED]}</option>
-                  <option value={String(SURVEY_AUDIENCE.BATCH)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.BATCH]}</option>
-                </select>
-              </div>
-            </div>
+            <select className="search-input" style={{ maxWidth: 170 }} value={listStatusFilter} onChange={(e) => setListStatusFilter(e.target.value)}>
+              <option value="all">All Statuses</option>
+              <option value={String(SURVEY_STATUS.ACTIVE)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.ACTIVE]}</option>
+              <option value={String(SURVEY_STATUS.PAUSED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.PAUSED]}</option>
+              <option value={String(SURVEY_STATUS.RECALLED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.RECALLED]}</option>
+            </select>
+
+            <select className="search-input" style={{ maxWidth: 200 }} value={listResponseFilter} onChange={(e) => setListResponseFilter(e.target.value)}>
+              <option value="all">All Responses</option>
+              <option value="has_responses">Has Responses (&gt; 0)</option>
+              <option value="zero_responses">No Responses (0)</option>
+            </select>
+
+            <select className="search-input" style={{ maxWidth: 200 }} value={listAudienceFilter} onChange={(e) => setListAudienceFilter(e.target.value)}>
+              <option value="">All Audiences</option>
+              <option value={String(SURVEY_AUDIENCE.OPEN)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.OPEN]}</option>
+              <option value={String(SURVEY_AUDIENCE.ALL_ENROLLED)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.ALL_ENROLLED]}</option>
+              <option value={String(SURVEY_AUDIENCE.BATCH)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.BATCH]}</option>
+            </select>
+
+            {hasActiveListFilters && (
+              <button type="button" className="filter-clear-btn" onClick={() => {
+                setListSearch(''); setListStatusFilter('all'); setListResponseFilter('all'); setListAudienceFilter('');
+              }}>
+                <i className="ti ti-close" /> Clear
+              </button>
+            )}
           </div>
 
           <div className="students-table-container">
@@ -602,23 +643,29 @@ export default function SurveyDashboardPage() {
               <tbody>
                 {surveysLoading ? (
                   <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading surveys...</td></tr>
-                ) : filteredSurveys.length > 0 ? filteredSurveys.map(s => (
+                ) : pagedSurveys.length > 0 ? pagedSurveys.map(s => (
                   <tr key={s.id}>
                     <td>
                       <div className="student-name-cell">
-                        <div className="student-avatar-placeholder" style={{ background: '#006073', color: 'white' }}>
-                          <i className="ti ti-bar-chart" />
-                        </div>
                         <div>
                           <div className="student-name">{s.title}</div>
-                          <div className="student-id">ID: {s.id}{s.brief ? ` · ${s.brief.slice(0, 60)}${s.brief.length > 60 ? '...' : ''}` : ''}</div>
+                          <div className="student-id">ID: {s.id}</div>
                         </div>
                       </div>
                     </td>
                     <td>
                       <div className="contact-info">
-                        <i className="ti ti-target" style={{ marginRight: '6px' }} />
-                        {s.audienceLabel}
+                        {s.audienceType === SURVEY_AUDIENCE.BATCH && s.audienceBatchIds.length > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => setAudienceModalSurvey(s)}
+                            style={{ background: 'none', border: 'none', padding: 0, color: '#006073', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}
+                          >
+                            {s.audienceLabel}
+                          </button>
+                        ) : (
+                          s.audienceLabel
+                        )}
                       </div>
                     </td>
                     <td>
@@ -655,19 +702,49 @@ export default function SurveyDashboardPage() {
                 )}
               </tbody>
             </table>
+
+            {!surveysLoading && filteredSurveys.length > 0 && (
+              <div className="pagination-container">
+                <div className="pagination-info">
+                  <span>Showing {listShowingStart} to {listShowingEnd} of {filteredSurveys.length} entries</span>
+                  <select className="page-size-select" value={listPageSize} onChange={(e) => setListPageSize(Number(e.target.value))}>
+                    {[20, 50, 100, 200].map((s) => (
+                      <option key={s} value={s}>Show {s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pagination-controls">
+                  <button type="button" className="pagination-btn" disabled={listSafePage === 1} onClick={() => setListPage((p) => Math.max(1, p - 1))}>
+                    <i className="ti ti-angle-left" /> Previous
+                  </button>
+                  {listPageNumbers().map((p, idx) => (
+                    p === '...' ? (
+                      <span key={`le-${idx}`} className="pagination-ellipsis">...</span>
+                    ) : (
+                      <button key={p} type="button" className={`pagination-btn${listSafePage === p ? ' active' : ''}`} onClick={() => setListPage(p)}>{p}</button>
+                    )
+                  ))}
+                  <button type="button" className="pagination-btn" disabled={listSafePage === listTotalPages} onClick={() => setListPage((p) => Math.min(listTotalPages, p + 1))}>
+                    Next <i className="ti ti-angle-right" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}
 
       {currentView === 'create' && (
-        <div style={{ background: 'white', borderRadius: '18px', border: '1px solid var(--line)', padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid var(--line)', paddingBottom: '16px' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--ink)' }}><i className="ti ti-pencil" /> Create a New Survey</h2>
-            <button type="button" className="ghost-button" onClick={() => setCurrentView('list')}><i className="ti ti-arrow-left" /> Back</button>
-          </div>
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget && !csSaving) setCurrentView('list'); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 860 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-pencil" /> Create a New Survey</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setCurrentView('list')}><i className="ti ti-close" /></button>
+            </div>
 
-          <form onSubmit={handleCreateSurvey} style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px' }}>
-            <div style={{ display: 'flex', gap: '20px' }}>
+          <form onSubmit={handleCreateSurvey}>
+            <div className="crispr-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
               <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontWeight: 'bold' }}>Survey Title <span style={{ color: 'red' }}>*</span></label>
                 <input type="text" className="ear-filter-input" value={csTitle} onChange={e => setCsTitle(e.target.value)} required />
@@ -791,92 +868,29 @@ export default function SurveyDashboardPage() {
                 <i className="ti ti-plus" /> Add Next Question
               </button>
             </div>
+            </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
-              <button type="button" className="ear-btn-default" onClick={() => setCurrentView('list')}>Cancel</button>
-              <button type="submit" disabled={csSaving} style={{ background: '#006073', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: csSaving ? 'not-allowed' : 'pointer', fontWeight: 'bold', opacity: csSaving ? 0.6 : 1 }}>
-                {csSaving ? 'Creating...' : 'Create Survey'}
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setCurrentView('list')}>Cancel</button>
+              <button type="submit" className="btn btn-success" disabled={csSaving}>
+                {csSaving ? 'Creating...' : <><i className="ti ti-check" /> Create Survey</>}
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
 
       {currentView === 'responses' && activeSurvey && (
         <>
-          <div className="qar-header-card" style={{ marginBottom: '24px' }}>
-            <div className="qar-header-top">
-              <div className="qar-header-main">
-                <h2><i className="ti ti-bar-chart-alt" /> {activeSurvey.title} - Responses</h2>
-                <p className="qar-description">Detailed analytical view of all feedback received for this survey.</p>
-              </div>
-              <div className="qar-header-actions">
-                <button type="button" className="qar-back-btn" onClick={() => setCurrentView('list')}>
-                  <i className="ti ti-arrow-left" /> Back to Dashboard
-                </button>
-              </div>
+          <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
+            <div>
+              <h2><i className="ti ti-bar-chart-alt" /> {activeSurvey.title} - Responses</h2>
+              <p>Detailed analytical view of all feedback received for this survey.</p>
             </div>
-          </div>
-
-          <div className="qar-filter-card">
-            <div className="qar-filter-header">
-              <h4><i className="ti ti-filter" /> Filters</h4>
-              {hasActiveRsFilters && (
-                <button type="button" className="qar-clear-btn" onClick={() => {
-                  setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
-                }}>
-                  <i className="ti ti-reload" /> Clear Filters
-                </button>
-              )}
-            </div>
-
-            <div className="qar-filter-row1">
-              <div className="qar-filter-field qar-filter-field-wide">
-                <label className="qar-filter-label">Search</label>
-                <input type="text" className="qar-input" placeholder="Search by student name or email..." value={rsSearch} onChange={(e) => setRsSearch(e.target.value)} />
-              </div>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label"><i className="ti ti-calendar" /> From Date</label>
-                <input type="datetime-local" className="qar-input" value={rsFrom} onChange={(e) => setRsFrom(e.target.value)} />
-              </div>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label"><i className="ti ti-calendar" /> To Date</label>
-                <input type="datetime-local" className="qar-input" value={rsTo} onChange={(e) => setRsTo(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="qar-filter-row2">
-              <div className="qar-filter-field">
-                <label className="qar-filter-label"><i className="ti ti-book" /> Course</label>
-                <select className="qar-select" value={rsCourse} onChange={(e) => { setRsCourse(e.target.value); setRsBatches([]); }}>
-                  <option value="">All Courses</option>
-                  {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="qar-filter-field">
-                <label className="qar-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
-                <BatchMultiSelect batches={filteredBatchesForCourse} selected={rsBatches} onChange={(val) => setRsBatches(val)} disabled={!rsCourse} />
-              </div>
-            </div>
-          </div>
-
-          <div className="qar-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingBottom: '12px' }}>
-            <div className="qar-record-count">
-              <strong>{filteredResponses.length}</strong> record(s) found
-            </div>
-            <div className="qar-action-btns">
-              <Can permission={PERMS.SURVEYS_RESPONSES_EXPORT}>
-                <button
-                  type="button"
-                  className="ear-btn-export"
-                  disabled={filteredResponses.length === 0}
-                  onClick={handleDownloadCsv}
-                  style={{ background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: filteredResponses.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: filteredResponses.length === 0 ? 0.5 : 1 }}
-                >
-                  <i className="ti ti-download" /> Export to CSV
-                </button>
-              </Can>
-            </div>
+            <button type="button" className="page-action-button" onClick={() => { setCurrentView('list'); setSearchParams((sp) => { const next = new URLSearchParams(sp); next.delete('id'); return next; }, { replace: true }); }}>
+              <i className="ti ti-arrow-left" /> Back to Dashboard
+            </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
@@ -903,7 +917,7 @@ export default function SurveyDashboardPage() {
                       <span style={{ fontSize: '32px', fontWeight: 'bold', color: '#006073', lineHeight: 1 }}>{avg}</span>
                       <div style={{ display: 'flex', color: '#fbbf24', fontSize: '20px', gap: '2px' }}>
                         {[1, 2, 3, 4, 5].map(star => (
-                          <i key={star} className={`ti ${star <= Math.round(Number(avg)) ? 'ti-star' : 'ti-star'}`} style={{ fontWeight: star <= Math.round(Number(avg)) ? 'bold' : 'normal', opacity: star <= Math.round(Number(avg)) ? 1 : 0.3 }} />
+                          <i key={star} className="fa fa-star" style={{ color: star <= Math.round(Number(avg)) ? '#fbbf24' : '#d6dde0' }} />
                         ))}
                       </div>
                       <span style={{ fontSize: '12px', color: '#59757b', marginLeft: 'auto' }}>{count} responses</span>
@@ -956,6 +970,48 @@ export default function SurveyDashboardPage() {
             })}
           </div>
 
+          <div className="filter-bar" style={{ marginBottom: '12px' }}>
+            <div className="search-wrapper">
+              <i className={`ti ${rsSearch ? 'ti-close' : 'ti-search'}`} onClick={() => setRsSearch('')} aria-hidden="true" />
+              <input
+                type="text"
+                className="search-input"
+                value={rsSearch}
+                onChange={(e) => setRsSearch(e.target.value)}
+                placeholder="Search by student name or email..."
+              />
+            </div>
+
+            <button
+              type="button"
+              className={`filter-toggle-btn${hasRsModalFilters ? ' active' : ''}`}
+              onClick={() => setShowRsFilterModal(true)}
+            >
+              <i className="ti ti-filter" /> Filters
+              {hasRsModalFilters && <span className="filter-count">{rsModalFilterCount}</span>}
+            </button>
+
+            {hasActiveRsFilters && (
+              <button type="button" className="filter-clear-btn" onClick={() => {
+                setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
+              }}>
+                <i className="ti ti-close" /> Clear
+              </button>
+            )}
+
+            <Can permission={PERMS.SURVEYS_RESPONSES_EXPORT}>
+              <button
+                type="button"
+                className="ear-btn-export"
+                disabled={filteredResponses.length === 0}
+                onClick={handleDownloadCsv}
+                style={{ marginLeft: 'auto', background: '#006073', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: filteredResponses.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: filteredResponses.length === 0 ? 0.5 : 1 }}
+              >
+                <i className="ti ti-download" /> Export to CSV
+              </button>
+            </Can>
+          </div>
+
           <div className="students-table-container">
             <table className="students-table">
               <thead>
@@ -973,26 +1029,33 @@ export default function SurveyDashboardPage() {
                     <td className="qar-datetime">{formatDateTime(r.date)}</td>
                     <td>
                       {r.isAnonymous ? (
-                        <div className="student-name-cell">
-                          <div className="student-avatar-placeholder" style={{ background: '#e9ecef', color: '#6c757d' }}><i className="ti ti-incognito" /></div>
-                          <div>
-                            <div className="student-name" style={{ fontStyle: 'italic', color: '#6c757d' }}>Anonymous</div>
-                            <div className="student-id">Hidden Response</div>
-                          </div>
-                        </div>
+                        <span style={{ fontStyle: 'italic', color: '#6c757d' }}>Anonymous</span>
                       ) : (
-                        <div className="student-name-cell">
-                          <div className="student-avatar-placeholder" style={{ background: '#006073', color: 'white' }}>{(r.studentName || 'Un').slice(0, 2).toUpperCase()}</div>
-                          <div>
-                            <div className="student-name">{r.studentName}</div>
-                            <div className="student-id" style={{ color: '#59757b' }}><i className="ti ti-email" style={{ marginRight: '4px' }} />{r.studentEmail}</div>
-                          </div>
-                        </div>
+                        <a
+                          href={`${window.location.origin}/candidate-detail`}
+                          onClick={(e) => { e.preventDefault(); openStudentProfile(r); }}
+                          style={{ color: '#006073', fontWeight: 500, cursor: 'pointer', textDecoration: 'none' }}
+                        >
+                          {r.studentName}
+                        </a>
                       )}
                     </td>
-                    {activeSurvey.questions.map((q, i) => (
-                      <td key={i}>{r.answers[i] || '-'}</td>
-                    ))}
+                    {activeSurvey.questions.map((q, i) => {
+                      const ans = r.answers[i];
+                      if ((q.type === 'Star Rating' || q.type === 'Rating') && Number(ans) > 0) {
+                        const val = Math.round(Number(ans));
+                        return (
+                          <td key={i}>
+                            <span style={{ display: 'inline-flex', gap: '2px', color: '#fbbf24', fontSize: '15px' }}>
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <i key={s} className="fa fa-star" style={{ color: s <= val ? '#fbbf24' : '#d6dde0' }} />
+                              ))}
+                            </span>
+                          </td>
+                        );
+                      }
+                      return <td key={i}>{ans || '-'}</td>;
+                    })}
                   </tr>
                 )) : (
                   <tr>
@@ -1009,33 +1072,29 @@ export default function SurveyDashboardPage() {
             </table>
 
             {filteredResponses.length > 0 && (
-              <div className="qar-pagination">
-                <div className="qar-pagination-info">
-                  Showing <strong>{rsShowingStart}</strong> to <strong>{rsShowingEnd}</strong> of <strong>{rsTotal}</strong> responses
-                </div>
-                <div className="qar-pagination-controls">
-                  <div className="qar-page-size">
-                    <select className="qar-select compact" value={rsPageSize} onChange={(e) => setRsPageSize(Number(e.target.value))}>
-                      {[20, 50, 100, 200].map((s) => (
-                        <option key={s} value={s}>{s}/page</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="qar-page-btns">
-                    <button type="button" className="qar-page-btn" disabled={rsSafePage === 1} onClick={() => setRsPage((p) => Math.max(1, p - 1))}>
-                      <i className="ti ti-angle-left" />
-                    </button>
-                    {rsPageNumbers().map((p, idx) => (
-                      p === '...' ? (
-                        <span key={`el-${idx}`} className="qar-page-ellipsis">...</span>
-                      ) : (
-                        <button key={p} type="button" className={`qar-page-btn${rsSafePage === p ? ' active' : ''}`} onClick={() => setRsPage(p)}>{p}</button>
-                      )
+              <div className="pagination-container">
+                <div className="pagination-info">
+                  <span>Showing {rsShowingStart} to {rsShowingEnd} of {rsTotal} entries</span>
+                  <select className="page-size-select" value={rsPageSize} onChange={(e) => setRsPageSize(Number(e.target.value))}>
+                    {[20, 50, 100, 200].map((s) => (
+                      <option key={s} value={s}>Show {s}</option>
                     ))}
-                    <button type="button" className="qar-page-btn" disabled={rsSafePage === rsTotalPages} onClick={() => setRsPage((p) => Math.min(rsTotalPages, p + 1))}>
-                      <i className="ti ti-angle-right" />
-                    </button>
-                  </div>
+                  </select>
+                </div>
+                <div className="pagination-controls">
+                  <button type="button" className="pagination-btn" disabled={rsSafePage === 1} onClick={() => setRsPage((p) => Math.max(1, p - 1))}>
+                    <i className="ti ti-angle-left" /> Previous
+                  </button>
+                  {rsPageNumbers().map((p, idx) => (
+                    p === '...' ? (
+                      <span key={`el-${idx}`} className="pagination-ellipsis">...</span>
+                    ) : (
+                      <button key={p} type="button" className={`pagination-btn${rsSafePage === p ? ' active' : ''}`} onClick={() => setRsPage(p)}>{p}</button>
+                    )
+                  ))}
+                  <button type="button" className="pagination-btn" disabled={rsSafePage === rsTotalPages} onClick={() => setRsPage((p) => Math.min(rsTotalPages, p + 1))}>
+                    Next <i className="ti ti-angle-right" />
+                  </button>
                 </div>
               </div>
             )}
@@ -1043,16 +1102,74 @@ export default function SurveyDashboardPage() {
         </>
       )}
 
+      {/* ── Responses Filter Modal ── */}
+      {showRsFilterModal && (
+        <div className="crispr-modal-backdrop active" onClick={() => setShowRsFilterModal(false)}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-filter" /> Filter Responses</h3>
+              <button className="crispr-modal-close" onClick={() => setShowRsFilterModal(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body rsf-filter-body">
+              <style>{`
+                .rsf-filter-body { display: flex; flex-direction: column; gap: 20px; }
+                .rsf-fld { display: flex; flex-direction: column; gap: 8px; }
+                .rsf-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
+                .rsf-fld-label i { color: #006073; font-size: 15px; }
+                .rsf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                .rsf-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
+              `}</style>
+
+              <div className="rsf-grid-2">
+                <div className="rsf-fld">
+                  <label className="rsf-fld-label"><i className="ti ti-calendar" /> From Date</label>
+                  <input type="datetime-local" className="rsf-input" value={rsFrom} onChange={(e) => setRsFrom(e.target.value)} />
+                </div>
+                <div className="rsf-fld">
+                  <label className="rsf-fld-label"><i className="ti ti-calendar" /> To Date</label>
+                  <input type="datetime-local" className="rsf-input" value={rsTo} onChange={(e) => setRsTo(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="rsf-fld">
+                <label className="rsf-fld-label"><i className="ti ti-book" /> Course</label>
+                <select className="rsf-input" value={rsCourse} onChange={(e) => { setRsCourse(e.target.value); setRsBatches([]); }}>
+                  <option value="">All Courses</option>
+                  {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+
+              <div className="rsf-fld">
+                <label className="rsf-fld-label"><i className="ti ti-layout-grid2" /> Batch</label>
+                <BatchMultiSelect batches={filteredBatchesForCourse} selected={rsBatches} onChange={(val) => setRsBatches(val)} disabled={!rsCourse} />
+              </div>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => { setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo(''); }}>
+                <i className="ti ti-reload" /> Clear Filters
+              </button>
+              <button type="button" className="btn btn-success" onClick={() => setShowRsFilterModal(false)}>
+                <i className="ti ti-check" /> Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── View Survey Preview Modal ── */}
       {surveyToView && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', width: '100%', maxWidth: '600px', borderRadius: '18px', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 24px', background: '#006073', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '18px' }}><i className="ti ti-desktop" /> Survey Preview: {surveyToView.title}</h3>
-              <button type="button" onClick={() => setSurveyToView(null)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><i className="ti ti-close" /></button>
+        <div className="legacy-modal-backdrop active" onClick={() => setSurveyToView(null)}>
+          <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-desktop" /> Survey Preview: {surveyToView.title}</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setSurveyToView(null)}>
+                <i className="ti ti-close" />
+              </button>
             </div>
-            
-            <div style={{ padding: '24px', maxHeight: '75vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            <div className="legacy-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--line)', paddingBottom: '16px' }}>
                 <div>
                   <h4 style={{ margin: '0 0 8px 0', color: 'var(--ink)' }}>{surveyToView.title}</h4>
@@ -1105,8 +1222,38 @@ export default function SurveyDashboardPage() {
                 </div>
               </div>
             </div>
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--line)', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={() => setSurveyToView(null)} style={{ border: 'none', background: '#006073', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Close Preview</button>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSurveyToView(null)}>Close Preview</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {audienceModalSurvey && (
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setAudienceModalSurvey(null); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 480 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-target" /> Target Batches — {audienceModalSurvey.title}</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setAudienceModalSurvey(null)}><i className="ti ti-close" /></button>
+            </div>
+            <div className="crispr-modal-body">
+              <p style={{ margin: '0 0 16px', color: '#59757b', fontSize: '13px' }}>
+                This survey is targeted to the following {audienceModalSurvey.audienceBatchIds.length} batch(es):
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {audienceModalSurvey.audienceBatchIds.map((bid) => {
+                  const batch = availableBatches.find((b) => b.id === bid);
+                  return (
+                    <div key={bid} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: '1px solid var(--line)', borderRadius: '8px', background: '#f8fafc' }}>
+                      <i className="ti ti-users" style={{ color: '#006073' }} />
+                      <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{batch?.name || `Batch #${bid}`}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setAudienceModalSurvey(null)}>Close</button>
             </div>
           </div>
         </div>

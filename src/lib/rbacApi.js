@@ -19,11 +19,22 @@ export async function fetchMe() {
   return ensureOk(data);
 }
 
+// ── Permissions catalogue ───────────────────────────────────────────────────
 export async function listPermissions() {
   const { data } = await api.get(`${BASE}/permissions`);
   return ensureOk(data);
 }
 
+/**
+ * Grouped permissions catalogue for the role editor / matrix tree.
+ * @returns {Promise<{ data: import('./rbacTypes').PermissionTreeModule[] }>}
+ */
+export async function getPermissionTree() {
+  const { data } = await api.get(`${BASE}/permissions/tree`);
+  return ensureOk(data);
+}
+
+// ── Roles ────────────────────────────────────────────────────────────────────
 export async function listRoles() {
   const { data } = await api.get(`${BASE}/roles`);
   return ensureOk(data);
@@ -34,33 +45,68 @@ export async function getRole(id) {
   return ensureOk(data);
 }
 
-export async function createRole({ name, permissions }) {
-  const { data } = await api.post(`${BASE}/roles`, { name, permissions: permissions || [] });
+/**
+ * Create a role.
+ * @param {{ key: string, label: string, badge_color?: string, permissions?: string[] }} payload
+ */
+export async function createRole({ key, label, badge_color, permissions }) {
+  const body = { key, label };
+  if (badge_color) body.badge_color = badge_color;
+  if (Array.isArray(permissions)) body.permissions = permissions;
+  const { data } = await api.post(`${BASE}/roles`, body);
   return ensureOk(data);
 }
 
-export async function renameRole(id, name) {
-  const { data } = await api.put(`${BASE}/roles/${id}`, { name });
+/**
+ * Update a role's label / color / permissions. Any provided `permissions`
+ * REPLACES the whole set. `key` is immutable on the backend, so it's not sent.
+ * @param {number|string} id
+ * @param {{ label?: string, badge_color?: string, permissions?: string[] }} patch
+ */
+export async function updateRole(id, patch = {}) {
+  const body = {};
+  if (patch.label !== undefined) body.label = patch.label;
+  if (patch.badge_color !== undefined) body.badge_color = patch.badge_color;
+  if (Array.isArray(patch.permissions)) body.permissions = patch.permissions;
+  const { data } = await api.put(`${BASE}/roles/${id}`, body);
   return ensureOk(data);
 }
 
+/** Full replacement of a role's permission keys. */
 export async function syncRolePermissions(id, permissions) {
   const { data } = await api.put(`${BASE}/roles/${id}/permissions`, { permissions });
+  return ensureOk(data);
+}
+
+export async function deleteRole(id) {
+  const { data } = await api.delete(`${BASE}/roles/${id}`);
   return ensureOk(data);
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 export const SUPER_ADMIN = 'SUPER_ADMIN';
 
-export const ROLE_NAME_REGEX = /^[A-Z0-9_]+$/;
-export const ROLE_NAME_MAX = 125;
+export const ROLE_KEY_REGEX = /^[A-Z0-9_]+$/;
+export const ROLE_KEY_MAX = 125;
+export const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 
-export function validateRoleName(name) {
-  if (!name) return 'Name is required.';
-  if (name.length > ROLE_NAME_MAX) return `Name must be at most ${ROLE_NAME_MAX} characters.`;
-  if (!ROLE_NAME_REGEX.test(name)) return 'Use uppercase letters, digits, and underscores only.';
+/** Validate an UPPER_SNAKE role key. Returns an error string or null. */
+export function validateRoleKey(key) {
+  if (!key) return 'Key is required.';
+  if (key.length > ROLE_KEY_MAX) return `Key must be at most ${ROLE_KEY_MAX} characters.`;
+  if (!ROLE_KEY_REGEX.test(key)) return 'Use uppercase letters, digits, and underscores only.';
   return null;
 }
+
+/** Validate a #rrggbb hex color. Returns an error string or null. */
+export function validateHexColor(color) {
+  if (!color) return null; // optional
+  if (!HEX_COLOR_REGEX.test(color)) return 'Use a hex color like #7c3aed.';
+  return null;
+}
+
+// Back-compat alias: older callers imported validateRoleName.
+export const validateRoleName = validateRoleKey;
 
 const ACTION_ORDER = ['view', 'create', 'edit', 'manage', 'delete', 'export'];
 

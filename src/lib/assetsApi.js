@@ -1,6 +1,21 @@
 import { api } from './api';
+import { ACCEPT, BUNNY_FOLDERS, DEFAULT_MAX_UPLOAD_BYTES, validateUpload as validateStorageUpload } from './bunnyStorageApi';
 
 const BASE = '/restricted/asset';
+
+// Asset invoices live in the shared Bunny storage zone. The frontend posts
+// the raw file to the asset endpoint below; the backend forwards it to this
+// folder and returns the resulting CDN URL. See STORAGE_BUNNY_API_CONTRACT.md.
+export const ASSET_INVOICE_FOLDER = BUNNY_FOLDERS.ASSET_INVOICES;
+
+// Client-side guard mirroring the backend: invoices accept PDF or images.
+export function validateInvoiceFile(file) {
+  return validateStorageUpload(file, {
+    accept: ACCEPT.DOCUMENT,
+    maxBytes: DEFAULT_MAX_UPLOAD_BYTES,
+    typeError: 'Unsupported file type. Upload a PDF or an image.',
+  });
+}
 
 export const ASSET_TYPES = {
   1: 'Devices',

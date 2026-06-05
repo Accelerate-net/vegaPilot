@@ -297,16 +297,6 @@ export default function CoursesListPage() {
     };
   }, [selectedCourseForStudents, studentSearchQuery, studentsCurrentPage, studentsItemsPerPage, studentsSortBy, studentsSortOrder]);
 
-  const stats = useMemo(() => {
-    const source = allCoursesSnapshot.length ? allCoursesSnapshot : courses;
-    return {
-      totalCourses: source.length,
-      totalModules: source.reduce((sum, course) => sum + (course.totalModules || 0), 0),
-      totalChapters: source.reduce((sum, course) => sum + (course.totalChapters || 0), 0),
-      activeCourses: source.filter((course) => String(course.status).toLowerCase() === 'active').length,
-    };
-  }, [allCoursesSnapshot, courses]);
-
   const pageNumbers = useMemo(() => getPageNumbers(currentPage, totalPages), [currentPage, totalPages]);
   const studentPageNumbers = useMemo(() => getPageNumbers(studentsCurrentPage, studentsTotalPages), [studentsCurrentPage, studentsTotalPages]);
 
@@ -409,7 +399,7 @@ export default function CoursesListPage() {
   const studentsEndItem = Math.min(studentsCurrentPage * studentsItemsPerPage, studentsTotalItems);
 
   return (
-    <section className="courses-list-page">
+    <section className="courses-list-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -423,25 +413,6 @@ export default function CoursesListPage() {
       </div>
 
       {isDemoMode ? <div className="courses-demo-banner">Showing demo course data because the course APIs are currently unreachable.</div> : null}
-
-      <div className="stats-row">
-        <div className="stat-card">
-          <div className="stat-icon teal"><i className="ti ti-book" /></div>
-          <div className="stat-info"><h3>{stats.totalCourses}</h3><p>Total Courses</p></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon green"><i className="ti ti-layout-grid2" /></div>
-          <div className="stat-info"><h3>{stats.totalModules}</h3><p>Total Modules</p></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon orange"><i className="ti ti-write" /></div>
-          <div className="stat-info"><h3>{stats.totalChapters}</h3><p>Total Chapters</p></div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon blue"><i className="ti ti-check-box" /></div>
-          <div className="stat-info"><h3>{stats.activeCourses}</h3><p>Active Courses</p></div>
-        </div>
-      </div>
 
       <div className="filter-bar">
         <div className="search-wrapper">

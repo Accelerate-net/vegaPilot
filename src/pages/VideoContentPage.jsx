@@ -76,24 +76,22 @@ function KebabMenu({ onView, onEdit, onDelete }) {
     <div className="kebab-menu-container" ref={ref}>
       <button
         type="button"
-        className="kebab-trigger"
+        className="kebab-button"
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
       >
         <i className="ti ti-more-alt" />
       </button>
-      {open && (
-        <div className="kebab-dropdown">
-          <button type="button" onClick={() => { setOpen(false); onView(); }}>
-            <i className="ti ti-eye" /> View
-          </button>
-          <button type="button" onClick={() => { setOpen(false); onEdit(); }}>
-            <i className="ti ti-pencil" /> Edit
-          </button>
-          <button type="button" className="danger" onClick={() => { setOpen(false); onDelete(); }}>
-            <i className="ti ti-trash" /> Delete
-          </button>
-        </div>
-      )}
+      <div className={`kebab-dropdown${open ? ' active' : ''}`}>
+        <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onView(); }}>
+          <i className="ti ti-eye" /> View
+        </button>
+        <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onEdit(); }}>
+          <i className="ti ti-pencil" /> Edit
+        </button>
+        <button type="button" className="kebab-dropdown-item danger-action" onClick={() => { setOpen(false); onDelete(); }}>
+          <i className="ti ti-trash" /> Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -421,6 +419,7 @@ export default function VideoContentPage() {
   const [editVideo, setEditVideo] = useState(null);
   const [showLink, setShowLink] = useState(false);
   const [viewVideo, setViewVideo] = useState(null);
+  const [deleteVideo, setDeleteVideo] = useState(null);
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -449,8 +448,8 @@ export default function VideoContentPage() {
   }
 
   function SortIcon({ col }) {
-    if (sortKey !== col) return <i className="ti ti-arrows-vertical" style={{ marginLeft: 5, opacity: 0.4, fontSize: 11 }} />;
-    return <i className={`ti ti-arrow-${sortDir === 'asc' ? 'up' : 'down'}`} style={{ marginLeft: 5, fontSize: 11 }} />;
+    if (sortKey !== col) return <i className="ti ti-arrows-vertical sort-icon" />;
+    return <i className={`ti ti-arrow-${sortDir === 'asc' ? 'up' : 'down'} sort-icon`} />;
   }
 
   const subjectOptions = [
@@ -518,9 +517,11 @@ export default function VideoContentPage() {
     });
   }
 
-  function handleDelete(video) {
-    setVideos((cur) => cur.filter((v) => v.id !== video.id));
-    showToast('success', 'Deleted', `"${video.titleName}" has been removed.`);
+  function confirmDelete() {
+    if (!deleteVideo) return;
+    setVideos((cur) => cur.filter((v) => v.id !== deleteVideo.id));
+    showToast('success', 'Deleted', `"${deleteVideo.titleName}" has been removed.`);
+    setDeleteVideo(null);
   }
 
   function handleSaveEdit(updated) {
@@ -557,21 +558,18 @@ export default function VideoContentPage() {
   const skeletonRows = Array.from({ length: Math.min(5, pageSize) });
 
   return (
-    <section className="video-content-page screen-card">
+    <section className="video-content-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={dismissToast} />
 
-      {/* Page Header */}
-      <div className="vc-page-header">
-        <div className="vc-page-header-left">
-          <p className="vc-eyebrow"><i className="ti ti-video-clapper" /> Video Library</p>
-          <h3 className="vc-page-title">Video Content</h3>
-          <p className="vc-page-subtitle">Manage linked videos, chapter metadata, and upload state.</p>
+      {/* ── Standard Page Header ── */}
+      <div className="page-header-section">
+        <div>
+          <h2><i className="ti ti-video-clapper" /> Video Content</h2>
+          <p>Manage linked videos, chapter metadata, and upload state.</p>
         </div>
-        <div className="vc-page-header-right">
-          <button type="button" className="vc-btn-add-new" onClick={() => setShowLink(true)}>
-            <i className="ti ti-plus" /> Add New
-          </button>
-        </div>
+        <button type="button" className="page-action-button" onClick={() => setShowLink(true)}>
+          <i className="ti ti-plus" /> Add New
+        </button>
       </div>
 
       {/* Filter Bar */}
@@ -611,21 +609,21 @@ export default function VideoContentPage() {
       </div>
 
       {/* Table */}
-      <div className="crispr-table-container">
-        <table className="crispr-table">
+      <div className="students-table-container">
+        <table className="students-table">
           <thead>
             <tr>
               <th>Thumbnail</th>
-              <th className="sortable" onClick={() => handleSort('titleName')}>
+              <th className={`sortable${sortKey === 'titleName' ? ' active' : ''}`} onClick={() => handleSort('titleName')}>
                 Video Details <SortIcon col="titleName" />
               </th>
-              <th className="sortable" onClick={() => handleSort('durationInSeconds')}>
+              <th className={`sortable${sortKey === 'durationInSeconds' ? ' active' : ''}`} onClick={() => handleSort('durationInSeconds')}>
                 Duration <SortIcon col="durationInSeconds" />
               </th>
-              <th className="sortable" onClick={() => handleSort('classificationLevel1')}>
+              <th className={`sortable${sortKey === 'classificationLevel1' ? ' active' : ''}`} onClick={() => handleSort('classificationLevel1')}>
                 Classification <SortIcon col="classificationLevel1" />
               </th>
-              <th className="sortable" onClick={() => handleSort('status')}>
+              <th className={`sortable${sortKey === 'status' ? ' active' : ''}`} onClick={() => handleSort('status')}>
                 Status <SortIcon col="status" />
               </th>
               <th>Actions</th>
@@ -714,7 +712,7 @@ export default function VideoContentPage() {
                       </div>
                     </td>
                     <td>
-                      <span className={`crispr-status ${video.status === 'ready' ? 'active' : 'inactive'}`}>
+                      <span className={`status-pill ${video.status === 'ready' ? 'status-active' : 'status-inactive'}`}>
                         {video.status === 'ready' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -722,7 +720,7 @@ export default function VideoContentPage() {
                       <KebabMenu
                         onView={() => setViewVideo(video)}
                         onEdit={() => setEditVideo(video)}
-                        onDelete={() => handleDelete(video)}
+                        onDelete={() => setDeleteVideo(video)}
                       />
                     </td>
                   </tr>
@@ -846,6 +844,38 @@ export default function VideoContentPage() {
           onClose={() => setShowLink(false)}
           onSave={handleSaveLink}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteVideo && (
+        <div
+          className="crispr-modal-backdrop active"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setDeleteVideo(null); }}
+        >
+          <div className="crispr-modal-dialog" style={{ maxWidth: 460 }} role="dialog" aria-modal="true">
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-trash" /> Delete Video</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setDeleteVideo(null)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body">
+              <p style={{ margin: 0, color: '#334155', lineHeight: 1.6 }}>
+                Are you sure you want to delete <strong>&ldquo;{deleteVideo.titleName}&rdquo;</strong>?
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setDeleteVideo(null)}>
+                <i className="ti ti-close" /> Cancel
+              </button>
+              <button type="button" className="btn btn-danger" onClick={confirmDelete}>
+                <i className="ti ti-trash" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

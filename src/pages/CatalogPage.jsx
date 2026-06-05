@@ -183,9 +183,9 @@ export default function CatalogPage() {
   };
 
   return (
-    <div style={{ padding: '0 15px' }}>
+    <div className="data-table-page">
       <style>{`
-      .cat-catalog-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; background-color: #f9f9f9; margin: 0 0 10px 0; gap: 20px; padding: 20px; }
+      .cat-catalog-grid { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start; background-color: #f9f9f9; margin: 0 0 10px 0; gap: 20px; padding: 20px; }
       .cat-catalog-card { width: 100%; max-width: 300px; min-width: 240px; background-color: rgb(255, 255, 255); border-radius: 10px; overflow: hidden; text-align: center; flex: 1 0 0%; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px; transition: transform 0.3s; cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: flex-start; height: 410px; }
       .cat-catalog-card:hover { transform: scale(1.05); }
       .cat-catalog-image-container { position: relative; }
@@ -215,19 +215,6 @@ export default function CatalogPage() {
       .cat-empty-state i { font-size: 64px; color: #ddd; margin-bottom: 20px; }
       .cat-empty-state h4 { color: #999; margin-bottom: 15px; font-size: 24px; }
       .cat-empty-state p { color: #bbb; font-size: 16px; line-height: 1.6; }
-      .cat-pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 8px; margin-top: 0; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
-      .cat-pagination-info { font-size: 14px; color: #666; font-weight: 500; }
-      .cat-pagination-controls { display: flex; gap: 5px; }
-      .cat-pagination-btn { background: white; border: 1px solid #e5e7eb; padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: all 0.2s; color: #4b5563; font-size: 13px; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-      .cat-pagination-btn:hover:not(:disabled) { background: #f9fafb; color: #006073; border-color: #006073; }
-      .cat-pagination-btn.cat-active { background: linear-gradient(135deg, #006073 0%, #004d5c 100%); color: white; border-color: transparent; }
-      .cat-pagination-btn:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: not-allowed; }
-      .cat-filter-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
-      .cat-search-wrapper { flex: 1; min-width: 250px; position: relative; }
-      .cat-search-input { width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; box-sizing: border-box; }
-      .cat-search-input:focus { outline: none; border-color: #006073; box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1); }
-      .cat-filter-select { padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; min-width: 150px; transition: all 0.3s ease; }
-      .cat-filter-select:focus { outline: none; border-color: #006073; box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1); }
       .cat-modal-body { max-height: 70vh; overflow-y: auto; }
       .cat-skeleton-card { width: 100%; max-width: 300px; min-width: 240px; height: 410px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); position: relative; flex: 1 0 0%; }
       .cat-skeleton-thumbnail { width: 100%; height: 160px; background: #f0f2f5; position: relative; overflow: hidden; }
@@ -247,24 +234,14 @@ export default function CatalogPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
       {/* Page Header Section */}
-      <div className="cat-page-header-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '20px', background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)', borderRadius: '8px', color: 'white' }}>
-         <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div>
-               <h2 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: 600 }}>
-                   <i className="ti ti-shopping-cart" style={{ marginRight: '8px' }}></i> Catalog Management
-               </h2>
-               <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>Manage catalog entries, pricing, status, and landing page metadata.</p>
-            </div>
+      <div className="page-header-section">
+         <div>
+            <h2><i className="ti ti-shopping-cart" /> Catalog Management</h2>
+            <p>Manage catalog entries, pricing, status, and landing page metadata.</p>
          </div>
-         <div style={{ display: 'flex', alignItems: 'center', marginRight: '10px' }}>
-            <button className="cat-btn"
-               style={{ background: '#ffb706', color: '#006073', border: 'none', fontWeight: 600, padding: '10px 20px', borderRadius: '6px', fontSize: '14px', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
-               onClick={addNewCatalog}
-               onMouseOver={(e) => { e.currentTarget.style.background='#ffa500'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 4px 8px rgba(255, 183, 6, 0.3)'; }}
-               onMouseOut={(e) => { e.currentTarget.style.background='#ffb706'; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}>
-               <i className="ti ti-plus"></i> Add New Catalog Item
-            </button>
-         </div>
+         <button type="button" className="page-action-button" onClick={addNewCatalog}>
+            <i className="ti ti-plus" /> Add New Catalog Item
+         </button>
       </div>
 
       <div className="cat-stats-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '25px', marginBottom: '35px' }}>
@@ -306,20 +283,19 @@ export default function CatalogPage() {
          </div>
       </div>
 
-      <div className="cat-filter-bar">
-         <div className="cat-search-wrapper">
-            <i className="ti ti-search" style={{ display: searchQuery ? 'none' : 'block' }}></i>
-            <i className="ti ti-close" style={{ display: searchQuery ? 'block' : 'none', cursor: 'pointer', position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} onClick={() => setSearchQuery('')}></i>
-            <input type="text" className="cat-search-input" placeholder="Search catalog items by title, code, or description..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
+      <div className="filter-bar">
+         <div className="search-wrapper">
+            <i className={`ti ${searchQuery ? 'ti-close' : 'ti-search'} search-icon`} onClick={() => setSearchQuery('')} aria-hidden="true"></i>
+            <input type="text" className="search-input" placeholder="Search catalog items by title, code, or description..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
          </div>
 
-         <select className="cat-filter-select" value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}>
+         <select className="filter-select" value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }} aria-label="Filter by type">
             <option value="">All Types</option>
             <option value="1">Course</option>
             <option value="2">Exam</option>
          </select>
 
-         <select className="cat-filter-select" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}>
+         <select className="filter-select" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }} aria-label="Filter by status">
             <option value="">All Status</option>
             <option value="1">Active</option>
             <option value="0">Inactive</option>
@@ -383,18 +359,18 @@ export default function CatalogPage() {
                 ))}
              </div>
 
-             <div className="cat-pagination-container">
-                <div className="cat-pagination-info">
+             <div className="pagination-container">
+                <div className="pagination-info">
                    <span>Showing {getPageRange()} of {filtered.length} items</span>
                 </div>
-                <div className="cat-pagination-controls">
-                   <button className="cat-pagination-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <div className="pagination-controls">
+                   <button className="pagination-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                       <i className="ti ti-angle-left"></i> Previous
                    </button>
                    {getPagesArray().map(page => (
-                      <button key={page} className={`cat-pagination-btn ${page === currentPage ? 'cat-active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
+                      <button key={page} className={`pagination-btn ${page === currentPage ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
                    ))}
-                   <button className="cat-pagination-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+                   <button className="pagination-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
                       Next <i className="ti ti-angle-right"></i>
                    </button>
                 </div>

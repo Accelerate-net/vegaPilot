@@ -3106,22 +3106,23 @@ function DuplicateModal({ state, allSchedules, onClose, onConfirm }) {
   );
 }
 
-function Modal({ children, onClose, title, maxWidth = 520 }) {
+function Modal({ children, onClose, title, maxWidth = 520, icon = 'ti-calendar' }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 30, 35, 0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
-    >
-      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth, boxShadow: '0 20px 50px rgba(0,0,0,0.25)', overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 17, color: 'var(--ink)' }}>{title}</h3>
-          <button type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 18 }}><i className="ti ti-close" /></button>
+    <div className="crispr-modal-backdrop active" role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="crispr-modal-dialog" style={{ maxWidth }} role="dialog" aria-modal="true">
+        <div className="crispr-modal-header">
+          <h3>{icon && <i className={`ti ${icon}`} />} {title}</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}>
+            <i className="ti ti-close" />
+          </button>
         </div>
-        <div style={{ padding: 20, overflow: 'auto' }}>{children}</div>
+        <div className="crispr-modal-body">{children}</div>
       </div>
     </div>
   );

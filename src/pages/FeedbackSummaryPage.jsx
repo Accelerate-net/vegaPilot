@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import { availableBatches, availableCourses } from '../data/attemptReportsDemo';
 import { examsDemo } from '../data/examsDemo';
@@ -20,15 +20,20 @@ function formatLastReceived(unixSeconds) {
 }
 
 function RatingStars({ rating }) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.25 && rating - full < 0.75;
-  const fullCount = rating - full >= 0.75 ? full + 1 : full;
+  const value = Math.max(0, Math.min(5, Number(rating) || 0));
   return (
-    <span style={{ color: '#fbbf24', fontSize: '14px', letterSpacing: '1px' }}>
-      {[1, 2, 3, 4, 5].map((i) => {
-        if (i <= fullCount) return <i key={i} className="ti ti-star" style={{ fontWeight: 'bold' }} />;
-        if (i === fullCount + 1 && hasHalf) return <i key={i} className="ti ti-star-half" />;
-        return <i key={i} className="ti ti-star" style={{ opacity: 0.3 }} />;
+    <span style={{ display: 'inline-flex', gap: '2px', fontSize: '14px', lineHeight: 1 }}>
+      {[0, 1, 2, 3, 4].map((i) => {
+        // Snap each star to empty / half / full so 3.5 → 3 full, 1 half, 1 empty.
+        const fill = Math.round(Math.max(0, Math.min(1, value - i)) * 2) / 2;
+        return (
+          <span key={i} style={{ position: 'relative', display: 'inline-block' }}>
+            <i className="fa fa-star" style={{ color: '#d6dde0' }} />
+            <span style={{ position: 'absolute', left: 0, top: 0, width: `${fill * 100}%`, height: '100%', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              <i className="fa fa-star" style={{ color: '#fbbf24' }} />
+            </span>
+          </span>
+        );
       })}
     </span>
   );
@@ -132,7 +137,7 @@ function StarRating({ rating }) {
   return (
     <div style={{ display: 'flex', color: '#fbbf24', fontSize: '16px', gap: '2px' }}>
       {[1, 2, 3, 4, 5].map((star) => (
-        <i key={star} className={`ti ${star <= rating ? 'ti-star' : 'ti-star'} `} style={{ fontWeight: star <= rating ? 'bold' : 'normal', opacity: star <= rating ? 1 : 0.3 }} />
+        <i key={star} className="fa fa-star" style={{ color: star <= rating ? '#fbbf24' : '#d6dde0' }} />
       ))}
     </div>
   );
@@ -157,13 +162,19 @@ function getSummaryTileTitle(item) {
 }
 
 export default function FeedbackSummaryPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
-  const [selectedChapterFilter, setSelectedChapterFilter] = useState('');
-  const [selectedExamFilter, setSelectedExamFilter] = useState('');
-  const [selectedBatchFilters, setSelectedBatchFilters] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [dateFrom, setDateFrom] = useState(() => searchParams.get('from') || '');
+  const [dateTo, setDateTo] = useState(() => searchParams.get('to') || '');
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState(() => searchParams.get('course') || '');
+  const [selectedChapterFilter, setSelectedChapterFilter] = useState(() => searchParams.get('chapter') || '');
+  const [selectedExamFilter, setSelectedExamFilter] = useState(() => searchParams.get('exam') || '');
+  const [selectedBatchFilters, setSelectedBatchFilters] = useState(() => {
+    const raw = searchParams.get('batch');
+    return raw ? raw.split(',').filter(Boolean) : [];
+  });
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
@@ -180,7 +191,7 @@ export default function FeedbackSummaryPage() {
   const [tilesPage, setTilesPage] = useState(1);
   const [tilesLastPage, setTilesLastPage] = useState(1);
   const [selectedTile, setSelectedTile] = useState(null);
-  const TILES_PER_PAGE = 10;
+  const TILES_PER_PAGE = 5;
 
   useEffect(() => {
     let cancelled = false;
@@ -211,7 +222,11 @@ export default function FeedbackSummaryPage() {
   }
 
   function handleTileClick(tile) {
-    setSelectedTile((cur) => (tilesMatch(cur, tile) ? null : tile));
+    const next = tilesMatch(selectedTile, tile) ? null : tile;
+    setSelectedTile(next);
+    // Entering a tile ("Showing reviews for…") view takes over the list, so any
+    // search text / modal filters that were applied are cleared.
+    if (next) clearFilters();
     setCurrentPage(1);
   }
 
@@ -362,6 +377,30 @@ export default function FeedbackSummaryPage() {
 
   const hasActiveFilters = searchQuery || dateFrom || dateTo || selectedCourseFilter || selectedChapterFilter || selectedExamFilter || selectedBatchFilters.length > 0;
 
+  // Filters that live inside the modal (everything except the inline search box)
+  const modalFilterCount =
+    (dateFrom ? 1 : 0) +
+    (dateTo ? 1 : 0) +
+    (selectedCourseFilter ? 1 : 0) +
+    (selectedChapterFilter ? 1 : 0) +
+    (selectedExamFilter ? 1 : 0) +
+    selectedBatchFilters.length;
+  const hasModalFilters = modalFilterCount > 0;
+
+  // Keep filters reflected in the URL so they can be shared / restored.
+  useEffect(() => {
+    const next = {};
+    if (searchQuery) next.q = searchQuery;
+    if (dateFrom) next.from = dateFrom;
+    if (dateTo) next.to = dateTo;
+    if (selectedCourseFilter) next.course = selectedCourseFilter;
+    if (selectedChapterFilter) next.chapter = selectedChapterFilter;
+    if (selectedExamFilter) next.exam = selectedExamFilter;
+    if (selectedBatchFilters.length) next.batch = selectedBatchFilters.join(',');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, dateFrom, dateTo, selectedCourseFilter, selectedChapterFilter, selectedExamFilter, selectedBatchFilters]);
+
   const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = listTotal === 0 ? 0 : (safePage - 1) * pageSize + 1;
@@ -383,106 +422,71 @@ export default function FeedbackSummaryPage() {
   }
 
   return (
-    <section className="screen-card report-page exam-attempt-report-page">
+    <section className="report-page exam-attempt-report-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
-      {/* ── Header Card ── */}
-      <div className="ear-header-card">
-        <div className="ear-header-top">
-          <div className="ear-header-main">
-            <h2 className="ear-header-title">
-              <i className="ti ti-star" style={{ color: '#fbbf24' }} /> Feedback Summary
-            </h2>
-            <p className="ear-header-desc">Consolidated view of all student feedback for courses and exams.</p>
-          </div>
-        </div>
-
-        <div className="ear-header-body">
-          <div className="ear-stats-row">
-            <div className="ear-stat-card" style={{ flex: 'none', width: '300px' }}>
-              <div className="ear-stat-icon ear-stat-orange"><i className="ti ti-bar-chart" /></div>
-              <div className="ear-stat-info">
-                <h3 style={{ color: '#006073' }}>
-                  {summary.avg} <span style={{ fontSize: '14px', color: '#59757b', fontWeight: 'normal' }}>from {summary.count} feedbacks</span>
-                </h3>
-                <p>Average Rating (Filtered)</p>
-              </div>
-            </div>
-            
-            <div className="ear-stat-card">
-              <div className="ear-stat-icon ear-stat-teal"><i className="ti ti-comments" /></div>
-              <div className="ear-stat-info">
-                <h3>{filteredFeedbacks.filter(r => r.remarks && r.remarks.trim().length > 0).length}</h3>
-                <p>Written Remarks</p>
-              </div>
-            </div>
-
-            <div className="ear-stat-card">
-              <div className="ear-stat-icon ear-stat-indigo"><i className="ti ti-na" /></div>
-              <div className="ear-stat-info">
-                <h3>{filteredFeedbacks.filter(r => r.isAnonymous).length}</h3>
-                <p>Anonymous</p>
-              </div>
-            </div>
-          </div>
+      {/* ── Standard Page Header ── */}
+      <div className="page-header-section">
+        <div>
+          <h2><i className="ti ti-star" /> Feedback Summary</h2>
+          <p>Consolidated view of all student feedback for courses and exams.</p>
         </div>
       </div>
 
-      {/* ── Summary Tiles (paged 10 at a time, click to filter table) ── */}
-      <div className="ear-summary-tiles-section" style={{ margin: '0 0 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
+      {/* ── Feedback on Recent Sessions (single row, max 5 cards, paginated) ── */}
+      <div
+        className="ear-summary-tiles-section"
+        style={{
+          margin: '0 0 16px 0',
+          padding: '16px 18px',
+          background: 'linear-gradient(135deg, #f0fbfd 0%, #e6f6f9 100%)',
+          border: '1px solid #bfe9f2',
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0,96,115,0.08)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
           <h4 style={{ margin: 0, color: '#16353c', fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <i className="ti ti-medal" style={{ color: '#fbbf24' }} />
-            Top Rated
+            <i className="ti ti-time" style={{ color: '#006073' }} />
+            Feedback on Recent Sessions
             {summaryLoading && <span style={{ fontSize: 12, color: '#59757b', fontWeight: 'normal' }}>Loading…</span>}
             {summaryError && <span style={{ fontSize: 12, color: '#c0392b', fontWeight: 'normal' }}>{summaryError}</span>}
           </h4>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {selectedTile && (
-              <button
-                type="button"
-                className="ear-btn-default"
-                style={{ fontSize: 12, padding: '4px 10px' }}
-                onClick={() => { setSelectedTile(null); setCurrentPage(1); }}
-              >
-                <i className="ti ti-list" /> Show All Reviews
-              </button>
-            )}
-            <button
-              type="button"
-              className="ear-page-btn"
-              disabled={tilesPage <= 1 || summaryLoading}
-              onClick={() => setTilesPage((p) => Math.max(1, p - 1))}
-              aria-label="Previous tiles"
-            >
-              <i className="ti ti-angle-left" />
-            </button>
-            <span style={{ fontSize: 12, color: '#59757b', minWidth: 56, textAlign: 'center' }}>
-              {tilesPage} / {tilesLastPage}
-            </span>
-            <button
-              type="button"
-              className="ear-page-btn"
-              disabled={tilesPage >= tilesLastPage || summaryLoading}
-              onClick={() => setTilesPage((p) => Math.min(tilesLastPage, p + 1))}
-              aria-label="Next tiles"
-            >
-              <i className="ti ti-angle-right" />
-            </button>
-          </div>
+          {tilesLastPage > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#59757b', minWidth: 56, textAlign: 'center' }}>
+                {tilesPage} / {tilesLastPage}
+              </span>
+            </div>
+          )}
         </div>
         {!summaryLoading && !summaryError && summaryTiles.length === 0 ? (
           <div style={{ padding: 16, background: '#fafbfc', borderRadius: 8, color: '#59757b', fontSize: 13 }}>
             No feedback summary available yet.
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: 12,
-            }}
-          >
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 10 }}>
+            {tilesLastPage > 1 && (
+              <button
+                type="button"
+                className="ear-page-btn"
+                style={{ flexShrink: 0, alignSelf: 'stretch' }}
+                disabled={tilesPage <= 1 || summaryLoading}
+                onClick={() => setTilesPage((p) => Math.max(1, p - 1))}
+                aria-label="Previous tiles"
+              >
+                <i className="ti ti-angle-left" />
+              </button>
+            )}
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+                gap: 12,
+              }}
+            >
             {summaryTiles.map((item, idx) => {
               const ratingNum = Number(item.rating) || 0;
               const isSelected = tilesMatch(selectedTile, item);
@@ -532,163 +536,240 @@ export default function FeedbackSummaryPage() {
                 </button>
               );
             })}
+            </div>
+            {tilesLastPage > 1 && (
+              <button
+                type="button"
+                className="ear-page-btn"
+                style={{ flexShrink: 0, alignSelf: 'stretch' }}
+                disabled={tilesPage >= tilesLastPage || summaryLoading}
+                onClick={() => setTilesPage((p) => Math.min(tilesLastPage, p + 1))}
+                aria-label="Next tiles"
+              >
+                <i className="ti ti-angle-right" />
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {/* ── Filter Section ── */}
-      <div className="ear-filter-section ear-filter-compact">
-        <div className="ear-filter-header">
-          <h4 className="ear-filter-title"><i className="ti ti-filter" /> Filters</h4>
-          {hasActiveFilters && (
-            <button type="button" className="ear-clear-filters-btn" onClick={clearFilters}>
-              <i className="ti ti-reload" /> Clear Filters
-            </button>
-          )}
+      {/* ── Search bar + Filters button (standard) ── */}
+      <div className="filter-bar">
+        <div className="search-wrapper" style={selectedTile ? { opacity: 0.5 } : undefined}>
+          <i className="ti ti-search search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder={selectedTile ? 'Search disabled while viewing a tile' : 'Search student or remarks...'}
+            value={searchQuery}
+            disabled={!!selectedTile}
+            onChange={(event) => { setSearchQuery(event.target.value); setCurrentPage(1); }}
+          />
         </div>
-
-        <div className="ear-filter-row-1">
-          <div className="ear-filter-group">
-            <label className="ear-filter-label">Search</label>
-            <input
-              type="text"
-              className="ear-filter-input"
-              placeholder="Search student or remarks..."
-              value={searchQuery}
-              onChange={(event) => { setSearchQuery(event.target.value); setCurrentPage(1); }}
-            />
-          </div>
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-calendar" /> From</label>
-            <input
-              type="date"
-              className="ear-filter-input"
-              value={dateFrom}
-              onChange={(event) => { setDateFrom(event.target.value); setCurrentPage(1); }}
-            />
-          </div>
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-calendar" /> To</label>
-            <input
-              type="date"
-              className="ear-filter-input"
-              value={dateTo}
-              onChange={(event) => { setDateTo(event.target.value); setCurrentPage(1); }}
-            />
-          </div>
-        </div>
-
-        <div className="ear-filter-row-2">
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-book" /> Course</label>
-            <select
-              className="ear-filter-input"
-              value={selectedCourseFilter}
-              onChange={(event) => { 
-                setSelectedCourseFilter(event.target.value); 
-                setSelectedChapterFilter('');
-                if (event.target.value) setSelectedExamFilter('');
-                setSelectedBatchFilters([]); 
-                setCurrentPage(1); 
-              }}
-            >
-              <option value="">All Courses</option>
-              {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
-            </select>
-          </div>
-
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-bookmark" /> Chapter</label>
-            <select
-              className="ear-filter-input"
-              value={selectedChapterFilter}
-              onChange={(event) => { setSelectedChapterFilter(event.target.value); setCurrentPage(1); }}
-              disabled={!selectedCourseFilter}
-            >
-              <option value="">All Chapters</option>
-              {availableChaptersForCourse.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
-            </select>
-          </div>
-          
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
-            <BatchMultiselect
-              batches={filteredBatches}
-              selected={selectedBatchFilters}
-              onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
-              disabled={!selectedCourseFilter}
-            />
-          </div>
-
-          <div className="ear-filter-group">
-            <label className="ear-filter-label"><i className="ti ti-receipt" /> Exam</label>
-            <select
-              className="ear-filter-input"
-              value={selectedExamFilter}
-              onChange={(event) => { 
-                setSelectedExamFilter(event.target.value); 
-                if (event.target.value) {
-                  setSelectedCourseFilter('');
-                  setSelectedBatchFilters([]);
-                }
-                setCurrentPage(1); 
-              }}
-            >
-              <option value="">All Exams</option>
-              {examsDemo.map((ex) => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Active Filters */}
+        <button
+          type="button"
+          className={`filter-toggle-btn${hasModalFilters ? ' active' : ''}`}
+          disabled={!!selectedTile}
+          onClick={() => setShowFilterModal(true)}
+        >
+          <i className="ti ti-filter" /> Filters
+          {modalFilterCount > 0 && <span className="filter-count">{modalFilterCount}</span>}
+        </button>
         {hasActiveFilters && (
-          <div className="ear-active-filters">
-            <span className="ear-active-filters-label">Active Filters:</span>
-            {searchQuery && (
-              <span className="ear-filter-badge">
-                Search: &ldquo;{searchQuery}&rdquo;
-                <button type="button" onClick={() => setSearchQuery('')}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {dateFrom && (
-              <span className="ear-filter-badge">
-                From: {new Date(dateFrom).toLocaleDateString()}
-                <button type="button" onClick={() => setDateFrom('')}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {dateTo && (
-              <span className="ear-filter-badge">
-                To: {new Date(dateTo).toLocaleDateString()}
-                <button type="button" onClick={() => setDateTo('')}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {selectedCourseFilter && (
-              <span className="ear-filter-badge">
-                Course: {getCourseName(selectedCourseFilter)}
-                <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedChapterFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {selectedChapterFilter && (
-              <span className="ear-filter-badge">
-                Chapter: {selectedChapterFilter}
-                <button type="button" onClick={() => setSelectedChapterFilter('')}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {selectedExamFilter && (
-              <span className="ear-filter-badge">
-                Exam: {getExamName(selectedExamFilter)}
-                <button type="button" onClick={() => setSelectedExamFilter('')}><i className="ti ti-close" /></button>
-              </span>
-            )}
-            {selectedBatchFilters.map((batchId) => (
-              <span key={batchId} className="ear-filter-badge">
-                Batch: {getBatchName(batchId)}
-                <button type="button" onClick={() => setSelectedBatchFilters((c) => c.filter((id) => id !== batchId))}><i className="ti ti-close" /></button>
-              </span>
-            ))}
-          </div>
+          <button type="button" className="filter-clear-btn" onClick={clearFilters}>
+            <i className="ti ti-reload" /> Clear
+          </button>
         )}
+        {hasActiveFilters && summary.count > 0 && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '5px 12px',
+              borderRadius: 20,
+              background: '#fff7e6',
+              border: '1px solid #ffe1a8',
+              color: '#92600a',
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            <i className="fa fa-star" style={{ color: '#fbbf24' }} />
+            {summary.avg} from {summary.count} review{summary.count === 1 ? '' : 's'}
+          </span>
+        )}
+        {listLoading && <span style={{ color: '#59757b', fontSize: 12 }}>Loading…</span>}
+        {listError && <span style={{ color: '#c0392b', fontSize: 12 }}>{listError}</span>}
+        <button
+          type="button"
+          className="ear-btn-export"
+          style={{ marginLeft: 'auto' }}
+          disabled={listTotal === 0}
+          onClick={() => setShowExportModal(true)}
+        >
+          <i className="ti ti-download" /> Export List to PDF
+        </button>
       </div>
+
+      {/* ── Filter Modal ── */}
+      {showFilterModal && (
+        <div
+          className="crispr-modal-backdrop active"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setShowFilterModal(false); }}
+        >
+          <div className="crispr-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-filter" /> Filter Feedback</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body">
+              <div className="ear-filter-row-1">
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-calendar" /> From</label>
+                  <input
+                    type="date"
+                    className="ear-filter-input"
+                    value={dateFrom}
+                    onChange={(event) => { setDateFrom(event.target.value); setCurrentPage(1); }}
+                  />
+                </div>
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-calendar" /> To</label>
+                  <input
+                    type="date"
+                    className="ear-filter-input"
+                    value={dateTo}
+                    onChange={(event) => { setDateTo(event.target.value); setCurrentPage(1); }}
+                  />
+                </div>
+              </div>
+
+              <div className="ear-filter-row-2">
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-book" /> Course</label>
+                  <select
+                    className="ear-filter-input"
+                    value={selectedCourseFilter}
+                    onChange={(event) => {
+                      setSelectedCourseFilter(event.target.value);
+                      setSelectedChapterFilter('');
+                      if (event.target.value) setSelectedExamFilter('');
+                      setSelectedBatchFilters([]);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value="">All Courses</option>
+                    {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-bookmark" /> Chapter</label>
+                  <select
+                    className="ear-filter-input"
+                    value={selectedChapterFilter}
+                    onChange={(event) => { setSelectedChapterFilter(event.target.value); setCurrentPage(1); }}
+                    disabled={!selectedCourseFilter}
+                  >
+                    <option value="">All Chapters</option>
+                    {availableChaptersForCourse.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
+                  </select>
+                </div>
+
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
+                  <BatchMultiselect
+                    batches={filteredBatches}
+                    selected={selectedBatchFilters}
+                    onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
+                    disabled={!selectedCourseFilter}
+                  />
+                </div>
+
+                <div className="ear-filter-group">
+                  <label className="ear-filter-label"><i className="ti ti-receipt" /> Exam</label>
+                  <select
+                    className="ear-filter-input"
+                    value={selectedExamFilter}
+                    onChange={(event) => {
+                      setSelectedExamFilter(event.target.value);
+                      if (event.target.value) {
+                        setSelectedCourseFilter('');
+                        setSelectedBatchFilters([]);
+                      }
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value="">All Exams</option>
+                    {examsDemo.map((ex) => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Active Filters */}
+              {hasActiveFilters && (
+                <div className="ear-active-filters">
+                  <span className="ear-active-filters-label">Active Filters:</span>
+                  {searchQuery && (
+                    <span className="ear-filter-badge">
+                      Search: &ldquo;{searchQuery}&rdquo;
+                      <button type="button" onClick={() => setSearchQuery('')}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {dateFrom && (
+                    <span className="ear-filter-badge">
+                      From: {new Date(dateFrom).toLocaleDateString()}
+                      <button type="button" onClick={() => setDateFrom('')}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {dateTo && (
+                    <span className="ear-filter-badge">
+                      To: {new Date(dateTo).toLocaleDateString()}
+                      <button type="button" onClick={() => setDateTo('')}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {selectedCourseFilter && (
+                    <span className="ear-filter-badge">
+                      Course: {getCourseName(selectedCourseFilter)}
+                      <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedChapterFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {selectedChapterFilter && (
+                    <span className="ear-filter-badge">
+                      Chapter: {selectedChapterFilter}
+                      <button type="button" onClick={() => setSelectedChapterFilter('')}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {selectedExamFilter && (
+                    <span className="ear-filter-badge">
+                      Exam: {getExamName(selectedExamFilter)}
+                      <button type="button" onClick={() => setSelectedExamFilter('')}><i className="ti ti-close" /></button>
+                    </span>
+                  )}
+                  {selectedBatchFilters.map((batchId) => (
+                    <span key={batchId} className="ear-filter-badge">
+                      Batch: {getBatchName(batchId)}
+                      <button type="button" onClick={() => setSelectedBatchFilters((c) => c.filter((id) => id !== batchId))}><i className="ti ti-close" /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={clearFilters}>
+                <i className="ti ti-reload" /> Clear Filters
+              </button>
+              <button type="button" className="btn btn-success" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-check" /> Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Selected-tile banner ── */}
       {selectedTile && (
@@ -722,43 +803,24 @@ export default function FeedbackSummaryPage() {
         </div>
       )}
 
-      {/* ── Action Row ── */}
-      <div className="ear-action-row">
-        <div className="ear-record-count">
-          <strong>{listTotal}</strong> record(s) found
-          {listLoading && <span style={{ marginLeft: 8, color: '#59757b', fontSize: 12 }}>Loading…</span>}
-          {listError && <span style={{ marginLeft: 8, color: '#c0392b', fontSize: 12 }}>{listError}</span>}
-        </div>
-        <div className="ear-action-buttons">
-          <button
-            type="button"
-            className="ear-btn-export"
-            disabled={listTotal === 0}
-            onClick={() => setShowExportModal(true)}
-          >
-            <i className="ti ti-download" /> Export List to PDF
-          </button>
-        </div>
-      </div>
-
       {/* ── Table ── */}
       {listRows.length > 0 ? (
-        <div className="ear-table-container">
-          <table className="ear-rank-table">
+        <div className="students-table-container">
+          <table className="students-table">
             <thead>
               <tr>
-                <th className={`ear-th-sortable${sortColumn === 'studentName' ? ' ear-th-active' : ''}`} onClick={() => toggleSort('studentName')}>
-                  Student <i className={`ti ${getSortIcon('studentName')} ear-sort-icon`} />
+                <th className={`sortable${sortColumn === 'studentName' ? ' active' : ''}`} onClick={() => toggleSort('studentName')}>
+                  Student <i className={`ti ${getSortIcon('studentName')} sort-icon`} />
                 </th>
-                <th className={`ear-th-sortable${sortColumn === 'itemType' ? ' ear-th-active' : ''}`} onClick={() => toggleSort('itemType')}>
-                  Context <i className={`ti ${getSortIcon('itemType')} ear-sort-icon`} />
+                <th className={`sortable${sortColumn === 'itemType' ? ' active' : ''}`} onClick={() => toggleSort('itemType')}>
+                  Context <i className={`ti ${getSortIcon('itemType')} sort-icon`} />
                 </th>
                 <th>Remarks</th>
-                <th className={`ear-th-sortable${sortColumn === 'rating' ? ' ear-th-active' : ''}`} style={{ width: 140 }} onClick={() => toggleSort('rating')}>
-                  Rating <i className={`ti ${getSortIcon('rating')} ear-sort-icon`} />
+                <th className={`sortable${sortColumn === 'rating' ? ' active' : ''}`} style={{ width: 140 }} onClick={() => toggleSort('rating')}>
+                  Rating <i className={`ti ${getSortIcon('rating')} sort-icon`} />
                 </th>
-                <th className={`ear-th-sortable${sortColumn === 'submittedAt' ? ' ear-th-active' : ''}`} style={{ width: 180 }} onClick={() => toggleSort('submittedAt')}>
-                  Date <i className={`ti ${getSortIcon('submittedAt')} ear-sort-icon`} />
+                <th className={`sortable${sortColumn === 'submittedAt' ? ' active' : ''}`} style={{ width: 180 }} onClick={() => toggleSort('submittedAt')}>
+                  Date <i className={`ti ${getSortIcon('submittedAt')} sort-icon`} />
                 </th>
               </tr>
             </thead>
@@ -804,49 +866,39 @@ export default function FeedbackSummaryPage() {
           </table>
 
           {/* Pagination */}
-          <div className="ear-pagination">
-            <div className="ear-pagination-info">
-              Showing <strong>{startIndex}</strong> to <strong>{endIndex}</strong> of <strong>{listTotal}</strong> records
-            </div>
-            <div className="ear-pagination-controls">
-              <button
-                type="button"
-                className="ear-page-btn"
-                disabled={safePage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>Showing {startIndex} to {endIndex} of {listTotal} entries</span>
+              <select
+                className="page-size-select"
+                value={pageSize}
+                onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}
               >
-                <i className="ti ti-angle-left" />
+                {[20, 50, 100, 200].map((size) => <option key={size} value={size}>Show {size}</option>)}
+              </select>
+            </div>
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={safePage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                <i className="ti ti-angle-left" /> Previous
               </button>
               {getPageNumbers(safePage, totalPages).map((page, index) => (
                 page === '...'
-                  ? <span key={`ellipsis-${index}`} className="ear-page-ellipsis">...</span>
+                  ? <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
                   : (
                     <button
                       key={page}
                       type="button"
-                      className={`ear-page-btn${safePage === page ? ' ear-page-active' : ''}`}
+                      className={`pagination-btn${safePage === page ? ' active' : ''}`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}
                     </button>
                   )
               ))}
-              <button
-                type="button"
-                className="ear-page-btn"
-                disabled={safePage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              >
-                <i className="ti ti-angle-right" />
+              <button type="button" className="pagination-btn" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+                Next <i className="ti ti-angle-right" />
               </button>
             </div>
-            <select
-              className="ear-page-size-select"
-              value={pageSize}
-              onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1); }}
-            >
-              {[20, 50, 100, 200].map((size) => <option key={size} value={size}>{size} / page</option>)}
-            </select>
           </div>
         </div>
       ) : (

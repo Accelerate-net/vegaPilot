@@ -539,7 +539,7 @@ export default function ResidenceManagementPage() {
   }
 
   return (
-    <section className="batch-management-page">
+    <section className="batch-management-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
@@ -1270,22 +1270,21 @@ export default function ResidenceManagementPage() {
 
       {/* ── Confirm Dialog ────────────────────────────────────────────── */}
       <div className={`legacy-modal-backdrop ${confirmAction ? 'active' : ''}`} onClick={() => !isConfirming && setConfirmAction(null)}>
-        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-          <div className="legacy-modal-header">
-            <h3>{confirmAction?.title || 'Confirm'}</h3>
+        <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className={`legacy-modal-header ${confirmAction?.danger ? 'legacy-danger-header' : ''}`}>
+            <h3>{confirmAction?.danger && <i className="ti ti-alert" />} {confirmAction?.title || 'Confirm'}</h3>
             <button type="button" className="legacy-modal-close" onClick={() => !isConfirming && setConfirmAction(null)}>
               <i className="ti ti-close" />
             </button>
           </div>
           <div className="legacy-modal-body">
-            <p>{confirmAction?.message}</p>
+            <p className="legacy-confirm-copy">{confirmAction?.message}</p>
           </div>
-          <div className="legacy-modal-footer" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', padding: 16 }}>
-            <button type="button" className="legacy-btn" disabled={isConfirming} onClick={() => setConfirmAction(null)}>Cancel</button>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" disabled={isConfirming} onClick={() => setConfirmAction(null)}>Cancel</button>
             <button
               type="button"
-              className={`legacy-btn ${confirmAction?.danger ? '' : 'legacy-btn-success'}`}
-              style={confirmAction?.danger ? { background: '#dc2626', color: '#fff', borderColor: '#dc2626' } : undefined}
+              className={`legacy-btn ${confirmAction?.danger ? 'legacy-btn-danger' : 'legacy-btn-success'}`}
               disabled={isConfirming}
               onClick={runConfirm}
             >

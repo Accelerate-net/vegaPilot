@@ -947,7 +947,7 @@ export default function BatchManagementPage() {
   }
 
   return (
-    <section className="batch-management-page">
+    <section className="batch-management-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -982,10 +982,16 @@ export default function BatchManagementPage() {
         <div className="empty-state">
           <i className="ti ti-layout-grid2" />
           <h3>No Batches Found</h3>
-          <p>Create your first batch to start organizing students</p>
-          <button type="button" className="legacy-btn legacy-btn-success" onClick={openCreateBatchModal}>
-            <i className="ti ti-plus" /> Create First Batch
-          </button>
+          {searchQuery.trim() ? (
+            <p>No batches match your search</p>
+          ) : (
+            <>
+              <p>Create your first batch to start organizing students</p>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={openCreateBatchModal}>
+                <i className="ti ti-plus" /> Create First Batch
+              </button>
+            </>
+          )}
         </div>
       ) : null}
 

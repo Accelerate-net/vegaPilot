@@ -486,6 +486,17 @@
   margin-right: 10px;
 }
 
+.course-management-page-wrapper .teacher-photo-small.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .course-management-page-wrapper .teacher-details-simple {
   display: flex;
   flex-direction: column;
@@ -522,6 +533,17 @@
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #dee2e6;
+}
+
+.course-management-page-wrapper .teacher-photo-tiny.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .course-management-page-wrapper .teacher-not-mapped {

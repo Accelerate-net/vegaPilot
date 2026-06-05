@@ -29,6 +29,11 @@ export async function listAttendance({
   return data;
 }
 
+export async function createManualAttendance({ candidateId, locationId } = {}) {
+  const { data } = await api.post(BASE, clean({ candidateId, locationId, source: 'manual' }));
+  return data;
+}
+
 export async function getAttendanceSummary(params = {}) {
   // Optional convenience endpoint; falls back to listAttendance with groupBy=day if unsupported.
   try {

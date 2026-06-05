@@ -1,9 +1,21 @@
 import axios from 'axios';
 import { clearToken, getToken } from './auth';
 
-export const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://127.0.0.1:3004/api'
-  : 'https://crisprtech.app/api';
+// API origin resolution (Option B — call the backend directly, no Vite proxy):
+//   1. If VITE_API_BASE is set (see .env.development), use it. This is the
+//      explicit, configurable override for local/staging work.
+//   2. Otherwise fall back to a hostname check: localhost → local backend,
+//      anything else → production. Keeps prod builds correct even if no env
+//      var is provided.
+// VITE_API_BASE should be the backend ORIGIN only (no trailing /api, no slash);
+// we append `/api` here so every call resolves to `<origin>/api/...`.
+const ENV_API_BASE = import.meta.env?.VITE_API_BASE;
+
+export const BASE_URL = ENV_API_BASE
+  ? `${String(ENV_API_BASE).replace(/\/+$/, '')}/api`
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://127.0.0.1:3004/api'
+      : 'https://crisprtech.app/api');
 
 export const api = axios.create({
   baseURL: BASE_URL,

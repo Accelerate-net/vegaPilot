@@ -1,7 +1,7 @@
 import React from 'react';
 
-export default function VideoLoop({ data }) {
-  const src = data.url || data.video_url;
+export default function VideoLoop({ item = {}, data = {} }) {
+  const src = item.media_url || data.media_url || data.url || data.video_url;
   if (!src) {
     return (
       <div className="kiosk-hero" style={{ background: '#020617' }}>

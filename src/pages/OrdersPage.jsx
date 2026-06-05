@@ -225,7 +225,7 @@ export default function OrdersPage() {
   const paymentLabel = filterPaymentMethod ? `${filterPaymentMethod.slice(0, 1).toUpperCase()}${filterPaymentMethod.slice(1)}` : 'All Payment Methods';
 
   return (
-    <section className="orders-page">
+    <section className="orders-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -293,8 +293,8 @@ export default function OrdersPage() {
       </div>
 
       {(isLoading || filteredOrders.length > 0) ? (
-        <div className="crispr-table-container">
-          <table className="crispr-table">
+        <div className="students-table-container">
+          <table className="students-table">
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'orderNumber' ? 'active' : ''}`} onClick={() => handleSort('orderNumber')}>Order ID <i className={`sort-icon ti ${sortIcon('orderNumber', sortColumn, sortReverse)}`} /></th>
@@ -346,7 +346,7 @@ export default function OrdersPage() {
                     <td><div className="info-cell"><i className="ti ti-calendar" /> {formatDate(order.orderDate)}</div></td>
                     <td><div className="info-cell" title={order.items?.[0]?.title}>{getItemsSummary(order)}</div></td>
                     <td><span className="order-amount">₹{formatMoney(order.totalAmount)}</span></td>
-                    <td><span className={`crispr-status ${statusClass(order.status)}`}>{order.status}</span></td>
+                    <td><span className={`status-pill status-${statusClass(order.status)}`}>{order.status}</span></td>
                     <td><span className="crispr-badge"><i className={`ti ${paymentIcon(order.paymentMethod)}`} /> {order.paymentMethod.toUpperCase()}</span></td>
                     <td className={`actions-column ${openKebabId === order.id ? 'cell-active-menu' : ''}`} onClick={(event) => event.stopPropagation()}>
                       <div className="kebab-menu-container">

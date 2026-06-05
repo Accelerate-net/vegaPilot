@@ -1,6 +1,73 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ToastRegion from '../components/ToastRegion';
 import { vouchersDemo, autoEnrollCoursesDemo, catalogItemsDemo } from '../data/adminRemainingDemo';
+
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (currentPage <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  } else if (currentPage >= totalPages - 3) {
+    pages.push(1);
+    pages.push('...');
+    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    pages.push('...');
+    for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+    pages.push('...');
+    pages.push(totalPages);
+  }
+  return pages;
+}
+
+function VoucherKebabMenu({ voucher, onViewUsers, onRevoke }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function handler(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const canViewUsers = voucher.limitedUsers;
+  const canRevoke = voucher.status === 'active';
+
+  return (
+    <div className="kebab-menu-container" ref={ref}>
+      <button
+        type="button"
+        className="kebab-button"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+      >
+        <i className="ti ti-more-alt" />
+      </button>
+      <div className={`kebab-dropdown${open ? ' active' : ''}`}>
+        {canViewUsers && (
+          <button type="button" className="kebab-dropdown-item" onClick={() => { setOpen(false); onViewUsers(voucher); }}>
+            <i className="ti ti-user" /> View Users
+          </button>
+        )}
+        {canRevoke && (
+          <button type="button" className="kebab-dropdown-item danger-action" onClick={() => { setOpen(false); onRevoke(voucher); }}>
+            <i className="ti ti-ban" /> Revoke Code
+          </button>
+        )}
+        {!canViewUsers && !canRevoke && (
+          <span className="kebab-dropdown-item" style={{ color: '#94a3b8', cursor: 'default' }}>
+            No actions available
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function WebContentManagerPage() {
   const [toasts, setToasts] = useState([]);
@@ -12,7 +79,7 @@ export default function WebContentManagerPage() {
   
   // Discount Pagination
   const [discountPage, setDiscountPage] = useState(1);
-  const discountsPerPage = 5;
+  const [discountsPerPage, setDiscountsPerPage] = useState(20);
 
   // Modals
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
@@ -116,7 +183,7 @@ export default function WebContentManagerPage() {
   };
 
   return (
-    <div className="container-fluid" style={{ paddingTop: '1%' }}>
+    <div className="container-fluid data-table-page" style={{ paddingTop: '1%' }}>
         <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
         {/* Auto-Enrollment Section */}
@@ -170,8 +237,8 @@ export default function WebContentManagerPage() {
                 </div>
             </div>
 
-            <div style={{ width: '100%', background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-                <table className="wcm-custom-table">
+            <div className="students-table-container">
+                <table className="students-table">
                     <thead>
                         <tr>
                             <th>Discount Code</th>
@@ -192,21 +259,16 @@ export default function WebContentManagerPage() {
                                 <td>{new Date(v.validUntil).toLocaleDateString()}</td>
                                 <td>{v.limitedUsers ? `${v.users.length} Users` : 'Unlimited'}</td>
                                 <td style={{ textAlign: 'center' }}>
-                                    <span className={`wcm-status-badge wcm-status-${v.status}`}>
+                                    <span className={`status-pill status-${v.status === 'active' ? 'active' : 'inactive'}`}>
                                         {v.status.toUpperCase()}
                                     </span>
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
-                                    {v.limitedUsers && (
-                                        <button className="wcm-btn wcm-btn-default" style={{ marginRight: '5px' }} onClick={() => openViewUsers(v)} title="View Users">
-                                            <i className="ti ti-user"></i>
-                                        </button>
-                                    )}
-                                    {v.status === 'active' && (
-                                        <button className="wcm-btn btn-danger" onClick={() => { setVoucherToRevoke(v); setRevokeModalOpen(true); }} title="Revoke Code">
-                                            <i className="ti ti-ban"></i>
-                                        </button>
-                                    )}
+                                    <VoucherKebabMenu
+                                        voucher={v}
+                                        onViewUsers={openViewUsers}
+                                        onRevoke={(voucher) => { setVoucherToRevoke(voucher); setRevokeModalOpen(true); }}
+                                    />
                                 </td>
                             </tr>
                         ))}
@@ -215,26 +277,35 @@ export default function WebContentManagerPage() {
                         )}
                     </tbody>
                 </table>
-            </div>
 
-            {filteredVouchers.length > 0 && (
-                <div className="wcm-pagination-container">
-                    <div className="wcm-pagination-info">
-                        Showing {(discountPage - 1) * discountsPerPage + 1}-{Math.min(discountPage * discountsPerPage, filteredVouchers.length)} of {filteredVouchers.length} codes
+                {filteredVouchers.length > 0 && (
+                    <div className="pagination-container">
+                        <div className="pagination-info">
+                            <span>Showing {(discountPage - 1) * discountsPerPage + 1} to {Math.min(discountPage * discountsPerPage, filteredVouchers.length)} of {filteredVouchers.length} entries</span>
+                            <select
+                                className="page-size-select"
+                                value={discountsPerPage}
+                                onChange={(e) => { setDiscountsPerPage(Number(e.target.value)); setDiscountPage(1); }}
+                            >
+                                {[5, 10, 20, 50, 100].map((size) => <option key={size} value={size}>Show {size}</option>)}
+                            </select>
+                        </div>
+                        <div className="pagination-controls">
+                            <button type="button" className="pagination-btn" onClick={() => setDiscountPage(p => Math.max(1, p - 1))} disabled={discountPage === 1}>
+                                <i className="ti ti-angle-left"></i> Previous
+                            </button>
+                            {getPageNumbers(discountPage, totalDiscountPages).map((page, idx) => (
+                                page === '...'
+                                    ? <span key={`ellipsis-${idx}`} className="pagination-ellipsis">...</span>
+                                    : <button key={page} type="button" className={`pagination-btn ${discountPage === page ? 'active' : ''}`} onClick={() => setDiscountPage(page)}>{page}</button>
+                            ))}
+                            <button type="button" className="pagination-btn" onClick={() => setDiscountPage(p => Math.min(totalDiscountPages, p + 1))} disabled={discountPage >= totalDiscountPages}>
+                                Next <i className="ti ti-angle-right"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div className="wcm-pagination-controls">
-                        <button className="wcm-pagination-btn" onClick={() => setDiscountPage(p => Math.max(1, p - 1))} disabled={discountPage === 1}>
-                            <i className="ti ti-angle-left"></i> Previous
-                        </button>
-                        {Array.from({ length: totalDiscountPages }).map((_, idx) => (
-                           <button key={idx} className={`wcm-pagination-btn ${discountPage === idx + 1 ? 'wcm-active' : ''}`} onClick={() => setDiscountPage(idx + 1)}>{idx + 1}</button>
-                        ))}
-                        <button className="wcm-pagination-btn" onClick={() => setDiscountPage(p => Math.min(totalDiscountPages, p + 1))} disabled={discountPage >= totalDiscountPages}>
-                            Next <i className="ti ti-angle-right"></i>
-                        </button>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
 
         {/* Enroll Modal */}
@@ -397,8 +468,8 @@ export default function WebContentManagerPage() {
                         </button>
                     </div>
                     <div className="crispr-modal-body">
-                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                            <table className="wcm-custom-table">
+                        <div className="students-table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                            <table className="students-table">
                                 <thead>
                                     <tr>
                                         <th>Name</th>

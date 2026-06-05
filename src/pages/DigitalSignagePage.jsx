@@ -1,22 +1,46 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import {
   CONTENT_TYPES, CONTENT_TYPE_MAP, ORIENTATIONS, RESOLUTIONS, TIMEZONES,
   TRANSITIONS, SEVERITIES, WEEKDAYS, SCOPE_STYLES,
-  useAlerts, useBranches, useMedia, useSchedules, useScreens, useTimelines, useDashboard,
-  createAlert, createMedia, createSchedule, createScreen, createTimeline,
-  updateAlert, updateScreen, updateTimeline, updateSchedule,
-  deleteAlert, deleteMedia, deleteSchedule, deleteScreen, deleteTimeline,
+  useAlerts, useBranches, useSchedules, useScreens, useTimelines, useDashboard, useBrandingKits,
+  createAlert, createSchedule, createScreen, createTimeline, createBrandingKit,
+  updateAlert, updateScreen, updateTimeline, updateSchedule, updateBrandingKit,
+  deleteAlert, deleteSchedule, deleteScreen, deleteTimeline, deleteBrandingKit,
   duplicateTimeline, broadcastAlert, dismissAlert, assignTimelineToScreens,
-  ensureLoopDetail, commitLoopDraft,
+  ensureLoopDetail, commitLoopDraft, getScreenDetail, regenerateScreenPairingCode,
   fmtBytes, fmtRelTime, fmtDuration,
 } from '../lib/digitalSignageStore';
 import { listLocations } from '../lib/locationsApi';
+import { SIGNAGE_FOLDER, listBunnyMedia, uploadBunnyMedia, deleteBunnyMedia, buildBunnyFileName, validateUpload, bunnyErrorMessage } from '../lib/bunnyMediaApi';
+import { BrandingScreen } from '../features/branding';
 
 // Content types currently shippable in the loop editor. Everything else
 // renders disabled with a "Coming soon" badge.
-const ENABLED_CONTENT_TYPES = new Set(['BRANDING', 'VIDEO', 'POSTER']);
+const ENABLED_CONTENT_TYPES = new Set(['BRANDING', 'SIMPLE_TEXT', 'VIDEO', 'POSTER']);
+
+// ─── Animated Branding catalog ────────────────────────────────────────
+// Six brand colour themes and six named animation presets. The player
+// receives the resolved theme + preset id in the loop item payload so it
+// can render without re-deriving anything.
+const BRANDING_THEMES = [
+  { id: 'aurora',   name: 'Aurora',   from: '#7c3aed', to: '#ec4899', accent: '#fde68a' },
+  { id: 'midnight', name: 'Midnight', from: '#0f172a', to: '#1e40af', accent: '#60a5fa' },
+  { id: 'sunset',   name: 'Sunset',   from: '#f97316', to: '#dc2626', accent: '#fde047' },
+  { id: 'forest',   name: 'Forest',   from: '#059669', to: '#0d9488', accent: '#a7f3d0' },
+  { id: 'ocean',    name: 'Ocean',    from: '#0ea5e9', to: '#6366f1', accent: '#e0f2fe' },
+  { id: 'mono',     name: 'Mono',     from: '#1f2937', to: '#6b7280', accent: '#f8fafc' },
+];
+
+const BRANDING_ANIMATIONS = [
+  { id: 'kinetic_type',   name: 'Kinetic Type',   icon: 'ti-text',          background: 'gradient',  desc: 'Tag lines fly in word by word.' },
+  { id: 'particle_drift', name: 'Particle Drift', icon: 'ti-sparkles',      background: 'particles', desc: 'Logo centred over drifting particles.' },
+  { id: 'word_cloud',     name: 'Word Cloud',     icon: 'ti-cloud',         background: 'gradient',  desc: 'Keywords arrange into a living cloud.' },
+  { id: 'logo_reveal',    name: 'Logo Reveal',    icon: 'ti-stamp',         background: 'gradient',  desc: 'Bold logo entrance with light sweep.' },
+  { id: 'wave_pulse',     name: 'Wave Pulse',     icon: 'ti-wave-sine',     background: 'gradient',  desc: 'Wave bands pulse with each tag line.' },
+  { id: 'marquee_band',   name: 'Marquee Band',   icon: 'ti-arrows-right-left', background: 'gradient', desc: 'Scrolling tag lines + keyword chips.' },
+];
 
 // ─── Unsaved loop draft persistence ──────────────────────────────────
 // While a loop is being edited, the staged (unsaved) item list is mirrored to
@@ -35,7 +59,8 @@ const TABS = [
   { id: 'schedules', label: 'Schedules', icon: 'ti-calendar' },
   { id: 'timelines', label: 'Loops',     icon: 'ti-layers' },
   { id: 'screens',   label: 'Screens',   icon: 'ti-device-desktop' },
-  { id: 'alerts',    label: 'Emergency', icon: 'ti-alert' },
+  { id: 'branding',  label: 'Branding Kit', icon: 'ti-stamp' },
+  { id: 'alerts',    label: 'Alert',     icon: 'ti-alert' },
   { id: 'media',     label: 'Media',     icon: 'ti-photo' },
 ];
 
@@ -125,7 +150,7 @@ export default function DigitalSignagePage() {
   }
 
   return (
-    <section style={{ position: 'relative', minHeight: '100vh', paddingBottom: 40 }}>
+    <section className="data-table-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: 40 }}>
       <ToastRegion toasts={toasts} onDismiss={removeToast} />
       <PageHeader branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} />
       <TabBar tab={tab} setTab={setTab} />
@@ -135,6 +160,7 @@ export default function DigitalSignagePage() {
         {tab === 'screens'   && <ScreensTab branchFilter={branchFilter} showToast={showToast} />}
         {tab === 'timelines' && <TimelinesTab branchFilter={branchFilter} editingId={editingTimelineId} setEditingId={setEditingTimelineId} showToast={showToast} />}
         {tab === 'media'     && <MediaTab branchFilter={branchFilter} showToast={showToast} />}
+        {tab === 'branding'  && <BrandingKitsTab branchFilter={branchFilter} showToast={showToast} />}
         {tab === 'schedules' && <SchedulesTab branchFilter={branchFilter} showToast={showToast} />}
         {tab === 'alerts'    && <AlertsTab branchFilter={branchFilter} showToast={showToast} />}
       </div>
@@ -145,17 +171,13 @@ export default function DigitalSignagePage() {
 // ───────────────────────── Header + Tabs ──────────────────────────────
 function PageHeader({ branchFilter, setBranchFilter, branchFilterLabel }) {
   return (
-    <div style={{ background: '#fff', padding: 24, borderRadius: 18, border: '1px solid var(--line)', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+    <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <i className="ti ti-device-desktop" style={{ color: 'var(--brand)' }} /> Digital Signage
-        </h2>
-        <p style={{ margin: '6px 0 0', color: 'var(--muted)' }}>
-          Manage TV kiosks, build loops, broadcast emergency alerts across all branches.
-        </p>
+        <h2><i className="ti ti-device-desktop" /> Digital Signage</h2>
+        <p>Manage TV kiosks, build loops, broadcast alerts across all branches.</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>Branch</span>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>Branch</span>
         <div style={{ minWidth: 220 }}>
           <LocationPicker
             value={branchFilter || null}
@@ -195,6 +217,7 @@ function OverviewTab({ branchFilter, onJump }) {
   const timelines = useTimelines();
   const alerts    = useAlerts();
   const branches  = useBranches();
+  const schedules = useSchedules();
   const dash      = useDashboard();
 
   // Loose comparison so int <-> string location ids both match.
@@ -206,6 +229,9 @@ function OverviewTab({ branchFilter, onJump }) {
   );
 
   const activeAlerts = alerts.filter((a) => a.is_active);
+  const onlineCount  = filteredScreens.filter((s) => s.device_status === 'online').length;
+  const activeLoops  = timelines.filter((t) => t.is_active).length;
+  const activeScheds = schedules.filter((s) => s.is_active).length;
 
   // Prefer the server-authoritative dashboard.now_playing when available;
   // fall back to the locally-cached screens otherwise.
@@ -231,14 +257,14 @@ function OverviewTab({ branchFilter, onJump }) {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      {/* Active emergency banner */}
+      {/* Active alert banner */}
       {activeAlerts.length > 0 && (
         <div style={{ background: 'linear-gradient(90deg,#fee2e2,#fecaca)', border: '1px solid #fca5a5', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 38, height: 38, borderRadius: 8, background: '#dc2626', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
             <i className="ti ti-alert" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, color: '#7f1d1d', fontSize: 14 }}>{activeAlerts.length} active emergency broadcast{activeAlerts.length === 1 ? '' : 's'}</div>
+            <div style={{ fontWeight: 700, color: '#7f1d1d', fontSize: 14 }}>{activeAlerts.length} active alert broadcast{activeAlerts.length === 1 ? '' : 's'}</div>
             <div style={{ fontSize: 12, color: '#991b1b', marginTop: 2 }}>{activeAlerts.map((a) => a.title).join(' · ')}</div>
           </div>
           <button type="button" style={btnGhost} onClick={() => onJump('alerts')}>
@@ -247,59 +273,88 @@ function OverviewTab({ branchFilter, onJump }) {
         </div>
       )}
 
-      {/* Now playing */}
-      <Card title="Now playing" icon="ti-control-play">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
-          {nowPlaying.slice(0, 9).map((np) => (
-            <div key={np.screen_id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 12, background: '#fbfcfd' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 999, background: '#10b981', animation: 'pulse 1.5s infinite' }} />
-                <strong style={{ fontSize: 13 }}>{np.name}</strong>
-                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{np.screen_code}</span>
-              </div>
-              <div style={{ marginTop: 6, fontSize: 12, color: 'var(--ink)' }}>
-                <i className="ti ti-layers" style={{ color: 'var(--brand)', marginRight: 4 }} />
-                {np.loop_name || <em style={{ color: 'var(--muted)' }}>No loop</em>}
-              </div>
-              {np.current_item && (
-                <div style={{ marginTop: 4, fontSize: 11, color: 'var(--muted)' }}>
-                  <i className="ti ti-control-play" /> {np.current_item}
+      {/* Summary stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+        <StatTile icon="ti-device-desktop" label="Screens"     value={filteredScreens.length} accent="#0ea5e9" onClick={() => onJump('screens')} />
+        <StatTile icon="ti-wifi"           label="Online"      value={onlineCount} sub={`${filteredScreens.length - onlineCount} offline`} accent="#10b981" onClick={() => onJump('screens')} />
+        <StatTile icon="ti-control-play"   label="Now playing" value={nowPlaying.length} accent="#8b5cf6" onClick={() => onJump('screens')} />
+        <StatTile icon="ti-layers"         label="Active loops" value={activeLoops} accent="#f59e0b" onClick={() => onJump('timelines')} />
+        <StatTile icon="ti-calendar"       label="Schedules"   value={activeScheds} accent="#ec4899" onClick={() => onJump('schedules')} />
+      </div>
+
+      {/* Branches (left) + Now playing (right) */}
+      <Card title="Overview" icon="ti-layout-grid2">
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) 1fr', gap: 20, alignItems: 'start' }}>
+          {/* Left: branches */}
+          <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 14, background: '#fbfcfd' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <i className="ti ti-building" style={{ color: 'var(--brand)' }} />
+              <strong style={{ fontSize: 13, color: 'var(--ink)' }}>Branches</strong>
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>{branches.length}</span>
+            </div>
+            <div style={{ display: 'grid', gap: 2 }}>
+              {branches.map((b) => {
+                const ss = screens.filter((s) => sameId(s.branch_id, b.id));
+                const on = ss.filter((s) => s.device_status === 'online').length;
+                const allOnline = ss.length > 0 && on === ss.length;
+                const dot = ss.length === 0 ? '#94a3b8' : allOnline ? '#10b981' : on > 0 ? '#f59e0b' : '#dc2626';
+                return (
+                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 8px', borderRadius: 8 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 999, background: dot, flex: '0 0 auto', boxShadow: `0 0 0 3px ${dot}22` }} />
+                    <strong style={{ color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</strong>
+                    <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: 12, flex: '0 0 auto' }}>{on}/{ss.length}</span>
+                  </div>
+                );
+              })}
+              {branches.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 4px' }}>No branches yet.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: now playing */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <i className="ti ti-control-play" style={{ color: 'var(--brand)' }} />
+              <strong style={{ fontSize: 13, color: 'var(--ink)' }}>Now playing</strong>
+              {nowPlaying.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>{nowPlaying.length} live</span>}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+              {nowPlaying.slice(0, 9).map((np) => (
+                <div key={np.screen_id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 12, background: '#fff', boxShadow: '0 1px 2px rgba(15,23,42,.04)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 999, background: '#10b981', animation: 'pulse 1.5s infinite', boxShadow: '0 0 0 3px #10b98122' }} />
+                    <strong style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{np.name}</strong>
+                    <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)', flex: '0 0 auto' }}>{np.screen_code}</span>
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <i className="ti ti-layers" style={{ color: 'var(--brand)' }} />
+                    {np.loop_name || <em style={{ color: 'var(--muted)' }}>No loop</em>}
+                  </div>
+                  {np.current_item && (
+                    <div style={{ marginTop: 6, fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, paddingTop: 6, borderTop: '1px solid var(--line)' }}>
+                      <i className="ti ti-music" /> {np.current_item}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {nowPlaying.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', border: '1px dashed var(--line)', borderRadius: 10, padding: 28, textAlign: 'center', color: 'var(--muted)', background: '#fbfcfd' }}>
+                  <i className="ti ti-device-desktop" style={{ fontSize: 26, display: 'block', marginBottom: 8, color: 'var(--muted)' }} />
+                  <div style={{ fontWeight: 600, color: 'var(--ink)' }}>No screens currently playing</div>
+                  <div style={{ fontSize: 12, marginTop: 6, lineHeight: 1.6, maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
+                    {filteredScreens.length === 0
+                      ? <>Register a screen, then open its player URL (<code style={{ fontFamily: 'monospace' }}>/player/&lt;code&gt;</code>) and pair it. Playing screens show up here once they start reporting.</>
+                      : <>You have {filteredScreens.length} screen{filteredScreens.length === 1 ? '' : 's'}, but none are reporting active playback yet. Open a screen's player URL and pair it to start streaming.</>}
+                  </div>
+                  <button type="button" style={{ ...btnGhost, marginTop: 14 }} onClick={() => onJump('screens')}>
+                    <i className="ti ti-arrow-right" /> Go to Screens
+                  </button>
                 </div>
               )}
             </div>
-          ))}
-          {nowPlaying.length === 0 && (
-            <div style={{ color: 'var(--muted)', fontSize: 13 }}>No screens currently playing.</div>
-          )}
+          </div>
         </div>
-      </Card>
-
-      {/* Branch-wise screen counts */}
-      <Card title="Branch overview" icon="ti-building">
-        <table style={tableStyle}>
-          <thead>
-            <tr><th style={thStyle}>Branch</th><th style={thStyle}>Screens</th><th style={thStyle}>Online</th><th style={thStyle}>Offline</th><th style={thStyle}>Timezone</th><th style={{ ...thStyle, textAlign: 'right' }}>Status</th></tr>
-          </thead>
-          <tbody>
-            {branches.map((b) => {
-              const ss = screens.filter((s) => sameId(s.branch_id, b.id));
-              const on = ss.filter((s) => s.device_status === 'online').length;
-              const off = ss.filter((s) => s.device_status === 'offline').length;
-              return (
-                <tr key={b.id} style={{ borderTop: '1px solid var(--line)' }}>
-                  <td style={tdStyle}><strong>{b.name}</strong> <span style={{ color: 'var(--muted)', marginLeft: 6, fontSize: 11 }}>{b.code}</span></td>
-                  <td style={tdStyle}>{ss.length}</td>
-                  <td style={tdStyle}><span style={{ color: '#059669', fontWeight: 700 }}>{on}</span></td>
-                  <td style={tdStyle}><span style={{ color: '#dc2626', fontWeight: 700 }}>{off}</span></td>
-                  <td style={tdStyle}>{b.timezone}</td>
-                  <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    {b.active ? <Pill color="#059669" bg="#d1fae5">Active</Pill> : <Pill color="#475569" bg="#e2e8f0">Dormant</Pill>}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </Card>
     </div>
   );
@@ -317,6 +372,7 @@ function ScreensTab({ branchFilter, showToast }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [bulkAssign, setBulkAssign] = useState(false);
   const [selected, setSelected] = useState(new Set());
+  const [viewCode, setViewCode] = useState(null);
 
   const filtered = useMemo(() => {
     return screens
@@ -367,6 +423,7 @@ function ScreensTab({ branchFilter, showToast }) {
               <th style={thStyle}>Now playing</th>
               <th style={thStyle}>Last seen</th>
               <th style={thStyle}>Resolution</th>
+              <th style={thStyle}>Pairing code</th>
               <th style={{ ...thStyle, textAlign: 'right', width: 200 }}>Actions</th>
             </tr>
           </thead>
@@ -398,6 +455,11 @@ function ScreensTab({ branchFilter, showToast }) {
                   </td>
                   <td style={tdStyle}><span style={{ color: 'var(--muted)', fontSize: 12 }}>{fmtRelTime(s.last_seen_at)}</span></td>
                   <td style={tdStyle}><span style={{ fontSize: 12, color: 'var(--muted)' }}>{s.resolution}</span></td>
+                  <td style={tdStyle}>
+                    <button type="button" style={btnGhost} onClick={() => setViewCode(s)}>
+                      View
+                    </button>
+                  </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: 6 }}>
                       <a href={`/player/${s.screen_code}`} target="_blank" rel="noreferrer" style={btnGhost} title="Open player URL">
@@ -411,7 +473,7 @@ function ScreensTab({ branchFilter, showToast }) {
               );
             })}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No screens match your filters.</td></tr>
+              <tr><td colSpan={9} style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No screens match your filters.</td></tr>
             )}
           </tbody>
         </table>
@@ -462,7 +524,99 @@ function ScreensTab({ branchFilter, showToast }) {
           }}
         />
       )}
+      {viewCode && (
+        <PairingCodeModal screen={viewCode} onClose={() => setViewCode(null)} showToast={showToast} />
+      )}
     </div>
+  );
+}
+
+// Shows a screen's pairing code (fetched fresh from the API, since the list
+// endpoint omits it). Offers copy + regenerate. Paired screens have no active
+// code until regenerated.
+function PairingCodeModal({ screen, onClose, showToast }) {
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const full = await getScreenDetail(screen.id);
+        if (!cancelled) { setCode(full.pairing_code || null); setExpiresAt(full.pairing_expires_at || null); }
+      } catch (e) {
+        if (!cancelled) showToast('error', e.code || 'Could not load code', e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [screen.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function regenerate() {
+    setBusy(true);
+    try {
+      const res = await regenerateScreenPairingCode(screen.id);
+      setCode(res.pairing_code); setExpiresAt(res.pairing_expires_at);
+      showToast('success', 'Pairing code regenerated', screen.name);
+    } catch (e) {
+      showToast('error', e.code || 'Regenerate failed', e.message);
+    } finally { setBusy(false); }
+  }
+
+  function copyCode() {
+    if (!code) return;
+    navigator.clipboard?.writeText(code).then(
+      () => showToast('success', 'Copied', 'Pairing code copied to clipboard'),
+      () => {},
+    );
+  }
+
+  return (
+    <Modal title="Pairing code" onClose={onClose} maxWidth={420} icon="ti-key">
+      <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+          Screen: <strong style={{ color: 'var(--ink)' }}>{screen.name}</strong>
+          <span style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, marginLeft: 8 }}>{screen.screen_code}</span>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)' }}>
+            <i className="ti ti-reload" style={{ marginRight: 6 }} /> Loading…
+          </div>
+        ) : code ? (
+          <>
+            <div style={{ background: '#0f172a', borderRadius: 12, padding: '22px 16px', textAlign: 'center' }}>
+              <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 8 }}>Enter on the kiosk</div>
+              <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '.32em', color: '#fff', fontFamily: 'monospace' }}>{code}</div>
+              {expiresAt && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 10 }}>Expires {fmtRelTime(expiresAt)}</div>}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+              Open <code style={{ fontFamily: 'monospace' }}>/player/{screen.screen_code}</code> on the kiosk and enter this code to pair.
+            </div>
+            <ModalFooter style={{ margin: '10px -24px -24px' }}>
+              <button type="button" className="btn btn-default" onClick={copyCode}><i className="ti ti-clipboard" /> Copy</button>
+              <button type="button" className="btn btn-success" disabled={busy} onClick={regenerate}><i className="ti ti-reload" /> {busy ? 'Regenerating…' : 'Regenerate'}</button>
+            </ModalFooter>
+          </>
+        ) : (
+          <>
+            <div style={{ background: '#f8fafc', border: '1px dashed var(--line)', borderRadius: 12, padding: 22, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+              <i className="ti ti-check" style={{ fontSize: 22, display: 'block', marginBottom: 8, color: '#059669' }} />
+              This screen is already paired — no active pairing code.
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+              Regenerating issues a new code and <strong>unpairs</strong> the current player.
+            </div>
+            <ModalFooter style={{ margin: '10px -24px -24px' }}>
+              <button type="button" className="btn btn-success" disabled={busy} onClick={regenerate}><i className="ti ti-reload" /> {busy ? 'Regenerating…' : 'Regenerate code'}</button>
+            </ModalFooter>
+          </>
+        )}
+      </div>
+    </Modal>
   );
 }
 
@@ -502,7 +656,7 @@ function ScreenModal({ screen, onClose, onSave }) {
   }
 
   return (
-    <Modal title={screen ? 'Edit screen' : 'Register screen'} onClose={onClose} maxWidth={560}>
+    <Modal title={screen ? 'Edit screen' : 'Register screen'} onClose={onClose} maxWidth={560} icon="ti-device-desktop">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <Field label="Display name"><input autoFocus value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="e.g. Reception TV" /></Field>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -550,17 +704,17 @@ function ScreenModal({ screen, onClose, onSave }) {
 function BulkAssignModal({ timelines, onClose, onAssign }) {
   const [id, setId] = useState('');
   return (
-    <Modal title="Assign loop" onClose={onClose} maxWidth={460}>
+    <Modal title="Assign loop" onClose={onClose} maxWidth={460} icon="ti-layers">
       <Field label="Pick a loop">
         <select value={id} onChange={(e) => setId(e.target.value)} style={selStyle}>
           <option value="">— Select —</option>
           {timelines.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </Field>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-        <button type="button" onClick={onClose} style={btnGhost}>Cancel</button>
-        <button type="button" onClick={() => id && onAssign(id)} disabled={!id} style={{ ...btnPrimary, opacity: id ? 1 : 0.5 }}>Assign</button>
-      </div>
+      <ModalFooter>
+        <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
+        <button type="button" className="btn btn-success" onClick={() => id && onAssign(id)} disabled={!id} style={!id ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}>Assign</button>
+      </ModalFooter>
     </Modal>
   );
 }
@@ -614,11 +768,12 @@ function TimelinesTab({ branchFilter, editingId, setEditingId, showToast }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <strong style={{ fontSize: 15, color: 'var(--ink)' }}>{t.name}</strong>
-                    {t.is_active ? <Pill color="#059669" bg="#d1fae5">Active</Pill> : <Pill color="#475569" bg="#e2e8f0">Draft</Pill>}
+                    {t.is_active ? <Pill color="#059669" bg="#d1fae5">Published</Pill> : <Pill color="#475569" bg="#e2e8f0">Draft</Pill>}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
                     {branch?.name || 'All branches'} · {t.items.length} item{t.items.length === 1 ? '' : 's'} · {fmtDuration(totalSecs)}
                   </div>
+                  {t.description && <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{t.description}</p>}
                 </div>
                 <KebabMenu items={[
                   { label: 'Open editor', icon: 'ti-pencil', onClick: () => setEditingId(t.id) },
@@ -626,16 +781,15 @@ function TimelinesTab({ branchFilter, editingId, setEditingId, showToast }) {
                     try { await ensureLoopDetail(t.id); setPreviewLoopId(t.id); }
                     catch (e) { showToast('error', e.code || 'Preview failed', e.message); }
                   } },
-                  { label: 'Duplicate', icon: 'ti-copy', onClick: async () => {
+                  { label: 'Duplicate', icon: 'ti-files', onClick: async () => {
                     try { const c = await duplicateTimeline(t.id); showToast('success', 'Loop duplicated', c?.name); }
                     catch (e) { showToast('error', e.code || 'Duplicate failed', e.message); }
                   } },
-                  { label: t.is_active ? 'Pause' : 'Activate', icon: t.is_active ? 'ti-control-pause' : 'ti-control-play',
+                  { label: t.is_active ? 'Unpublish' : 'Publish', icon: t.is_active ? 'ti-control-pause' : 'ti-control-play',
                     onClick: () => updateTimeline(t.id, { is_active: !t.is_active }) },
                   { label: 'Delete', icon: 'ti-trash', danger: true, onClick: () => setConfirmDelete(t) },
                 ]} />
               </div>
-              {t.description && <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{t.description}</p>}
             </div>
           );
         })}
@@ -700,7 +854,7 @@ function TimelineModal({ timeline, onClose, onSave }) {
     onSave({ name, description, branch_id: branchId || null, is_active: active, loop_enabled: loop, emergency_override_enabled: emergency });
   }
   return (
-    <Modal title={timeline ? 'Edit loop' : 'New loop'} onClose={onClose} maxWidth={520}>
+    <Modal title={timeline ? 'Edit loop' : 'New loop'} onClose={onClose} maxWidth={520} icon="ti-layers">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <Field label="Name"><input autoFocus value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="e.g. Morning Branding Loop" /></Field>
         <Field label="Description (optional)"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} /></Field>
@@ -713,9 +867,9 @@ function TimelineModal({ timeline, onClose, onSave }) {
           />
         </Field>
         <div style={{ display: 'grid', gap: 8 }}>
-          <Toggle label="Active" hint="Eligible to play on assigned screens" checked={active} onChange={setActive} />
+          <Toggle label="Published" hint="Eligible to play on assigned screens" checked={active} onChange={setActive} />
           <Toggle label="Auto-replay" hint="Restart from item 1 when reaching end" checked={loop} onChange={setLoop} />
-          <Toggle label="Allow emergency override" hint="Pause this loop when an emergency broadcast fires" checked={emergency} onChange={setEmergency} />
+          <Toggle label="Allow alert override" hint="Pause this loop when an alert broadcast fires" checked={emergency} onChange={setEmergency} />
         </div>
         <FormActions onCancel={onClose} submitLabel={timeline ? 'Save' : 'Create loop'} />
       </form>
@@ -725,7 +879,6 @@ function TimelineModal({ timeline, onClose, onSave }) {
 
 // ───────────────────────── Timeline Editor (visual) ─────────────────
 function TimelineEditor({ timeline, onBack, showToast }) {
-  const media = useMedia();
   const [addOpen, setAddOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [preview, setPreview] = useState({ playing: false, idx: 0, elapsed: 0 });
@@ -781,6 +934,7 @@ function TimelineEditor({ timeline, onBack, showToast }) {
       content_reference_id: payload.content_reference_id ?? null,
       overlay_enabled: payload.overlay_enabled !== false,
       background_audio_enabled: !!payload.background_audio_enabled,
+      payload: payload.payload ?? (ctId === 'SIMPLE_TEXT' ? { body: '' } : null),
     };
   }
   function addDraftItem(payload) { setDraft((d) => [...d, makeNewItem(payload)]); setDirty(true); }
@@ -862,7 +1016,7 @@ function TimelineEditor({ timeline, onBack, showToast }) {
         <button type="button" style={btnGhost} onClick={handleBack}><i className="ti ti-arrow-left" /> Back</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <strong style={{ fontSize: 16 }}>{timeline.name}</strong>
-          {timeline.is_active ? <Pill color="#059669" bg="#d1fae5">Active</Pill> : <Pill color="#475569" bg="#e2e8f0">Draft</Pill>}
+          {timeline.is_active ? <Pill color="#059669" bg="#d1fae5">Published</Pill> : <Pill color="#475569" bg="#e2e8f0">Draft</Pill>}
           {dirty && <Pill color="#b45309" bg="#fef3c7">Unsaved</Pill>}
         </div>
         <div style={{ color: 'var(--muted)', fontSize: 13 }}>{items.length} items · {fmtDuration(totalSecs)}</div>
@@ -871,15 +1025,19 @@ function TimelineEditor({ timeline, onBack, showToast }) {
             onClick={() => setPreviewModalOpen(true)}>
             <i className="ti ti-control-play" /> Preview In Action
           </button>
-          <span style={{ width: 1, alignSelf: 'stretch', background: 'var(--line)', margin: '0 2px' }} />
-          <button type="button" style={{ ...btnGhost, opacity: dirty && !saving ? 1 : 0.5, cursor: dirty && !saving ? 'pointer' : 'not-allowed' }}
-            disabled={!dirty || saving} onClick={discardChanges}>
-            <i className="ti ti-back-left" /> Discard
-          </button>
-          <button type="button" style={{ ...btnPrimary, opacity: dirty && !saving ? 1 : 0.5, cursor: dirty && !saving ? 'pointer' : 'not-allowed' }}
-            disabled={!dirty || saving} onClick={saveChanges}>
-            <i className="ti ti-check" /> {saving ? 'Saving…' : 'Save changes'}
-          </button>
+          {dirty && (
+            <>
+              <span style={{ width: 1, alignSelf: 'stretch', background: 'var(--line)', margin: '0 2px' }} />
+              <button type="button" style={{ ...btnGhost, opacity: saving ? 0.5 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+                disabled={saving} onClick={discardChanges}>
+                <i className="ti ti-back-left" /> Discard
+              </button>
+              <button type="button" style={{ ...btnPrimary, opacity: saving ? 0.5 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+                disabled={saving} onClick={saveChanges}>
+                <i className="ti ti-check" /> {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -925,13 +1083,13 @@ function TimelineEditor({ timeline, onBack, showToast }) {
       </Card>
 
       {addOpen && (
-        <ItemModal media={media} onClose={() => setAddOpen(false)} onSave={(payload) => {
+        <ItemModal onClose={() => setAddOpen(false)} onSave={(payload) => {
           addDraftItem(payload);
           setAddOpen(false);
         }} />
       )}
       {editingItem && (
-        <ItemModal item={editingItem} media={media} onClose={() => setEditingItem(null)} onSave={(payload) => {
+        <ItemModal item={editingItem} onClose={() => setEditingItem(null)} onSave={(payload) => {
           updateDraftItem(editingItem.id, payload);
           setEditingItem(null);
         }} />
@@ -966,6 +1124,59 @@ function fmtClock(totalSeconds) {
 // opened from the loop editor or from a loop card in the list.
 function PreviewModal({ timeline, items, onClose }) {
   const [preview, setPreview] = useState({ playing: true, idx: 0, elapsed: 0 });
+  const seekerRef = useRef(null);
+  const seekStateRef = useRef({ dragging: false, wasPlaying: false });
+
+  // Convert an absolute loop time (seconds) into { idx, elapsed } inside an
+  // item and apply it. Mirrors the TimelineTrack scrub helper.
+  function seekTo(targetSecs) {
+    const t = Math.max(0, Math.min(targetSecs, items.reduce((a, it) => a + (it.duration_seconds || 0), 0)));
+    let acc = 0;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i].duration_seconds || 0;
+      if (t < acc + d || i === items.length - 1) {
+        setPreview((p) => ({ ...p, idx: i, elapsed: Math.max(0, Math.min(d, Math.round(t - acc))) }));
+        return;
+      }
+      acc += d;
+    }
+  }
+
+  function pointerSecs(e) {
+    const el = seekerRef.current;
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    const x = (e.touches?.[0]?.clientX ?? e.clientX) - r.left;
+    const ratio = Math.max(0, Math.min(1, x / r.width));
+    const total = items.reduce((a, it) => a + (it.duration_seconds || 0), 0);
+    return ratio * total;
+  }
+
+  function onSeekerDown(e) {
+    if (items.length === 0) return;
+    e.preventDefault();
+    seekStateRef.current = { dragging: true, wasPlaying: preview.playing };
+    setPreview((p) => ({ ...p, playing: false }));
+    seekTo(pointerSecs(e));
+    window.addEventListener('mousemove', onSeekerMove);
+    window.addEventListener('mouseup',   onSeekerUp);
+    window.addEventListener('touchmove', onSeekerMove, { passive: false });
+    window.addEventListener('touchend',  onSeekerUp);
+  }
+  function onSeekerMove(e) {
+    if (!seekStateRef.current.dragging) return;
+    e.preventDefault?.();
+    seekTo(pointerSecs(e));
+  }
+  function onSeekerUp() {
+    const wasPlaying = seekStateRef.current.wasPlaying;
+    seekStateRef.current.dragging = false;
+    window.removeEventListener('mousemove', onSeekerMove);
+    window.removeEventListener('mouseup',   onSeekerUp);
+    window.removeEventListener('touchmove', onSeekerMove);
+    window.removeEventListener('touchend',  onSeekerUp);
+    if (wasPlaying) setPreview((p) => ({ ...p, playing: true }));
+  }
 
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
@@ -1029,15 +1240,45 @@ function PreviewModal({ timeline, items, onClose }) {
           <PreviewSurface items={items} preview={preview} />
           {/* Running time (elapsed / total), bottom-right */}
           {totalSecs > 0 && (
-            <div style={{ position: 'absolute', bottom: 14, right: 16, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 999, background: 'rgba(15,23,42,0.75)', border: '1px solid #334155', color: '#e2e8f0', fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ position: 'absolute', bottom: 30, right: 16, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 999, background: 'rgba(15,23,42,0.75)', border: '1px solid #334155', color: '#e2e8f0', fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               <i className="ti ti-clock" style={{ color: '#67e8f9', fontSize: 13 }} />
               {fmtClock(elapsedSecs)} <span style={{ color: '#64748b' }}>/ {fmtClock(totalSecs)}</span>
             </div>
           )}
-          {/* Progress bar — spans the whole loop's total duration */}
+          {/* Seeker — click anywhere or drag the handle to scrub through the loop. */}
           {totalSecs > 0 && (
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, background: 'rgba(255,255,255,0.1)' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (elapsedSecs / totalSecs) * 100)}%`, background: '#0ea5e9', transition: 'width 1s linear' }} />
+            <div
+              ref={seekerRef}
+              onMouseDown={onSeekerDown}
+              onTouchStart={onSeekerDown}
+              role="slider"
+              aria-label="Seek through the loop"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(totalSecs)}
+              aria-valuenow={Math.round(elapsedSecs)}
+              style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 22, padding: '8px 0 0', cursor: 'pointer', touchAction: 'none' }}
+            >
+              {/* Track */}
+              <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.12)' }}>
+                {/* Per-item segment markers */}
+                {items.map((it, i) => {
+                  const start = items.slice(0, i).reduce((a, x) => a + (x.duration_seconds || 0), 0);
+                  const leftPct = (start / totalSecs) * 100;
+                  if (i === 0) return null;
+                  return <span key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: `${leftPct}%`, width: 1, background: 'rgba(255,255,255,0.25)' }} />;
+                })}
+                {/* Filled portion */}
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${Math.min(100, (elapsedSecs / totalSecs) * 100)}%`, background: '#0ea5e9', transition: seekStateRef.current.dragging ? 'none' : 'width 1s linear' }} />
+                {/* Draggable handle */}
+                <div
+                  style={{
+                    position: 'absolute', top: '50%', left: `${Math.min(100, (elapsedSecs / totalSecs) * 100)}%`,
+                    width: 14, height: 14, borderRadius: 999, background: '#fff', border: '2px solid #0ea5e9',
+                    transform: 'translate(-50%, -50%)', boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                    transition: seekStateRef.current.dragging ? 'none' : 'left 1s linear',
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -1212,7 +1453,7 @@ function TimelineTrack({
                       {hoverIdx === idx && w >= 64 && (
                         <div style={{ position: 'absolute', top: 6, right: 4, display: 'inline-flex', gap: 3 }}>
                           <button type="button" style={tlClipBtn} onClick={(e) => { e.stopPropagation(); onEditItem(it); }}><i className="ti ti-pencil" /></button>
-                          <button type="button" style={tlClipBtn} onClick={(e) => { e.stopPropagation(); onDuplicateItem(it.id); }}><i className="ti ti-copy" /></button>
+                          <button type="button" style={tlClipBtn} onClick={(e) => { e.stopPropagation(); onDuplicateItem(it.id); }}><i className="ti ti-files" /></button>
                           <button type="button" style={{ ...tlClipBtn, color: '#fca5a5' }} onClick={(e) => { e.stopPropagation(); onDeleteItem(it.id); }}><i className="ti ti-trash" /></button>
                         </div>
                       )}
@@ -1272,17 +1513,45 @@ function PreviewSurface({ items, preview }) {
     return <div style={{ color: '#94a3b8', fontSize: 14 }}>No content to preview.</div>;
   }
   const ct = CONTENT_TYPE_MAP[cur.content_type];
+  const body = cur.payload?.body;
+  const mediaUrl = cur.payload?.media_url;
+  const isVideoUrl = /\.(mp4|webm|mov|m4v|mkv)(\?|$)/i.test(mediaUrl || '');
+  const isBranding = cur.content_type === 'BRANDING';
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', textAlign: 'center', padding: 20, background: `radial-gradient(circle at 30% 30%, ${ct.color}40, transparent 60%), radial-gradient(circle at 70% 80%, ${ct.color}30, transparent 60%)` }}>
-      <i className={`ti ${ct.icon}`} style={{ fontSize: 48, color: ct.color, marginBottom: 14, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.5))' }} />
-      <div style={{ fontSize: 11, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>{ct.label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800 }}>{cur.title}</div>
-      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>Item {preview.idx + 1} of {items.length} · {cur.transition_type} · {fmtDuration(cur.duration_seconds)}</div>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', textAlign: 'center', padding: 20, overflow: 'hidden', background: isBranding ? 'transparent' : `radial-gradient(circle at 30% 30%, ${ct.color}40, transparent 60%), radial-gradient(circle at 70% 80%, ${ct.color}30, transparent 60%)` }}>
+      {isBranding ? (
+        <BrandingPreview item={cur} />
+      ) : cur.content_type === 'SIMPLE_TEXT' ? (
+        <>
+          <div style={{ fontSize: 32, fontWeight: 800, marginBottom: body ? 14 : 0 }}>{cur.title}</div>
+          {body && <div style={{ fontSize: 18, color: '#e2e8f0', maxWidth: '80%', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{body}</div>}
+        </>
+      ) : mediaUrl ? (
+        isVideoUrl
+          ? <video src={mediaUrl} autoPlay muted loop style={{ maxWidth: '92%', maxHeight: '78%', borderRadius: 8 }} />
+          : <img src={mediaUrl} alt={cur.title} style={{ maxWidth: '92%', maxHeight: '78%', objectFit: 'contain', borderRadius: 8 }} />
+      ) : (
+        <>
+          <i className={`ti ${ct.icon}`} style={{ fontSize: 48, color: ct.color, marginBottom: 14, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.5))' }} />
+          <div style={{ fontSize: 11, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>{ct.label}</div>
+          <div style={{ fontSize: 28, fontWeight: 800 }}>{cur.title}</div>
+        </>
+      )}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 8, fontSize: 12, color: '#94a3b8', textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>Item {preview.idx + 1} of {items.length} · {cur.transition_type} · {fmtDuration(cur.duration_seconds)}</div>
     </div>
   );
 }
 
-function ItemModal({ item, media, onClose, onSave }) {
+// ─── Animated Branding renderer ──────────────────────────────────────
+// Delegates to the modular scene engine in `src/features/branding/`.
+// The loop item's payload (kit snapshot + theme + optional starting-scene
+// hint) is read inside <BrandingScreen/> via `themeFromPayload` /
+// `brandFromPayload` / `startSceneFromPayload`.
+function BrandingPreview({ item }) {
+  return <BrandingScreen item={item} />;
+}
+
+function ItemModal({ item, onClose, onSave }) {
   const [contentType, setContentType] = useState(item?.content_type || 'BRANDING');
   const [title, setTitle] = useState(item?.title || CONTENT_TYPE_MAP[contentType]?.label || '');
   const [duration, setDuration] = useState(item?.duration_seconds ?? 15);
@@ -1290,22 +1559,77 @@ function ItemModal({ item, media, onClose, onSave }) {
   const [mediaId, setMediaId] = useState(item?.content_reference_id || '');
   const [overlay, setOverlay] = useState(item?.overlay_enabled !== false);
   const [audio, setAudio] = useState(!!item?.background_audio_enabled);
+  const [body, setBody] = useState(item?.payload?.body || '');
+  const [brandingKitId, setBrandingKitId] = useState(item?.payload?.branding_kit_id || '');
+  const [brandingThemeId, setBrandingThemeId] = useState(item?.payload?.branding_theme?.id || BRANDING_THEMES[0].id);
+  const [brandingAnimationId, setBrandingAnimationId] = useState(item?.payload?.branding_animation?.id || item?.payload?.animation_preset || BRANDING_ANIMATIONS[0].id);
+
+  // Branding kits feed the "Animated Branding" content type.
+  const brandingKits = useBrandingKits();
+  const activeKits = useMemo(() => brandingKits.filter((k) => k.is_active), [brandingKits]);
+
+  // Linked media is sourced from the Bunny.net /digital-signage folder.
+  const [bunnyMedia, setBunnyMedia] = useState([]);
+  const [mediaLoading, setMediaLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setMediaLoading(true);
+    listBunnyMedia(SIGNAGE_FOLDER)
+      .then((rows) => { if (!cancelled) setBunnyMedia(rows); })
+      .catch(() => { if (!cancelled) setBunnyMedia([]); })
+      .finally(() => { if (!cancelled) setMediaLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => { if (!item) setTitle(CONTENT_TYPE_MAP[contentType]?.label || ''); }, [contentType, item]);
 
+  const isText = contentType === 'SIMPLE_TEXT';
+  const isBranding = contentType === 'BRANDING';
   const mediaPickable = ['VIDEO','POSTER','BRANDING','TESTIMONIALS','TOPPERS'].includes(contentType);
 
   function submit(e) {
     e.preventDefault();
+    let payload;
+    if (isText) {
+      payload = { ...(item?.payload || {}), body };
+    } else if (mediaPickable) {
+      // Carry the chosen Bunny file's CDN url so the player can render it.
+      const sel = bunnyMedia.find((m) => m.name === mediaId);
+      const base = { ...(item?.payload || {}) };
+      if (sel?.url) base.media_url = sel.url; else delete base.media_url;
+      // Animated Branding pulls assets from a branding kit. Store the id plus a
+      // denormalised snapshot so the player renders without a second fetch.
+      if (isBranding) {
+        const kit = activeKits.find((k) => String(k.id) === String(brandingKitId));
+        if (kit) {
+          base.branding_kit_id = kit.id;
+          base.branding = { display_name: kit.display_name, logo_url: kit.logo_url, taglines: kit.taglines, keywords: kit.keywords };
+        } else {
+          delete base.branding_kit_id;
+          delete base.branding;
+        }
+        const theme = BRANDING_THEMES.find((t) => t.id === brandingThemeId) || BRANDING_THEMES[0];
+        const anim = BRANDING_ANIMATIONS.find((a) => a.id === brandingAnimationId) || BRANDING_ANIMATIONS[0];
+        base.branding_theme = { id: theme.id, name: theme.name, from: theme.from, to: theme.to, accent: theme.accent };
+        base.branding_animation = { id: anim.id, name: anim.name };
+        // Stay compatible with the player payload contract (§4 BRANDING).
+        base.background_style = anim.background;
+        base.animation_preset = anim.id;
+      }
+      payload = Object.keys(base).length ? base : null;
+    } else {
+      payload = item?.payload ?? null;
+    }
     onSave({
       content_type: contentType, title: title.trim() || CONTENT_TYPE_MAP[contentType]?.label,
       duration_seconds: Math.max(1, Number(duration) || 15), transition_type: transition,
-      content_reference_id: mediaId || null, overlay_enabled: overlay, background_audio_enabled: audio,
+      content_reference_id: isText ? null : (mediaId || null), overlay_enabled: overlay, background_audio_enabled: audio,
+      payload,
     });
   }
 
   return (
-    <Modal title={item ? 'Edit loop item' : 'Add loop item'} onClose={onClose} maxWidth={600}>
+    <Modal title={item ? 'Edit loop item' : 'Add loop item'} onClose={onClose} maxWidth={600} icon="ti-plus">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <Field label="Content type">
           <select value={contentType} onChange={(e) => setContentType(e.target.value)} style={selStyle}>
@@ -1317,6 +1641,14 @@ function ItemModal({ item, media, onClose, onSave }) {
         </Field>
         <Field label="Title"><input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} /></Field>
 
+        {isText && (
+          <Field label="Content">
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5}
+              style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }}
+              placeholder="Text to display on screen…" />
+          </Field>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Field label="Duration (sec)"><input type="number" min={1} value={duration} onChange={(e) => setDuration(e.target.value)} style={inputStyle} /></Field>
           <Field label="Transition">
@@ -1326,11 +1658,66 @@ function ItemModal({ item, media, onClose, onSave }) {
           </Field>
         </div>
 
+        {isBranding && (
+          <>
+            <Field label="Branding kit" hint={activeKits.length ? 'Pulls logo, name, taglines and keywords from the selected kit.' : 'No active kits yet — create one in the Branding Kit tab.'}>
+              <select value={brandingKitId} onChange={(e) => setBrandingKitId(e.target.value)} style={selStyle}>
+                <option value="">— None —</option>
+                {brandingKitId && !activeKits.some((k) => String(k.id) === String(brandingKitId)) && (
+                  <option value={brandingKitId}>{item?.payload?.branding?.display_name || 'Current kit'}</option>
+                )}
+                {activeKits.map((k) => <option key={k.id} value={k.id}>{k.display_name || 'Untitled kit'}</option>)}
+              </select>
+            </Field>
+
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 8 }}>Colour theme</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+                {BRANDING_THEMES.map((t) => {
+                  const sel = brandingThemeId === t.id;
+                  return (
+                    <button key={t.id} type="button" onClick={() => setBrandingThemeId(t.id)} title={t.name}
+                      style={{ display: 'grid', gap: 6, padding: 6, borderRadius: 10, border: `2px solid ${sel ? 'var(--brand)' : 'var(--line)'}`, background: '#fff', cursor: 'pointer' }}>
+                      <span style={{ display: 'block', height: 36, borderRadius: 6, background: `linear-gradient(135deg, ${t.from}, ${t.to})`, boxShadow: sel ? `0 0 0 2px ${t.accent} inset` : 'none' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, textAlign: 'center', color: sel ? 'var(--brand)' : 'var(--ink)' }}>{t.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 8 }}>Animation style</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {BRANDING_ANIMATIONS.map((a) => {
+                  const sel = brandingAnimationId === a.id;
+                  return (
+                    <button key={a.id} type="button" onClick={() => setBrandingAnimationId(a.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '10px 12px', borderRadius: 10, border: `1px solid ${sel ? 'var(--brand)' : 'var(--line)'}`, background: sel ? '#eaf3f5' : '#fff', cursor: 'pointer' }}>
+                      <span style={{ width: 32, height: 32, borderRadius: 8, background: sel ? 'var(--brand)' : '#f1f5f9', color: sel ? '#fff' : 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flex: '0 0 auto' }}>
+                        <i className={`ti ${a.icon}`} />
+                      </span>
+                      <span style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{a.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.desc}</div>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
         {mediaPickable && (
-          <Field label="Linked media (optional)">
-            <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} style={selStyle}>
-              <option value="">— None —</option>
-              {media.map((m) => <option key={m.id} value={m.id}>{m.thumb} {m.name}</option>)}
+          <Field label="Linked media (optional)" hint={`From Bunny.net / ${SIGNAGE_FOLDER}`}>
+            <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} style={selStyle} disabled={mediaLoading}>
+              <option value="">{mediaLoading ? 'Loading media…' : '— None —'}</option>
+              {/* keep the current value selectable even if it's no longer in the folder */}
+              {!mediaLoading && mediaId && !bunnyMedia.some((m) => m.name === mediaId) && (
+                <option value={mediaId}>{mediaId}</option>
+              )}
+              {bunnyMedia.map((m) => <option key={m.id} value={m.name}>{m.displayName} · {m.type}</option>)}
             </select>
           </Field>
         )}
@@ -1349,98 +1736,117 @@ function ItemModal({ item, media, onClose, onSave }) {
 function BulkDurationsModal({ onClose, onApply }) {
   const [secs, setSecs] = useState(15);
   return (
-    <Modal title="Set Fixed Duration" onClose={onClose} maxWidth={400}>
+    <Modal title="Set Fixed Duration" onClose={onClose} maxWidth={400} icon="ti-time">
       <p style={{ margin: '0 0 14px', color: 'var(--muted)', fontSize: 13 }}>Apply the same duration to every item in this loop.</p>
       <Field label="Duration (sec)"><input type="number" min={1} value={secs} onChange={(e) => setSecs(Number(e.target.value))} style={inputStyle} /></Field>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-        <button type="button" onClick={onClose} style={btnGhost}>Cancel</button>
-        <button type="button" onClick={() => onApply(Math.max(1, secs))} style={btnPrimary}>Apply</button>
-      </div>
+      <ModalFooter>
+        <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
+        <button type="button" className="btn btn-success" onClick={() => onApply(Math.max(1, secs))}>Apply</button>
+      </ModalFooter>
     </Modal>
   );
 }
 
 // ───────────────────────── Media library ──────────────────────────────
-function MediaTab({ branchFilter, showToast }) {
-  const media    = useMedia();
-  const branches = useBranches();
+function MediaTab({ branchFilter, showToast }) { // eslint-disable-line no-unused-vars
+  const [media, setMedia] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [typeFilter, setTypeFilter] = useState('');
   const [search, setSearch] = useState('');
   const [uploadOpen, setUploadOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  const reload = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const rows = await listBunnyMedia(SIGNAGE_FOLDER);
+      setMedia(rows);
+    } catch (e) {
+      setError(bunnyErrorMessage(e, 'Failed to load media'));
+      setMedia([]);
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { reload(); }, [reload]);
+
   const filtered = useMemo(() => media
-    .filter((m) => !branchFilter || m.branch_id == null || String(m.branch_id) === String(branchFilter))
     .filter((m) => !typeFilter || m.type === typeFilter)
-    .filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.tags.join(',').toLowerCase().includes(search.toLowerCase())),
-  [media, branchFilter, typeFilter, search]);
+    .filter((m) => !search || m.displayName.toLowerCase().includes(search.toLowerCase()) || m.name.toLowerCase().includes(search.toLowerCase())),
+  [media, typeFilter, search]);
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <Toolbar>
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by name or tag…" />
+        <SearchBox value={search} onChange={setSearch} placeholder="Search by file name…" />
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selStyle}>
           <option value="">All types</option>
           <option value="image">Images</option>
           <option value="video">Videos</option>
+          <option value="audio">Audio</option>
           <option value="lottie">Lottie</option>
         </select>
-        <button type="button" style={{ ...btnPrimary, marginLeft: 'auto' }} onClick={() => setUploadOpen(true)}><i className="ti ti-upload" /> Upload</button>
+        <span style={{ fontSize: 12, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <i className="ti ti-folder" /> Bunny.net · /{SIGNAGE_FOLDER}
+        </span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button type="button" style={btnGhost} onClick={reload} disabled={loading}><i className="ti ti-reload" /> Refresh</button>
+          <button type="button" style={btnPrimary} onClick={() => setUploadOpen(true)}><i className="ti ti-upload" /> Upload</button>
+        </div>
       </Toolbar>
 
+      {error && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', borderRadius: 10, padding: '10px 14px', fontSize: 13 }}>
+          <i className="ti ti-alert" style={{ marginRight: 6 }} />{error}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-        {filtered.map((m) => {
-          const branch = branches.find((b) => b.id === m.branch_id);
-          return (
-            <div key={m.id} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ aspectRatio: '4 / 3', background: 'linear-gradient(135deg,#f1f5f9,#e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 54 }}>
-                {m.thumb}
+        {filtered.map((m) => (
+          <div key={m.id} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ aspectRatio: '4 / 3', background: 'linear-gradient(135deg,#f1f5f9,#e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {m.type === 'image' && m.url
+                ? <img src={m.url} alt={m.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : m.type === 'video' && m.url
+                  ? <video src={m.url} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <i className={`ti ${MEDIA_TYPE_ICON[m.type] || 'ti-file'}`} style={{ fontSize: 44, color: 'var(--muted)' }} />}
+            </div>
+            <div style={{ padding: 12, display: 'grid', gap: 6 }}>
+              <strong style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={m.displayName}>{m.displayName}</strong>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                <span style={{ textTransform: 'uppercase', fontWeight: 700 }}>{m.type}</span> · {fmtBytes(m.size)}
+                {m.updated_at && <> · {fmtRelTime(m.updated_at)}</>}
               </div>
-              <div style={{ padding: 12, display: 'grid', gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <strong style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</strong>
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                  <span style={{ textTransform: 'uppercase', fontWeight: 700 }}>{m.type}</span> · {fmtBytes(m.size)} · used {m.uses}×
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{branch?.name || 'All branches'}</div>
-                {m.tags.length > 0 && (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {m.tags.map((t) => <span key={t} style={{ fontSize: 10, padding: '2px 6px', background: '#eaf3f5', color: 'var(--brand)', borderRadius: 999 }}>{t}</span>)}
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                  <button type="button" style={miniBtn} onClick={() => setConfirmDelete(m)}><i className="ti ti-trash" style={{ color: '#dc2626' }} /></button>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                {m.url
+                  ? <a href={m.url} target="_blank" rel="noreferrer" style={{ ...miniBtn, textDecoration: 'none' }}><i className="ti ti-external-link" /> Open</a>
+                  : <span />}
+                <button type="button" style={miniBtn} onClick={() => setConfirmDelete(m)}><i className="ti ti-trash" style={{ color: '#dc2626' }} /></button>
               </div>
             </div>
-          );
-        })}
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No media matches your filters.</div>
+          </div>
+        ))}
+        {!loading && filtered.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
+            {media.length === 0 ? `No files in the Bunny.net /${SIGNAGE_FOLDER} folder yet.` : 'No media matches your filters.'}
+          </div>
+        )}
+        {loading && (
+          <div style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center', color: 'var(--muted)' }}><i className="ti ti-reload" style={{ marginRight: 6 }} /> Loading from Bunny.net…</div>
         )}
       </div>
 
       {uploadOpen && (
-        <UploadMediaModal branches={branches} onClose={() => setUploadOpen(false)} onSave={async (payload) => {
-          try { const m = await createMedia(payload); showToast('success', 'Media uploaded', m.name); setUploadOpen(false); }
-          catch (e) { showToast('error', e.code || 'Upload failed', e.message); }
-        }} />
+        <UploadMediaModal onClose={() => setUploadOpen(false)} onUploaded={(m) => { setMedia((cur) => [m, ...cur]); showToast('success', 'Media uploaded', m.displayName); setUploadOpen(false); }}
+          onError={(e) => showToast('error', 'Upload failed', bunnyErrorMessage(e, 'Upload failed'))} />
       )}
       {confirmDelete && (
-        <ConfirmModal title="Delete this asset?" message={<><strong>{confirmDelete.name}</strong> will be removed. Loops referencing it will show a missing placeholder.</>}
+        <ConfirmModal title="Delete this asset?" message={<><strong>{confirmDelete.displayName}</strong> will be permanently removed from Bunny.net. Loops referencing it will show a missing placeholder.</>}
           confirmLabel="Delete" confirmStyle={btnDanger}
           onCancel={() => setConfirmDelete(null)}
           onConfirm={async () => {
-            try { await deleteMedia(confirmDelete.id); showToast('success', 'Media deleted'); }
-            catch (e) {
-              if (e.code === 'MEDIA_IN_USE') {
-                if (window.confirm('This asset is in use by loop items. Force delete and unlink them?')) {
-                  try { await deleteMedia(confirmDelete.id, { force: true }); showToast('success', 'Media deleted (force)'); }
-                  catch (e2) { showToast('error', e2.code || 'Delete failed', e2.message); }
-                }
-              } else { showToast('error', e.code || 'Delete failed', e.message); }
-            }
+            try { await deleteBunnyMedia(confirmDelete.name); setMedia((cur) => cur.filter((x) => x.id !== confirmDelete.id)); showToast('success', 'Media deleted'); }
+            catch (e) { showToast('error', 'Delete failed', bunnyErrorMessage(e, 'Delete failed')); }
             setConfirmDelete(null);
           }} />
       )}
@@ -1448,33 +1854,40 @@ function MediaTab({ branchFilter, showToast }) {
   );
 }
 
-function UploadMediaModal({ branches, onClose, onSave }) {
+const MEDIA_TYPE_ICON = { image: 'ti-photo', video: 'ti-video', audio: 'ti-volume', lottie: 'ti-vector', other: 'ti-file' };
+
+function UploadMediaModal({ onClose, onUploaded, onError }) {
   const [file, setFile] = useState(null);
-  const [name, setName] = useState('');
-  const [branchId, setBranchId] = useState('');
-  const [tags, setTags] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [fileError, setFileError] = useState(null);
 
   function pickFile(f) {
     if (!f) return;
-    setFile(f);
-    if (!name) setName(f.name);
+    const err = validateUpload(f);
+    setFileError(err);
+    setFile(err ? null : f);
   }
+
+  // Compute the stored name once per picked file so the preview matches what's
+  // actually uploaded (UUID/date are fixed at pick-time, not regenerated).
+  const storedName = useMemo(() => (file ? buildBunnyFileName(file.name) : null), [file]);
+
   async function submit(e) {
     e.preventDefault();
     if (!file) return;
+    const err = validateUpload(file);
+    if (err) { setFileError(err); return; }
     setSubmitting(true);
     try {
-      await onSave({
-        file,
-        name: (name || file.name).trim(),
-        branch_id: branchId || null,
-        tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      });
+      const m = await uploadBunnyMedia(file, { path: SIGNAGE_FOLDER, fileName: storedName });
+      onUploaded(m);
+    } catch (err2) {
+      onError?.(err2);
     } finally { setSubmitting(false); }
   }
+
   return (
-    <Modal title="Upload media" onClose={onClose} maxWidth={480}>
+    <Modal title="Upload to Bunny.net" onClose={onClose} maxWidth={480} icon="ti-upload">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <label style={{ border: '2px dashed var(--line)', borderRadius: 10, padding: 24, textAlign: 'center', background: '#fbfcfd', cursor: 'pointer', display: 'block' }}
           onDragOver={(e) => e.preventDefault()}
@@ -1487,20 +1900,279 @@ function UploadMediaModal({ branches, onClose, onSave }) {
             {file ? fmtBytes(file.size) : 'Images, videos (mp4/webm), audio, Lottie JSON · max 200 MB'}
           </div>
         </label>
-        <Field label="Display name"><input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="optional — defaults to filename" /></Field>
-        <Field label="Branch (optional)">
-          <LocationPicker
-            value={branchId || null}
-            placeholder="All branches"
-            onChange={(picked) => setBranchId(picked ? picked.id : '')}
-          />
-        </Field>
-        <Field label="Tags (comma separated)"><input value={tags} onChange={(e) => setTags(e.target.value)} style={inputStyle} placeholder="hero, branding" /></Field>
+        {fileError && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', borderRadius: 8, padding: '8px 10px', fontSize: 12 }}>
+            <i className="ti ti-alert" style={{ marginRight: 6 }} />{fileError}
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+          Destination: <code style={{ fontFamily: 'monospace' }}>Bunny.net / {SIGNAGE_FOLDER}</code>
+        </div>
+        {storedName && (
+          <div style={{ fontSize: 11, color: 'var(--muted)', background: '#f8fafc', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 10px', wordBreak: 'break-all' }}>
+            Will be saved as <code style={{ fontFamily: 'monospace', color: 'var(--ink)' }}>{storedName}</code>
+          </div>
+        )}
         <FormActions onCancel={onClose} submitLabel={submitting ? 'Uploading…' : 'Upload'} disabled={!file || submitting} />
       </form>
     </Modal>
   );
 }
+
+
+// ───────────────────────── Branding Kit ───────────────────────────────
+const TAGLINE_MAX = 120;
+
+function BrandingKitsTab({ branchFilter, showToast }) {
+  const kits     = useBrandingKits();
+  const branches = useBranches();
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const branchName = useCallback((id) => branches.find((b) => String(b.id) === String(id))?.name || `#${id}`, [branches]);
+
+  // A kit with no branches is global; otherwise it shows only when it targets
+  // the selected branch.
+  const filtered = useMemo(
+    () => branchFilter ? kits.filter((k) => k.branch_ids.length === 0 || k.branch_ids.map(String).includes(String(branchFilter))) : kits,
+    [kits, branchFilter]
+  );
+
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <Toolbar>
+        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{filtered.length} branding kit{filtered.length === 1 ? '' : 's'}</div>
+        <button type="button" style={{ ...btnPrimary, marginLeft: 'auto' }} onClick={() => setCreating(true)}><i className="ti ti-plus" /> New kit</button>
+      </Toolbar>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        {filtered.map((k) => (
+          <div key={k.id} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 16, display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 10, border: '1px solid var(--line)', background: '#fbfcfd', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {k.logo_url
+                  ? <img src={k.logo_url} alt={k.display_name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  : <i className="ti ti-stamp" style={{ fontSize: 22, color: 'var(--muted)' }} />}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <strong style={{ fontSize: 15, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{k.display_name || 'Untitled kit'}</strong>
+                  {k.is_active ? <Pill color="#059669" bg="#d1fae5">On</Pill> : <Pill color="#475569" bg="#e2e8f0">Off</Pill>}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                  {k.branch_ids.length === 0 ? 'All branches' : `${k.branch_ids.length} branch${k.branch_ids.length === 1 ? '' : 'es'}`}
+                </div>
+              </div>
+              <KebabMenu items={[
+                { label: k.is_active ? 'Deactivate' : 'Activate', icon: k.is_active ? 'ti-eye-off' : 'ti-eye',
+                  onClick: () => updateBrandingKit(k.id, { is_active: !k.is_active }).catch((e) => showToast('error', e.code || 'Update failed', e.message)) },
+                { label: 'Edit', icon: 'ti-pencil', onClick: () => setEditing(k) },
+                { label: 'Delete', icon: 'ti-trash', danger: true, onClick: () => setConfirmDelete(k) },
+              ]} />
+            </div>
+
+            {k.taglines.length > 0 && (
+              <div style={{ display: 'grid', gap: 4 }}>
+                {k.taglines.slice(0, 3).map((t, i) => (
+                  <div key={i} style={{ fontSize: 12, color: 'var(--ink)', display: 'flex', gap: 6 }}>
+                    <i className="ti ti-quote" style={{ color: 'var(--brand)', flex: '0 0 auto' }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</span>
+                  </div>
+                ))}
+                {k.taglines.length > 3 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{k.taglines.length - 3} more</div>}
+              </div>
+            )}
+
+            {k.keywords.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {k.keywords.map((w, i) => (
+                  <span key={i} style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand)', background: '#eaf3f5', padding: '3px 9px', borderRadius: 999 }}>{w}</span>
+                ))}
+              </div>
+            )}
+
+            {k.branch_ids.length > 0 && (
+              <div style={{ fontSize: 11, color: 'var(--muted)', borderTop: '1px solid var(--line)', paddingTop: 8 }}>
+                {k.branch_ids.slice(0, 4).map(branchName).join(' · ')}{k.branch_ids.length > 4 ? ` +${k.branch_ids.length - 4}` : ''}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', border: '1px dashed var(--line)', borderRadius: 14, padding: 40, textAlign: 'center', color: 'var(--muted)', background: '#fff' }}>
+            <i className="ti ti-stamp" style={{ fontSize: 30, display: 'block', marginBottom: 10, color: 'var(--muted)' }} />
+            <div style={{ fontWeight: 600, color: 'var(--ink)' }}>No branding kits yet</div>
+            <div style={{ fontSize: 12, marginTop: 6 }}>Create a kit with your logo, name, taglines and keywords. Animated Branding loop items pull from it.</div>
+            <button type="button" style={{ ...btnPrimary, marginTop: 14 }} onClick={() => setCreating(true)}><i className="ti ti-plus" /> New kit</button>
+          </div>
+        )}
+      </div>
+
+      {(creating || editing) && (
+        <BrandingKitModal kit={editing}
+          onClose={() => { setCreating(false); setEditing(null); }}
+          onSave={async (payload) => {
+            try {
+              if (editing) { await updateBrandingKit(editing.id, payload); showToast('success', 'Kit updated', payload.display_name); }
+              else         { const k = await createBrandingKit(payload); showToast('success', 'Kit created', k.display_name); }
+            } catch (e) { showToast('error', e.code || 'Save failed', e.message); return; }
+            setCreating(false); setEditing(null);
+          }} />
+      )}
+      {confirmDelete && (
+        <ConfirmModal title="Delete this branding kit?" message={<><strong>{confirmDelete.display_name || 'This kit'}</strong> will be removed. Loop items using it will lose their branding.</>}
+          confirmLabel="Delete" confirmStyle={btnDanger}
+          onCancel={() => setConfirmDelete(null)}
+          onConfirm={async () => {
+            try { await deleteBrandingKit(confirmDelete.id); showToast('success', 'Kit deleted'); }
+            catch (e) { showToast('error', e.code || 'Delete failed', e.message); }
+            setConfirmDelete(null);
+          }} />
+      )}
+    </div>
+  );
+}
+
+function BrandingKitModal({ kit, onClose, onSave }) {
+  const [displayName, setDisplayName] = useState(kit?.display_name || '');
+  const [logoUrl, setLogoUrl] = useState(kit?.logo_url || '');
+  const [taglines, setTaglines] = useState(kit?.taglines?.length ? kit.taglines : ['']);
+  const [keywords, setKeywords] = useState(kit?.keywords || []);
+  const [kwDraft, setKwDraft] = useState('');
+  const [branchIds, setBranchIds] = useState(kit?.branch_ids || []);
+  const [active, setActive] = useState(kit?.is_active ?? true);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const initialBranchLabels = useMemo(() => {
+    const out = {};
+    (kit?.branch_ids || []).forEach((id) => { out[id] = `#${id}`; });
+    return out;
+  }, [kit]);
+
+  function setTagline(i, v) { setTaglines((cur) => cur.map((t, idx) => idx === i ? v.slice(0, TAGLINE_MAX) : t)); }
+  function addTagline() { setTaglines((cur) => [...cur, '']); }
+  function removeTagline(i) { setTaglines((cur) => cur.length === 1 ? [''] : cur.filter((_, idx) => idx !== i)); }
+
+  function addKeyword(raw) {
+    const w = raw.trim();
+    if (!w) return;
+    setKeywords((cur) => cur.some((x) => x.toLowerCase() === w.toLowerCase()) ? cur : [...cur, w]);
+    setKwDraft('');
+  }
+  function removeKeyword(i) { setKeywords((cur) => cur.filter((_, idx) => idx !== i)); }
+  function onKwKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addKeyword(kwDraft); }
+    else if (e.key === 'Backspace' && !kwDraft && keywords.length) { removeKeyword(keywords.length - 1); }
+  }
+
+  async function pickLogo(f) {
+    if (!f) return;
+    const err = validateUpload(f);
+    if (err) { setUploadError(err); return; }
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const m = await uploadBunnyMedia(f, { path: SIGNAGE_FOLDER, fileName: buildBunnyFileName(f.name) });
+      if (m?.url) setLogoUrl(m.url); else setUploadError('Upload succeeded but no URL was returned.');
+    } catch (e) {
+      setUploadError(e?.message || 'Upload failed.');
+    } finally { setUploading(false); }
+  }
+
+  function submit(e) {
+    e.preventDefault();
+    if (!displayName.trim()) return;
+    onSave({
+      display_name: displayName.trim(),
+      logo_url: logoUrl || null,
+      taglines: taglines.map((t) => t.trim()).filter(Boolean),
+      keywords,
+      branch_ids: branchIds,
+      is_active: active,
+    });
+  }
+
+  return (
+    <Modal title={kit ? 'Edit branding kit' : 'New branding kit'} onClose={onClose} maxWidth={620} icon="ti-stamp">
+      <form onSubmit={submit} style={{ display: 'grid', gap: 16 }}>
+        <Field label="Company display name"><input autoFocus value={displayName} onChange={(e) => setDisplayName(e.target.value)} style={inputStyle} placeholder="e.g. Crispr Learning" /></Field>
+
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 6 }}>Logo</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 72, height: 72, borderRadius: 12, border: '1px solid var(--line)', background: '#fbfcfd', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {logoUrl
+                ? <img src={logoUrl} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                : <i className="ti ti-photo" style={{ fontSize: 24, color: 'var(--muted)' }} />}
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label style={{ ...btnGhost, cursor: uploading ? 'wait' : 'pointer' }}>
+                <i className="ti ti-cloud-upload" /> {uploading ? 'Uploading…' : logoUrl ? 'Replace logo' : 'Upload logo'}
+                <input type="file" hidden accept="image/*" disabled={uploading} onChange={(e) => pickLogo(e.target.files?.[0])} />
+              </label>
+              {logoUrl && (
+                <button type="button" style={{ ...btnGhost, color: 'var(--danger)' }} onClick={() => setLogoUrl('')}>
+                  <i className="ti ti-x" /> Remove
+                </button>
+              )}
+            </div>
+          </div>
+          {uploadError && <div style={{ marginTop: 8, fontSize: 12, color: '#991b1b' }}><i className="ti ti-alert" style={{ marginRight: 6 }} />{uploadError}</div>}
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600 }}>Tag lines</span>
+            <button type="button" style={{ ...btnGhost, marginLeft: 'auto', padding: '4px 10px' }} onClick={addTagline}><i className="ti ti-plus" /> Add line</button>
+          </div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {taglines.map((t, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input value={t} maxLength={TAGLINE_MAX} onChange={(e) => setTagline(i, e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="Short slogan to display…" />
+                <span style={{ fontSize: 11, color: 'var(--muted)', width: 54, textAlign: 'right' }}>{t.length}/{TAGLINE_MAX}</span>
+                <button type="button" onClick={() => removeTagline(i)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 16 }} title="Remove"><i className="ti ti-trash" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 6 }}>Keywords</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>Used to build the word-cloud display. Press Enter or comma to add.</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', border: '1px solid var(--line)', borderRadius: 8, padding: 8 }}>
+            {keywords.map((w, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--brand)', background: '#eaf3f5', padding: '4px 8px 4px 10px', borderRadius: 999 }}>
+                {w}
+                <button type="button" onClick={() => removeKeyword(i)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--brand)', padding: 0, display: 'inline-flex' }} title="Remove"><i className="ti ti-x" style={{ fontSize: 12 }} /></button>
+              </span>
+            ))}
+            <input value={kwDraft} onChange={(e) => setKwDraft(e.target.value)} onKeyDown={onKwKeyDown} onBlur={() => addKeyword(kwDraft)}
+              style={{ flex: 1, minWidth: 120, border: 'none', outline: 'none', fontSize: 13, padding: '4px 2px', background: 'transparent' }}
+              placeholder={keywords.length ? '' : 'e.g. IISER, NISER, IAT, Expert Teachers'} />
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 8 }}>Apply to branches</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>Leave empty to make this kit available to all branches.</div>
+          <LocationMultiPicker
+            valueIds={branchIds}
+            initialLabels={initialBranchLabels}
+            placeholder="Add branches…"
+            onChange={(ids) => setBranchIds(ids)}
+          />
+        </div>
+
+        <Toggle label="Active" hint="Available for selection in Animated Branding loop items" checked={active} onChange={setActive} />
+        <FormActions onCancel={onClose} submitLabel={kit ? 'Save' : 'Create'} disabled={uploading} />
+      </form>
+    </Modal>
+  );
+}
+
 
 // ───────────────────────── Schedules ──────────────────────────────────
 function SchedulesTab({ branchFilter, showToast }) {
@@ -1567,13 +2239,12 @@ function SchedulesTab({ branchFilter, showToast }) {
                   <td style={tdStyle}><span style={{ fontSize: 12 }}>{s.start_date} {s.end_date && `→ ${s.end_date}`}</span></td>
                   <td style={tdStyle}>{s.priority}</td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: 6 }}>
-                      <button type="button" style={btnGhost} onClick={() => updateSchedule(s.id, { is_active: !s.is_active }).catch((e) => showToast('error', e.code || 'Update failed', e.message))}>
-                        <i className={`ti ${s.is_active ? 'ti-control-pause' : 'ti-control-play'}`} />
-                      </button>
-                      <button type="button" style={btnGhost} onClick={() => setEditing(s)}><i className="ti ti-pencil" /></button>
-                      <button type="button" style={btnDanger} onClick={() => setConfirmDelete(s)}><i className="ti ti-trash" /></button>
-                    </div>
+                    <KebabMenu items={[
+                      { label: s.is_active ? 'Pause' : 'Resume', icon: s.is_active ? 'ti-control-pause' : 'ti-control-play',
+                        onClick: () => updateSchedule(s.id, { is_active: !s.is_active }).catch((e) => showToast('error', e.code || 'Update failed', e.message)) },
+                      { label: 'Edit', icon: 'ti-pencil', onClick: () => setEditing(s) },
+                      { label: 'Delete', icon: 'ti-trash', danger: true, onClick: () => setConfirmDelete(s) },
+                    ]} />
                   </td>
                 </tr>
               );
@@ -1635,7 +2306,7 @@ function ScheduleModal({ schedule, timelines, screens, onClose, onSave }) {
     });
   }
   return (
-    <Modal title={schedule ? 'Edit schedule' : 'New schedule'} onClose={onClose} maxWidth={620}>
+    <Modal title={schedule ? 'Edit schedule' : 'New schedule'} onClose={onClose} maxWidth={620} icon="ti-calendar">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <Field label="Name"><input autoFocus value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="e.g. Morning Branding" /></Field>
         <Field label="Loop">
@@ -1688,7 +2359,7 @@ function ScheduleModal({ schedule, timelines, screens, onClose, onSave }) {
   );
 }
 
-// ───────────────────────── Emergency Alerts ───────────────────────────
+// ───────────────────────── Alerts ─────────────────────────────────────
 function AlertsTab({ branchFilter, showToast }) {
   const alerts   = useAlerts();
   const branches = useBranches();
@@ -1705,11 +2376,11 @@ function AlertsTab({ branchFilter, showToast }) {
       <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <i className="ti ti-alert" style={{ color: '#c2410c', fontSize: 22 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, color: '#7c2d12', fontSize: 14 }}>Emergency broadcasts override all content</div>
+          <div style={{ fontWeight: 700, color: '#7c2d12', fontSize: 14 }}>Alert broadcasts override all content</div>
           <div style={{ fontSize: 12, color: '#9a3412', marginTop: 4 }}>Active alerts replace whatever is playing on the targeted screens — across branches if no branch is selected.</div>
         </div>
         <button type="button" style={{ ...btnDanger, background: '#dc2626', color: '#fff', borderColor: '#dc2626' }} onClick={() => setCreating(true)}>
-          <i className="ti ti-alert" /> New emergency
+          <i className="ti ti-alert" /> New alert
         </button>
       </div>
 
@@ -1729,7 +2400,7 @@ function AlertsTab({ branchFilter, showToast }) {
             onBroadcast={() => { broadcastAlert(a.id); showToast('success', 'Broadcasting now', a.title); }}
             onDismiss={() => { dismissAlert(a.id); showToast('success', 'Broadcast stopped'); }}
             onEdit={() => setEditing(a)} onDelete={() => setConfirmDelete(a)} />)}
-          {filtered.length === 0 && <div style={{ padding: 30, textAlign: 'center', color: 'var(--muted)' }}>No emergency alerts yet.</div>}
+          {filtered.length === 0 && <div style={{ padding: 30, textAlign: 'center', color: 'var(--muted)' }}>No alerts yet.</div>}
         </div>
       </Card>
 
@@ -1775,6 +2446,25 @@ function fmtAlertWindow(start, end) {
   return sDate === eDate
     ? `${sDate}, ${sTime} → ${eTime}`
     : `${sDate}, ${sTime} → ${eDate}, ${eTime}`;
+}
+
+// ↔ between a stored timestamp and a <input type="datetime-local"> value
+// (which is always `YYYY-MM-DDTHH:mm` in local time).
+function toLocalInputValue(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (!isNaN(d)) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  // Tolerate "YYYY-MM-DD HH:mm" (space-separated, no offset).
+  const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/.exec(value);
+  return m ? `${m[1]}T${m[2]}` : '';
+}
+function fromLocalInputValue(value) {
+  if (!value) return '';
+  const d = new Date(value); // parsed as local time
+  return isNaN(d) ? value : d.toISOString(); // ISO-8601 (UTC) for the API
 }
 
 function AlertCard({ alert: a, branches, screens, onBroadcast, onDismiss, onEdit, onDelete }) {
@@ -1829,21 +2519,25 @@ function AlertModal({ alert, branches, screens, onClose, onSave }) {
   }, [alert, branches]);
   const [branchLabels, setBranchLabels] = useState(initialBranchLabels);
   const [audio, setAudio] = useState(!!alert?.audio_enabled);
-  const [startTime, setStartTime] = useState(alert?.start_time || new Date().toISOString().slice(0, 16).replace('T', ' '));
-  const [endTime, setEndTime] = useState(alert?.end_time || '');
+  const [startTime, setStartTime] = useState(toLocalInputValue(alert?.start_time) || toLocalInputValue(new Date()));
+  const [endTime, setEndTime] = useState(toLocalInputValue(alert?.end_time));
   const [active, setActive] = useState(alert?.is_active ?? true);
 
   function submit(e) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (endTime && startTime && new Date(endTime) <= new Date(startTime)) {
+      window.alert('End time must be after the start time.');
+      return;
+    }
     onSave({
       title, message, severity, audio_enabled: audio,
       branch_ids: branchIds, screen_ids: [],
-      start_time: startTime, end_time: endTime, is_active: active,
+      start_time: fromLocalInputValue(startTime), end_time: fromLocalInputValue(endTime), is_active: active,
     });
   }
   return (
-    <Modal title={alert ? 'Edit alert' : 'New emergency broadcast'} onClose={onClose} maxWidth={580}>
+    <Modal title={alert ? 'Edit alert' : 'New alert broadcast'} onClose={onClose} maxWidth={580} icon="ti-alert">
       <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
         <Field label="Title"><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} placeholder="e.g. Branch Closed Today" /></Field>
         <Field label="Message"><textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} placeholder="Short message to display on every screen…" /></Field>
@@ -1871,20 +2565,43 @@ function AlertModal({ alert, branches, screens, onClose, onSave }) {
           />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Start"><input value={startTime} onChange={(e) => setStartTime(e.target.value)} style={inputStyle} placeholder="2026-05-25 09:00" /></Field>
-          <Field label="End"><input value={endTime} onChange={(e) => setEndTime(e.target.value)} style={inputStyle} placeholder="2026-05-25 18:00" /></Field>
+          <Field label="Start"><input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={inputStyle} /></Field>
+          <Field label="End"><input type="datetime-local" value={endTime} min={startTime || undefined} onChange={(e) => setEndTime(e.target.value)} style={inputStyle} /></Field>
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
           <Toggle label="Play siren audio" hint="Loud audio cue accompanies the visual" checked={audio} onChange={setAudio} />
           <Toggle label="Broadcast immediately" hint="Overrides all assigned loops right now" checked={active} onChange={setActive} />
         </div>
-        <FormActions onCancel={onClose} submitLabel={active ? 'Broadcast' : 'Save'} primaryStyle={active ? { ...btnPrimary, background: '#dc2626' } : btnPrimary} />
+        <FormActions onCancel={onClose} submitLabel={active ? 'Broadcast' : 'Save'} submitClass={active ? 'btn-danger' : 'btn-success'} />
       </form>
     </Modal>
   );
 }
 
 // ───────────────────────── Shared building blocks ────────────────────
+function StatTile({ icon, label, value, sub, accent = 'var(--brand)', onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        textAlign: 'left', background: '#fff', border: '1px solid var(--line)', borderRadius: 14,
+        padding: 14, display: 'flex', alignItems: 'center', gap: 12, cursor: onClick ? 'pointer' : 'default',
+        width: '100%', font: 'inherit',
+      }}>
+      <span style={{ width: 40, height: 40, borderRadius: 10, background: `${accent}1a`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flex: '0 0 auto' }}>
+        <i className={`ti ${icon}`} />
+      </span>
+      <span style={{ display: 'grid', lineHeight: 1.15, minWidth: 0 }}>
+        <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)' }}>{value}</span>
+        <span style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {label}{sub ? <span style={{ marginLeft: 6, opacity: .85 }}>· {sub}</span> : null}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function Card({ title, icon, children }) {
   return (
     <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 16 }}>
@@ -1972,43 +2689,54 @@ function Field({ label, hint, children }) {
   );
 }
 
-function FormActions({ onCancel, submitLabel, primaryStyle, disabled }) {
+function FormActions({ onCancel, submitLabel, submitClass = 'btn-success', disabled }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-      <button type="button" onClick={onCancel} style={btnGhost}>Cancel</button>
-      <button type="submit" disabled={disabled} style={{ ...(primaryStyle || btnPrimary), opacity: disabled ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}>{submitLabel}</button>
-    </div>
+    <ModalFooter>
+      <button type="button" className="btn btn-default" onClick={onCancel}>Cancel</button>
+      <button type="submit" className={`btn ${submitClass}`} disabled={disabled}
+        style={disabled ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}>{submitLabel}</button>
+    </ModalFooter>
   );
 }
 
-function ConfirmModal({ title, message, confirmLabel, confirmStyle, onCancel, onConfirm }) {
+function ConfirmModal({ title, message, confirmLabel, onCancel, onConfirm }) {
   return (
-    <Modal title={title} onClose={onCancel} maxWidth={420}>
-      <p style={{ margin: '0 0 16px', color: 'var(--ink)', fontSize: 14, lineHeight: 1.5 }}>{message}</p>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-        <button type="button" onClick={onCancel} style={btnGhost}>Cancel</button>
-        <button type="button" onClick={onConfirm} style={confirmStyle}><i className="ti ti-trash" /> {confirmLabel}</button>
-      </div>
+    <Modal title={title} onClose={onCancel} maxWidth={420} icon="ti-alert" variant="danger">
+      <p style={{ margin: 0, color: 'var(--ink)', fontSize: 14, lineHeight: 1.5 }}>{message}</p>
+      <ModalFooter>
+        <button type="button" className="btn btn-default" onClick={onCancel}>Cancel</button>
+        <button type="button" className="btn btn-danger" onClick={onConfirm}><i className="ti ti-trash" /> {confirmLabel}</button>
+      </ModalFooter>
     </Modal>
   );
 }
 
-function Modal({ title, children, onClose, maxWidth = 520 }) {
+function Modal({ title, children, onClose, maxWidth = 520, icon, variant }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 30, 35, 0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth, boxShadow: '0 20px 50px rgba(0,0,0,0.25)', overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 17, color: 'var(--ink)' }}>{title}</h3>
-          <button type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 18 }}><i className="ti ti-close" /></button>
+    <div className="crispr-modal-backdrop active"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="crispr-modal-dialog" style={{ maxWidth }}>
+        <div className={`crispr-modal-header${variant ? ` ${variant}-header` : ''}`}>
+          <h3>{icon && <i className={`ti ${icon}`} />}{title}</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
-        <div style={{ padding: 20, overflow: 'auto' }}>{children}</div>
+        <div className="crispr-modal-body">{children}</div>
       </div>
+    </div>
+  );
+}
+
+// Standard modal footer that breaks out of the body padding to sit flush at the
+// dialog bottom (matches .crispr-modal-footer styling used across the app).
+function ModalFooter({ children, style }) {
+  return (
+    <div className="crispr-modal-footer" style={{ margin: '24px -24px -24px', ...style }}>
+      {children}
     </div>
   );
 }

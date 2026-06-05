@@ -3,8 +3,9 @@ import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import { Can } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
-import { listAttendance } from '../lib/attendanceApi';
+import { listAttendance, createManualAttendance } from '../lib/attendanceApi';
 import { listResidences } from '../lib/residencesApi';
+import { listCandidates } from '../lib/icardApi';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
 
@@ -89,6 +90,11 @@ export default function OfflineAttendancePage() {
   const [residenceId, setResidenceId] = useState('');
   const [locationId, setLocationId] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Manual attendance entry
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualSubmitting, setManualSubmitting] = useState(false);
 
   // Pagination / sort
   const [page, setPage] = useState(1);
@@ -206,6 +212,17 @@ export default function OfflineAttendancePage() {
       || !!batchId || !!residenceId || !!locationId || !!sourceFilter
   ), [searchQuery, dateFrom, dateTo, today, batchId, residenceId, locationId, sourceFilter]);
 
+  // Filters that live inside the modal (everything except the inline search box)
+  const modalFilterCount = useMemo(() => (
+    (dateFrom && dateFrom !== today ? 1 : 0)
+      + (dateTo && dateTo !== today ? 1 : 0)
+      + (batchId ? 1 : 0)
+      + (residenceId ? 1 : 0)
+      + (locationId ? 1 : 0)
+      + (sourceFilter ? 1 : 0)
+  ), [dateFrom, dateTo, today, batchId, residenceId, locationId, sourceFilter]);
+  const hasModalFilters = modalFilterCount > 0;
+
   function clearFilters() {
     setSearchQuery('');
     setDateFrom(today);
@@ -312,6 +329,21 @@ export default function OfflineAttendancePage() {
     };
   }, [records, total, dateFrom, dateTo, today]);
 
+  async function handleManualSubmit(student, locId) {
+    setManualSubmitting(true);
+    try {
+      await createManualAttendance({ candidateId: student.id, locationId: locId });
+      showToast('success', 'Attendance Marked', `${student.name} marked present.`);
+      setShowManualModal(false);
+      loadAttendance();
+    } catch (error) {
+      const msg = error?.response?.data?.message || error.message || 'Failed to mark attendance.';
+      showToast('error', 'Failed to Mark', msg);
+    } finally {
+      setManualSubmitting(false);
+    }
+  }
+
   function handleExport() {
     if (visibleRecords.length === 0) {
       showToast('info', 'Nothing to export', 'There are no records in the current view.');
@@ -334,212 +366,243 @@ export default function OfflineAttendancePage() {
   }
 
   return (
-    <div className="quiz-attempt-report-page">
+    <div className="quiz-attempt-report-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
-      {/* ── Page Header / Summary Cards ── */}
-      <div className="qar-header-card">
-        <div className="qar-header-top">
-          <div className="qar-header-main">
-            <h2><i className="ti ti-fingerprint" /> Offline Attendance</h2>
-            <p className="qar-description">View biometric and offline attendance entries across batches, residences and locations.</p>
+      {/* ── Standard Page Header ── */}
+      <div className="page-header-section">
+        <div>
+          <h2><i className="ti ti-fingerprint" /> Offline Attendance</h2>
+          <p>View biometric and offline attendance entries across batches, residences and locations.</p>
+        </div>
+        <Can permission={PERMS.ATTENDANCE_MARK}>
+          <button type="button" className="page-action-button" onClick={() => setShowManualModal(true)}>
+            <i className="ti ti-plus" /> Add Manual Attendance
+          </button>
+        </Can>
+      </div>
+
+      {/* ── Summary Cards ── */}
+      <div className="qar-stats-row" style={{ marginBottom: 20 }}>
+        <div className="qar-stat-card">
+          <div className="qar-stat-icon indigo"><i className="ti ti-clipboard" /></div>
+          <div className="qar-stat-info">
+            <h3>{summary.total}</h3>
+            <p>Total Records</p>
           </div>
         </div>
-
-        <div className="qar-header-body">
-          <div className="qar-stats-row">
-            <div className="qar-stat-card">
-              <div className="qar-stat-icon indigo"><i className="ti ti-clipboard" /></div>
-              <div className="qar-stat-info">
-                <h3>{summary.total}</h3>
-                <p>Total Records</p>
-              </div>
-            </div>
-            <div className="qar-stat-card">
-              <div className="qar-stat-icon green"><i className="ti ti-check" /></div>
-              <div className="qar-stat-info">
-                <h3>{summary.presentToday}</h3>
-                <p>Present Today</p>
-              </div>
-            </div>
-            <div className="qar-stat-card">
-              <div className="qar-stat-icon teal"><i className="ti ti-home" /></div>
-              <div className="qar-stat-info">
-                <h3>{summary.residenceCount}</h3>
-                <p>Residence Students</p>
-              </div>
-            </div>
-            <div className="qar-stat-card">
-              <div className="qar-stat-icon orange"><i className="ti ti-walk" /></div>
-              <div className="qar-stat-info">
-                <h3>{summary.dayScholars}</h3>
-                <p>Day Scholars</p>
-              </div>
-            </div>
+        <div className="qar-stat-card">
+          <div className="qar-stat-icon green"><i className="ti ti-check" /></div>
+          <div className="qar-stat-info">
+            <h3>{summary.presentToday}</h3>
+            <p>Present Today</p>
+          </div>
+        </div>
+        <div className="qar-stat-card">
+          <div className="qar-stat-icon teal"><i className="ti ti-home" /></div>
+          <div className="qar-stat-info">
+            <h3>{summary.residenceCount}</h3>
+            <p>Residence Students</p>
+          </div>
+        </div>
+        <div className="qar-stat-card">
+          <div className="qar-stat-icon orange"><i className="ti ti-walk" /></div>
+          <div className="qar-stat-info">
+            <h3>{summary.dayScholars}</h3>
+            <p>Day Scholars</p>
           </div>
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="qar-filter-card">
-        <div className="qar-filter-header">
-          <h4><i className="ti ti-filter" /> Filters</h4>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <button type="button" className="qar-clear-btn" onClick={() => applyPreset('today')}>Today</button>
-            <button type="button" className="qar-clear-btn" onClick={() => applyPreset('yesterday')}>Yesterday</button>
-            <button type="button" className="qar-clear-btn" onClick={() => applyPreset('7d')}>Last 7d</button>
-            <button type="button" className="qar-clear-btn" onClick={() => applyPreset('30d')}>Last 30d</button>
-            <button type="button" className="qar-clear-btn" onClick={() => applyPreset('thisMonth')}>This Month</button>
-            {hasActiveFilters && (
-              <button type="button" className="qar-clear-btn" onClick={clearFilters}>
-                <i className="ti ti-reload" /> Clear
-              </button>
-            )}
-          </div>
+      {/* ── Search bar + Filters button (modal-based) ── */}
+      <div className="filter-bar">
+        <div className="search-wrapper">
+          <i className="ti ti-search search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by candidate name, mobile or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-
-        {/* Row 1 */}
-        <div className="qar-filter-row1">
-          <div className="qar-filter-field qar-filter-field-wide">
-            <label className="qar-filter-label">Search</label>
-            <input
-              type="text"
-              className="qar-input"
-              placeholder="Search by candidate name, mobile or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Date From</label>
-            <input
-              type="date"
-              className="qar-input"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Date To</label>
-            <input
-              type="date"
-              className="qar-input"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Row 2 */}
-        <div className="qar-filter-row2">
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
-            <select className="qar-select" value={batchId} onChange={(e) => setBatchId(e.target.value)}>
-              <option value="">All Batches</option>
-              {batches.map((b) => (
-                <option key={b.id} value={b.id}>{b.name || b.batchName}</option>
-              ))}
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-home" /> Residence</label>
-            <select className="qar-select" value={residenceId} onChange={(e) => setResidenceId(e.target.value)}>
-              <option value="">All Residences</option>
-              {residences.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-location-pin" /> Location</label>
-            <select
-              className="qar-select"
-              value={locationId}
-              onChange={(e) => setLocationId(e.target.value)}
-              disabled={locations.length === 0}
-            >
-              <option value="">{locations.length === 0 ? 'No locations available' : 'All Locations'}</option>
-              {locations.map((l) => (
-                <option key={l.id ?? l.code} value={l.id ?? l.code}>{l.name || l.title || l.code}</option>
-              ))}
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-mobile" /> Source</label>
-            <select className="qar-select" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
-              <option value="">All Sources</option>
-              <option value="biometric">Biometric</option>
-              <option value="manual">Manual</option>
-              <option value="rfid">RFID</option>
-            </select>
-          </div>
-        </div>
-
+        <button
+          type="button"
+          className={`filter-toggle-btn${hasModalFilters ? ' active' : ''}`}
+          onClick={() => setShowFilterModal(true)}
+        >
+          <i className="ti ti-filter" /> Filters
+          {modalFilterCount > 0 && <span className="filter-count">{modalFilterCount}</span>}
+        </button>
         {hasActiveFilters && (
-          <div className="qar-active-filters">
-            <span className="qar-active-label">Active Filters:</span>
-            {searchQuery && (
-              <span className="qar-filter-badge">
-                Search: &ldquo;{searchQuery}&rdquo;
-                <i className="ti ti-close" onClick={() => setSearchQuery('')} />
-              </span>
-            )}
-            {dateFrom && (
-              <span className="qar-filter-badge">From: {dateFrom}
-                <i className="ti ti-close" onClick={() => setDateFrom('')} />
-              </span>
-            )}
-            {dateTo && (
-              <span className="qar-filter-badge">To: {dateTo}
-                <i className="ti ti-close" onClick={() => setDateTo('')} />
-              </span>
-            )}
-            {batchId && (
-              <span className="qar-filter-badge">
-                Batch: {batches.find((b) => String(b.id) === String(batchId))?.name || batchId}
-                <i className="ti ti-close" onClick={() => setBatchId('')} />
-              </span>
-            )}
-            {residenceId && (
-              <span className="qar-filter-badge">
-                Residence: {residences.find((r) => String(r.id) === String(residenceId))?.name || residenceId}
-                <i className="ti ti-close" onClick={() => setResidenceId('')} />
-              </span>
-            )}
-            {locationId && (
-              <span className="qar-filter-badge">
-                Location: {locations.find((l) => String(l.id ?? l.code) === String(locationId))?.name || locationId}
-                <i className="ti ti-close" onClick={() => setLocationId('')} />
-              </span>
-            )}
-            {sourceFilter && (
-              <span className="qar-filter-badge">Source: {sourceFilter}
-                <i className="ti ti-close" onClick={() => setSourceFilter('')} />
-              </span>
-            )}
-          </div>
+          <button type="button" className="filter-clear-btn" onClick={clearFilters}>
+            <i className="ti ti-reload" /> Clear
+          </button>
         )}
+        <Can permission={PERMS.ATTENDANCE_EXPORT}>
+          <button
+            type="button"
+            className="qar-btn-export"
+            style={{ marginLeft: 'auto' }}
+            disabled={visibleRecords.length === 0}
+            onClick={handleExport}
+          >
+            <i className="ti ti-download" /> Export to CSV
+          </button>
+        </Can>
       </div>
 
-      {/* ── Toolbar ── */}
-      <div className="qar-toolbar">
-        <div className="qar-record-count">
-          <strong>{total}</strong> record(s) found
-          {dateFrom && dateTo && dateFrom === dateTo ? ` · ${dateFrom}` : ''}
+      {/* ── Filter Modal ── */}
+      {showFilterModal && (
+        <div
+          className="crispr-modal-backdrop active"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setShowFilterModal(false); }}
+        >
+          <div className="crispr-modal-dialog" style={{ maxWidth: 620 }} role="dialog" aria-modal="true">
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-filter" /> Filter Attendance</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body">
+              <div className="qar-modal-presets">
+                <button type="button" className="qar-clear-btn" onClick={() => applyPreset('today')}>Today</button>
+                <button type="button" className="qar-clear-btn" onClick={() => applyPreset('yesterday')}>Yesterday</button>
+                <button type="button" className="qar-clear-btn" onClick={() => applyPreset('7d')}>Last 7d</button>
+                <button type="button" className="qar-clear-btn" onClick={() => applyPreset('30d')}>Last 30d</button>
+                <button type="button" className="qar-clear-btn" onClick={() => applyPreset('thisMonth')}>This Month</button>
+              </div>
+
+              <div className="qar-modal-grid">
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-calendar" /> Date From</label>
+                  <input
+                    type="date"
+                    className="qar-input"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                </div>
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-calendar" /> Date To</label>
+                  <input
+                    type="date"
+                    className="qar-input"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
+                  <select className="qar-select" value={batchId} onChange={(e) => setBatchId(e.target.value)}>
+                    <option value="">All Batches</option>
+                    {batches.map((b) => (
+                      <option key={b.id} value={b.id}>{b.name || b.batchName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-home" /> Residence</label>
+                  <select className="qar-select" value={residenceId} onChange={(e) => setResidenceId(e.target.value)}>
+                    <option value="">All Residences</option>
+                    {residences.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-location-pin" /> Location</label>
+                  <select
+                    className="qar-select"
+                    value={locationId}
+                    onChange={(e) => setLocationId(e.target.value)}
+                    disabled={locations.length === 0}
+                  >
+                    <option value="">{locations.length === 0 ? 'No locations available' : 'All Locations'}</option>
+                    {locations.map((l) => (
+                      <option key={l.id ?? l.code} value={l.id ?? l.code}>{l.name || l.title || l.code}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="qar-filter-field">
+                  <label className="qar-filter-label"><i className="ti ti-mobile" /> Source</label>
+                  <select className="qar-select" value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+                    <option value="">All Sources</option>
+                    <option value="biometric">Biometric</option>
+                    <option value="manual">Manual</option>
+                    <option value="rfid">RFID</option>
+                  </select>
+                </div>
+              </div>
+
+              {hasActiveFilters && (
+                <div className="qar-active-filters">
+                  <span className="qar-active-label">Active Filters:</span>
+                  {searchQuery && (
+                    <span className="qar-filter-badge">
+                      Search: &ldquo;{searchQuery}&rdquo;
+                      <i className="ti ti-close" onClick={() => setSearchQuery('')} />
+                    </span>
+                  )}
+                  {dateFrom && (
+                    <span className="qar-filter-badge">From: {dateFrom}
+                      <i className="ti ti-close" onClick={() => setDateFrom('')} />
+                    </span>
+                  )}
+                  {dateTo && (
+                    <span className="qar-filter-badge">To: {dateTo}
+                      <i className="ti ti-close" onClick={() => setDateTo('')} />
+                    </span>
+                  )}
+                  {batchId && (
+                    <span className="qar-filter-badge">
+                      Batch: {batches.find((b) => String(b.id) === String(batchId))?.name || batchId}
+                      <i className="ti ti-close" onClick={() => setBatchId('')} />
+                    </span>
+                  )}
+                  {residenceId && (
+                    <span className="qar-filter-badge">
+                      Residence: {residences.find((r) => String(r.id) === String(residenceId))?.name || residenceId}
+                      <i className="ti ti-close" onClick={() => setResidenceId('')} />
+                    </span>
+                  )}
+                  {locationId && (
+                    <span className="qar-filter-badge">
+                      Location: {locations.find((l) => String(l.id ?? l.code) === String(locationId))?.name || locationId}
+                      <i className="ti ti-close" onClick={() => setLocationId('')} />
+                    </span>
+                  )}
+                  {sourceFilter && (
+                    <span className="qar-filter-badge">Source: {sourceFilter}
+                      <i className="ti ti-close" onClick={() => setSourceFilter('')} />
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={clearFilters}>
+                <i className="ti ti-reload" /> Clear Filters
+              </button>
+              <button type="button" className="btn btn-success" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-check" /> Apply Filters
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="qar-action-btns">
-          <Can permission={PERMS.ATTENDANCE_EXPORT}>
-            <button
-              type="button"
-              className="qar-btn-export"
-              disabled={visibleRecords.length === 0}
-              onClick={handleExport}
-            >
-              <i className="ti ti-download" /> Export to CSV
-            </button>
-          </Can>
-        </div>
-      </div>
+      )}
+
+      {/* ── Manual Attendance Modal ── */}
+      {showManualModal && (
+        <ManualAttendanceModal
+          locations={locations}
+          submitting={manualSubmitting}
+          onClose={() => setShowManualModal(false)}
+          onSubmit={handleManualSubmit}
+        />
+      )}
 
       {/* ── Table ── */}
       {isLoading ? (
@@ -622,48 +685,34 @@ export default function OfflineAttendancePage() {
             </tbody>
           </table>
 
-          <div className="qar-pagination">
-            <div className="qar-pagination-info">
-              Showing <strong>{showingStart}</strong> to <strong>{showingEnd}</strong> of <strong>{total}</strong> records
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>Showing {showingStart} to {showingEnd} of {total} entries</span>
+              <select className="page-size-select" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
+                {PAGE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>Show {s}</option>)}
+              </select>
             </div>
-            <div className="qar-pagination-controls">
-              <div className="qar-page-size">
-                <select className="qar-select compact" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
-                  {PAGE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}/page</option>)}
-                </select>
-              </div>
-              <div className="qar-page-btns">
-                <button
-                  type="button"
-                  className="qar-page-btn"
-                  disabled={safePage === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <i className="ti ti-angle-left" />
-                </button>
-                {getPageNumbers(safePage, totalPages).map((p, idx) => (
-                  p === '...' ? (
-                    <span key={`el-${idx}`} className="qar-page-ellipsis">...</span>
-                  ) : (
-                    <button
-                      key={p}
-                      type="button"
-                      className={`qar-page-btn${safePage === p ? ' active' : ''}`}
-                      onClick={() => setPage(p)}
-                    >
-                      {p}
-                    </button>
-                  )
-                ))}
-                <button
-                  type="button"
-                  className="qar-page-btn"
-                  disabled={safePage === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  <i className="ti ti-angle-right" />
-                </button>
-              </div>
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={safePage === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <i className="ti ti-angle-left" /> Previous
+              </button>
+              {getPageNumbers(safePage, totalPages).map((p, idx) => (
+                p === '...' ? (
+                  <span key={`el-${idx}`} className="pagination-ellipsis">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`pagination-btn${safePage === p ? ' active' : ''}`}
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </button>
+                )
+              ))}
+              <button type="button" className="pagination-btn" disabled={safePage === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                Next <i className="ti ti-angle-right" />
+              </button>
             </div>
           </div>
         </div>
@@ -685,6 +734,151 @@ export default function OfflineAttendancePage() {
             : <p>No attendance has been captured for the selected date.</p>}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Manual attendance entry: searchable student picker + location select ──────
+function ManualAttendanceModal({ locations, submitting, onClose, onSubmit }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [locationId, setLocationId] = useState('');
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  // Debounced student search (skipped once a student is locked in)
+  useEffect(() => {
+    if (selected) return undefined;
+    const q = query.trim();
+    if (q.length < 2) { setResults([]); setOpen(false); return undefined; }
+    let cancelled = false;
+    setSearching(true);
+    setOpen(true);
+    const t = setTimeout(async () => {
+      try {
+        const resp = await listCandidates({ page: 1, size: 20, searchKey: q });
+        if (cancelled) return;
+        const rows = resp?.data || [];
+        setResults(Array.isArray(rows) ? rows : []);
+      } catch (_e) {
+        if (!cancelled) setResults([]);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [query, selected]);
+
+  function pick(c) {
+    const id = c.candidateKey || c.id;
+    const mobile = c.mobile || c.registeredMobile || c.communicationMobile || '';
+    setSelected({ id, name: c.name || 'Unknown', mobile });
+    setOpen(false);
+    setResults([]);
+  }
+
+  const canSubmit = !!selected && !!locationId && !submitting;
+
+  return (
+    <div
+      className="crispr-modal-backdrop active"
+      role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="crispr-modal-dialog" style={{ maxWidth: 520 }} role="dialog" aria-modal="true">
+        <div className="crispr-modal-header">
+          <h3><i className="ti ti-plus" /> Add Manual Attendance</h3>
+          <button type="button" className="crispr-modal-close" onClick={onClose}>
+            <i className="ti ti-close" />
+          </button>
+        </div>
+        <div className="crispr-modal-body">
+          {/* Student picker */}
+          <div className="qar-filter-field" style={{ position: 'relative', marginBottom: 18 }}>
+            <label className="qar-filter-label"><i className="ti ti-user" /> Student</label>
+            {selected ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', border: '1px solid #d7e1e7', borderRadius: 6, background: '#f8f9fa' }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#2c3e50' }}>{selected.name}</div>
+                  <div style={{ fontSize: 12, color: '#6c757d' }}>ID: {selected.id}{selected.mobile ? ` · ${selected.mobile}` : ''}</div>
+                </div>
+                <button type="button" className="qar-clear-btn" onClick={() => { setSelected(null); setQuery(''); }}>Change</button>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  className="qar-input"
+                  placeholder="Search by name, mobile or ID…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => { if (results.length) setOpen(true); }}
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                />
+                {open && query.trim().length >= 2 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 5, background: '#fff', border: '1px solid #d7e1e7', borderRadius: 6, marginTop: 4, maxHeight: 240, overflowY: 'auto', boxShadow: '0 8px 20px rgba(0,0,0,0.12)' }}>
+                    {searching ? (
+                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
+                    ) : results.length === 0 ? (
+                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>No students found.</div>
+                    ) : results.map((c) => {
+                      const id = c.candidateKey || c.id;
+                      const mobile = c.mobile || c.registeredMobile || c.communicationMobile || '';
+                      return (
+                        <button
+                          type="button"
+                          key={id}
+                          onClick={() => pick(c)}
+                          style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: '1px solid #f1f3f5', background: '#fff', cursor: 'pointer' }}
+                        >
+                          <div style={{ fontWeight: 600, color: '#2c3e50', fontSize: 14 }}>{c.name || 'Unknown'}</div>
+                          <div style={{ fontSize: 12, color: '#6c757d' }}>ID: {id}{mobile ? ` · ${mobile}` : ''}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Location picker */}
+          <div className="qar-filter-field">
+            <label className="qar-filter-label"><i className="ti ti-location-pin" /> Location</label>
+            <select
+              className="qar-select"
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
+              disabled={locations.length === 0}
+            >
+              <option value="">{locations.length === 0 ? 'No locations available' : 'Select a location'}</option>
+              {locations.map((l) => (
+                <option key={l.id ?? l.code} value={l.id ?? l.code}>{l.name || l.title || l.code}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="crispr-modal-footer">
+          <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
+          <button
+            type="button"
+            className="btn btn-success"
+            disabled={!canSubmit}
+            style={!canSubmit ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            onClick={() => onSubmit(selected, locationId)}
+          >
+            <i className="ti ti-check" /> {submitting ? 'Saving…' : 'Mark Attendance'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

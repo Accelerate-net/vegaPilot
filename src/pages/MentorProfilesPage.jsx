@@ -1,16 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { mentorsDemo } from '../data/adminRemainingDemo';
 
-function getInitials(name) {
-  if (!name) return '??';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 function getPageNumbers(currentPage, totalPages) {
   const pages = [];
@@ -613,7 +608,7 @@ export default function MentorProfilesPage() {
   const studentsEndIndex = Math.min(safeStudentsPage * studentsPageSize, studentsTotalCount);
 
   return (
-    <section className="mentor-profiles-page">
+    <section className="mentor-profiles-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
@@ -714,11 +709,12 @@ export default function MentorProfilesPage() {
                   <tr key={mentor.id}>
                     <td>
                       <div className="profile-cell">
-                        {mentor.photo ? (
-                          <img src={mentor.photo} alt={mentor.name} className="avatar" />
-                        ) : (
-                          <div className="avatar-placeholder">{getInitials(mentor.name)}</div>
-                        )}
+                        <Avatar
+                          src={mentor.photo}
+                          name={mentor.name}
+                          className="avatar"
+                          placeholderClassName="avatar-placeholder"
+                        />
                         <div>
                           <div className="profile-name">{mentor.name}</div>
                         </div>
@@ -897,15 +893,16 @@ export default function MentorProfilesPage() {
         </div>
       </div>
 
-      <div className={`mentor-edit-modal ${editModalOpen ? 'active' : ''}`} onClick={() => setEditModalOpen(false)}>
-        <div className="mentor-edit-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="mentor-edit-header">
+      {editModalOpen && (
+      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditModalOpen(false); }}>
+        <div className="crispr-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
+          <div className="crispr-modal-header">
             <h3><i className="ti ti-id-badge" /> {editMode ? 'Edit' : 'Add New'} Mentor</h3>
-            <button type="button" className="mentor-edit-close" onClick={() => setEditModalOpen(false)}>
+            <button type="button" className="crispr-modal-close" onClick={() => setEditModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="mentor-edit-body">
+          <div className="crispr-modal-body">
             <div className="mentor-form-section">
               <div className="mentor-form-title">Basic Information</div>
               <div className="mentor-form-group">
@@ -959,11 +956,11 @@ export default function MentorProfilesPage() {
               </div>
             </div>
           </div>
-          <div className="mentor-edit-footer">
-            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
+          <div className="crispr-modal-footer">
+            <button type="button" className="btn btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
             <button
               type="button"
-              className="legacy-btn legacy-btn-success"
+              className="btn btn-success"
               onClick={saveMentor}
               disabled={!currentMentor?.name || !currentMentor?.brief || !currentMentor?.specialisation || !currentMentor?.almaMater || !currentMentor?.graduationYear}
             >
@@ -972,37 +969,41 @@ export default function MentorProfilesPage() {
           </div>
         </div>
       </div>
+      )}
 
-      <div className={`mentor-edit-modal ${deleteModalOpen ? 'active' : ''}`} onClick={() => setDeleteModalOpen(false)}>
-        <div className="mentor-delete-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="mentor-delete-header">
+      {deleteModalOpen && (
+      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDeleteModalOpen(false); }}>
+        <div className="crispr-modal-dialog confirm-dialog" style={{ maxWidth: 460 }} role="dialog" aria-modal="true">
+          <div className="crispr-modal-header danger-header">
             <h3><i className="ti ti-alert" /> Confirm Delete</h3>
-            <button type="button" className="mentor-edit-close" onClick={() => setDeleteModalOpen(false)}>
+            <button type="button" className="crispr-modal-close" onClick={() => setDeleteModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="mentor-edit-body">
-            <p className="legacy-confirm-copy">Are you sure you want to delete <strong>{mentorToDelete?.name}</strong>?</p>
-            <p className="mentor-delete-note">This action cannot be undone.</p>
+          <div className="crispr-modal-body">
+            <p style={{ margin: '0 0 8px', color: '#334155', lineHeight: 1.6 }}>Are you sure you want to delete <strong>{mentorToDelete?.name}</strong>?</p>
+            <p style={{ margin: 0, color: '#94a3b8', fontSize: 13 }}>This action cannot be undone.</p>
           </div>
-          <div className="mentor-edit-footer">
-            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setDeleteModalOpen(false)}>Cancel</button>
-            <button type="button" className="legacy-btn legacy-btn-danger" onClick={deleteMentor}>
+          <div className="crispr-modal-footer">
+            <button type="button" className="btn btn-default" onClick={() => setDeleteModalOpen(false)}>Cancel</button>
+            <button type="button" className="btn btn-danger" onClick={deleteMentor}>
               <i className="ti ti-trash" /> Delete Mentor
             </button>
           </div>
         </div>
       </div>
+      )}
 
-      <div className={`mentor-edit-modal ${viewModalOpen ? 'active' : ''}`} onClick={() => setViewModalOpen(false)}>
-        <div className="mentor-view-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="mentor-edit-header">
+      {viewModalOpen && (
+      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setViewModalOpen(false); }}>
+        <div className="crispr-modal-dialog" style={{ maxWidth: 720 }} role="dialog" aria-modal="true">
+          <div className="crispr-modal-header">
             <h3><i className="ti ti-user" /> Mentor Profile</h3>
-            <button type="button" className="mentor-edit-close" onClick={() => setViewModalOpen(false)}>
+            <button type="button" className="crispr-modal-close" onClick={() => setViewModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className={`mentor-view-body ${isMentorProfileLoading ? 'is-loading' : ''}`}>
+          <div className={`crispr-modal-body mentor-view-body ${isMentorProfileLoading ? 'is-loading' : ''}`} style={{ padding: 0 }}>
             {isMentorProfileLoading && (
               <div className="mentor-view-loading">
                 <i className="ti ti-reload rotate" /> Loading detailed profile...
@@ -1012,11 +1013,12 @@ export default function MentorProfilesPage() {
               <>
                 <div className="mentor-profile-hero">
                   <div className="mentor-profile-avatar-shell">
-                    {selectedMentor.photo ? (
-                      <img src={selectedMentor.photo} alt={selectedMentor.name} className="mentor-profile-avatar" />
-                    ) : (
-                      <div className="mentor-profile-avatar placeholder">{getInitials(selectedMentor.name)}</div>
-                    )}
+                    <Avatar
+                      src={selectedMentor.photo}
+                      name={selectedMentor.name}
+                      className="mentor-profile-avatar"
+                      placeholderClassName="mentor-profile-avatar placeholder"
+                    />
                     {selectedMentor.active ? <div className="mentor-profile-active-dot" /> : null}
                   </div>
                   <div className="mentor-profile-copy">
@@ -1064,16 +1066,17 @@ export default function MentorProfilesPage() {
               </>
             ) : null}
           </div>
-          <div className="mentor-edit-footer">
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={editFromView}>
-              <i className="ti ti-pencil" /> Edit Mentor
-            </button>
-            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setViewModalOpen(false)}>
+          <div className="crispr-modal-footer">
+            <button type="button" className="btn btn-default" onClick={() => setViewModalOpen(false)}>
               <i className="ti ti-close" /> Close
+            </button>
+            <button type="button" className="btn btn-success" onClick={editFromView}>
+              <i className="ti ti-pencil" /> Edit Mentor
             </button>
           </div>
         </div>
       </div>
+      )}
 
       <div className={`legacy-modal-backdrop ${studentsModalOpen ? 'active' : ''}`} onClick={() => setStudentsModalOpen(false)}>
         <div className="legacy-modal-dialog legacy-xl" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>

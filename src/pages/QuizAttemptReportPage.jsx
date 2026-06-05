@@ -11,11 +11,6 @@ function formatDateTime(value) {
   return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function formatFilterDate(value) {
-  if (!value) return '';
-  return new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-}
-
 function getScoreClass(pct) {
   if (pct >= 75) return 'score-excellent';
   if (pct >= 50) return 'score-good';
@@ -174,6 +169,7 @@ export default function QuizAttemptReportPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Modals
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [showReEvaluateModal, setShowReEvaluateModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportColumns, setExportColumns] = useState({
@@ -277,7 +273,9 @@ export default function QuizAttemptReportPage() {
     ? Math.round(rankings.filter((r) => r.status === 'completed').reduce((s, r) => s + r.percentage, 0) / completedCount)
     : 0;
 
-  const hasActiveFilters = searchQuery || statusFilter !== 'all' || dateFrom || dateTo || selectedCourseFilter || selectedBatchFilters.length;
+  const hasActiveFilters = Boolean(searchQuery || statusFilter !== 'all' || dateFrom || dateTo || selectedCourseFilter || selectedBatchFilters.length);
+  const modalFilterCount = (statusFilter !== 'all' ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0) + (selectedCourseFilter ? 1 : 0) + (selectedBatchFilters.length ? 1 : 0);
+  const hasModalFilters = modalFilterCount > 0;
 
   function clearFilters() {
     setSearchQuery(''); setStatusFilter('all'); setDateFrom(''); setDateTo('');
@@ -293,10 +291,70 @@ export default function QuizAttemptReportPage() {
     setExportColumns({ rank: true, studentName: true, rollNumber: true, totalScore: true, percentage: true, totalAttempts: true, correctAttempts: true, wrongAttempts: true });
   }
 
+  // Build a printable HTML rank-list and open it in a new tab so the browser's
+  // "Save as PDF" can capture it (no PDF dependency in the project).
+  function handleExportPdf() {
+    const cols = ALL_EXPORT_COLS.filter((c) => exportColumns[c.key]);
+    if (cols.length === 0) return;
+
+    const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (ch) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]
+    ));
+
+    const cellValue = (r, key) => {
+      const correct = Number(r.correctAnswers) || 0;
+      const wrong = Number(r.incorrectAnswers) || 0;
+      switch (key) {
+        case 'rank': return r.rank;
+        case 'studentName': return r.studentName;
+        case 'rollNumber': return r.rollNumber;
+        case 'totalScore': return r.status === 'completed' ? `${r.score}/${quiz.maximumMarks}` : '-';
+        case 'percentage': return r.status === 'completed' ? `${r.percentage}%` : '-';
+        case 'totalAttempts': return r.status === 'completed' ? correct + wrong : '-';
+        case 'correctAttempts': return r.status === 'completed' ? correct : '-';
+        case 'wrongAttempts': return r.status === 'completed' ? wrong : '-';
+        default: return '';
+      }
+    };
+
+    const headRow = cols.map((c) => `<th>${esc(c.label)}</th>`).join('');
+    const bodyRows = filteredRankings.map((r) => (
+      `<tr>${cols.map((c) => `<td>${esc(cellValue(r, c.key))}</td>`).join('')}</tr>`
+    )).join('');
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(quiz.title)} — Rank List</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #16353c; margin: 32px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .meta { color: #59757b; font-size: 13px; margin-bottom: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { border: 1px solid #d7e5e8; padding: 7px 10px; text-align: left; }
+  thead th { background: #006073; color: #fff; }
+  tbody tr:nth-child(even) { background: #f4f9fa; }
+  @media print { body { margin: 12mm; } }
+</style></head><body>
+  <h1>${esc(quiz.title)} — Rank List</h1>
+  <div class="meta">${filteredRankings.length} record(s) · Generated ${new Date().toLocaleString('en-IN')}</div>
+  <table><thead><tr>${headRow}</tr></thead><tbody>${bodyRows}</tbody></table>
+  <script>window.onload = function () { window.print(); };</script>
+</body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      showToast('error', 'Pop-up blocked', 'Allow pop-ups for this site to export the PDF.');
+      return false;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    return true;
+  }
+
   // ─── Skeleton ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="quiz-attempt-report-page">
+      <div className="quiz-attempt-report-page data-table-page">
         <div className="qar-skeleton-header" />
         <div className="qar-skeleton-stats">
           {[1, 2, 3, 4].map((i) => <div key={i} className="qar-skeleton-stat" />)}
@@ -321,7 +379,7 @@ export default function QuizAttemptReportPage() {
   }
 
   return (
-    <div className="quiz-attempt-report-page">
+    <div className="quiz-attempt-report-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       {/* ── Quiz Header Card ── */}
@@ -405,131 +463,35 @@ export default function QuizAttemptReportPage() {
         </div>
       </div>
 
-      {/* ── Filter Bar ── */}
-      <div className="qar-filter-card">
-        <div className="qar-filter-header">
-          <h4><i className="ti ti-filter" /> Filters</h4>
-          {hasActiveFilters && (
-            <button type="button" className="qar-clear-btn" onClick={clearFilters}>
-              <i className="ti ti-reload" /> Clear Filters
-            </button>
-          )}
+      {/* ── Filter Bar (standard) ── */}
+      <div className="filter-bar">
+        <div className="search-wrapper">
+          <i className={`ti ${searchQuery ? 'ti-close' : 'ti-search'}`} onClick={() => { setSearchQuery(''); setCurrentPage(1); }} aria-hidden="true" />
+          <input
+            type="text"
+            className="search-input"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            placeholder="Search by student name or email..."
+          />
         </div>
 
-        {/* Row 1 */}
-        <div className="qar-filter-row1">
-          <div className="qar-filter-field qar-filter-field-wide">
-            <label className="qar-filter-label">Search</label>
-            <input
-              type="text"
-              className="qar-input"
-              placeholder="Search by student name or email..."
-              value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label">Status</label>
-            <select className="qar-select" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
-              <option value="all">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="in-progress">In Progress</option>
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> From Date &amp; Time</label>
-            <input
-              type="datetime-local"
-              className="qar-input"
-              value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
-            />
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> To Date &amp; Time</label>
-            <input
-              type="datetime-local"
-              className="qar-input"
-              value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`filter-toggle-btn${hasModalFilters ? ' active' : ''}`}
+          onClick={() => setShowFilterModal(true)}
+        >
+          <i className="ti ti-filter" /> Filters
+          {hasModalFilters && <span className="filter-count">{modalFilterCount}</span>}
+        </button>
 
-        {/* Row 2 */}
-        <div className="qar-filter-row2">
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-book" /> Course</label>
-            <select
-              className="qar-select"
-              value={selectedCourseFilter}
-              onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
-            >
-              <option value="">All Courses</option>
-              {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="qar-filter-field">
-            <label className="qar-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
-            <BatchMultiSelect
-              batches={filteredBatchesForCourse}
-              selected={selectedBatchFilters}
-              onChange={(val) => { setSelectedBatchFilters(val); setCurrentPage(1); }}
-              disabled={!selectedCourseFilter}
-            />
-          </div>
-        </div>
-
-        {/* Active Filters Summary */}
         {hasActiveFilters && (
-          <div className="qar-active-filters">
-            <span className="qar-active-label">Active Filters:</span>
-            {searchQuery && (
-              <span className="qar-filter-badge">
-                Search: &ldquo;{searchQuery}&rdquo;
-                <i className="ti ti-close" onClick={() => setSearchQuery('')} />
-              </span>
-            )}
-            {statusFilter !== 'all' && (
-              <span className="qar-filter-badge">
-                Status: {statusFilter}
-                <i className="ti ti-close" onClick={() => setStatusFilter('all')} />
-              </span>
-            )}
-            {dateFrom && (
-              <span className="qar-filter-badge">
-                From: {formatFilterDate(dateFrom)}
-                <i className="ti ti-close" onClick={() => setDateFrom('')} />
-              </span>
-            )}
-            {dateTo && (
-              <span className="qar-filter-badge">
-                To: {formatFilterDate(dateTo)}
-                <i className="ti ti-close" onClick={() => setDateTo('')} />
-              </span>
-            )}
-            {selectedCourseFilter && (
-              <span className="qar-filter-badge">
-                Course: {availableCourses.find((c) => c.id === selectedCourseFilter)?.name}
-                <i className="ti ti-close" onClick={() => { setSelectedCourseFilter(''); setSelectedBatchFilters([]); }} />
-              </span>
-            )}
-            {selectedBatchFilters.map((bId) => (
-              <span key={bId} className="qar-filter-badge">
-                Batch: {availableBatches.find((b) => b.id === bId)?.name}
-                <i className="ti ti-close" onClick={() => setSelectedBatchFilters((prev) => prev.filter((id) => id !== bId))} />
-              </span>
-            ))}
-          </div>
+          <button type="button" className="filter-clear-btn" onClick={clearFilters}>
+            <i className="ti ti-close" /> Clear
+          </button>
         )}
-      </div>
 
-      {/* ── Record count + action buttons ── */}
-      <div className="qar-toolbar">
-        <div className="qar-record-count">
-          <strong>{filteredRankings.length}</strong> record(s) found
-        </div>
-        <div className="qar-action-btns">
+        <div className="qar-action-btns" style={{ marginLeft: 'auto' }}>
           <button
             type="button"
             className="qar-btn-reevaluate"
@@ -610,52 +572,38 @@ export default function QuizAttemptReportPage() {
           </table>
 
           {/* Pagination */}
-          <div className="qar-pagination">
-              <div className="qar-pagination-info">
-                Showing <strong>{(safePage - 1) * pageSize + 1}</strong> to{' '}
-                <strong>{Math.min(safePage * pageSize, filteredRankings.length)}</strong> of{' '}
-                <strong>{filteredRankings.length}</strong> records
-              </div>
-              <div className="qar-pagination-controls">
-                <div className="qar-page-size">
-                  <select className="qar-select compact" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
-                    {[20, 50, 100, 200].map((s) => <option key={s} value={s}>{s}/page</option>)}
-                  </select>
-                </div>
-                <div className="qar-page-btns">
-                  <button
-                    type="button"
-                    className="qar-page-btn"
-                    disabled={safePage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  >
-                    <i className="ti ti-angle-left" />
-                  </button>
-                  {getPageNumbers(safePage, totalPages).map((page, idx) =>
-                    page === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="qar-page-ellipsis">...</span>
-                    ) : (
-                      <button
-                        key={page}
-                        type="button"
-                        className={`qar-page-btn${safePage === page ? ' active' : ''}`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    ),
-                  )}
-                  <button
-                    type="button"
-                    className="qar-page-btn"
-                    disabled={safePage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    <i className="ti ti-angle-right" />
-                  </button>
-                </div>
-              </div>
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span>
+                Showing {(safePage - 1) * pageSize + 1} to {Math.min(safePage * pageSize, filteredRankings.length)} of {filteredRankings.length} entries
+              </span>
+              <select className="page-size-select" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+                {[20, 50, 100, 200].map((s) => <option key={s} value={s}>Show {s}</option>)}
+              </select>
             </div>
+            <div className="pagination-controls">
+              <button type="button" className="pagination-btn" disabled={safePage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                <i className="ti ti-angle-left" /> Previous
+              </button>
+              {getPageNumbers(safePage, totalPages).map((page, idx) =>
+                page === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="pagination-ellipsis">...</span>
+                ) : (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`pagination-btn${safePage === page ? ' active' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+              <button type="button" className="pagination-btn" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+                Next <i className="ti ti-angle-right" />
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="qar-empty-state">
@@ -664,6 +612,80 @@ export default function QuizAttemptReportPage() {
           {hasActiveFilters
             ? <p>Try adjusting your search or filters.</p>
             : <p>No students have attempted this quiz yet.</p>}
+        </div>
+      )}
+
+      {/* ── Filter Modal ── */}
+      {showFilterModal && (
+        <div className="crispr-modal-backdrop active" onClick={() => setShowFilterModal(false)}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-filter" /> Filter Attempts</h3>
+              <button className="crispr-modal-close" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="crispr-modal-body qarf-filter-body">
+              <style>{`
+                .qarf-filter-body { display: flex; flex-direction: column; gap: 20px; }
+                .qarf-fld { display: flex; flex-direction: column; gap: 8px; }
+                .qarf-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
+                .qarf-fld-label i { color: #006073; font-size: 15px; }
+                .qarf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                .qarf-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
+              `}</style>
+
+              <div className="qarf-fld">
+                <label className="qarf-fld-label"><i className="ti ti-info-alt" /> Status</label>
+                <select className="qarf-input" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
+                  <option value="all">All Status</option>
+                  <option value="completed">Completed</option>
+                  <option value="in-progress">In Progress</option>
+                </select>
+              </div>
+
+              <div className="qarf-grid-2">
+                <div className="qarf-fld">
+                  <label className="qarf-fld-label"><i className="ti ti-calendar" /> From Date &amp; Time</label>
+                  <input type="datetime-local" className="qarf-input" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }} />
+                </div>
+                <div className="qarf-fld">
+                  <label className="qarf-fld-label"><i className="ti ti-calendar" /> To Date &amp; Time</label>
+                  <input type="datetime-local" className="qarf-input" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }} />
+                </div>
+              </div>
+
+              <div className="qarf-fld">
+                <label className="qarf-fld-label"><i className="ti ti-book" /> Course</label>
+                <select
+                  className="qarf-input"
+                  value={selectedCourseFilter}
+                  onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
+                >
+                  <option value="">All Courses</option>
+                  {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+
+              <div className="qarf-fld">
+                <label className="qarf-fld-label"><i className="ti ti-layout-grid2" /> Batch</label>
+                <BatchMultiSelect
+                  batches={filteredBatchesForCourse}
+                  selected={selectedBatchFilters}
+                  onChange={(val) => { setSelectedBatchFilters(val); setCurrentPage(1); }}
+                  disabled={!selectedCourseFilter}
+                />
+              </div>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="crispr-btn crispr-btn-default" onClick={clearFilters}>
+                <i className="ti ti-reload" /> Clear Filters
+              </button>
+              <button type="button" className="crispr-btn crispr-btn-primary" onClick={() => setShowFilterModal(false)}>
+                <i className="ti ti-check" /> Apply Filters
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -789,8 +811,11 @@ export default function QuizAttemptReportPage() {
                 type="button"
                 className="crispr-btn crispr-btn-primary"
                 onClick={() => {
-                  setShowExportModal(false);
-                  showToast('success', 'Export Ready', 'Quiz report export generated successfully.');
+                  const ok = handleExportPdf();
+                  if (ok) {
+                    setShowExportModal(false);
+                    showToast('success', 'Export Ready', 'Opened the rank list in a new tab — use your browser to save as PDF.');
+                  }
                 }}
               >
                 <i className="ti ti-download" /> Export PDF

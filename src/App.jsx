@@ -43,6 +43,7 @@ import AssetsPage from './pages/AssetsPage';
 import IcardGeneratorPage from './pages/IcardGeneratorPage';
 import LandingPage from './pages/LandingPage';
 import DigitalSignagePage from './pages/DigitalSignagePage';
+import { BrandingStagePage } from './features/branding';
 import PermissionsPage from './pages/PermissionsPage';
 import UserAccountsPage from './pages/UserAccountsPage';
 import LocationsPage from './pages/LocationsPage';
@@ -289,6 +290,8 @@ export default function App() {
             }
           />
         ))}
+        {/* Full-screen TV branding stage — no Layout chrome. */}
+        <Route path="/branding-stage" element={<BrandingStagePage />} />
         <Route path="*" element={<RootRedirect />} />
       </Routes>
     </UserProvider>
