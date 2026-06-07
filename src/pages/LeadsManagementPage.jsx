@@ -557,11 +557,14 @@ export default function LeadsManagementPage() {
 
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', padding: '20px', background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)', borderRadius: '8px', color: 'white' }}>
-        <div>
-          <h2 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: 600, color: 'white' }}>
-            <i className="ti ti-direction-alt" style={{ marginRight: '10px' }}></i>Leads Management
-          </h2>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>Track incoming leads, assign associates, and manage follow-ups.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-bullhorn" /></span>
+          <div>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: 600, color: 'white' }}>
+              Leads Management
+            </h2>
+            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px', color: 'rgba(255,255,255,0.9)' }}>Track incoming leads, assign associates, and manage follow-ups.</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={handleExportPDF} style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '10px 18px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>

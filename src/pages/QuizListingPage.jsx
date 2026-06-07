@@ -219,9 +219,12 @@ export default function QuizListingPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-files" />Quiz Listing</h2>
-          <p>Manage practice quizzes, review student attempts, and publish draft quizzes.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-list-ul" /></span>
+          <div>
+            <h2>Quiz Listing</h2>
+            <p>Manage practice quizzes, review student attempts, and publish draft quizzes.</p>
+          </div>
         </div>
         <Can permission={PERMS.QUIZZES_EDIT}>
           <button type="button" className="create-quiz-button" onClick={() => navigate('/quiz-creation')}>

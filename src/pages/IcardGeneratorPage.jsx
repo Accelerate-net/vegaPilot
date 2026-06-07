@@ -677,9 +677,12 @@ export default function IcardGeneratorPage() {
       <ToastRegion toasts={toasts} />
 
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-id-badge" /> ID Card Generator</h2>
-          <p>Generate and print student ID cards from your saved templates.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-id-card-o" /></span>
+          <div>
+            <h2>ID Card Generator</h2>
+            <p>Generate and print student ID cards from your saved templates.</p>
+          </div>
         </div>
         <Can permission={PERMS.ICARD_EDIT}>
           <div style={{ display: 'flex', gap: 8 }}>

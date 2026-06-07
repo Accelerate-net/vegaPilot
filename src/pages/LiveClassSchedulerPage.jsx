@@ -439,9 +439,12 @@ export default function LiveClassSchedulerPage() {
 
       {/* ── Standard Page Header ── */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-video-camera" /> Live Class Scheduler</h2>
-          <p>Schedule, manage, and monitor live streaming classes and interactive webinars.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-video-camera" /></span>
+          <div>
+            <h2>Live Class Scheduler</h2>
+            <p>Schedule, manage, and monitor live streaming classes and interactive webinars.</p>
+          </div>
         </div>
         <button type="button" className="page-action-button" onClick={() => setShowCreateModal(true)}>
           <i className="ti ti-video-clapper" /> Schedule Live

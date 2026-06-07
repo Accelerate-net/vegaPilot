@@ -625,9 +625,12 @@ export default function QuestionBankPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Question Bank</h2>
-          <p>Browse, verify, and manage the question repository across subjects, chapters, and difficulty levels.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-database" /></span>
+          <div>
+            <h2>Question Bank</h2>
+            <p>Browse, verify, and manage the question repository across subjects, chapters, and difficulty levels.</p>
+          </div>
         </div>
       </div>
 

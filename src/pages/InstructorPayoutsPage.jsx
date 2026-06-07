@@ -196,9 +196,12 @@ export default function InstructorPayoutsPage() {
 
         {/* ── Standard Page Header ── */}
         <div className="page-header-section">
-            <div>
-               <h2><i className="ti ti-time" /> Instructor Payouts</h2>
-               <p>Track payments made and pending settlements for instructors.</p>
+            <div className="page-header-title-group">
+               <span className="page-header-icon-box"><i className="fa fa-money" /></span>
+               <div>
+                  <h2>Instructor Payouts</h2>
+                  <p>Track payments made and pending settlements for instructors.</p>
+               </div>
             </div>
         </div>
 

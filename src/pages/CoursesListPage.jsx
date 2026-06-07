@@ -403,9 +403,12 @@ export default function CoursesListPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-book" /> Courses List</h2>
-          <p>Browse bundles, inspect enrolled students, and route into course content without changing the legacy workflow.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-list-alt" /></span>
+          <div>
+            <h2>Courses List</h2>
+            <p>Browse bundles, inspect enrolled students, and route into course content without changing the legacy workflow.</p>
+          </div>
         </div>
         <button type="button" className="create-course-button" onClick={() => navigate('/course-management')}>
           <i className="ti ti-plus" /> Create New Course

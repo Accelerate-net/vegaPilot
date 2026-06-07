@@ -43,6 +43,8 @@ import AssetsPage from './pages/AssetsPage';
 import IcardGeneratorPage from './pages/IcardGeneratorPage';
 import LandingPage from './pages/LandingPage';
 import DigitalSignagePage from './pages/DigitalSignagePage';
+import MobileAppSettingsPage from './pages/MobileAppSettingsPage';
+import FormsPage from './pages/FormsPage';
 import { BrandingStagePage } from './features/branding';
 import PermissionsPage from './pages/PermissionsPage';
 import UserAccountsPage from './pages/UserAccountsPage';
@@ -218,6 +220,12 @@ export default function App() {
     }
     if (screen.path === '/digital-signage') {
       return <DigitalSignagePage />;
+    }
+    if (screen.path === '/mobile-app-settings') {
+      return <MobileAppSettingsPage />;
+    }
+    if (screen.path === '/forms') {
+      return <FormsPage />;
     }
 
     return <LegacyScreenPage screen={screen} />;

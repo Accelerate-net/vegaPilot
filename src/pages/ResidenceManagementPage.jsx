@@ -543,9 +543,12 @@ export default function ResidenceManagementPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Residences</h2>
-          <p>Manage student residences, houses, occupancy, and student allotments.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-home" /></span>
+          <div>
+            <h2>Residences</h2>
+            <p>Manage student residences, houses, occupancy, and student allotments.</p>
+          </div>
         </div>
         <Can permission={PERMS.RESIDENCES_EDIT}>
           <button type="button" className="create-batch-button" onClick={openCreateModal}>

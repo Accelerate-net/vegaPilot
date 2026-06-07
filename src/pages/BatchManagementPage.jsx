@@ -951,9 +951,12 @@ export default function BatchManagementPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Batch Management</h2>
-          <p>Organize students into batches, manage courses, and control access without changing the existing workflow.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="ti ti-layout-grid2" /></span>
+          <div>
+            <h2>Batch Management</h2>
+            <p>Organize students into batches, manage courses, and control access without changing the existing workflow.</p>
+          </div>
         </div>
         <Can permission={PERMS.BATCHES_EDIT}>
           <button type="button" className="create-batch-button" onClick={openCreateBatchModal}>

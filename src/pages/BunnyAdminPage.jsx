@@ -127,9 +127,12 @@ export default function BunnyAdminPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((c) => c.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Bunny Admin</h2>
-          <p>Manage video libraries and storage zones, monitor usage, and organize uploaded media assets.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-film" /></span>
+          <div>
+            <h2>Bunny Admin</h2>
+            <p>Manage video libraries and storage zones, monitor usage, and organize uploaded media assets.</p>
+          </div>
         </div>
         <button className="ba-btn"
            style={{ background: '#ffb706', color: '#006073', border: 'none', fontWeight: 600, padding: '10px 20px', borderRadius: '6px', fontSize: '14px', transition: 'all 0.2s', whiteSpace: 'nowrap', cursor: 'pointer' }}

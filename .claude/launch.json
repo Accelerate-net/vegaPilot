@@ -5,7 +5,15 @@
       "name": "web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:web"],
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "forms-mock",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "VITE_USE_MOCK=true npx vite --host --port 5176"],
+      "port": 5176,
+      "autoPort": true
     }
   ]
 }

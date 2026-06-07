@@ -357,9 +357,12 @@ export default function StudentManagementPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Student Management</h2>
-          <p>Manage students, track enrollments, and review candidate access.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-users" /></span>
+          <div>
+            <h2>Student Management</h2>
+            <p>Manage students, track enrollments, and review candidate access.</p>
+          </div>
         </div>
       </div>
 

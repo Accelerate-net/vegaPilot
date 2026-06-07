@@ -575,9 +575,12 @@ export default function SurveyDashboardPage() {
       {(currentView === 'list' || currentView === 'create') && (
         <section className="courses-list-page" style={{ padding: 0 }}>
           <div className="page-header-section">
-            <div>
-              <h2><i className="ti ti-bar-chart-alt" /> Survey Dashboard</h2>
-              <p>Create, dispatch, and review custom surveys for students.</p>
+            <div className="page-header-title-group">
+              <span className="page-header-icon-box"><i className="fa fa-bar-chart" /></span>
+              <div>
+                <h2>Survey Dashboard</h2>
+                <p>Create, dispatch, and review custom surveys for students.</p>
+              </div>
             </div>
             <Can permission={PERMS.SURVEYS_EDIT}>
               <button type="button" className="page-action-button" onClick={() => setCurrentView('create')}>

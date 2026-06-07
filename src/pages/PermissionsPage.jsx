@@ -69,9 +69,12 @@ export default function PermissionsPage() {
   return (
     <div className="permissions-page data-table-page">
       <div className="page-header-section">
-        <div>
-          <h2><i className="fa fa-shield" /> Roles &amp; permissions</h2>
-          <p>Define roles and control what each role can access across the platform.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-shield" /></span>
+          <div>
+            <h2>Roles &amp; permissions</h2>
+            <p>Define roles and control what each role can access across the platform.</p>
+          </div>
         </div>
       </div>
 

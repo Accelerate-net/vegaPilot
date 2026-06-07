@@ -322,9 +322,12 @@ export default function UsersTab({ roles, showToast }) {
   return (
     <section className="user-accounts-page mentor-profiles-page">
       <div className="page-header-section">
-        <div>
-          <h2><i className="fa fa-users" /> User accounts</h2>
-          <p>Create admin users, assign roles, and enable or disable access.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-users" /></span>
+          <div>
+            <h2>User accounts</h2>
+            <p>Create admin users, assign roles, and enable or disable access.</p>
+          </div>
         </div>
         <button type="button" className="page-action-button" onClick={openCreateModal}>
           <i className="ti ti-plus" /> New User

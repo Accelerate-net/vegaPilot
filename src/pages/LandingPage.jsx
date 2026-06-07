@@ -58,12 +58,24 @@ export default function LandingPage() {
       .filter((s) => s.protected && canAccess(role, s.path));
   }, [pinnedPaths, role]);
 
-  const suggestedScreens = useMemo(() => {
-    const pinned = new Set(pinnedPaths);
-    return allScreens
-      .filter((s) => s.protected && s.group && canAccess(role, s.path) && !pinned.has(s.path))
-      .slice(0, 8);
-  }, [pinnedPaths, role]);
+  // ── "Your day at a glance" summary tiles (only shown if user can view the page) ──
+  const summaryTiles = useMemo(() => {
+    const items = [
+      { path: '/support',              label: 'Support Tickets', count: '13',     unit: 'open tickets',         icon: 'fa fa-life-ring',       color: '#f97316', alert: 13 },
+      { path: '/leads-management',     label: 'Leads',           count: '34',     unit: 'to address today',     icon: 'fa fa-user-plus',       color: '#16a34a', alert: 34 },
+      { path: '/orders',               label: 'Orders',          count: '34',     unit: 'orders received',      icon: 'fa fa-shopping-cart',   color: '#22c55e' },
+      { path: '/offline-attendance',   label: 'Attendance',      count: '34/355', unit: 'absentees today',      icon: 'fa fa-check-square-o',  color: '#ef4444' },
+      { path: '/live-class-scheduler', label: 'Live Classes',    count: '3',      unit: 'classes today',        icon: 'fa fa-video-camera',    color: '#94a3b8' },
+      { path: '/schedule-list',        label: 'Schedules',       count: '2',      unit: 'active schedules',     icon: 'fa fa-calendar',        color: '#94a3b8' },
+      { path: '/quiz-listing',         label: 'Quizzes',         count: '240',    unit: 'students completed',   icon: 'fa fa-question-circle', color: '#94a3b8' },
+      { path: '/feedback-summary',     label: 'Feedbacks',       count: '449',    unit: 'received today',       icon: 'fa fa-comments-o',      color: '#94a3b8' },
+      { path: '/survey-dashboard',     label: 'Surveys',         count: '12',     unit: 'new submissions',      icon: 'fa fa-list-alt',        color: '#94a3b8' },
+    ];
+    return items.filter((it) => {
+      const screen = allScreens.find((s) => s.path === it.path);
+      return screen && screen.protected && canAccess(role, it.path);
+    });
+  }, [role]);
 
   // ── Toasts ──────────────────────────────────────────────────────────
   const [toasts, setToasts] = useState([]);
@@ -74,6 +86,34 @@ export default function LandingPage() {
     setToasts((cur) => [...cur, { id, type, title, message }]);
     window.setTimeout(() => setToasts((cur) => cur.filter((t) => t.id !== id)), 4500);
   }, []);
+
+  // ── Profile kebab menu ─────────────────────────────────────────────
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+  useEffect(() => {
+    if (!profileMenuOpen) return undefined;
+    function onDocClick(e) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [profileMenuOpen]);
+
+  // ── Topbar profile popdown ─────────────────────────────────────────
+  const [profilePopdownOpen, setProfilePopdownOpen] = useState(false);
+  const profilePopdownRef = useRef(null);
+  useEffect(() => {
+    if (!profilePopdownOpen) return undefined;
+    function onDocClick(e) {
+      if (profilePopdownRef.current && !profilePopdownRef.current.contains(e.target)) {
+        setProfilePopdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [profilePopdownOpen]);
 
   // ── Edit Profile modal ─────────────────────────────────────────────
   const [editOpen, setEditOpen] = useState(false);
@@ -152,130 +192,109 @@ export default function LandingPage() {
   }
 
   return (
-    <section className="quiz-listing-page">
+    <section className="landing-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
-      {/* ── Greeting header ── */}
-      <div className="page-header-section">
-        <div>
-          <h2 style={{ margin: 0 }}>
-            <i className="ti ti-sun" style={{ color: '#d97706' }} /> {getGreeting(now)}, {user?.name?.split(' ')[0] || 'there'}!
-          </h2>
-          <p style={{ margin: '4px 0 0', color: '#52606d' }}>
-            {formatHeaderLine(now)}
-          </p>
+      {/* ── Greeting bar ── */}
+      <div className="landing-topbar">
+        <div className="landing-topbar-left">
+          {/* Profile avatar button */}
+          <div className="landing-topbar-avatar-wrap" ref={profilePopdownRef}>
+            <button
+              type="button"
+              className="landing-topbar-avatar"
+              title="View profile"
+              onClick={() => setProfilePopdownOpen((o) => !o)}
+            >
+              {user?.initials || 'U'}
+            </button>
+
+            {profilePopdownOpen && (
+              <div className="landing-topbar-popdown">
+                <div className="landing-popdown-avatar">{user?.initials || 'U'}</div>
+                <div className="landing-profile-identity" style={{ textAlign: 'center' }}>
+                  <div className="landing-profile-name">{displayName}</div>
+                  {displayRole && <div className="landing-profile-role">{displayRole}</div>}
+                </div>
+                <div className="landing-profile-rows">
+                  <ProfileRow icon="ti-email" label="Email" value={user?.email} />
+                  <ProfileRow icon="ti-mobile" label="Phone" value={user?.phone} />
+                </div>
+                <div className="landing-popdown-actions">
+                  <button type="button" className="landing-popdown-btn" onClick={() => { setProfilePopdownOpen(false); openEdit(); }}>
+                    <i className="ti ti-pencil" /> Edit Profile
+                  </button>
+                  <button type="button" className="landing-popdown-btn" onClick={() => { setProfilePopdownOpen(false); openChangePassword(); }}>
+                    <i className="ti ti-lock" /> Change Password
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <h2 className="landing-greeting">{getGreeting(now)}, <span className="landing-greeting-name">{displayName}!</span></h2>
+        </div>
+        <div className="landing-datetime">
+          <span className="landing-time">
+            {((now.getHours() % 12) || 12)}<span className="landing-time-colon">:</span>{String(now.getMinutes()).padStart(2, '0')} {now.getHours() < 12 ? 'am' : 'pm'}
+          </span>
+          <span className="landing-date">
+            {now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="landing-grid">
 
-        {/* ── Profile Card ── */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid #e6edf0',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: '#006073',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 20,
-            }}>
-              {user?.initials || 'U'}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#1f2933' }}>{displayName}</div>
-              {displayRole && (
-                <div style={{ fontSize: 12, color: user?.badgeColor || '#006073', fontWeight: 600 }}>
-                  {displayRole}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <ProfileRow icon="ti-email" label="Email" value={user?.email} />
-            <ProfileRow icon="ti-mobile" label="Phone" value={user?.phone} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-            <button type="button" className="btn btn-default" onClick={openEdit}>
-              <i className="ti ti-pencil" /> Edit Profile
-            </button>
-            <button type="button" className="btn btn-default" onClick={openChangePassword}>
-              <i className="ti ti-lock" /> Change Password
-            </button>
-          </div>
-        </div>
-
-        {/* ── Right column: pinned tiles ── */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 style={{ margin: 0, fontSize: 16, color: '#1f2933' }}>
-              <i className="ti ti-thumb-tack" style={{ color: '#006073' }} /> Your Pinned Pages
-            </h3>
-            <span style={{ fontSize: 12, color: '#6c757d' }}>
-              {pinnedScreens.length} pinned
-            </span>
-          </div>
-
-          {pinnedScreens.length === 0 ? (
-            <div className="empty-state" style={{ padding: 24 }}>
-              <i className="ti ti-thumb-tack" />
-              <h4>No pinned pages yet</h4>
-              <p>Pin frequently used pages from the sidebar to access them quickly here.</p>
-            </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-            }}>
-              {pinnedScreens.map((s) => (
-                <TileCard
-                  key={s.path}
-                  screen={s}
-                  onOpen={() => navigate(s.path)}
-                  onUnpin={() => togglePin?.(s.path)}
-                />
-              ))}
-            </div>
-          )}
-
-          {suggestedScreens.length > 0 && (
+        <div className="landing-main">
+          {pinnedScreens.length > 0 && (
             <>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '24px 0 12px' }}>
-                <h3 style={{ margin: 0, fontSize: 16, color: '#1f2933' }}>
-                  <i className="ti ti-star" style={{ color: '#d97706' }} /> Suggested
+              <div className="landing-section-head">
+                <h3>
+                  <i className="ti ti-thumb-tack" style={{ color: 'rgba(255, 255, 255, 0.6)' }} /> Your Pinned Pages
                 </h3>
-                <span style={{ fontSize: 12, color: '#6c757d' }}>Pin any to keep them on this dashboard.</span>
               </div>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: 12,
-              }}>
-                {suggestedScreens.map((s) => (
+              <div className="landing-tiles">
+                {pinnedScreens.map((s) => (
                   <TileCard
                     key={s.path}
                     screen={s}
                     onOpen={() => navigate(s.path)}
-                    onPin={() => togglePin?.(s.path)}
+                    onUnpin={() => togglePin?.(s.path)}
                   />
                 ))}
               </div>
             </>
+          )}
+
+          {summaryTiles.length > 0 && (
+            <div className="landing-summary">
+              <div className="landing-section-head">
+                <h3>
+                  Quick Insights for You
+                </h3>
+              </div>
+              <div className="landing-summary-tiles">
+                {summaryTiles.map((it) => (
+                  <button
+                    key={it.path}
+                    type="button"
+                    className="landing-summary-tile"
+                    onClick={() => navigate(it.path)}
+                  >
+                    {it.alert >= 1 && <span className="landing-summary-alert-dot" />}
+                    <div className="landing-summary-icon" style={{ background: `${it.color}22` }}>
+                      <i className={it.icon} style={{ color: it.color }} />
+                    </div>
+                    <div className="landing-summary-body">
+                      <div className="landing-summary-label" style={{ color: it.color }}>{it.label}</div>
+                      <div className="landing-summary-count" style={{ color: it.color }}>{it.count}</div>
+                      <div className="landing-summary-unit">{it.unit}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -357,63 +376,37 @@ export default function LandingPage() {
 
 function ProfileRow({ icon, label, value }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#52606d' }}>
-      <i className={`ti ${icon}`} style={{ color: '#006073', width: 16 }} />
-      <span style={{ fontWeight: 600, minWidth: 50 }}>{label}:</span>
-      <span style={{ color: value ? '#1f2933' : '#9aa5b1' }}>{value || '—'}</span>
+    <div className="landing-profile-row" title={label}>
+      <i className={`ti ${icon}`} />
+      <span style={{ color: value ? '#1f2933' : '#9aa5b1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {value || '—'}
+      </span>
     </div>
   );
 }
 
 function TileCard({ screen, onOpen, onUnpin, onPin }) {
+  const rawIcon = screen.icon || 'fa-square-o';
+  // Icons may be stored with a font prefix ("fa fa-x" / "ti ti-x") or without ("fa-x").
+  const iconClass = rawIcon.includes(' ')
+    ? rawIcon
+    : `${rawIcon.startsWith('ti-') ? 'ti' : 'fa'} ${rawIcon}`;
   return (
     <div
+      className="landing-tile"
       role="button"
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
-      style={{
-        background: '#fff',
-        border: '1px solid #e6edf0',
-        borderRadius: 12,
-        padding: 16,
-        cursor: 'pointer',
-        position: 'relative',
-        transition: 'transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        minHeight: 110,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#006073';
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 6px 18px rgba(0, 96, 115, 0.10)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#e6edf0';
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 36,
-          height: 36,
-          borderRadius: 8,
-          background: '#eef4f5',
-          color: '#006073',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 18,
-        }}>
-          <i className={`fa ${screen.icon || 'fa-square-o'}`} />
+      <div className="landing-tile-top">
+        <div className="landing-tile-icon">
+          <i className={iconClass} />
         </div>
-        <div style={{ fontWeight: 700, fontSize: 14, color: '#1f2933', lineHeight: 1.2 }}>{screen.title}</div>
+        <div className="landing-tile-title">{screen.title}</div>
       </div>
       {screen.summary ? (
-        <p style={{ margin: 0, fontSize: 12, color: '#6c757d', lineHeight: 1.4 }}>
+        <p className="landing-tile-summary">
           {screen.summary.length > 90 ? `${screen.summary.slice(0, 90)}…` : screen.summary}
         </p>
       ) : null}
@@ -422,17 +415,8 @@ function TileCard({ screen, onOpen, onUnpin, onPin }) {
         <button
           type="button"
           title={onUnpin ? 'Unpin' : 'Pin'}
+          className={`landing-tile-pin ${onUnpin ? 'is-pinned' : 'is-unpinned'}`}
           onClick={(e) => { e.stopPropagation(); (onUnpin || onPin)(); }}
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: onUnpin ? '#006073' : '#9aa5b1',
-            fontSize: 14,
-          }}
         >
           <i className="fa fa-thumb-tack" />
         </button>

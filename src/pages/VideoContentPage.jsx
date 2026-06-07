@@ -563,9 +563,12 @@ export default function VideoContentPage() {
 
       {/* ── Standard Page Header ── */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-video-clapper" /> Video Content</h2>
-          <p>Manage linked videos, chapter metadata, and upload state.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-video-camera" /></span>
+          <div>
+            <h2>Video Content</h2>
+            <p>Manage linked videos, chapter metadata, and upload state.</p>
+          </div>
         </div>
         <button type="button" className="page-action-button" onClick={() => setShowLink(true)}>
           <i className="ti ti-plus" /> Add New

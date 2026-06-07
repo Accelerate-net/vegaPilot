@@ -687,9 +687,12 @@ export default function SupportPage() {
   return (
     <div className="support-inbox-page">
       <div className="page-header-section">
-        <div>
-          <h2>Support Inbox</h2>
-          <p>Consolidated view for student support tickets and potential leads chats.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-life-ring" /></span>
+          <div>
+            <h2>Support Inbox</h2>
+            <p>Consolidated view for student support tickets and potential leads chats.</p>
+          </div>
         </div>
       </div>
 

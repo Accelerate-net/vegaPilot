@@ -358,9 +358,12 @@ export default function PracticeQuestionsPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts(c => c.filter(t => t.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Practice Questions</h2>
-          <p>Upload question bundles, organize them into practice sets, and manage the practice repository.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-file-text-o" /></span>
+          <div>
+            <h2>Practice Questions</h2>
+            <p>Upload question bundles, organize them into practice sets, and manage the practice repository.</p>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" className="page-action-button" onClick={openUploadModal}>

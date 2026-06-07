@@ -366,8 +366,8 @@ export default function Layout({ children, currentScreen }) {
         {/* ── Nav ───────────────────────────────────────────────── */}
         <nav className="sb-nav" aria-label="Primary">
 
-          {/* Pinned section */}
-          {pinnedScreens.length > 0 && (
+          {/* Pinned section — hidden on the landing page (shown there as tiles) */}
+          {location.pathname !== '/landing' && pinnedScreens.length > 0 && (
             <div className="sb-group">
               {!collapsed && (
                 <div className="sb-group-hdr sb-group-hdr--pinned">
@@ -419,7 +419,7 @@ export default function Layout({ children, currentScreen }) {
                     className={`sb-group-hdr${hasActive ? ' has-active' : ''}${isOpen ? ' open' : ''}`}
                     onClick={() => toggleGroup(group.id)}
                   >
-                    <i className={`fa ${group.icon} sb-icon`} />
+                    <i className={`${group.icon.startsWith('ti') ? '' : 'fa '}${group.icon} sb-icon`} />
                     <span className="sb-label">{group.label}</span>
                     <i className="fa fa-chevron-down sb-chevron" />
                   </button>
@@ -526,7 +526,7 @@ export default function Layout({ children, currentScreen }) {
       </aside>
 
       {/* ── Main content ──────────────────────────────────────────── */}
-      <main className="content">
+      <main className={`content${location.pathname === '/landing' ? ' content--landing' : ''}`}>
         {children}
       </main>
 
@@ -814,7 +814,7 @@ function NavItem({ screen, collapsed, pinned, onTogglePin, setHoverTooltip }) {
         {collapsed ? (
           <span className="sb-icon sb-short-code">{screen.shortCode || screen.title.substring(0, 2).toUpperCase()}</span>
         ) : (
-          <i className={`fa ${screen.icon} sb-icon`} />
+          <i className={`${screen.icon.startsWith('ti') ? '' : 'fa '}${screen.icon} sb-icon`} />
         )}
         {!collapsed && <span className="sb-label">{screen.title}</span>}
       </NavLink>

@@ -612,9 +612,12 @@ export default function MentorProfilesPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Mentor Management</h2>
-          <p>Create mentor profiles, review assignments, and manage mentee mapping without changing the legacy workflow.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-smile-o" /></span>
+          <div>
+            <h2>Mentor Management</h2>
+            <p>Create mentor profiles, review assignments, and manage mentee mapping without changing the legacy workflow.</p>
+          </div>
         </div>
         <Can permission={PERMS.MENTORS_EDIT}>
           <button type="button" className="create-mentor-button" onClick={openCreateModal}>

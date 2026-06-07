@@ -560,9 +560,12 @@ export default function AssetsPage() {
 
       {/* ── Page Header ── */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-package" /> Assets</h2>
-          <p>Track asset inventory, valuation, depreciation and location assignment.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-cube" /></span>
+          <div>
+            <h2>Assets</h2>
+            <p>Track asset inventory, valuation, depreciation and location assignment.</p>
+          </div>
         </div>
         <Can permission={PERMS.ASSETS_EDIT}>
           <button type="button" className="create-quiz-button" onClick={openCreateModal}>
@@ -655,26 +658,29 @@ export default function AssetsPage() {
       {/* ── Table ── */}
       {isLoading ? (
         <div className="students-table-container">
-          <table className="students-table">
-            <thead>
-              <tr>
-                <th>ID</th><th>Name</th><th>Type</th><th>Code</th><th>Purchase Date</th>
-                <th>Original</th><th>Current</th><th>Depr %</th><th>Location</th><th>Status</th><th>Invoice</th><th>Created</th><th>&nbsp;</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 8 }, (_, i) => (
-                <tr key={`sk-${i}`}>
-                  {Array.from({ length: 13 }, (_, j) => (
-                    <td key={j}><div className="batch-skeleton medium" /></td>
-                  ))}
+          <div className="assets-table-scroll">
+            <table className="students-table">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Name</th><th>Type</th><th>Code</th><th>Purchase Date</th>
+                  <th>Original</th><th>Current</th><th>Depr %</th><th>Location</th><th>Status</th><th>Invoice</th><th>Created</th><th>&nbsp;</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <tr key={`sk-${i}`}>
+                    {Array.from({ length: 13 }, (_, j) => (
+                      <td key={j}><div className="batch-skeleton medium" /></td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : visibleAssets.length > 0 ? (
         <div className="students-table-container">
+          <div className="assets-table-scroll">
           <table className="students-table">
             <thead>
               <tr>
@@ -810,6 +816,7 @@ export default function AssetsPage() {
               })}
             </tbody>
           </table>
+          </div>
 
           <div className="pagination-container">
             <div className="pagination-info">

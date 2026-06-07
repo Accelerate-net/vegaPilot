@@ -301,9 +301,12 @@ export default function LocationsPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Locations</h2>
-          <p>Manage operational locations and the venues at each location.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-map-marker" /></span>
+          <div>
+            <h2>Locations</h2>
+            <p>Manage operational locations and the venues at each location.</p>
+          </div>
         </div>
         <button type="button" className="create-mentor-button" onClick={openAddLocation}>
           <i className="ti ti-plus" /> New Location

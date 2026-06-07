@@ -371,9 +371,12 @@ export default function OfflineAttendancePage() {
 
       {/* ── Standard Page Header ── */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-fingerprint" /> Offline Attendance</h2>
-          <p>View biometric and offline attendance entries across batches, residences and locations.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-check-square-o" /></span>
+          <div>
+            <h2>Offline Attendance</h2>
+            <p>View biometric and offline attendance entries across batches, residences and locations.</p>
+          </div>
         </div>
         <Can permission={PERMS.ATTENDANCE_MARK}>
           <button type="button" className="page-action-button" onClick={() => setShowManualModal(true)}>

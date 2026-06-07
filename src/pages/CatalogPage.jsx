@@ -235,50 +235,53 @@ export default function CatalogPage() {
 
       {/* Page Header Section */}
       <div className="page-header-section">
-         <div>
-            <h2><i className="ti ti-shopping-cart" /> Catalog Management</h2>
-            <p>Manage catalog entries, pricing, status, and landing page metadata.</p>
+         <div className="page-header-title-group">
+            <span className="page-header-icon-box"><i className="fa fa-th-large" /></span>
+            <div>
+               <h2>Catalog Management</h2>
+               <p>Manage catalog entries, pricing, status, and landing page metadata.</p>
+            </div>
          </div>
          <button type="button" className="page-action-button" onClick={addNewCatalog}>
             <i className="ti ti-plus" /> Add New Catalog Item
          </button>
       </div>
 
-      <div className="cat-stats-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '25px', marginBottom: '35px' }}>
-         <div className="cat-stat-card" style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #f3f4f6' }}>
-            <div className="cat-stat-icon cat-blue" style={{ width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: 'white', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div className="cat-stats-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '16px', marginBottom: '24px' }}>
+         <div className="cat-stat-card" style={{ background: 'white', padding: '18px 20px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #e6edf0' }}>
+            <div className="cat-stat-icon cat-blue" style={{ width: '46px', height: '46px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, color: '#4f46e5', background: '#e7e9fd' }}>
                <i className="ti ti-layers"></i>
             </div>
             <div className="cat-stat-info" style={{ flex: 1 }}>
-               <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', margin: '0 0 5px 0' }}>{summary.total}</h3>
-               <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600, margin: 0, textTransform: 'uppercase' }}>Total Catalog Items</p>
+               <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: 0, lineHeight: 1 }}>{summary.total}</h3>
+               <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 400, margin: '4px 0 0' }}>Total Catalog Items</p>
             </div>
          </div>
-         <div className="cat-stat-card" style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #f3f4f6' }}>
-            <div className="cat-stat-icon cat-teal" style={{ width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: 'white', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)' }}>
+         <div className="cat-stat-card" style={{ background: 'white', padding: '18px 20px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #e6edf0' }}>
+            <div className="cat-stat-icon cat-teal" style={{ width: '46px', height: '46px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, color: '#006073', background: '#e7f5f7' }}>
                <i className="ti ti-book"></i>
             </div>
             <div className="cat-stat-info" style={{ flex: 1 }}>
-               <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', margin: '0 0 5px 0' }}>{summary.courses}</h3>
-               <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600, margin: 0, textTransform: 'uppercase' }}>Courses Available</p>
+               <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: 0, lineHeight: 1 }}>{summary.courses}</h3>
+               <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 400, margin: '4px 0 0' }}>Courses Available</p>
             </div>
          </div>
-         <div className="cat-stat-card" style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #f3f4f6' }}>
-            <div className="cat-stat-icon cat-orange" style={{ width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: 'white', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+         <div className="cat-stat-card" style={{ background: 'white', padding: '18px 20px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #e6edf0' }}>
+            <div className="cat-stat-icon cat-orange" style={{ width: '46px', height: '46px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, color: '#856404', background: '#fff3cd' }}>
                <i className="ti ti-write"></i>
             </div>
             <div className="cat-stat-info" style={{ flex: 1 }}>
-               <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', margin: '0 0 5px 0' }}>{summary.exams}</h3>
-               <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600, margin: 0, textTransform: 'uppercase' }}>Exams Available</p>
+               <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: 0, lineHeight: 1 }}>{summary.exams}</h3>
+               <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 400, margin: '4px 0 0' }}>Exams Available</p>
             </div>
          </div>
-         <div className="cat-stat-card" style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #f3f4f6' }}>
-            <div className="cat-stat-icon cat-green" style={{ width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: 'white', background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+         <div className="cat-stat-card" style={{ background: 'white', padding: '18px 20px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #e6edf0' }}>
+            <div className="cat-stat-icon cat-green" style={{ width: '46px', height: '46px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, color: '#155724', background: '#d4edda' }}>
                <i className="ti ti-check"></i>
             </div>
             <div className="cat-stat-info" style={{ flex: 1 }}>
-               <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', margin: '0 0 5px 0' }}>{summary.active}</h3>
-               <p style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600, margin: 0, textTransform: 'uppercase' }}>Active Items</p>
+               <h3 style={{ fontSize: '24px', fontWeight: 700, color: '#1e293b', margin: 0, lineHeight: 1 }}>{summary.active}</h3>
+               <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 400, margin: '4px 0 0' }}>Active Items</p>
             </div>
          </div>
       </div>

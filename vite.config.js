@@ -40,6 +40,19 @@ function cleanRouteFallback() {
       return next();
     }
 
+    // ── Public forms runtime ──
+    //   /submission?id=<FORM_ID>&key=<RECIPIENT_KEY>  → live, submittable form
+    //   /preview?id=<FORM_ID>                          → read-only disabled preview
+    //   /read?id=<FORM_ID>&secret=<SECRET>             → filled, uneditable + print
+    // Routed to the standalone forms-app bundle, NOT the admin SPA. This is the
+    // public host (forms.crisprlearning.com) end users land on from a sent link.
+    if (url === '/submission' || url.startsWith('/submission/')
+        || url === '/preview' || url.startsWith('/preview/')
+        || url === '/read' || url.startsWith('/read/')) {
+      req.url = '/forms.html';
+      return next();
+    }
+
     // Known SPA route: rewrite straight to the app entry.
     if (cleanRoutes.has(url)) {
       req.url = '/app.html';
@@ -82,6 +95,7 @@ export default defineConfig({
       input: {
         main:   'app.html',
         player: 'player.html',
+        forms:  'forms.html',
       },
     },
   },

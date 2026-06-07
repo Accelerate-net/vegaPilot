@@ -122,9 +122,12 @@ export default function SchedulesListPage() {
 
       {/* Page header */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-calendar" /> Schedules</h2>
-          <p>All planned day-schedules across batches. Pick a row to view it on the calendar.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-calendar" /></span>
+          <div>
+            <h2>Schedules</h2>
+            <p>All planned day-schedules across batches. Pick a row to view it on the calendar.</p>
+          </div>
         </div>
         <button type="button" className="page-action-button" onClick={createNew}>
           <i className="ti ti-plus" /> New schedule

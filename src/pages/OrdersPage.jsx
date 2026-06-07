@@ -229,9 +229,12 @@ export default function OrdersPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-receipt" /> Orders Management</h2>
-          <p>Review transactions, customer purchases, invoice state, and refund actions.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-shopping-cart" /></span>
+          <div>
+            <h2>Orders Management</h2>
+            <p>Review transactions, customer purchases, invoice state, and refund actions.</p>
+          </div>
         </div>
       </div>
 

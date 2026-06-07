@@ -261,9 +261,12 @@ export default function TestSeriesListPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-layers" /> Test Series Management</h2>
-          <p>Manage grouped exam collections and assign free or premium access per exam.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-tasks" /></span>
+          <div>
+            <h2>Test Series Management</h2>
+            <p>Manage grouped exam collections and assign free or premium access per exam.</p>
+          </div>
         </div>
         <button type="button" className="create-test-series-btn" onClick={() => openCreateModal()}>
           <i className="ti ti-plus" /> Create Test Series

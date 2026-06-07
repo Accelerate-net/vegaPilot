@@ -427,9 +427,12 @@ export default function FeedbackSummaryPage() {
 
       {/* ── Standard Page Header ── */}
       <div className="page-header-section">
-        <div>
-          <h2><i className="ti ti-star" /> Feedback Summary</h2>
-          <p>Consolidated view of all student feedback for courses and exams.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-star-half-o" /></span>
+          <div>
+            <h2>Feedback Summary</h2>
+            <p>Consolidated view of all student feedback for courses and exams.</p>
+          </div>
         </div>
       </div>
 

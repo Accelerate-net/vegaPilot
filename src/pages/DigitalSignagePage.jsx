@@ -172,9 +172,12 @@ export default function DigitalSignagePage() {
 function PageHeader({ branchFilter, setBranchFilter, branchFilterLabel }) {
   return (
     <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
-      <div>
-        <h2><i className="ti ti-device-desktop" /> Digital Signage</h2>
-        <p>Manage TV kiosks, build loops, broadcast alerts across all branches.</p>
+      <div className="page-header-title-group">
+        <span className="page-header-icon-box"><i className="fa fa-tv" /></span>
+        <div>
+          <h2>Digital Signage</h2>
+          <p>Manage TV kiosks, build loops, broadcast alerts across all branches.</p>
+        </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>Branch</span>

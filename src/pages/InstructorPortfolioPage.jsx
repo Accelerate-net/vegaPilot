@@ -436,9 +436,12 @@ export default function InstructorPortfolioPage() {
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
 
       <div className="page-header-section">
-        <div>
-          <h2>Instructor Management</h2>
-          <p>Manage instructor portfolios, subject ownership, and lesson contributions without changing the legacy workflow.</p>
+        <div className="page-header-title-group">
+          <span className="page-header-icon-box"><i className="fa fa-male" /></span>
+          <div>
+            <h2>Instructor Management</h2>
+            <p>Manage instructor portfolios, subject ownership, and lesson contributions without changing the legacy workflow.</p>
+          </div>
         </div>
         <Can permission={PERMS.INSTRUCTORS_EDIT}>
           <button type="button" className="create-instructor-button" onClick={openCreateModal}>
