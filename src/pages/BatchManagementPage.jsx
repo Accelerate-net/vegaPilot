@@ -114,6 +114,23 @@ function formatDate(value) {
   return `${day}-${month}-${year}`;
 }
 
+// Same value handling as formatDate, but rendered like "23 Jun, 2026".
+function formatDateLong(value) {
+  if (!value) return 'Not set';
+
+  let date;
+  const numValue = Number(value);
+  if (!isNaN(numValue)) {
+    date = new Date(numValue < 10000000000 ? numValue * 1000 : numValue);
+  } else {
+    date = new Date(value);
+  }
+
+  if (isNaN(date.getTime())) return 'Not set';
+
+  return `${date.getDate()} ${MONTH_LABELS[date.getMonth()]}, ${date.getFullYear()}`;
+}
+
 function formatDateForInput(value) {
   if (!value) return '';
   
@@ -153,13 +170,6 @@ function getBatchStatus(batch) {
   if (today < startDate) return 'Upcoming';
   if (endDate && today > endDate) return 'Completed';
   return 'Active';
-}
-
-function getBatchStatusClass(batch) {
-  const status = getBatchStatus(batch);
-  if (status === 'Upcoming') return 'status-upcoming';
-  if (status === 'Completed') return 'status-completed';
-  return 'status-active';
 }
 
 function getUnenrolledStudentsInBatch(batch) {
@@ -236,8 +246,10 @@ export default function BatchManagementPage() {
   const [totalBatches, setTotalBatches] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
+  const [activeCourseMoreId, setActiveCourseMoreId] = useState(null);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState(false);
   const [batchDraft, setBatchDraft] = useState(null);
@@ -248,6 +260,8 @@ export default function BatchManagementPage() {
   const [enrollCourseModalOpen, setEnrollCourseModalOpen] = useState(false);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
+  const [addStudentsPage, setAddStudentsPage] = useState(1);
+  const [addStudentsPageSize, setAddStudentsPageSize] = useState(10);
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentFilter, setStudentFilter] = useState('all');
   const [selectedCourseIdForFilter, setSelectedCourseIdForFilter] = useState('');
@@ -342,7 +356,10 @@ export default function BatchManagementPage() {
         }
       }
     } finally {
-      if (!isCancelled.current) setIsLoading(false);
+      if (!isCancelled.current) {
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
   }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery]);
 
@@ -461,6 +478,9 @@ export default function BatchManagementPage() {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) {
         setActiveKebabId(null);
       }
+      if (!event.target.closest?.('.batch-course-more-wrap')) {
+        setActiveCourseMoreId(null);
+      }
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -492,6 +512,26 @@ export default function BatchManagementPage() {
     const existingIds = new Set((selectedBatch.students || []).map((student) => student.id));
     return allCandidates.filter((student) => !existingIds.has(student.id));
   }, [allCandidates, selectedBatch]);
+
+  // Pagination for the Manage Students modal table.
+  const addStudentsTotal = availableStudentsForBatch.length;
+  const addStudentsTotalPages = Math.max(1, Math.ceil(addStudentsTotal / addStudentsPageSize));
+  const safeAddStudentsPage = Math.min(addStudentsPage, addStudentsTotalPages);
+  const pagedAvailableStudents = useMemo(() => {
+    const start = (safeAddStudentsPage - 1) * addStudentsPageSize;
+    return availableStudentsForBatch.slice(start, start + addStudentsPageSize);
+  }, [availableStudentsForBatch, safeAddStudentsPage, addStudentsPageSize]);
+  const addStudentsPageNumbers = useMemo(
+    () => getPageNumbers(safeAddStudentsPage, addStudentsTotalPages),
+    [safeAddStudentsPage, addStudentsTotalPages],
+  );
+  const addStudentsShowingStart = addStudentsTotal === 0 ? 0 : (safeAddStudentsPage - 1) * addStudentsPageSize + 1;
+  const addStudentsShowingEnd = Math.min(safeAddStudentsPage * addStudentsPageSize, addStudentsTotal);
+
+  // Reset to the first page whenever the modal opens or the search changes.
+  useEffect(() => {
+    setAddStudentsPage(1);
+  }, [studentSearchQuery, addStudentsModalOpen]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -1050,19 +1090,14 @@ export default function BatchManagementPage() {
         </div>
       </div>
 
-      {(!isLoading && totalBatches === 0) ? (
+      {(hasLoaded && !isLoading && totalBatches === 0) ? (
         <div className="empty-state">
           <i className="ti ti-layout-grid2" />
           <h3>No Batches Found</h3>
           {searchQuery.trim() ? (
             <p>No batches match your search</p>
           ) : (
-            <>
-              <p>Create your first batch to start organizing students</p>
-              <button type="button" className="legacy-btn legacy-btn-success" onClick={openCreateBatchModal}>
-                <i className="ti ti-plus" /> Create First Batch
-              </button>
-            </>
+            <p>Create your first batch to start organizing students</p>
           )}
         </div>
       ) : null}
@@ -1072,7 +1107,7 @@ export default function BatchManagementPage() {
           <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
-                <th className={`sortable ${sortColumn === 'batchName' ? 'active' : ''}`} onClick={() => handleSort('batchName')}>
+                <th className={`sortable ${sortColumn === 'batchName' ? 'active' : ''}`} style={{ width: '32%', minWidth: '320px' }} onClick={() => handleSort('batchName')}>
                   Batch Name
                   <i className={`sort-icon ti ${sortIcon('batchName')}`} />
                 </th>
@@ -1120,21 +1155,24 @@ export default function BatchManagementPage() {
                     <td>
                       <div className="batch-name-container">
                         <div className="batch-name">{batch.batchName}</div>
-                        {batch.prepJourneyType && batch.prepJourneyYear && (
-                          <span className="batch-journey-tag">
-                            {batch.prepJourneyType} - {batch.prepJourneyYear}
-                          </span>
-                        )}
-                        {batch.type && (
-                          <span className={`batch-type-tag ${batch.type === 'OFFLINE' ? 'offline' : 'online'}`}>
-                            <i className={`ti ${batch.type === 'OFFLINE' ? 'ti-home' : 'ti-world'}`} /> {batch.type === 'OFFLINE' ? 'Offline' : 'Online'}
-                          </span>
-                        )}
-                        {(batch.locationName || (typeof batch.location === 'object' && batch.location?.name)) && (
-                          <span className="batch-location-tag">
-                            <i className="ti ti-location-pin" /> {batch.locationName || batch.location?.name}
-                          </span>
-                        )}
+                        <div className="batch-meta-line">
+                          {batch.prepJourneyType && batch.prepJourneyYear && (
+                            <span className="batch-journey-tag">
+                              {batch.prepJourneyType} - {batch.prepJourneyYear}
+                            </span>
+                          )}
+                          {batch.type === 'OFFLINE' ? (
+                            (batch.locationName || (typeof batch.location === 'object' && batch.location?.name)) && (
+                              <span className="batch-location-tag">
+                                <i className="ti ti-location-pin" /> {batch.locationName || batch.location?.name}
+                              </span>
+                            )
+                          ) : (
+                            <span className="batch-location-tag online" title="Online batch">
+                              <span className="batch-center-dot" /> Online
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {batch.description ? <div className="batch-description">{batch.description}</div> : null}
                     </td>
@@ -1153,7 +1191,7 @@ export default function BatchManagementPage() {
                     <td>
                       {batch.enrolledCourses.length > 0 ? (
                         <div className="batch-courses">
-                          {batch.enrolledCourses.map((course, idx) => {
+                          {batch.enrolledCourses.slice(0, 2).map((course, idx) => {
                             const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
                             const courseKey = typeof course === 'object' ? (course.id || idx) : course;
                             return (
@@ -1162,6 +1200,36 @@ export default function BatchManagementPage() {
                               </span>
                             );
                           })}
+                          {batch.enrolledCourses.length > 2 && (
+                            <span className="batch-course-more-wrap">
+                              <button
+                                type="button"
+                                className="batch-course-badge batch-course-more"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setActiveCourseMoreId((current) => (current === batch.id ? null : batch.id));
+                                }}
+                              >
+                                +{batch.enrolledCourses.length - 2}
+                              </button>
+                              {activeCourseMoreId === batch.id && (
+                                <div className="batch-course-popover" onClick={(event) => event.stopPropagation()}>
+                                  <div className="batch-course-popover-head">
+                                    {batch.enrolledCourses.length - 2} more course{batch.enrolledCourses.length - 2 > 1 ? 's' : ''}
+                                  </div>
+                                  {batch.enrolledCourses.slice(2).map((course, idx) => {
+                                    const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
+                                    const courseKey = typeof course === 'object' ? (course.id || idx) : course;
+                                    return (
+                                      <div key={`more-${batch.id}-${courseKey}-${idx}`} className="batch-course-popover-item">
+                                        <i className="ti ti-book" /> {courseTitle}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <div className="course-info muted">
@@ -1171,16 +1239,24 @@ export default function BatchManagementPage() {
                     </td>
                     <td>
                       <div className={`course-info ${!batch.startDate ? 'muted' : ''}`}>
-                        {batch.startDate ? <><i className="ti ti-calendar" /> {formatDate(batch.startDate)}</> : 'Not set'}
+                        {batch.startDate ? formatDateLong(batch.startDate) : 'Not set'}
                       </div>
                     </td>
                     <td>
                       <div className={`course-info ${!batch.endDate ? 'muted' : ''}`}>
-                        {batch.endDate ? <><i className="ti ti-flag" /> {formatDate(batch.endDate)}</> : 'Not set'}
+                        {batch.endDate ? formatDateLong(batch.endDate) : 'Not set'}
                       </div>
                     </td>
                     <td className="center-align">
-                      <span className={`batch-status ${getBatchStatusClass(batch)}`}>{getBatchStatus(batch)}</span>
+                      {(() => {
+                        const isActive = String(getBatchStatus(batch)).toLowerCase() === 'active';
+                        return (
+                          <span className={`batch-status-dot ${isActive ? 'is-active' : 'is-inactive'}`}>
+                            <span className="batch-status-dot-mark" />
+                            {isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className={`center-align ${activeKebabId === batch.id ? 'cell-active-menu' : ''}`}>
                       <div className="kebab-menu-container">
@@ -1189,7 +1265,7 @@ export default function BatchManagementPage() {
                         </button>
                         <div className={`kebab-dropdown ${activeKebabId === batch.id ? 'active' : ''}`}>
                           <button type="button" className="kebab-dropdown-item view-profile" onClick={() => openViewAttendance(batch)}>
-                            <i className="ti ti-calendar-stats" />
+                            <i className="fa fa-check-square-o sb-icon" />
                             <span className="item-label">View Attendance</span>
                           </button>
                           {can(PERMS.BATCHES_COURSES_EDIT) && (
@@ -1283,7 +1359,7 @@ export default function BatchManagementPage() {
               <i className="ti ti-close" />
             </button>
           </div>
-          <form className="batch-modal-form" onSubmit={(event) => { event.preventDefault(); saveBatch(); }}>
+          <form className="batch-modal-form form-modal" onSubmit={(event) => { event.preventDefault(); saveBatch(); }}>
           <div className="legacy-modal-body">
             <div className="asset-form-section">
               <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Details</div>
@@ -1472,41 +1548,59 @@ export default function BatchManagementPage() {
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="legacy-modal-body">
+          <div className="legacy-modal-body form-modal">
             {selectedBatch ? (
               <>
                 <div className="batch-modal-summary">
                   <div className="batch-modal-title">{selectedBatch.batchName}</div>
                   <div className="batch-modal-subtitle">{selectedBatch.students.length} students will inherit access to newly added courses.</div>
                 </div>
-                <div className="batch-course-toolbar">
-                   <select className="search-input" value={selectedCourse} onChange={(event) => setSelectedCourse(event.target.value)}>
-                     <option value="">Select a course to add</option>
-                     {availableCourses.map((course) => (
-                       <option key={course.id} value={course.id}>{course.title}</option>
-                     ))}
-                   </select>
-                  <button type="button" className="legacy-btn legacy-btn-success" onClick={addCourseToBatch}>
-                    <i className="ti ti-plus" /> Add Course
-                  </button>
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-plus" /> Add a Course</div>
+                  <div className="batch-course-toolbar">
+                    <div className="float-field float-always">
+                      <select className="float-control" value={selectedCourse} onChange={(event) => setSelectedCourse(event.target.value)}>
+                        <option value="">Select a course</option>
+                        {availableCourses.map((course) => (
+                          <option key={course.id} value={course.id}>{course.title}</option>
+                        ))}
+                      </select>
+                      <span className="float-label">Course</span>
+                    </div>
+                    <button type="button" className="legacy-btn legacy-btn-success" onClick={addCourseToBatch}>
+                      Add Course
+                    </button>
+                  </div>
                 </div>
-                <div className="batch-course-list">
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-book" /> Enrolled Courses</div>
                   {selectedBatch.enrolledCourses.length > 0 ? (
-                    selectedBatch.enrolledCourses.map((course, idx) => {
-                      const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
-                      const courseId = typeof course === 'object' ? (course.id || idx) : course;
-                      return (
-                        <div key={`${courseId}-${idx}`} className="batch-course-row">
-                          <div>
-                            <div className="batch-course-row-title">{courseTitle}</div>
-                            <div className="batch-course-row-meta">Currently assigned to this batch</div>
+                    <div className="batch-course-cards">
+                      {selectedBatch.enrolledCourses.map((course, idx) => {
+                        const courseTitle = typeof course === 'object' ? (course.title || course.name || 'Unknown Course') : course;
+                        const courseId = typeof course === 'object' ? (course.id || idx) : course;
+                        return (
+                          <div key={`${courseId}-${idx}`} className="batch-course-card">
+                            <div className="batch-course-card-info">
+                              <span className="batch-course-card-icon"><i className="ti ti-book" /></span>
+                              <div>
+                                <div className="batch-course-card-title">{courseTitle}</div>
+                                <div className="batch-course-card-meta">Assigned to this batch</div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="legacy-btn legacy-btn-small batch-course-revoke"
+                              onClick={() => removeCourseFromBatch(course)}
+                            >
+                              Revoke
+                            </button>
                           </div>
-                          <button type="button" className="legacy-btn legacy-btn-default" onClick={() => removeCourseFromBatch(course)}>
-                            <i className="ti ti-trash" /> Remove
-                          </button>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                    </div>
                   ) : (
                     <div className="batch-empty-panel">No courses are currently enrolled to this batch.</div>
                   )}
@@ -1671,7 +1765,7 @@ export default function BatchManagementPage() {
       </div>
 
       <div className={`legacy-modal-backdrop ${addStudentsModalOpen ? 'active' : ''}`} onClick={() => setAddStudentsModalOpen(false)}>
-        <div className="legacy-modal-dialog legacy-xl" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+        <div className="legacy-modal-dialog legacy-xl form-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
           <div className="legacy-modal-header">
             <h3>Manage Students</h3>
             <button type="button" className="legacy-modal-close" onClick={() => setAddStudentsModalOpen(false)}>
@@ -1685,68 +1779,119 @@ export default function BatchManagementPage() {
                   <div className="batch-modal-title">{selectedBatch.batchName}</div>
                   <div className="batch-modal-subtitle">Select students to add into this batch. New students are added as not enrolled by default.</div>
                 </div>
-                <div className="search-wrapper batch-modal-search">
-                  <i className="ti ti-search" />
-                  <input
-                    type="text"
-                    className="search-input"
-                    value={studentSearchQuery}
-                    onChange={(event) => setStudentSearchQuery(event.target.value)}
-                    placeholder="Search available students..."
-                  />
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-users" /> Available Students</div>
+                  <div className="search-wrapper batch-modal-search">
+                    <i className="ti ti-search" />
+                    <input
+                      type="text"
+                      className="search-input"
+                      value={studentSearchQuery}
+                      onChange={(event) => setStudentSearchQuery(event.target.value)}
+                      placeholder="Search available students..."
+                    />
+                  </div>
+
+                  <div className="students-table-container">
+                    <table className="students-table">
+                      <thead>
+                        <tr>
+                          <th className="checkbox-column">
+                            <input
+                              type="checkbox"
+                              checked={availableStudentsForBatch.length > 0 && availableStudentsForBatch.every((student) => selectedStudentsToAdd[student.id])}
+                              onChange={(event) => toggleSelectAllStudentsToAdd(event.target.checked)}
+                            />
+                          </th>
+                          <th>Student</th>
+                          <th>Contact</th>
+                          <th>Availability</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedAvailableStudents.map((student) => (
+                          <tr key={student.id}>
+                            <td className="checkbox-column">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(selectedStudentsToAdd[student.id])}
+                                onChange={() => toggleStudentToAdd(student)}
+                              />
+                            </td>
+                            <td>
+                              <div className="batch-student-cell">
+                                <div className="batch-student-avatar">{getStudentInitials(student.name)}</div>
+                                <div>
+                                  <div className="batch-student-name">{student.name}</div>
+                                  <div className="batch-student-id">{student.id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="batch-contact-line">{student.email}</div>
+                              <div className="batch-contact-line">{student.phone}</div>
+                            </td>
+                            <td>
+                              <span className={`batch-student-status ${student.status === 'active' ? 'enrolled' : 'not-enrolled'}`}>
+                                {student.status === 'active' ? 'Available' : 'Inactive'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {availableStudentsForBatch.length === 0 ? (
+                          <tr>
+                            <td colSpan={4}><div className="batch-empty-panel">No available students found for this batch.</div></td>
+                          </tr>
+                        ) : null}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {addStudentsTotal > 0 && (
+                    <div className="pagination-container">
+                      <div className="pagination-info">
+                        <span>Showing {addStudentsShowingStart} to {addStudentsShowingEnd} of {addStudentsTotal} entries</span>
+                        <select
+                          className="page-size-select"
+                          value={addStudentsPageSize}
+                          onChange={(event) => {
+                            setAddStudentsPageSize(Number(event.target.value));
+                            setAddStudentsPage(1);
+                          }}
+                        >
+                          <option value={10}>Show 10</option>
+                          <option value={20}>Show 20</option>
+                          <option value={50}>Show 50</option>
+                          <option value={200}>Show 200</option>
+                        </select>
+                      </div>
+                      <div className="pagination-controls">
+                        <button type="button" className="pagination-btn" disabled={safeAddStudentsPage === 1} onClick={() => setAddStudentsPage((page) => Math.max(1, page - 1))}>
+                          <i className="ti ti-angle-left" /> Previous
+                        </button>
+                        {addStudentsPageNumbers.map((page) => (
+                          <button
+                            key={page}
+                            type="button"
+                            className={`pagination-btn ${safeAddStudentsPage === page ? 'active' : ''}`}
+                            onClick={() => setAddStudentsPage(page)}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          className="pagination-btn"
+                          disabled={safeAddStudentsPage === addStudentsTotalPages}
+                          onClick={() => setAddStudentsPage((page) => Math.min(addStudentsTotalPages, page + 1))}
+                        >
+                          Next <i className="ti ti-angle-right" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <table className="legacy-modal-table batch-students-table">
-                  <thead>
-                    <tr>
-                      <th className="checkbox-column">
-                        <input
-                          type="checkbox"
-                          checked={availableStudentsForBatch.length > 0 && availableStudentsForBatch.every((student) => selectedStudentsToAdd[student.id])}
-                          onChange={(event) => toggleSelectAllStudentsToAdd(event.target.checked)}
-                        />
-                      </th>
-                      <th>Student</th>
-                      <th>Contact</th>
-                      <th>Availability</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {availableStudentsForBatch.map((student) => (
-                      <tr key={student.id}>
-                        <td className="checkbox-column">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(selectedStudentsToAdd[student.id])}
-                            onChange={() => toggleStudentToAdd(student)}
-                          />
-                        </td>
-                        <td>
-                          <div className="batch-student-cell">
-                            <div className="batch-student-avatar">{getStudentInitials(student.name)}</div>
-                            <div>
-                              <div className="batch-student-name">{student.name}</div>
-                              <div className="batch-student-id">{student.id}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="batch-contact-line">{student.email}</div>
-                          <div className="batch-contact-line">{student.phone}</div>
-                        </td>
-                        <td>
-                          <span className={`batch-student-status ${student.status === 'active' ? 'enrolled' : 'not-enrolled'}`}>
-                            {student.status === 'active' ? 'Available' : 'Inactive'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {availableStudentsForBatch.length === 0 ? (
-                      <tr>
-                        <td colSpan={4}><div className="batch-empty-panel">No available students found for this batch.</div></td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
               </>
             ) : null}
           </div>
@@ -1754,7 +1899,7 @@ export default function BatchManagementPage() {
             <div className="batch-selection-count">{Object.keys(selectedStudentsToAdd).length} selected</div>
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setAddStudentsModalOpen(false)}>Cancel</button>
             <button type="button" className="legacy-btn legacy-btn-success" onClick={confirmAddStudents}>
-              <i className="ti ti-plus" /> Add Selected Students
+              Add Selected Students
             </button>
           </div>
         </div>
@@ -1788,7 +1933,7 @@ export default function BatchManagementPage() {
       </div>
 
       <div className={`legacy-modal-backdrop ${attendanceBatch ? 'active' : ''}`} onClick={() => setAttendanceBatch(null)}>
-        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+        <div className="legacy-modal-dialog form-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
           <div className="legacy-modal-header">
             <h3>View Attendance</h3>
             <button type="button" className="legacy-modal-close" onClick={() => setAttendanceBatch(null)}>
@@ -1802,22 +1947,35 @@ export default function BatchManagementPage() {
                   <div className="batch-modal-title">{attendanceBatch.batchName}</div>
                   <div className="batch-modal-subtitle">Select a date to view this batch&apos;s attendance.</div>
                 </div>
-                <label style={{ display: 'block', marginTop: 12 }}>
-                  <span style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>Date</span>
-                  <input
-                    type="date"
-                    className="search-input"
-                    value={attendanceDate}
-                    onChange={(event) => setAttendanceDate(event.target.value)}
-                  />
-                </label>
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-calendar" /> Attendance Date</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="date"
+                          className="float-control"
+                          value={attendanceDate}
+                          onChange={(event) => setAttendanceDate(event.target.value)}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                        />
+                        <span className="float-label">Date</span>
+                        <span className={`date-display ${!attendanceDate ? 'is-empty' : ''}`}>
+                          {attendanceDate ? formatDateLabel(attendanceDate) : 'Set a Date'}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </>
             ) : null}
           </div>
           <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setAttendanceBatch(null)}>Cancel</button>
             <button type="button" className="legacy-btn legacy-btn-success" disabled={!attendanceDate} onClick={confirmViewAttendance}>
-              <i className="ti ti-calendar-stats" /> View Attendance
+              View Attendance
             </button>
           </div>
         </div>
@@ -1826,6 +1984,27 @@ export default function BatchManagementPage() {
         .legacy-btn:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+        .batch-status-dot {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #334155;
+        }
+        .batch-status-dot .batch-status-dot-mark {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #cbd5e1;
+          flex-shrink: 0;
+        }
+        .batch-status-dot.is-active .batch-status-dot-mark {
+          background: #16a34a;
+        }
+        .batch-status-dot.is-active {
+          color: #16a34a;
         }
         .batch-student-status {
           display: inline-flex;
@@ -1895,55 +2074,51 @@ export default function BatchManagementPage() {
         }
         .batch-name-container {
           display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+        }
+        .batch-name {
+          font-weight: 600;
+          color: #1e293b;
+        }
+        .batch-meta-line {
+          display: flex;
           align-items: center;
-          gap: 8px;
           flex-wrap: wrap;
+          gap: 14px;
         }
         .batch-journey-tag {
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          background: #eff6ff;
-          color: #2563eb;
-          padding: 2px 6px;
-          border-radius: 4px;
-          letter-spacing: 0.5px;
-          border: 1px solid #dbeafe;
-        }
-        .batch-type-tag {
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          padding: 2px 6px;
-          border-radius: 4px;
-          letter-spacing: 0.5px;
+          font-size: 12px;
+          font-weight: 400;
+          color: #64748b;
           display: inline-flex;
           align-items: center;
-          gap: 4px;
+          gap: 7px;
         }
-        .batch-type-tag.offline {
-          background: #fef3c7;
-          color: #b45309;
-          border: 1px solid #fde68a;
-        }
-        .batch-type-tag.online {
-          background: #ecfdf5;
-          color: #047857;
-          border: 1px solid #a7f3d0;
+        .batch-center-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #94a3b8;
+          flex-shrink: 0;
         }
         .batch-location-tag {
-          font-size: 10px;
-          font-weight: 700;
-          text-transform: uppercase;
-          background: #f5f3ff;
-          color: #7c3aed;
-          padding: 2px 6px;
-          border-radius: 4px;
-          letter-spacing: 0.5px;
-          border: 1px solid #ede9fe;
+          font-size: 12px;
+          font-weight: 400;
+          color: #64748b;
           display: inline-flex;
           align-items: center;
           gap: 4px;
+        }
+        .batch-location-tag i {
+          color: #94a3b8;
+        }
+        .batch-location-tag.online {
+          color: #16a34a;
+        }
+        .batch-location-tag.online .batch-center-dot {
+          background: #16a34a;
         }
       `}</style>
     </section>

@@ -2097,52 +2097,58 @@ input {
   min-height: 0;
 }
 
-/* Subtle lift / press feedback on the footer buttons. */
-.batch-modal-form .legacy-modal-footer .legacy-btn {
+/* ============================================================================
+   STANDARD MODAL FORM SYSTEM  (.form-modal)
+   Shared design language for every modal — see the modal design standard.
+   Add the `form-modal` class to a modal's <form> or body wrapper to opt in.
+   ========================================================================== */
+
+/* Subtle lift / press feedback on modal buttons. */
+.form-modal .legacy-btn {
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
-.batch-modal-form .legacy-modal-footer .legacy-btn:hover {
+.form-modal .legacy-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
   filter: brightness(1.03);
 }
 
-.batch-modal-form .legacy-modal-footer .legacy-btn:active {
+.form-modal .legacy-btn:active {
   transform: translateY(0);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
   filter: brightness(0.98);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .batch-modal-form .legacy-modal-footer .legacy-btn {
+  .form-modal .legacy-btn {
     transition: none;
   }
-  .batch-modal-form .legacy-modal-footer .legacy-btn:hover,
-  .batch-modal-form .legacy-modal-footer .legacy-btn:active {
+  .form-modal .legacy-btn:hover,
+  .form-modal .legacy-btn:active {
     transform: none;
   }
 }
 
-/* Floating-label fields: the label starts where the placeholder would be and
-   floats up into the border once the control is focused or filled. */
-.batch-modal-form .field-cell {
+/* Field cell — wraps a float-field plus its hint / error text. */
+.form-modal .field-cell {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Configuration: keep the dropdowns inline in a single row. */
-.batch-modal-form .config-grid {
+/* Layout helpers: three inline controls, or a 2:1 split row. */
+.form-modal .config-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Basic Details: Batch Name and Number of Students share a row, 2:1. */
-.batch-modal-form .basic-grid {
+.form-modal .basic-grid {
   grid-template-columns: 2fr 1fr;
 }
 
-.batch-modal-form .float-field {
+/* Floating-label field: the label starts where the placeholder would be and
+   floats up onto the top border once the control is focused or filled. */
+.form-modal .float-field {
   position: relative;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -2150,15 +2156,15 @@ input {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.batch-modal-form .float-field:focus-within {
+.form-modal .float-field:focus-within {
   border-color: #006073;
 }
 
-.batch-modal-form .float-field.has-error {
+.form-modal .float-field.has-error {
   border-color: #dc2626;
 }
 
-.batch-modal-form .float-control {
+.form-modal .float-control {
   width: 100%;
   margin: 0;
   padding: 10px 12px 8px;
@@ -2170,33 +2176,33 @@ input {
   color: #1e293b;
 }
 
-.batch-modal-form .float-control:focus {
+.form-modal .float-control:focus {
   outline: none;
   box-shadow: none;
 }
 
-.batch-modal-form select.float-control {
+.form-modal select.float-control {
   cursor: pointer;
 }
 
-.batch-modal-form textarea.float-control {
+.form-modal textarea.float-control {
   resize: vertical;
   min-height: 92px;
 }
 
 /* Date inputs: hide the native dd/mm/yyyy text and overlay our own label —
    either the formatted date (e.g. "16 Jun, 2026") or a "Set a Date" hint. */
-.batch-modal-form .float-field.date-custom .float-control::-webkit-datetime-edit {
+.form-modal .float-field.date-custom .float-control::-webkit-datetime-edit {
   opacity: 0; /* hide native dd-mm-yyyy in every state, including on focus */
   pointer-events: none;
 }
 
 /* The whole date field opens the picker — present a pointer, not a text caret. */
-.batch-modal-form .float-field.date-custom .float-control {
+.form-modal .float-field.date-custom .float-control {
   cursor: pointer;
 }
 
-.batch-modal-form .date-display {
+.form-modal .date-display {
   position: absolute;
   inset: 0;
   padding: 10px 12px 8px;
@@ -2205,12 +2211,12 @@ input {
   pointer-events: none;
 }
 
-.batch-modal-form .date-display.is-empty {
+.form-modal .date-display.is-empty {
   color: #94a3b8;
 }
 
 /* The floating label — its resting state mimics a placeholder. */
-.batch-modal-form .float-label {
+.form-modal .float-label {
   position: absolute;
   left: 13px;
   top: 50%;
@@ -2224,9 +2230,9 @@ input {
 
 /* Floated (active) state: the label rides ON the top border, with a matching
    background that notches a gap in the line —  ── Label ───────────  */
-.batch-modal-form .float-control:focus ~ .float-label,
-.batch-modal-form .float-control:not(:placeholder-shown) ~ .float-label,
-.batch-modal-form .float-field.float-always .float-label {
+.form-modal .float-control:focus ~ .float-label,
+.form-modal .float-control:not(:placeholder-shown) ~ .float-label,
+.form-modal .float-field.float-always .float-label {
   top: 0;
   left: 9px;
   transform: translateY(-50%);
@@ -2238,18 +2244,18 @@ input {
   color: #64748b;
 }
 
-.batch-modal-form .float-field.has-error .float-label {
+.form-modal .float-field.has-error .float-label {
   color: #dc2626;
 }
 
 /* Textarea: rest the label near the top instead of vertically centered. */
-.batch-modal-form .float-field.float-textarea .float-label {
+.form-modal .float-field.float-textarea .float-label {
   top: 19px;
   transform: translateY(0);
 }
 
-.batch-modal-form .float-field.float-textarea .float-control:focus ~ .float-label,
-.batch-modal-form .float-field.float-textarea .float-control:not(:placeholder-shown) ~ .float-label {
+.form-modal .float-field.float-textarea .float-control:focus ~ .float-label,
+.form-modal .float-field.float-textarea .float-control:not(:placeholder-shown) ~ .float-label {
   top: 0;
   transform: translateY(-50%);
 }
@@ -2827,6 +2833,60 @@ input {
   font-weight: 600;
 }
 
+.batch-management-page .batch-course-badge.batch-course-more {
+  background: #e7f0f2;
+  color: #006073;
+  cursor: pointer;
+  border: none;
+}
+
+.batch-management-page .batch-course-more-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.batch-management-page .batch-course-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  min-width: 200px;
+  max-width: 280px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+}
+
+.batch-management-page .batch-course-popover-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  padding: 6px 10px 4px;
+}
+
+.batch-management-page .batch-course-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.batch-management-page .batch-course-popover-item i {
+  color: #006073;
+}
+
+.batch-management-page .batch-course-popover-item:hover {
+  background: #f1f5f8;
+}
+
 .batch-management-page .batch-status {
   display: inline-block;
   padding: 6px 14px;
@@ -3025,12 +3085,92 @@ input {
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 0;
+}
+
+/* The course picker grows to fill the row; the action button stays natural. */
+.batch-management-page .batch-course-toolbar .float-field {
+  flex: 1;
 }
 
 .batch-management-page .batch-course-list {
   display: grid;
   gap: 12px;
+}
+
+/* Enrolled courses — card grid with a destructive "Revoke" action. */
+.batch-management-page .batch-course-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.batch-management-page .batch-course-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #e4ecef;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.batch-management-page .batch-course-card:hover {
+  border-color: #cdd9de;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.batch-management-page .batch-course-card-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.batch-management-page .batch-course-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #e8f1f3;
+  color: #006073;
+  font-size: 18px;
+}
+
+.batch-management-page .batch-course-card-title {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.batch-management-page .batch-course-card-meta {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* Subtle destructive outline that fills red on hover. */
+.batch-management-page .batch-course-revoke {
+  align-self: flex-start;
+  background: transparent;
+  border-color: #f0c4c4;
+  color: #dc2626;
+}
+
+.batch-management-page .batch-course-revoke:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .batch-management-page .batch-course-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .batch-management-page .batch-course-row {
