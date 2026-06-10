@@ -668,7 +668,7 @@ export default function MentorProfilesPage() {
 
       {(paginatedMentors.length > 0 || isLoading) && (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'name' ? 'active' : ''}`} onClick={() => handleSort('name')}>

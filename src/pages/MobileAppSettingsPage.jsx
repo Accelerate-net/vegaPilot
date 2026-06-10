@@ -1,5 +1,6 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import { PreparationJourneys } from '../lib/preparationJourneysApi';
 
 /* ── Seed data: app versions published so far ─────────────────────────── */
 const SEED_RELEASES = [
@@ -57,6 +58,11 @@ const SEED_LOGIN_METHODS = [
   { id: 'l5', country: 'Nepal', code: '+977', flag: 'https://img.icons8.com/color/48/nepal-circular.png', defaultMode: 'SMS', enabled: true },
 ];
 
+/* ── Seed data: preparation journeys ──────────────────────────────────── */
+const JOURNEY_STATUSES = ['Active', 'Completed'];
+const JOURNEY_TYPES = ['IAT', 'NEST'];
+const JOURNEY_NICKNAMES = { IAT: 'IISER', NEST: 'NISER' };
+
 const VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 const COUNTRY_CODE_PATTERN = /^\+\d{1,4}$/;
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -82,6 +88,23 @@ function formatReleaseDate(iso) {
   const day = d.getDate();
   const month = d.toLocaleString('en-US', { month: 'short' });
   return `${day} ${month}, ${d.getFullYear()}`;
+}
+
+function formatExamDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${d.getFullYear()}`;
+}
+
+function formatExamMonth(iso) {
+  if (!iso) return '—';
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  const month = d.toLocaleString('en-US', { month: 'long' });
+  return `${month}, ${d.getFullYear()}`;
 }
 
 /* ── Minimal rich-text editor (contentEditable + execCommand) ─────────── */
@@ -146,6 +169,12 @@ export default function MobileAppSettingsPage() {
   const [releases, setReleases] = useState(SEED_RELEASES);
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Minimum supported version (force-update threshold)
   const [minVersion, setMinVersion] = useState('2.0.1');
@@ -196,8 +225,23 @@ export default function MobileAppSettingsPage() {
   const [editingLoginId, setEditingLoginId] = useState(null);
   const [activeLoginMenu, setActiveLoginMenu] = useState(null);
 
+  // Preparation Journeys
+  const [journeys, setJourneys] = useState([]);
+  const [journeysLoading, setJourneysLoading] = useState(true);
+  const [journeySaving, setJourneySaving] = useState(false);
+  const [journeyFilter, setJourneyFilter] = useState('active'); // 'active' | 'all' | 'completed'
+  const [showJourneyModal, setShowJourneyModal] = useState(false);
+  const [journeyName, setJourneyName] = useState('');
+  const [journeyYear, setJourneyYear] = useState('');
+  const [journeyNick, setJourneyNick] = useState('');
+  const [journeyExamDate, setJourneyExamDate] = useState('');
+  const [journeyDatesUnsure, setJourneyDatesUnsure] = useState(false);
+  const [journeyStatus, setJourneyStatus] = useState('Active');
+  const [editingJourneyId, setEditingJourneyId] = useState(null);
+  const [activeJourneyMenu, setActiveJourneyMenu] = useState(null);
+
   useEffect(() => {
-    const close = () => { setActiveLoginMenu(null); setActiveSliderMenu(null); setMinMenuOpen(false); setActiveRelMenu(null); };
+    const close = () => { setActiveLoginMenu(null); setActiveSliderMenu(null); setMinMenuOpen(false); setActiveRelMenu(null); setActiveJourneyMenu(null); };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, []);
@@ -380,6 +424,83 @@ export default function MobileAppSettingsPage() {
     setLoginMethods((current) => current.map((m) => (m.id === id ? { ...m, defaultMode: mode } : m)));
   }
 
+  /* ── Preparation journeys ── */
+  const loadJourneys = useCallback(async (filter) => {
+    setJourneysLoading(true);
+    try {
+      const { data } = await PreparationJourneys.list(filter);
+      setJourneys(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setJourneys([]);
+      showToast('error', 'Failed to Load Journeys', err.message || 'Could not fetch preparation journeys.');
+    } finally {
+      setJourneysLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { loadJourneys(journeyFilter); }, [journeyFilter, loadJourneys]);
+
+  function openJourneyModal(journey = null) {
+    setEditingJourneyId(journey ? journey.id : null);
+    setJourneyName(journey ? journey.journey : JOURNEY_TYPES[0]);
+    setJourneyYear(journey ? journey.year : '');
+    setJourneyNick(journey ? journey.nickName : JOURNEY_NICKNAMES[JOURNEY_TYPES[0]]);
+    setJourneyExamDate(journey ? journey.examDate : '');
+    setJourneyDatesUnsure(journey ? !!journey.datesUnsure : false);
+    setJourneyStatus(journey ? journey.status : 'Active');
+    setShowJourneyModal(true);
+  }
+
+  async function handleJourneySubmit(event) {
+    event.preventDefault();
+    if (!journeyName.trim()) {
+      showToast('error', 'Validation Error', 'Prep journey name is required.');
+      return;
+    }
+    if (!journeyYear.trim()) {
+      showToast('error', 'Validation Error', 'Year is required.');
+      return;
+    }
+    if (!journeyExamDate) {
+      showToast('error', 'Validation Error', 'Please select the date of exam.');
+      return;
+    }
+    const data = {
+      journey: journeyName.trim(),
+      year: journeyYear.trim(),
+      examDate: journeyExamDate,
+      datesUnsure: journeyDatesUnsure,
+      status: journeyStatus,
+    };
+    setJourneySaving(true);
+    try {
+      if (editingJourneyId) {
+        await PreparationJourneys.update(editingJourneyId, data);
+        showToast('success', 'Journey Updated', `${data.journey} ${data.year} has been updated.`);
+      } else {
+        await PreparationJourneys.create(data);
+        showToast('success', 'Journey Added', `${data.journey} ${data.year} has been added.`);
+      }
+      setShowJourneyModal(false);
+      await loadJourneys(journeyFilter);
+    } catch (err) {
+      showToast('error', 'Save Failed', err.message || 'Could not save the preparation journey.');
+    } finally {
+      setJourneySaving(false);
+    }
+  }
+
+  async function deleteJourney(journey) {
+    try {
+      await PreparationJourneys.remove(journey.id);
+      showToast('success', 'Journey Removed', `${journey.journey} ${journey.year} has been removed.`);
+      await loadJourneys(journeyFilter);
+    } catch (err) {
+      showToast('error', 'Delete Failed', err.message || 'Could not remove the preparation journey.');
+    }
+  }
+
   return (
     <section className="mobile-app-settings-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((t) => t.id !== id))} />
@@ -463,6 +584,14 @@ export default function MobileAppSettingsPage() {
         .mobile-app-settings-page .mas-minver-item i.ti-package { color: #006073; }
         .mobile-app-settings-page .mas-minver-item:hover { background: #f1f5f8; }
         .mobile-app-settings-page .mas-minver-item.active { background: #e7f5f7; }
+        .mobile-app-settings-page .mas-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .mobile-app-settings-page .mas-status-badge.active { background: #dcfce7; color: #16a34a; }
+        .mobile-app-settings-page .mas-status-badge.completed { background: #e2e8f0; color: #475569; }
+        .mobile-app-settings-page .mas-status-badge i { font-size: 8px; }
+        .mobile-app-settings-page .mas-jfilter-select { min-height: 44px; padding: 0 38px 0 14px; border: 1px solid #d7e1e7; border-radius: 8px; font-size: 13px; font-weight: 600; color: #334155; background-color: #fff; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23006073' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+        .mobile-app-settings-page .mas-jfilter-select:focus { outline: none; border-color: #006073; box-shadow: 0 0 0 3px rgba(0,96,115,0.12); }
+        .mobile-app-settings-page .mas-checkbox { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; color: #334155; cursor: pointer; }
+        .mobile-app-settings-page .mas-checkbox input { width: 17px; height: 17px; accent-color: #006073; cursor: pointer; }
       `}</style>
 
       <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
@@ -535,7 +664,7 @@ export default function MobileAppSettingsPage() {
       </div>
 
       <div className="students-table-container">
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th>Version</th>
@@ -545,6 +674,17 @@ export default function MobileAppSettingsPage() {
               <th style={{ width: '60px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
+          {isLoading ? (
+          <tbody>
+            {Array.from({ length: 8 }, (_, i) => (
+              <tr key={`sk-${i}`}>
+                {Array.from({ length: 5 }, (_, j) => (
+                  <td key={j}><div className="table-skeleton medium" /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          ) : (
           <tbody>
             {pagedReleases.length > 0 ? pagedReleases.map((r) => (
               <tr key={r.id}>
@@ -586,6 +726,7 @@ export default function MobileAppSettingsPage() {
               </tr>
             )}
           </tbody>
+          )}
         </table>
 
         {filtered.length > 0 && (
@@ -767,6 +908,95 @@ export default function MobileAppSettingsPage() {
               </tr>
             )}
           </tbody>
+        </table>
+      </div>
+      </div>
+
+      {/* ── Preparation Journeys ── */}
+      <div className="wcm-section-card">
+      <div className="wcm-section-header">
+        <div>
+          <h2 className="wcm-section-title"><i className="ti ti-rocket" style={{ marginRight: '10px' }} />Preparation Journeys</h2>
+          <p className="mas-section-sub">Exam preparation tracks offered in the app, with their target exam dates.</p>
+        </div>
+        <button type="button" className="wcm-btn wcm-btn-primary-custom" onClick={() => openJourneyModal()}>
+          <i className="ti ti-plus" /> Add Journey
+        </button>
+      </div>
+
+      <div className="filter-bar">
+        <select
+          className="mas-jfilter-select"
+          value={journeyFilter}
+          onChange={(e) => setJourneyFilter(e.target.value)}
+          aria-label="Filter preparation journeys"
+        >
+          <option value="active">Show Active Only</option>
+          <option value="all">Show All</option>
+          <option value="completed">Show Completed Only</option>
+        </select>
+      </div>
+
+      <div className="students-table-container">
+        <table className={`students-table ${journeysLoading ? 'thead-loading' : ''}`}>
+          <thead>
+            <tr>
+              <th>Prep Journey</th>
+              <th>Year</th>
+              <th>Nick Name</th>
+              <th>Date of Exam</th>
+              <th style={{ textAlign: 'center' }}>Status</th>
+              <th style={{ width: '60px', textAlign: 'center' }}>Actions</th>
+            </tr>
+          </thead>
+          {journeysLoading ? (
+          <tbody>
+            {Array.from({ length: 5 }, (_, i) => (
+              <tr key={`jsk-${i}`}>
+                {Array.from({ length: 6 }, (_, k) => (
+                  <td key={k}><div className="table-skeleton medium" /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          ) : (
+          <tbody>
+            {journeys.length > 0 ? journeys.map((j) => (
+              <tr key={j.id}>
+                <td><span className="mas-row-strong">{j.journey}</span></td>
+                <td>{j.year}</td>
+                <td>{j.nickName || '—'}</td>
+                <td>{j.datesUnsure ? formatExamMonth(j.examDate) : formatExamDate(j.examDate)}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={`mas-status-badge ${j.status === 'Active' ? 'active' : 'completed'}`}>
+                    <i className="ti ti-circle-filled" /> {j.status}
+                  </span>
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  <div className="kebab-menu-container">
+                    <button type="button" className="kebab-button" onClick={(e) => { e.stopPropagation(); setActiveJourneyMenu(activeJourneyMenu === j.id ? null : j.id); }}>
+                      <i className="ti ti-more-alt" />
+                    </button>
+                    <div className={`kebab-dropdown ${activeJourneyMenu === j.id ? 'active' : ''}`} onClick={(e) => e.stopPropagation()}>
+                      <button type="button" className="kebab-dropdown-item" onClick={() => { openJourneyModal(j); setActiveJourneyMenu(null); }}><i className="ti ti-pencil" /> Edit</button>
+                      <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { deleteJourney(j); setActiveJourneyMenu(null); }}><i className="ti ti-trash" /> Delete</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
+                  <div className="qar-empty-state" style={{ border: 'none', background: 'transparent' }}>
+                    <i className="ti ti-rocket" />
+                    <h4>No Preparation Journeys</h4>
+                    <p>{journeyFilter === 'completed' ? 'No completed journeys yet.' : journeyFilter === 'active' ? 'No active journeys. Add one to get started.' : 'Add a preparation journey to get started.'}</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+          )}
         </table>
       </div>
       </div>
@@ -967,6 +1197,73 @@ export default function MobileAppSettingsPage() {
             <div className="crispr-modal-footer">
               <button type="button" className="btn btn-default" onClick={() => setViewRelease(null)}>Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add / Edit Journey Modal ── */}
+      {showJourneyModal && (
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowJourneyModal(false); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-rocket" /> {editingJourneyId ? 'Edit Preparation Journey' : 'Add Preparation Journey'}</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setShowJourneyModal(false)}><i className="ti ti-close" /></button>
+            </div>
+            <form onSubmit={handleJourneySubmit}>
+              <div className="crispr-modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Prep Journey <span className="required">*</span></label>
+                    <select
+                      className="form-select"
+                      value={journeyName}
+                      onChange={(e) => { setJourneyName(e.target.value); setJourneyNick(JOURNEY_NICKNAMES[e.target.value] || ''); }}
+                    >
+                      {JOURNEY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Year <span className="required">*</span></label>
+                    <input type="text" className="form-input" value={journeyYear} onChange={(e) => setJourneyYear(e.target.value)} placeholder="2026" />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nick Name</label>
+                    <input type="text" className="form-input" value={journeyNick} placeholder="IISER" disabled readOnly />
+                  </div>
+                  <div className="form-group">
+                    <label>Date of Exam <span className="required">*</span></label>
+                    <input type="date" className="form-input" value={journeyExamDate} onChange={(e) => setJourneyExamDate(e.target.value)} />
+                  </div>
+                </div>
+                <div className="form-row full">
+                  <div className="form-group">
+                    <label className="mas-checkbox">
+                      <input type="checkbox" checked={journeyDatesUnsure} onChange={(e) => setJourneyDatesUnsure(e.target.checked)} />
+                      <span>Dates Unsure</span>
+                    </label>
+                    <small style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginTop: '6px' }}>When enabled, only the exam month is shown in the table (e.g. June, 2027).</small>
+                  </div>
+                </div>
+                <div className="form-row full">
+                  <div className="form-group">
+                    <label>Status</label>
+                    <div className="mas-toggle" role="group">
+                      {JOURNEY_STATUSES.map((s) => (
+                        <button key={s} type="button" className={journeyStatus === s ? 'active' : ''} onClick={() => setJourneyStatus(s)}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="crispr-modal-footer">
+                <button type="button" className="btn btn-default" onClick={() => setShowJourneyModal(false)} disabled={journeySaving}>Cancel</button>
+                <button type="submit" className="btn btn-success" disabled={journeySaving}>
+                  <i className={`ti ${journeySaving ? 'ti-reload' : 'ti-check'}`} /> {journeySaving ? 'Saving…' : (editingJourneyId ? 'Save Changes' : 'Add Journey')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

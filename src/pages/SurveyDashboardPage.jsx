@@ -631,7 +631,7 @@ export default function SurveyDashboardPage() {
           </div>
 
           <div className="students-table-container">
-            <table className="students-table">
+            <table className={`students-table ${surveysLoading ? 'thead-loading' : ''}`}>
               <thead>
                 <tr>
                   <th>Survey Details</th>
@@ -643,10 +643,19 @@ export default function SurveyDashboardPage() {
                   <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
+              {surveysLoading ? (
+                <tbody>
+                  {Array.from({ length: 8 }, (_, i) => (
+                    <tr key={`sk-${i}`}>
+                      {Array.from({ length: 7 }, (_, j) => (
+                        <td key={j}><div className="table-skeleton medium" /></td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              ) : (
               <tbody>
-                {surveysLoading ? (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading surveys...</td></tr>
-                ) : pagedSurveys.length > 0 ? pagedSurveys.map(s => (
+                {pagedSurveys.length > 0 ? pagedSurveys.map(s => (
                   <tr key={s.id}>
                     <td>
                       <div className="student-name-cell">
@@ -704,6 +713,7 @@ export default function SurveyDashboardPage() {
                   </tr>
                 )}
               </tbody>
+              )}
             </table>
 
             {!surveysLoading && filteredSurveys.length > 0 && (

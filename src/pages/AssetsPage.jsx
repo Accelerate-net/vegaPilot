@@ -659,7 +659,7 @@ export default function AssetsPage() {
       {isLoading ? (
         <div className="students-table-container">
           <div className="assets-table-scroll">
-            <table className="students-table">
+            <table className="students-table thead-loading">
               <thead>
                 <tr>
                   <th>ID</th><th>Name</th><th>Type</th><th>Code</th><th>Purchase Date</th>
@@ -670,7 +670,7 @@ export default function AssetsPage() {
                 {Array.from({ length: 8 }, (_, i) => (
                   <tr key={`sk-${i}`}>
                     {Array.from({ length: 13 }, (_, j) => (
-                      <td key={j}><div className="batch-skeleton medium" /></td>
+                      <td key={j}><div className="table-skeleton medium" /></td>
                     ))}
                   </tr>
                 ))}

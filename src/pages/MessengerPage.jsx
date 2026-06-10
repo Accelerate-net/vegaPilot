@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import { availableCourses, availableBatches } from '../data/attemptReportsDemo';
 import {
@@ -17,6 +18,10 @@ import { api } from '../lib/api';
 import { useUser } from '../lib/userStore';
 
 const PLACEHOLDER_RE = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+
+// Message-type filter: URL slug ⇄ API type code
+const TYPE_SLUG_TO_CODE = { all: '', transactional: '2', broadcast: '1' };
+const TYPE_CODE_TO_SLUG = { '': 'all', '2': 'transactional', '1': 'broadcast' };
 
 function extractPlaceholders(text) {
   const out = [];
@@ -425,6 +430,17 @@ export default function MessengerPage() {
   const [isComposing, setIsComposing] = useState(true);
   const [toasts, setToasts] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
+  // URL ?type= slug ⇄ API type code. '' = All, '2' = Transactional, '1' = Broadcast
+  const [searchParams, setSearchParams] = useSearchParams();
+  const messageType = TYPE_SLUG_TO_CODE[searchParams.get('type')] || '';
+  function setMessageType(code) {
+    const slug = TYPE_CODE_TO_SLUG[code] || 'all';
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('type', slug);
+      return next;
+    });
+  }
   const [sending, setSending] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -523,7 +539,7 @@ export default function MessengerPage() {
     async function load() {
       setLoadingList(true);
       try {
-        const resp = await listCampaigns({ perPage: 25 });
+        const resp = await listCampaigns({ perPage: 25, type: messageType || undefined });
         if (cancelled) return;
         const rows = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp) ? resp : []);
         setMessages(rows.map(campaignToMessage).filter(Boolean));
@@ -535,7 +551,7 @@ export default function MessengerPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, []);
+  }, [messageType]);
 
   function handleCompose() {
     setIsComposing(true);
@@ -764,17 +780,50 @@ export default function MessengerPage() {
 
       {/* LEFT SIDEBAR - INBOX LIST */}
       <div style={{ width: '360px', background: '#F8F9FA', borderRight: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
           <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#111827' }}>Inbox</h2>
-          <button 
-            type="button" 
-            onClick={handleCompose}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isComposing ? '#006073' : '#E5E7EB', color: isComposing ? 'white' : '#4B5563', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
-          >
-            <i className="ti ti-pencil-alt" /> Compose
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+              <select
+                value={messageType}
+                onChange={e => setMessageType(e.target.value)}
+                style={{
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  background: '#fff',
+                  color: '#111827',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '20px',
+                  padding: '8px 30px 8px 14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                }}
+                onFocus={e => { e.target.style.borderColor = '#006073'; e.target.style.boxShadow = '0 0 0 3px rgba(0,96,115,0.12)'; }}
+                onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)'; }}
+              >
+                <option value="">All</option>
+                <option value="2">Transactional</option>
+                <option value="1">Broadcast</option>
+              </select>
+              <i
+                className="ti ti-angle-down"
+                style={{ position: 'absolute', right: '12px', fontSize: '12px', color: '#6B7280', pointerEvents: 'none' }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleCompose}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isComposing ? '#006073' : '#E5E7EB', color: isComposing ? 'white' : '#4B5563', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+            >
+              <i className="ti ti-pencil-alt" /> Compose
+            </button>
+          </div>
         </div>
-        
+
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px 12px' }}>
           {loadingList && (
             <div style={{ padding: '20px', textAlign: 'center', color: '#9CA3AF', fontSize: '13px' }}>

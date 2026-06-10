@@ -596,7 +596,7 @@ export default function ResidenceManagementPage() {
 
       {(total > 0 || isLoading) && (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th>Residence</th>

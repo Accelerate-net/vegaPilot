@@ -106,6 +106,7 @@ export default function TestSeriesListPage() {
   const [examCurrentPage, setExamCurrentPage] = useState(1);
   const [toasts, setToasts] = useState([]);
   const [formState, setFormState] = useState({ name: '', description: '', status: 1 });
+  const [isLoading, setIsLoading] = useState(true);
   const kebabRef = useRef(null);
   const toastIdRef = useRef(0);
 
@@ -115,6 +116,11 @@ export default function TestSeriesListPage() {
     };
     document.addEventListener('click', closeMenus);
     return () => document.removeEventListener('click', closeMenus);
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
   }, []);
 
   function showToast(type, title, message) {
@@ -291,7 +297,7 @@ export default function TestSeriesListPage() {
 
       {totalSeries > 0 ? (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'name' ? 'active' : ''}`} onClick={() => handleSort('name')}>
@@ -307,6 +313,17 @@ export default function TestSeriesListPage() {
                 <th className="center-align actions-column">Actions</th>
               </tr>
             </thead>
+            {isLoading ? (
+              <tbody>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <tr key={`sk-${i}`}>
+                    {Array.from({ length: 5 }, (_, j) => (
+                      <td key={j}><div className="table-skeleton medium" /></td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
             <tbody>
               {paginatedSeries.map((series) => (
                 <tr key={series.id} className={activeKebabId === series.id ? 'row-active-menu' : ''}>
@@ -355,6 +372,7 @@ export default function TestSeriesListPage() {
                 </tr>
               ))}
             </tbody>
+            )}
           </table>
 
           <div className="pagination-container">

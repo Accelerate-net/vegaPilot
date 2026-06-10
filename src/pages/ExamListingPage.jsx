@@ -333,7 +333,7 @@ export default function ExamListingPage() {
       </div>
 
       <div className="students-table-container" ref={kebabRef}>
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th className={`sortable ${sortColumn === 'displayKey' ? 'active' : ''}`} onClick={() => handleSort('displayKey')}>

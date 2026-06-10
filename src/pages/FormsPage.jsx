@@ -292,6 +292,7 @@ export default function FormsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState([]);
   const [activeMenu, setActiveMenu] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -351,6 +352,11 @@ export default function FormsPage() {
     const close = () => { setActiveMenu(null); setActiveSetMenu(null); };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
   }, []);
 
   function showToast(type, title, message) {
@@ -714,7 +720,7 @@ export default function FormsPage() {
       </div>
 
       <div className="students-table-container">
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th>Form</th>
@@ -724,6 +730,17 @@ export default function FormsPage() {
               <th style={{ width: '60px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
+          {isLoading ? (
+          <tbody>
+            {Array.from({ length: 8 }, (_, i) => (
+              <tr key={`sk-${i}`}>
+                {Array.from({ length: 5 }, (_, j) => (
+                  <td key={j}><div className="table-skeleton medium" /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          ) : (
           <tbody>
             {paged.length > 0 ? paged.map((form) => (
               <tr key={form.id}>
@@ -770,6 +787,7 @@ export default function FormsPage() {
               </tr>
             )}
           </tbody>
+          )}
         </table>
 
         {filtered.length > 0 && (

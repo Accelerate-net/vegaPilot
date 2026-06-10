@@ -676,7 +676,7 @@ export default function LeadsManagementPage() {
 
         {/* Table */}
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th>Lead</th>
@@ -690,6 +690,17 @@ export default function LeadsManagementPage() {
                 <th style={{ textAlign: 'center', width: '80px' }}>Actions</th>
               </tr>
             </thead>
+            {isLoading ? (
+            <tbody>
+              {Array.from({ length: 8 }, (_, i) => (
+                <tr key={`sk-${i}`}>
+                  {Array.from({ length: 9 }, (_, j) => (
+                    <td key={j}><div className="table-skeleton medium" /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            ) : (
             <tbody>
               {paginated.map((lead) => {
                 const lastFu = lead.lastFollowUpAt
@@ -762,13 +773,11 @@ export default function LeadsManagementPage() {
                   </tr>
                 );
               })}
-              {isLoading && paginated.length === 0 && (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading leads…</td></tr>
-              )}
-              {!isLoading && paginated.length === 0 && (
+              {paginated.length === 0 && (
                 <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>{loadError ? loadError : 'No leads found.'}</td></tr>
               )}
             </tbody>
+            )}
           </table>
         </div>
 

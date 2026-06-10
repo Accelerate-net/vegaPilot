@@ -40,9 +40,9 @@ function clean(params) {
 }
 
 // ── Admin — Campaigns ────────────────────────────────────────────────────────
-export async function listCampaigns({ page = 1, perPage = 25 } = {}) {
+export async function listCampaigns({ page = 1, perPage = 25, type } = {}) {
   const { data } = await api.get(ADMIN_BASE, {
-    params: clean({ page, per_page: perPage }),
+    params: clean({ page, per_page: perPage, type }),
   });
   return data;
 }

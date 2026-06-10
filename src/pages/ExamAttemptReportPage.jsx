@@ -233,6 +233,12 @@ export default function ExamAttemptReportPage() {
   });
 
   const [toasts, setToasts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const [exam] = useState(() => ensureAttempts(
     getExamFromStorage(params.get('exam')) || {
@@ -568,7 +574,7 @@ export default function ExamAttemptReportPage() {
       {/* ── Rank Table ── */}
       {filteredRankings.length > 0 ? (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable${sortColumn === 'rank' ? ' active' : ''}`} style={{ width: 80 }} onClick={() => toggleSort('rank')}>
@@ -591,6 +597,17 @@ export default function ExamAttemptReportPage() {
                 <th style={{ width: 50 }}></th>
               </tr>
             </thead>
+            {isLoading ? (
+              <tbody>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <tr key={`sk-${i}`}>
+                    {Array.from({ length: 10 }, (_, j) => (
+                      <td key={j}><div className="table-skeleton medium" /></td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
             <tbody>
               {paginatedRankings.map((ranking) => (
                 <tr key={`${ranking.studentId}-${ranking.startedAt}`}>
@@ -634,6 +651,7 @@ export default function ExamAttemptReportPage() {
                 </tr>
               ))}
             </tbody>
+            )}
           </table>
 
           {/* Pagination */}

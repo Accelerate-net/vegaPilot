@@ -416,13 +416,11 @@ export default function LocationsPage() {
                   </div>
                 </div>
 
-                {loadingVenues ? (
-                  <div className="loc-empty-row">Loading…</div>
-                ) : venues.length === 0 ? (
+                {!loadingVenues && venues.length === 0 ? (
                   <div className="loc-empty-row">No venues here yet.</div>
                 ) : (
                 <div className="students-table-container">
-                  <table className="students-table">
+                  <table className={`students-table ${loadingVenues ? 'thead-loading' : ''}`}>
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -432,6 +430,17 @@ export default function LocationsPage() {
                         <th className="actions-column" />
                       </tr>
                     </thead>
+                    {loadingVenues ? (
+                    <tbody>
+                      {Array.from({ length: 8 }, (_, i) => (
+                        <tr key={`sk-${i}`}>
+                          {Array.from({ length: 5 }, (_, j) => (
+                            <td key={j}><div className="table-skeleton medium" /></td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                    ) : (
                     <tbody>
                       {venues.map((v) => (
                           <tr key={v.id}>
@@ -475,6 +484,7 @@ export default function LocationsPage() {
                           </tr>
                         ))}
                     </tbody>
+                    )}
                   </table>
                 </div>
                 )}

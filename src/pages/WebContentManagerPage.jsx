@@ -111,6 +111,13 @@ export default function WebContentManagerPage() {
   const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [voucherToRevoke, setVoucherToRevoke] = useState(null);
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
+  }, []);
+
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
     setToasts((current) => [...current, { id, type, title, message }]);
@@ -238,7 +245,7 @@ export default function WebContentManagerPage() {
             </div>
 
             <div className="students-table-container">
-                <table className="students-table">
+                <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
                     <thead>
                         <tr>
                             <th>Discount Code</th>
@@ -250,6 +257,17 @@ export default function WebContentManagerPage() {
                             <th style={{ textAlign: 'center' }}>Actions</th>
                         </tr>
                     </thead>
+                    {isLoading ? (
+                    <tbody>
+                        {Array.from({ length: 8 }, (_, i) => (
+                            <tr key={`sk-${i}`}>
+                                {Array.from({ length: 7 }, (_, j) => (
+                                    <td key={j}><div className="table-skeleton medium" /></td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                    ) : (
                     <tbody>
                         {paginatedVouchers.map(v => (
                             <tr key={v.id}>
@@ -276,6 +294,7 @@ export default function WebContentManagerPage() {
                             <tr><td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>No discount codes found.</td></tr>
                         )}
                     </tbody>
+                    )}
                 </table>
 
                 {filteredVouchers.length > 0 && (

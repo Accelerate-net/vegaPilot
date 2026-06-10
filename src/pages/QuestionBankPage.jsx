@@ -710,7 +710,7 @@ export default function QuestionBankPage() {
 
       {/* Table */}
       <div className="students-table-container">
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th className="sortable" onClick={() => handleSort('id')}>

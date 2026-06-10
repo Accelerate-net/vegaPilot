@@ -120,6 +120,7 @@ export default function QuizListingPage() {
   const [attemptSearchQuery, setAttemptSearchQuery] = useState('');
   const [attemptsPage, setAttemptsPage] = useState(1);
   const [toasts, setToasts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const kebabRef = useRef(null);
   const filterRef = useRef(null);
   const toastIdRef = useRef(0);
@@ -131,6 +132,11 @@ export default function QuizListingPage() {
     };
     document.addEventListener('click', closeMenus);
     return () => document.removeEventListener('click', closeMenus);
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
   }, []);
 
   function showToast(type, title, message) {
@@ -285,7 +291,7 @@ export default function QuizListingPage() {
 
       {totalItems > 0 ? (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'title' ? 'active' : ''}`} onClick={() => handleSort('title')}>
@@ -313,6 +319,17 @@ export default function QuizListingPage() {
                 <th className="center-align actions-column">Actions</th>
               </tr>
             </thead>
+            {isLoading ? (
+              <tbody>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <tr key={`sk-${i}`}>
+                    {Array.from({ length: 9 }, (_, j) => (
+                      <td key={j}><div className="table-skeleton medium" /></td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
             <tbody>
               {paginatedQuizzes.map((quiz) => (
                 <tr key={quiz.id} className={activeKebabId === quiz.id ? 'row-active-menu' : ''}>
@@ -387,6 +404,7 @@ export default function QuizListingPage() {
                 </tr>
               ))}
             </tbody>
+            )}
           </table>
 
           <div className="pagination-container">

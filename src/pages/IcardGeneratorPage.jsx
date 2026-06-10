@@ -871,7 +871,7 @@ export default function IcardGeneratorPage() {
           </h3>
         </div>
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${auditLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th>ID</th>
@@ -882,9 +882,19 @@ export default function IcardGeneratorPage() {
                 <th>Admin</th>
               </tr>
             </thead>
+            {auditLoading ? (
             <tbody>
-              {auditLoading && <tr><td colSpan={6}>Loading…</td></tr>}
-              {!auditLoading && audit.length === 0 && (
+              {Array.from({ length: 8 }, (_, i) => (
+                <tr key={`sk-${i}`}>
+                  {Array.from({ length: 6 }, (_, j) => (
+                    <td key={j}><div className="table-skeleton medium" /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            ) : (
+            <tbody>
+              {audit.length === 0 && (
                 <tr>
                   <td colSpan={6} style={{ color: '#6b7280', textAlign: 'center', padding: 32 }}>
                     {auditError
@@ -893,7 +903,7 @@ export default function IcardGeneratorPage() {
                   </td>
                 </tr>
               )}
-              {!auditLoading && audit.map((row, idx) => {
+              {audit.map((row, idx) => {
                 const id = row.candidateId || row.studentId || row.id || '—';
                 const name = row.candidateName || row.studentName || row.name || '—';
                 const type = row.type || row.batchName || 'Individual';
@@ -925,6 +935,7 @@ export default function IcardGeneratorPage() {
                 );
               })}
             </tbody>
+            )}
           </table>
           {total > 0 && (
             <div className="pagination-container">

@@ -51,6 +51,12 @@ export default function InstructorPayoutsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setIsLoading(false), 700);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Modals
   const [ledgerModalOpen, setLedgerModalOpen] = useState(false);
@@ -221,7 +227,7 @@ export default function InstructorPayoutsPage() {
 
         {/* ── Table ── */}
         <div className="students-table-container">
-            <table className="students-table">
+            <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
                 <thead>
                     <tr>
                         <th>Instructor</th>
@@ -231,6 +237,17 @@ export default function InstructorPayoutsPage() {
                         <th style={{ textAlign: 'center', width: '100px' }}>Actions</th>
                     </tr>
                 </thead>
+                {isLoading ? (
+                <tbody>
+                    {Array.from({ length: 8 }, (_, i) => (
+                        <tr key={`sk-${i}`}>
+                            {Array.from({ length: 5 }, (_, j) => (
+                                <td key={j}><div className="table-skeleton medium" /></td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+                ) : (
                 <tbody>
                     {paginatedSummaries.map((inst, index) => (
                         <tr key={inst.id}>
@@ -273,6 +290,7 @@ export default function InstructorPayoutsPage() {
                         <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No instructors found matching query.</td></tr>
                     )}
                 </tbody>
+                )}
             </table>
 
             {/* Pagination */}

@@ -100,6 +100,8 @@ export const PERMS = {
   ATTENDANCE_VIEW: 'attendance.view',
   ATTENDANCE_EXPORT: 'attendance.export',
   ATTENDANCE_MARK: 'attendance.mark',
+  ATTENDANCE_MAPPING_VIEW: 'attendance.mapping.view',
+  ATTENDANCE_MAPPING_EDIT: 'attendance.mapping.edit',
   ASSETS_VIEW: 'assets.view',
   ASSETS_EDIT: 'assets.edit',
   ASSETS_INVOICE_EDIT: 'assets.invoice.edit',

@@ -2082,9 +2082,176 @@ input {
 
 .legacy-modal-body {
   flex: 1;
+  min-height: 0;
   padding: 24px;
   overflow-y: auto;
   background: white;
+}
+
+/* When a <form> wraps the body + footer, it becomes the dialog's flex child,
+   so it must pass the height constraint through for the body to scroll. */
+.batch-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Subtle lift / press feedback on the footer buttons. */
+.batch-modal-form .legacy-modal-footer .legacy-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.batch-modal-form .legacy-modal-footer .legacy-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+  filter: brightness(1.03);
+}
+
+.batch-modal-form .legacy-modal-footer .legacy-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  filter: brightness(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .batch-modal-form .legacy-modal-footer .legacy-btn {
+    transition: none;
+  }
+  .batch-modal-form .legacy-modal-footer .legacy-btn:hover,
+  .batch-modal-form .legacy-modal-footer .legacy-btn:active {
+    transform: none;
+  }
+}
+
+/* Floating-label fields: the label starts where the placeholder would be and
+   floats up into the border once the control is focused or filled. */
+.batch-modal-form .field-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Configuration: keep the dropdowns inline in a single row. */
+.batch-modal-form .config-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Basic Details: Batch Name and Number of Students share a row, 2:1. */
+.batch-modal-form .basic-grid {
+  grid-template-columns: 2fr 1fr;
+}
+
+.batch-modal-form .float-field {
+  position: relative;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.batch-modal-form .float-field:focus-within {
+  border-color: #006073;
+}
+
+.batch-modal-form .float-field.has-error {
+  border-color: #dc2626;
+}
+
+.batch-modal-form .float-control {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.batch-modal-form .float-control:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.batch-modal-form select.float-control {
+  cursor: pointer;
+}
+
+.batch-modal-form textarea.float-control {
+  resize: vertical;
+  min-height: 92px;
+}
+
+/* Date inputs: hide the native dd/mm/yyyy text and overlay our own label —
+   either the formatted date (e.g. "16 Jun, 2026") or a "Set a Date" hint. */
+.batch-modal-form .float-field.date-custom .float-control::-webkit-datetime-edit {
+  opacity: 0; /* hide native dd-mm-yyyy in every state, including on focus */
+  pointer-events: none;
+}
+
+/* The whole date field opens the picker — present a pointer, not a text caret. */
+.batch-modal-form .float-field.date-custom .float-control {
+  cursor: pointer;
+}
+
+.batch-modal-form .date-display {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px 8px;
+  font-size: 14px;
+  color: #1e293b;
+  pointer-events: none;
+}
+
+.batch-modal-form .date-display.is-empty {
+  color: #94a3b8;
+}
+
+/* The floating label — its resting state mimics a placeholder. */
+.batch-modal-form .float-label {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 400;
+  pointer-events: none;
+  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+/* Floated (active) state: the label rides ON the top border, with a matching
+   background that notches a gap in the line —  ── Label ───────────  */
+.batch-modal-form .float-control:focus ~ .float-label,
+.batch-modal-form .float-control:not(:placeholder-shown) ~ .float-label,
+.batch-modal-form .float-field.float-always .float-label {
+  top: 0;
+  left: 9px;
+  transform: translateY(-50%);
+  padding: 0 5px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #64748b;
+}
+
+.batch-modal-form .float-field.has-error .float-label {
+  color: #dc2626;
+}
+
+/* Textarea: rest the label near the top instead of vertically centered. */
+.batch-modal-form .float-field.float-textarea .float-label {
+  top: 19px;
+  transform: translateY(0);
+}
+
+.batch-modal-form .float-field.float-textarea .float-control:focus ~ .float-label,
+.batch-modal-form .float-field.float-textarea .float-control:not(:placeholder-shown) ~ .float-label {
+  top: 0;
+  transform: translateY(-50%);
 }
 
 .legacy-modal-footer {
@@ -2805,6 +2972,23 @@ input {
   color: #dc2626;
   font-size: 11px;
   font-weight: 500;
+}
+
+.asset-form-grid .field-hint {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.asset-form-grid .search-input.has-error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.asset-form-grid .search-input.has-error:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
 .asset-form-grid .search-input {
@@ -10245,6 +10429,9 @@ input {
 }
 .quiz-attempt-report-page .qar-email { color: #6c757d; font-size: 13px; }
 .quiz-attempt-report-page .qar-datetime { font-size: 12px; color: #555; }
+.quiz-attempt-report-page .qar-user-cell { display: flex; flex-direction: column; gap: 2px; }
+.quiz-attempt-report-page .qar-user-cell strong { font-size: 13px; color: #16353c; line-height: 1.2; }
+.quiz-attempt-report-page .qar-user-id { font-size: 11px; color: #6c757d; }
 .quiz-attempt-report-page .qar-muted { color: #6c757d; }
 
 /* ── Pagination ── */

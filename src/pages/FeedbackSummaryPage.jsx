@@ -807,9 +807,9 @@ export default function FeedbackSummaryPage() {
       )}
 
       {/* ── Table ── */}
-      {listRows.length > 0 ? (
+      {(listRows.length > 0 || listLoading) ? (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${listLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable${sortColumn === 'studentName' ? ' active' : ''}`} onClick={() => toggleSort('studentName')}>
@@ -827,6 +827,17 @@ export default function FeedbackSummaryPage() {
                 </th>
               </tr>
             </thead>
+            {listLoading ? (
+            <tbody>
+              {Array.from({ length: 8 }, (_, i) => (
+                <tr key={`sk-${i}`}>
+                  {Array.from({ length: 5 }, (_, j) => (
+                    <td key={j}><div className="table-skeleton medium" /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            ) : (
             <tbody>
               {listRows.map((fb) => {
                 const candidate = fb.candidate || {};
@@ -866,6 +877,7 @@ export default function FeedbackSummaryPage() {
                 );
               })}
             </tbody>
+            )}
           </table>
 
           {/* Pagination */}

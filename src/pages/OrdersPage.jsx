@@ -297,7 +297,7 @@ export default function OrdersPage() {
 
       {(isLoading || filteredOrders.length > 0) ? (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'orderNumber' ? 'active' : ''}`} onClick={() => handleSort('orderNumber')}>Order ID <i className={`sort-icon ti ${sortIcon('orderNumber', sortColumn, sortReverse)}`} /></th>

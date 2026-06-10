@@ -492,12 +492,7 @@ export default function LiveClassSchedulerPage() {
       </div>
 
       {/* ── Table (Exam-attempt-report style) ── */}
-      {loading ? (
-        <div className="ear-empty-state" style={{ background: 'white', border: '1px solid var(--line)', marginTop: '24px' }}>
-          <i className="ti ti-loader" />
-          <h4>Loading live classes…</h4>
-        </div>
-      ) : loadError ? (
+      {loadError ? (
         <div className="ear-empty-state" style={{ background: 'white', border: '1px solid var(--line)', marginTop: '24px' }}>
           <i className="ti ti-alert-triangle" style={{ color: '#dc2626' }} />
           <h4>Couldn't load live classes</h4>
@@ -506,9 +501,9 @@ export default function LiveClassSchedulerPage() {
             <i className="ti ti-reload" /> Retry
           </button>
         </div>
-      ) : filteredClasses.length > 0 ? (
+      ) : (loading || filteredClasses.length > 0) ? (
         <div className="students-table-container" style={{ background: 'white', border: '1px solid var(--line)' }}>
-          <table className="students-table">
+          <table className={`students-table ${loading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th>Title</th>
@@ -522,6 +517,17 @@ export default function LiveClassSchedulerPage() {
                 <th style={{ width: 50 }}></th>
               </tr>
             </thead>
+            {loading ? (
+            <tbody>
+              {Array.from({ length: 8 }, (_, i) => (
+                <tr key={`sk-${i}`}>
+                  {Array.from({ length: 9 }, (_, j) => (
+                    <td key={j}><div className="table-skeleton medium" /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            ) : (
             <tbody>
               {paginatedClasses.map((cls) => (
                 <tr key={cls.id}>
@@ -575,6 +581,7 @@ export default function LiveClassSchedulerPage() {
                 </tr>
               ))}
             </tbody>
+            )}
           </table>
 
           {/* Pagination */}

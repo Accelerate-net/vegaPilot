@@ -613,7 +613,7 @@ export default function VideoContentPage() {
 
       {/* Table */}
       <div className="students-table-container">
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th>Thumbnail</th>

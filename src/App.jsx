@@ -39,6 +39,8 @@ import SupportPage from './pages/SupportPage';
 import MessengerPage from './pages/MessengerPage';
 import ResidenceManagementPage from './pages/ResidenceManagementPage';
 import OfflineAttendancePage from './pages/OfflineAttendancePage';
+import AttendanceMappingPage from './pages/AttendanceMappingPage';
+import DefaultAttendanceLocationPage from './pages/DefaultAttendanceLocationPage';
 import AssetsPage from './pages/AssetsPage';
 import IcardGeneratorPage from './pages/IcardGeneratorPage';
 import LandingPage from './pages/LandingPage';
@@ -208,6 +210,12 @@ export default function App() {
     }
     if (screen.path === '/offline-attendance') {
       return <OfflineAttendancePage />;
+    }
+    if (screen.path === '/attendance-mapping') {
+      return <AttendanceMappingPage />;
+    }
+    if (screen.path === '/attendance-capture-location') {
+      return <DefaultAttendanceLocationPage />;
     }
     if (screen.path === '/assets') {
       return <AssetsPage />;

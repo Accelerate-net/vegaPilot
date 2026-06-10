@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import { Can, usePermission } from '../lib/userStore';
@@ -133,6 +134,16 @@ function formatDateForInput(value) {
   return `${year}-${month}-${day}`;
 }
 
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Render a YYYY-MM-DD value as e.g. "16 Jun, 2026" for display overlays.
+function formatDateLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${day} ${MONTH_LABELS[month - 1]}, ${year}`;
+}
+
 function getBatchStatus(batch) {
   if (batch?.status) return batch.status;
   if (!batch?.startDate) return 'Active';
@@ -213,6 +224,9 @@ function getStudentInitials(name) {
 
 export default function BatchManagementPage() {
   const { can } = usePermission();
+  const navigate = useNavigate();
+  const [attendanceBatch, setAttendanceBatch] = useState(null);
+  const [attendanceDate, setAttendanceDate] = useState('');
   const [batches, setBatches] = useState(() => batchesDemo.map(normalizeBatch));
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState('batchName');
@@ -227,6 +241,7 @@ export default function BatchManagementPage() {
   const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState(false);
   const [batchDraft, setBatchDraft] = useState(null);
+  const [batchErrors, setBatchErrors] = useState({});
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [availableCourses, setAvailableCourses] = useState([]);
@@ -496,8 +511,51 @@ export default function BatchManagementPage() {
     }
   }
 
+  function updateBatchField(field, value) {
+    setBatchDraft((current) => ({ ...current, [field]: value }));
+    setBatchErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  // Date fields open the native picker on any interaction instead of letting
+  // the user click/type into the date text segments.
+  function openDatePicker(event) {
+    if (event.type === 'keydown') {
+      if (event.key === 'Tab') return; // keep keyboard navigation working
+      event.preventDefault(); // block manual text entry into the segments
+    }
+    try {
+      event.currentTarget.showPicker?.();
+    } catch (_) {
+      // showPicker throws if already open or unsupported — safe to ignore.
+    }
+  }
+
+  function validateBatchDraft(draft) {
+    const errors = {};
+    if (!draft?.batchName?.trim()) errors.batchName = 'Batch name is required.';
+    if (!draft?.numberOfStudents) {
+      errors.numberOfStudents = 'Number of students is required.';
+    } else if (Number(draft.numberOfStudents) < 1) {
+      errors.numberOfStudents = 'Must be at least 1 student.';
+    }
+    if (draft?.startDate && draft?.endDate && draft.endDate < draft.startDate) {
+      errors.endDate = 'Conclude date must be after the commence date.';
+    }
+    if (!draft?.prepJourneyType) errors.prepJourneyType = 'Select a prep journey type.';
+    if (!draft?.prepJourneyYear) errors.prepJourneyYear = 'Select a prep journey year.';
+    if (!draft?.type) errors.type = 'Select a batch type.';
+    if (draft?.type === 'OFFLINE' && !draft?.locationId) errors.locationId = 'Select a location for offline batches.';
+    return errors;
+  }
+
   function openCreateBatchModal() {
     setEditingBatch(false);
+    setBatchErrors({});
     setBatchDraft({
       id: null,
       batchName: '',
@@ -520,6 +578,7 @@ export default function BatchManagementPage() {
 
   function openEditBatchModal(batch) {
     setEditingBatch(true);
+    setBatchErrors({});
     const currentLocationId = batch.locationId || (typeof batch.location === 'object' ? batch.location?.id : batch.location) || '';
     setBatchDraft({
       ...batch,
@@ -537,16 +596,10 @@ export default function BatchManagementPage() {
   }
 
   async function saveBatch() {
-    if (!batchDraft?.batchName?.trim() || !batchDraft.numberOfStudents || !batchDraft.prepJourneyType || !batchDraft.prepJourneyYear || !batchDraft.type) {
-      showToast('info', 'Notification', 'Please fill in all required fields.');
-      return;
-    }
-    if (batchDraft.type === 'OFFLINE' && !batchDraft.locationId) {
-      showToast('info', 'Notification', 'Please select a location for offline batches.');
-      return;
-    }
-    if (Number(batchDraft.numberOfStudents) < 1) {
-      showToast('info', 'Notification', 'Number of students must be at least 1.');
+    const errors = validateBatchDraft(batchDraft);
+    if (Object.keys(errors).length > 0) {
+      setBatchErrors(errors);
+      showToast('info', 'Notification', 'Please fix the highlighted fields.');
       return;
     }
 
@@ -926,6 +979,22 @@ export default function BatchManagementPage() {
     setActiveKebabId(null);
   }
 
+  function openViewAttendance(batch) {
+    setAttendanceBatch(batch);
+    const today = new Date();
+    setAttendanceDate(
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+    );
+    setActiveKebabId(null);
+  }
+
+  function confirmViewAttendance() {
+    if (!attendanceBatch || !attendanceDate) return;
+    const [y, m, d] = attendanceDate.split('-');
+    const dmy = `${d}-${m}-${y}`; // dd-mm-yyyy
+    navigate(`/offline-attendance?batch=${encodeURIComponent(attendanceBatch.id)}&date=${dmy}`);
+  }
+
   function confirmFreeze() {
     if (!batchToFreeze) return;
     const nextFrozen = !batchToFreeze.isFrozen;
@@ -1000,7 +1069,7 @@ export default function BatchManagementPage() {
 
       {(totalBatches > 0 || isLoading) && (
         <div className="students-table-container">
-          <table className="students-table">
+          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'batchName' ? 'active' : ''}`} onClick={() => handleSort('batchName')}>
@@ -1119,6 +1188,10 @@ export default function BatchManagementPage() {
                           <i className="ti ti-more-alt" />
                         </button>
                         <div className={`kebab-dropdown ${activeKebabId === batch.id ? 'active' : ''}`}>
+                          <button type="button" className="kebab-dropdown-item view-profile" onClick={() => openViewAttendance(batch)}>
+                            <i className="ti ti-calendar-stats" />
+                            <span className="item-label">View Attendance</span>
+                          </button>
                           {can(PERMS.BATCHES_COURSES_EDIT) && (
                             <button type="button" className="kebab-dropdown-item view-profile" onClick={() => openManageCourses(batch)}>
                               <i className="ti ti-book" />
@@ -1210,116 +1283,184 @@ export default function BatchManagementPage() {
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="batch-modal-form" onSubmit={(event) => { event.preventDefault(); saveBatch(); }}>
           <div className="legacy-modal-body">
-            <div className="batch-form-grid">
-              <label>
-                <span>Batch Name *</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={batchDraft?.batchName || ''}
-                  onChange={(event) => setBatchDraft((current) => ({ ...current, batchName: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>Number of Students *</span>
-                <input
-                  type="number"
-                  className="search-input"
-                  value={batchDraft?.numberOfStudents || ''}
-                  onChange={(event) => setBatchDraft((current) => ({ ...current, numberOfStudents: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>Commence Date</span>
-                <input
-                  type="date"
-                  className="search-input"
-                  value={batchDraft?.startDate || ''}
-                  onChange={(event) => setBatchDraft((current) => ({ ...current, startDate: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>Conclude Date</span>
-                <input
-                  type="date"
-                  className="search-input"
-                  value={batchDraft?.endDate || ''}
-                  onChange={(event) => setBatchDraft((current) => ({ ...current, endDate: event.target.value }))}
-                />
-              </label>
-              <label className="full-span">
-                <span>Description</span>
-                <textarea
-                  className="search-input textarea-like"
-                  value={batchDraft?.description || ''}
-                  onChange={(event) => setBatchDraft((current) => ({ ...current, description: event.target.value }))}
-                />
-              </label>
-               <label>
-                 <span>Prep Journey Type *</span>
-                 <select 
-                   className="search-input"
-                   value={batchDraft?.prepJourneyType || ''}
-                   onChange={(event) => setBatchDraft((current) => ({ ...current, prepJourneyType: event.target.value }))}
-                 >
-                   <option value="">Select Type</option>
-                   <option value="IAT">IAT</option>
-                   <option value="NEST">NEST</option>
-                 </select>
-               </label>
-               <label>
-                 <span>Prep Journey Year *</span>
-                 <select
-                   className="search-input"
-                   value={batchDraft?.prepJourneyYear || ''}
-                   onChange={(event) => setBatchDraft((current) => ({ ...current, prepJourneyYear: event.target.value }))}
-                 >
-                   <option value="">Select Year</option>
-                   <option value="2026">2026</option>
-                   <option value="2027">2027</option>
-                   <option value="2028">2028</option>
-                 </select>
-               </label>
-               <label>
-                 <span>Type *</span>
-                 <select
-                   className="search-input"
-                   value={batchDraft?.type || ''}
-                   onChange={(event) => setBatchDraft((current) => ({
-                     ...current,
-                     type: event.target.value,
-                     locationId: event.target.value === 'OFFLINE' ? current.locationId : '',
-                   }))}
-                 >
-                   <option value="">Select Type</option>
-                   <option value="OFFLINE">Offline</option>
-                   <option value="ONLINE">Online</option>
-                 </select>
-               </label>
-               {batchDraft?.type === 'OFFLINE' && (
-                 <label>
-                   <span>Location *</span>
-                   <select
-                     className="search-input"
-                     value={batchDraft?.locationId || ''}
-                     onChange={(event) => setBatchDraft((current) => ({ ...current, locationId: event.target.value }))}
-                   >
-                     <option value="">Select location</option>
-                     {availableLocations.map((loc) => (
-                       <option key={loc.id} value={loc.id}>{loc.name}</option>
-                     ))}
-                   </select>
-                 </label>
-               )}
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Details</div>
+              <div className="asset-form-grid basic-grid">
+                <label className="field-cell">
+                  <div className={`float-field ${batchErrors.batchName ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={batchDraft?.batchName || ''}
+                      onChange={(event) => updateBatchField('batchName', event.target.value)}
+                    />
+                    <span className="float-label">Batch Name <span className="req">*</span></span>
+                  </div>
+                  {batchErrors.batchName && <span className="field-error">{batchErrors.batchName}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${batchErrors.numberOfStudents ? 'has-error' : ''}`}>
+                    <input
+                      type="number"
+                      min="1"
+                      className="float-control"
+                      placeholder=" "
+                      value={batchDraft?.numberOfStudents || ''}
+                      onChange={(event) => updateBatchField('numberOfStudents', event.target.value)}
+                    />
+                    <span className="float-label">Number of Students <span className="req">*</span></span>
+                  </div>
+                  {batchErrors.numberOfStudents
+                    ? <span className="field-error">{batchErrors.numberOfStudents}</span>
+                    : <span className="field-hint">Maximum seats available in this batch.</span>}
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea
+                      className="float-control"
+                      placeholder=" "
+                      value={batchDraft?.description || ''}
+                      onChange={(event) => updateBatchField('description', event.target.value)}
+                    />
+                    <span className="float-label">Description</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-calendar" /> Schedule</div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className="float-field float-always date-custom">
+                    <input
+                      type="date"
+                      className="float-control"
+                      value={batchDraft?.startDate || ''}
+                      onChange={(event) => updateBatchField('startDate', event.target.value)}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
+                    />
+                    <span className="float-label">Commence Date</span>
+                    <span className={`date-display ${!batchDraft?.startDate ? 'is-empty' : ''}`}>
+                      {batchDraft?.startDate ? formatDateLabel(batchDraft.startDate) : 'Set a Date'}
+                    </span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field float-always date-custom ${batchErrors.endDate ? 'has-error' : ''}`}>
+                    <input
+                      type="date"
+                      className="float-control"
+                      min={batchDraft?.startDate || undefined}
+                      value={batchDraft?.endDate || ''}
+                      onChange={(event) => updateBatchField('endDate', event.target.value)}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
+                    />
+                    <span className="float-label">Conclude Date</span>
+                    <span className={`date-display ${!batchDraft?.endDate ? 'is-empty' : ''}`}>
+                      {batchDraft?.endDate ? formatDateLabel(batchDraft.endDate) : 'Set a Date'}
+                    </span>
+                  </div>
+                  {batchErrors.endDate && <span className="field-error">{batchErrors.endDate}</span>}
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-settings" /> Configuration</div>
+              <div className="asset-form-grid config-grid">
+                <label className="field-cell">
+                  <div className={`float-field float-always ${batchErrors.prepJourneyType ? 'has-error' : ''}`}>
+                    <select
+                      className="float-control"
+                      value={batchDraft?.prepJourneyType || ''}
+                      onChange={(event) => updateBatchField('prepJourneyType', event.target.value)}
+                    >
+                      <option value="">Select Type</option>
+                      <option value="IAT">IAT</option>
+                      <option value="NEST">NEST</option>
+                    </select>
+                    <span className="float-label">Prep Journey Type <span className="req">*</span></span>
+                  </div>
+                  {batchErrors.prepJourneyType && <span className="field-error">{batchErrors.prepJourneyType}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field float-always ${batchErrors.prepJourneyYear ? 'has-error' : ''}`}>
+                    <select
+                      className="float-control"
+                      value={batchDraft?.prepJourneyYear || ''}
+                      onChange={(event) => updateBatchField('prepJourneyYear', event.target.value)}
+                    >
+                      <option value="">Select Year</option>
+                      <option value="2026">2026</option>
+                      <option value="2027">2027</option>
+                      <option value="2028">2028</option>
+                    </select>
+                    <span className="float-label">Prep Journey Year <span className="req">*</span></span>
+                  </div>
+                  {batchErrors.prepJourneyYear && <span className="field-error">{batchErrors.prepJourneyYear}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field float-always ${batchErrors.type ? 'has-error' : ''}`}>
+                    <select
+                      className="float-control"
+                      value={batchDraft?.type || ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setBatchDraft((current) => ({
+                          ...current,
+                          type: value,
+                          locationId: value === 'OFFLINE' ? current.locationId : '',
+                        }));
+                        setBatchErrors((current) => {
+                          const next = { ...current };
+                          delete next.type;
+                          if (value !== 'OFFLINE') delete next.locationId;
+                          return next;
+                        });
+                      }}
+                    >
+                      <option value="">Select Type</option>
+                      <option value="OFFLINE">Offline</option>
+                      <option value="ONLINE">Online</option>
+                    </select>
+                    <span className="float-label">Type <span className="req">*</span></span>
+                  </div>
+                  {batchErrors.type && <span className="field-error">{batchErrors.type}</span>}
+                </label>
+                {batchDraft?.type === 'OFFLINE' && (
+                  <label className="field-cell">
+                    <div className={`float-field float-always ${batchErrors.locationId ? 'has-error' : ''}`}>
+                      <select
+                        className="float-control"
+                        value={batchDraft?.locationId || ''}
+                        onChange={(event) => updateBatchField('locationId', event.target.value)}
+                      >
+                        <option value="">Select location</option>
+                        {availableLocations.map((loc) => (
+                          <option key={loc.id} value={loc.id}>{loc.name}</option>
+                        ))}
+                      </select>
+                      <span className="float-label">Location <span className="req">*</span></span>
+                    </div>
+                    {batchErrors.locationId && <span className="field-error">{batchErrors.locationId}</span>}
+                  </label>
+                )}
+              </div>
             </div>
           </div>
           <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setBatchModalOpen(false)}>Cancel</button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={saveBatch}>
-              <i className={`ti ${editingBatch ? 'ti-check' : 'ti-plus'}`} /> {editingBatch ? 'Update Batch' : 'Create Batch'}
+            <button type="submit" className="legacy-btn legacy-btn-success">
+              {editingBatch ? 'Update Batch' : 'Create Batch'}
             </button>
           </div>
+          </form>
         </div>
       </div>
 
@@ -1641,6 +1782,42 @@ export default function BatchManagementPage() {
             <button type="button" className={`legacy-btn ${batchToFreeze?.isFrozen ? 'legacy-btn-success' : 'legacy-btn-danger'}`} onClick={confirmFreeze}>
               <i className={`ti ${batchToFreeze?.isFrozen ? 'ti-unlock' : 'ti-lock'}`} />
               {batchToFreeze?.isFrozen ? 'Unfreeze Batch' : 'Freeze Batch'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className={`legacy-modal-backdrop ${attendanceBatch ? 'active' : ''}`} onClick={() => setAttendanceBatch(null)}>
+        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3>View Attendance</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setAttendanceBatch(null)}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <div className="legacy-modal-body">
+            {attendanceBatch ? (
+              <>
+                <div className="batch-modal-summary">
+                  <div className="batch-modal-title">{attendanceBatch.batchName}</div>
+                  <div className="batch-modal-subtitle">Select a date to view this batch&apos;s attendance.</div>
+                </div>
+                <label style={{ display: 'block', marginTop: 12 }}>
+                  <span style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>Date</span>
+                  <input
+                    type="date"
+                    className="search-input"
+                    value={attendanceDate}
+                    onChange={(event) => setAttendanceDate(event.target.value)}
+                  />
+                </label>
+              </>
+            ) : null}
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setAttendanceBatch(null)}>Cancel</button>
+            <button type="button" className="legacy-btn legacy-btn-success" disabled={!attendanceDate} onClick={confirmViewAttendance}>
+              <i className="ti ti-calendar-stats" /> View Attendance
             </button>
           </div>
         </div>
