@@ -17,6 +17,7 @@ import {
   getApiErrorCode,
 } from '../lib/supportApi';
 import { useUser, usePermission } from '../lib/userStore';
+import { SEARCH_DEBOUNCE_MS } from '../hooks/useDebouncedValue';
 
 const TAGS = ['None', 'Escalation', 'Feedback', 'Purchase', 'Complaint', 'Legal', 'Technical Issue', 'Other'];
 
@@ -194,7 +195,7 @@ export default function SupportPage() {
 
   // Debounce search input → searchQuery
   useEffect(() => {
-    const t = setTimeout(() => setSearchQuery(searchInput), 300);
+    const t = setTimeout(() => setSearchQuery(searchInput), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [searchInput]);
 

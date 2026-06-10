@@ -2120,6 +2120,18 @@ input {
   filter: brightness(0.98);
 }
 
+.form-modal .legacy-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.form-modal .legacy-btn:disabled:hover,
+.form-modal .legacy-btn:disabled:active {
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .form-modal .legacy-btn {
     transition: none;
@@ -4652,6 +4664,12 @@ input {
   color: white;
 }
 
+.courses-list-page .no-students-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
 .courses-list-page .courses-empty-state {
   padding: 60px 20px;
   background: white;
@@ -5457,34 +5475,34 @@ input {
   background: #f8fafc;
 }
 
-.quiz-listing-page .students-table {
+.quiz-listing-page .quiz-list-table {
   min-width: 980px;
   table-layout: fixed;
 }
 
-.quiz-listing-page .students-table th:nth-child(1) {
+.quiz-listing-page .quiz-list-table th:nth-child(1) {
   width: 220px;
 }
 
-.quiz-listing-page .students-table th:nth-child(2) {
+.quiz-listing-page .quiz-list-table th:nth-child(2) {
   width: 95px;
 }
 
-.quiz-listing-page .students-table th:nth-child(3),
-.quiz-listing-page .students-table th:nth-child(4),
-.quiz-listing-page .students-table th:nth-child(5) {
+.quiz-listing-page .quiz-list-table th:nth-child(3),
+.quiz-listing-page .quiz-list-table th:nth-child(4),
+.quiz-listing-page .quiz-list-table th:nth-child(5) {
   width: 78px;
 }
 
-.quiz-listing-page .students-table th:nth-child(6) {
+.quiz-listing-page .quiz-list-table th:nth-child(6) {
   width: 160px;
 }
 
-.quiz-listing-page .students-table th:nth-child(7) {
+.quiz-listing-page .quiz-list-table th:nth-child(7) {
   width: 100px;
 }
 
-.quiz-listing-page .students-table th:nth-child(8) {
+.quiz-listing-page .quiz-list-table th:nth-child(8) {
   width: 105px;
 }
 
@@ -5726,52 +5744,84 @@ input {
   margin-bottom: 20px;
 }
 
+.quiz-listing-page .attempts-modal .crispr-modal-close {
+  background: rgba(255, 255, 255, 0.12);
+  color: #cbd5e0;
+}
+
+.quiz-listing-page .attempts-modal .crispr-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+}
+
+.quiz-listing-page .attempts-table-container {
+  box-shadow: none;
+  border: 1px solid #e9ecef;
+}
+
 .quiz-listing-page .attempts-table {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 0;
+  table-layout: fixed;
 }
 
 .quiz-listing-page .attempts-table th,
 .quiz-listing-page .attempts-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e9ecef;
-  text-align: left;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-size: 12px;
+  white-space: normal;
+  word-break: break-word;
 }
 
-.quiz-listing-page .attempts-table th {
-  border-bottom: 2px solid #dee2e6;
-  background: #f8f9fa;
-  color: #495057;
+.quiz-listing-page .attempt-id {
+  margin-top: 3px;
+  color: #6c757d;
   font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
 }
 
-.quiz-listing-page .attempts-table tbody tr:hover {
-  background: #f8f9fa;
-}
-
-.quiz-listing-page .status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 11px;
+.quiz-listing-page .attempt-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.quiz-listing-page .status-inprogress {
-  background: #d1ecf1;
-  color: #0c5460;
+.quiz-listing-page .attempt-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
+
+.quiz-listing-page .attempt-status.is-completed {
+  color: #28a745;
+}
+
+.quiz-listing-page .attempt-status.is-completed .attempt-status-dot {
+  background: #28a745;
+}
+
+.quiz-listing-page .attempt-status.is-progress {
+  color: #b8860b;
+}
+
+.quiz-listing-page .attempt-status.is-progress .attempt-status-dot {
+  background: #b8860b;
+}
+
+.quiz-listing-page .attempts-table th:nth-child(1) { width: 26%; }
+.quiz-listing-page .attempts-table th:nth-child(2) { width: 16%; }
+.quiz-listing-page .attempts-table th:nth-child(3) { width: 16%; }
+.quiz-listing-page .attempts-table th:nth-child(4),
+.quiz-listing-page .attempts-table th:nth-child(5) { width: 21%; }
 
 .quiz-listing-page .score-badge {
   color: #006073;
   font-weight: 600;
 }
 
-.quiz-listing-page .score-badge span,
-.quiz-listing-page .attempt-email {
+.quiz-listing-page .score-badge span {
   color: #6c757d;
 }
 
@@ -5811,7 +5861,7 @@ input {
     overflow-x: auto;
   }
 
-  .quiz-listing-page .students-table {
+  .quiz-listing-page .quiz-list-table {
     min-width: 980px;
   }
 
@@ -6041,11 +6091,10 @@ input {
   color: #ef4444;
 }
 
-.test-series-list-page .basic-info-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 15px;
-  margin-bottom: 15px;
+.test-series-list-page .form-section-header .asset-form-section-title {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .test-series-list-page .form-group {
@@ -6354,7 +6403,7 @@ input {
     align-items: stretch;
   }
 
-  .test-series-list-page .basic-info-grid {
+  .test-series-list-page .asset-form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -9176,6 +9225,25 @@ input {
   position: relative;
 }
 
+/* Inside a floating-label field the wrapper owns the border/label — strip the
+   trigger's own chrome so it matches the native float-control inputs. */
+.exam-attempt-report-page .float-multiselect { padding: 0; }
+.exam-attempt-report-page .float-multiselect .ear-batch-trigger {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  height: auto;
+  min-height: 40px;
+  padding: 10px 12px 8px;
+}
+.exam-attempt-report-page .float-multiselect .ear-batch-trigger:hover:not(.disabled) {
+  border-color: transparent;
+}
+.exam-attempt-report-page .float-multiselect.is-disabled { background: #f1f5f9; }
+.exam-attempt-report-page .float-multiselect .ear-batch-trigger.disabled {
+  background: transparent;
+}
+
 .exam-attempt-report-page .ear-batch-trigger {
   display: flex;
   align-items: center;
@@ -9255,6 +9323,7 @@ input {
 
 .exam-attempt-report-page .ear-batch-item {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
@@ -9262,6 +9331,7 @@ input {
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.15s;
   font-size: 13px;
+  font-weight: 400;
   color: #333;
 }
 
@@ -9956,57 +10026,7 @@ input {
    container / .students-table rules visually in sync.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Skeleton ── */
-.quiz-attempt-report-page .qar-skeleton-header {
-  height: 160px;
-  background: #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-}
-.quiz-attempt-report-page .qar-skeleton-header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
-  animation: shimmer 1.4s infinite;
-}
-.quiz-attempt-report-page .qar-skeleton-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.quiz-attempt-report-page .qar-skeleton-stat {
-  height: 72px;
-  background: #e2e8f0;
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-}
-.quiz-attempt-report-page .qar-skeleton-stat::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
-  animation: shimmer 1.4s infinite;
-}
-.quiz-attempt-report-page .qar-skeleton-filter {
-  height: 130px;
-  background: #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-}
-.quiz-attempt-report-page .qar-skeleton-filter::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
-  animation: shimmer 1.4s infinite;
-}
+/* ── Skeleton (table only) ── */
 .quiz-attempt-report-page .qar-skel {
   background: #e2e8f0;
   border-radius: 4px;
@@ -10020,7 +10040,11 @@ input {
   background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
   animation: shimmer 1.4s infinite;
 }
-.quiz-attempt-report-page .qar-skel-th { height: 14px; width: 80%; }
+/* During loading, grey out the table header so the shimmer bars don't sit on the teal gradient */
+.quiz-attempt-report-page .students-table.qar-loading thead {
+  background: #e9eef3;
+}
+.quiz-attempt-report-page .qar-skel-th { height: 14px; width: 80%; background: #cdd7e2; }
 .quiz-attempt-report-page .qar-skel-td { height: 14px; width: 70%; }
 .quiz-attempt-report-page .qar-skel-td.wide { width: 120px; height: 32px; border-radius: 50%; }
 
@@ -10308,6 +10332,23 @@ input {
 .quiz-attempt-report-page .qar-batch-multiselect {
   position: relative;
 }
+/* Inside a floating-label field the wrapper owns the border/label — strip the
+   trigger's own chrome so it matches the native float-control inputs. */
+.quiz-attempt-report-page .float-multiselect { padding: 0; }
+.quiz-attempt-report-page .float-multiselect .qar-batch-trigger {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 10px 12px 8px;
+}
+.quiz-attempt-report-page .float-multiselect .qar-batch-trigger:hover:not(.disabled) {
+  border-color: transparent;
+}
+.quiz-attempt-report-page .float-multiselect.is-disabled { background: #f1f5f9; }
+.quiz-attempt-report-page .float-multiselect .qar-batch-trigger.disabled {
+  background: transparent;
+}
 .quiz-attempt-report-page .qar-batch-trigger {
   display: flex;
   align-items: center;
@@ -10371,12 +10412,14 @@ input {
 }
 .quiz-attempt-report-page .qar-batch-item {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.15s;
+  font-weight: 400;
 }
 .quiz-attempt-report-page .qar-batch-item:last-child { border-bottom: none; }
 .quiz-attempt-report-page .qar-batch-item:hover { background: #f8f9fa; }

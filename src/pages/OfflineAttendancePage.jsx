@@ -7,6 +7,7 @@ import { listCandidates, listBatches, listCandidatesInBatches } from '../lib/ica
 import { searchInstructors } from '../lib/instructorsApi';
 import { listUsers } from '../lib/userAccountsApi';
 import { listDefaultLocations } from '../lib/attendanceDefaultLocationApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 // Audience tabs for the calendar-view people picker (mirrors the Forms dispatch modal).
 const AUDIENCES = [
@@ -310,6 +311,7 @@ export default function OfflineAttendancePage() {
 
   // Filters (mapped to the attendance-record API)
   const [searchUserId, setSearchUserId] = useState(init.search);
+  const debouncedSearchUserId = useDebouncedValue(searchUserId);
   const [dateFrom, setDateFrom] = useState(() => init.from || todayStr()); // yyyy-mm-dd, defaults to today
   const [dateTo, setDateTo] = useState(() => init.to || todayStr());        // yyyy-mm-dd, defaults to today
   const [userTypeFilter, setUserTypeFilter] = useState(init.userType);
@@ -402,7 +404,7 @@ export default function OfflineAttendancePage() {
     try {
       const { year, month, day } = rangeToParams(dateFrom, dateTo);
       const resp = await listAttendanceRecords({
-        userId: /^\d+$/.test(searchUserId.trim()) ? searchUserId.trim() : undefined,
+        userId: /^\d+$/.test(debouncedSearchUserId.trim()) ? debouncedSearchUserId.trim() : undefined,
         userType: userTypeFilter || undefined,
         locationId: locationId || undefined,
         batchIds: batchFilterIds.length ? batchFilterIds.join(',') : undefined,
@@ -434,7 +436,7 @@ export default function OfflineAttendancePage() {
     } finally {
       if (!signal.cancelled) setIsLoading(false);
     }
-  }, [searchUserId, dateFrom, dateTo, userTypeFilter, locationId, batchFilterIds, filterBy, sortBy, sortOrder, page, pageSize, showToast]);
+  }, [debouncedSearchUserId, dateFrom, dateTo, userTypeFilter, locationId, batchFilterIds, filterBy, sortBy, sortOrder, page, pageSize, showToast]);
 
   useEffect(() => {
     const signal = { cancelled: false };

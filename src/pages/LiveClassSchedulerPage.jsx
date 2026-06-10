@@ -12,6 +12,7 @@ import {
   liveClassError,
   isYoutubeError,
 } from '../lib/liveClassApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const studentPool = ['All Registered', 'Unrestricted', 'Batch A', 'Batch B', 'Course: IAT 2026', 'Course: NEET 2026'];
 const hostPool = ['Rajesh Kumar', 'Priya Sharma', 'Vikram Singh', 'Anjali Gupta'];
@@ -184,6 +185,7 @@ export default function LiveClassSchedulerPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [statusFilter, setStatusFilter] = useState('');
   const [modeFilter, setModeFilter] = useState('');
 
@@ -228,7 +230,7 @@ export default function LiveClassSchedulerPage() {
     setLoadError(null);
     try {
       const res = await listLiveClasses({
-        search: searchQuery || undefined,
+        search: debouncedSearchQuery || undefined,
         status: statusFilter || undefined,
         mode: modeFilter || undefined,
       });
@@ -240,12 +242,12 @@ export default function LiveClassSchedulerPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, statusFilter, modeFilter]);
+  }, [debouncedSearchQuery, statusFilter, modeFilter]);
 
-  // Debounce so typing in the search box doesn't fire a request per keystroke.
+  // searchQuery is debounced (2s) into debouncedSearchQuery, so typing in the
+  // search box no longer fires a request per keystroke.
   useEffect(() => {
-    const t = window.setTimeout(loadClasses, 250);
-    return () => window.clearTimeout(t);
+    loadClasses();
   }, [loadClasses]);
 
   function replaceClass(updated) {

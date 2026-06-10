@@ -291,7 +291,7 @@ export default function QuizListingPage() {
 
       {totalItems > 0 ? (
         <div className="students-table-container">
-          <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
+          <table className={`students-table quiz-list-table ${isLoading ? 'thead-loading' : ''}`}>
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'title' ? 'active' : ''}`} onClick={() => handleSort('title')}>
@@ -444,9 +444,6 @@ export default function QuizListingPage() {
           <i className="ti ti-clipboard" />
           <h4>No Quizzes Found</h4>
           <p>{currentTab === 'all' ? "You haven't created any quizzes yet." : currentTab === 'published' ? "You haven't published any quizzes yet." : "You don't have any draft quizzes."}</p>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/quiz-creation')}>
-            <i className="ti ti-plus" /> Create Your First Quiz
-          </button>
         </div>
       )}
 
@@ -591,7 +588,7 @@ function ConfirmModal({ tone, icon, title, heading, body, actionLabel, onClose, 
 function AttemptsModal({ quiz, stats, attemptSearchQuery, onSearchChange, attempts, totalAttempts, startIndex, page, totalPages, onPageChange, onClose }) {
   return (
     <div className="crispr-modal-backdrop active" role="presentation" onClick={onClose}>
-      <div className="crispr-modal-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+      <div className="crispr-modal-dialog attempts-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
         <div className="crispr-modal-header">
           <h3><i className="ti ti-user" /> Quiz Attempts: {quiz.title}</h3>
           <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
@@ -600,7 +597,7 @@ function AttemptsModal({ quiz, stats, attemptSearchQuery, onSearchChange, attemp
           <div className="attempt-stats-row">
             <AttemptStat label="Total Attempts" value={stats.total} />
             <AttemptStat label="Completed" value={stats.completed} tone="completed" />
-            <AttemptStat label="In Progress" value={stats.inProgress} tone="progress" />
+            <AttemptStat label="In Progress" value={stats.inProgress ?? 0} tone="progress" />
           </div>
           <div className="attempt-search">
             <input
@@ -613,40 +610,44 @@ function AttemptsModal({ quiz, stats, attemptSearchQuery, onSearchChange, attemp
           </div>
           {totalAttempts > 0 ? (
             <>
-              <table className="attempts-table">
-                <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Score</th>
-                    <th>Started At</th>
-                    <th>Completed At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attempts.map((attempt, index) => (
-                    <tr key={`${attempt.studentEmail}-${index}`}>
-                      <td><strong>{attempt.studentName}</strong></td>
-                      <td className="attempt-email">{attempt.studentEmail}</td>
-                      <td>
-                        <span className={`status-badge ${attempt.status === 'completed' ? 'status-completed' : 'status-inprogress'}`}>
-                          {attempt.status === 'completed' ? 'Completed' : 'In Progress'}
-                        </span>
-                      </td>
-                      <td>
-                        {attempt.status === 'completed' ? (
-                          <span className="score-badge">{attempt.score}/{quiz.maximumMarks} <span>({Math.round((Number(attempt.score || 0) / Number(quiz.maximumMarks || 1)) * 100)}%)</span></span>
-                        ) : (
-                          <span className="muted-table-text">-</span>
-                        )}
-                      </td>
-                      <td className="attempt-date">{formatDateTime(attempt.startedAt)}</td>
-                      <td className="attempt-date">{attempt.status === 'completed' ? formatDateTime(attempt.completedAt) : <span className="muted-table-text">-</span>}</td>
+              <div className="students-table-container attempts-table-container">
+                <table className="students-table attempts-table">
+                  <thead>
+                    <tr>
+                      <th>Student Name</th>
+                      <th>Status</th>
+                      <th>Score</th>
+                      <th>Started At</th>
+                      <th>Completed At</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {attempts.map((attempt, index) => (
+                      <tr key={`${attempt.studentEmail}-${index}`}>
+                        <td>
+                          <strong>{attempt.studentName}</strong>
+                          {attempt.studentId ? <div className="attempt-id">ID: {attempt.studentId}</div> : null}
+                        </td>
+                        <td>
+                          <span className={`attempt-status ${attempt.status === 'completed' ? 'is-completed' : 'is-progress'}`}>
+                            <span className="attempt-status-dot" />
+                            {attempt.status === 'completed' ? 'Completed' : 'In Progress'}
+                          </span>
+                        </td>
+                        <td>
+                          {attempt.status === 'completed' ? (
+                            <span className="score-badge">{attempt.score}/{quiz.maximumMarks} <span>({Math.round((Number(attempt.score || 0) / Number(quiz.maximumMarks || 1)) * 100)}%)</span></span>
+                          ) : (
+                            <span className="muted-table-text">-</span>
+                          )}
+                        </td>
+                        <td className="attempt-date">{formatDateTime(attempt.startedAt)}</td>
+                        <td className="attempt-date">{attempt.status === 'completed' ? formatDateTime(attempt.completedAt) : <span className="muted-table-text">-</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <div className="pagination-container attempts-pagination">
                 <div className="pagination-info">
                   Showing {startIndex + 1} to {Math.min(startIndex + attempts.length, totalAttempts)} of {totalAttempts} attempts
@@ -673,8 +674,8 @@ function AttemptsModal({ quiz, stats, attemptSearchQuery, onSearchChange, attemp
             </div>
           )}
         </div>
-        <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>Close</button>
+        <div className="legacy-modal-footer">
+          <button type="button" className="legacy-btn legacy-btn-success" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

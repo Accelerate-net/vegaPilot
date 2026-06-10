@@ -5,6 +5,7 @@ import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { instructorsDemo } from '../data/adminRemainingDemo';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 
 function getPageNumbers(currentPage, totalPages) {
@@ -123,6 +124,7 @@ export default function InstructorPortfolioPage() {
   const { can } = usePermission();
   const [instructors, setInstructors] = useState(() => instructorsDemo.map(normalizeInstructor));
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [filterSubject, setFilterSubject] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortReverse, setSortReverse] = useState(false);
@@ -169,7 +171,7 @@ export default function InstructorPortfolioPage() {
           size: pageSize,
           sortBy: sortColumn || 'name',
           sortOrder: sortReverse ? 'DESC' : 'ASC',
-          searchKey: searchQuery.trim() || undefined,
+          searchKey: debouncedSearchQuery.trim() || undefined,
           filterBy: filterSubject || undefined,
         },
       });
@@ -191,7 +193,7 @@ export default function InstructorPortfolioPage() {
       
       // Demo Fallback
       let rows = instructorsDemo.map(normalizeInstructor);
-      const query = searchQuery.trim().toLowerCase();
+      const query = debouncedSearchQuery.trim().toLowerCase();
       if (query) {
         rows = rows.filter((instructor) =>
           [instructor.name, instructor.expertSubject, instructor.qualifications, instructor.brief]
@@ -232,7 +234,7 @@ export default function InstructorPortfolioPage() {
     } finally {
       if (!isCancelled.current) setIsLoading(false);
     }
-  }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery, filterSubject]);
+  }, [currentPage, pageSize, sortColumn, sortReverse, debouncedSearchQuery, filterSubject]);
 
   const fetchInstructorProfile = useCallback(async (isCancelled = { current: false }) => {
     if (!viewModalOpen || !selectedInstructor?.id || isDemoMode) return;

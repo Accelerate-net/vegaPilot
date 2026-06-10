@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useUser, getCachedUser } from '../../lib/userStore';
 import MultiRoleSelect from './MultiRoleSelect';
+import { SEARCH_DEBOUNCE_MS } from '../../hooks/useDebouncedValue';
 import {
   listUsers,
   createUser,
@@ -66,7 +67,7 @@ function normalizeUser(u) {
   };
 }
 
-const DEBOUNCE_MS = 350;
+const DEBOUNCE_MS = SEARCH_DEBOUNCE_MS;
 
 /**
  * @param {Object} props

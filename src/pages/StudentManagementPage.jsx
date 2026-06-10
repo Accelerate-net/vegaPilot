@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import { availableCourses, demoCandidates } from '../data/candidateProfileDemo';
 import ToastRegion from '../components/ToastRegion';
 import Avatar from '../components/Avatar';
@@ -145,6 +146,7 @@ export default function StudentManagementPage() {
   const { can } = usePermission();
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [filterStatus, setFilterStatus] = useState('');
   const [sortColumn, setSortColumn] = useState('name');
   const [sortReverse, setSortReverse] = useState(false);
@@ -199,7 +201,7 @@ export default function StudentManagementPage() {
             page: currentPage,
             size: itemsPerPage,
             sortBy: sortColumn,
-            searchKey: searchQuery.trim() || undefined,
+            searchKey: debouncedSearchQuery.trim() || undefined,
             status: filterStatus || undefined,
           },
         });
@@ -219,7 +221,7 @@ export default function StudentManagementPage() {
         throw new Error(response.data?.message || response.data?.error || 'Failed to load students');
       } catch (error) {
         const demo = getDemoResponse({
-          searchQuery,
+          searchQuery: debouncedSearchQuery,
           filterStatus,
           currentPage,
           itemsPerPage,
@@ -248,7 +250,7 @@ export default function StudentManagementPage() {
     return () => {
       isCancelled = true;
     };
-  }, [currentPage, filterStatus, itemsPerPage, searchQuery, sortColumn, sortReverse]);
+  }, [currentPage, filterStatus, itemsPerPage, debouncedSearchQuery, sortColumn, sortReverse]);
 
   const activeStudents = useMemo(
     () => students.filter((student) => student.status === 'active' && !student.blocked).length,

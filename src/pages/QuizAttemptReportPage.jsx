@@ -11,6 +11,33 @@ function formatDateTime(value) {
   return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Render a datetime-local value (e.g. "2026-06-17T03:45") as "17 Jun, 2026, 03:45 am".
+function formatDateTimeLabel(value) {
+  if (!value) return '';
+  const [datePart, timePart = '00:00'] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  let [hh, mm] = timePart.split(':').map(Number);
+  const ampm = hh >= 12 ? 'pm' : 'am';
+  hh = hh % 12 || 12;
+  return `${day} ${MONTH_SHORT[month - 1]}, ${year}, ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${ampm}`;
+}
+
+// Open the native picker on click/focus and block manual segment typing.
+function openDateTimePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function getScoreClass(pct) {
   if (pct >= 75) return 'score-excellent';
   if (pct >= 50) return 'score-good';
@@ -352,32 +379,6 @@ export default function QuizAttemptReportPage() {
   }
 
   // ─── Skeleton ──────────────────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="quiz-attempt-report-page data-table-page">
-        <div className="qar-skeleton-header" />
-        <div className="qar-skeleton-stats">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="qar-skeleton-stat" />)}
-        </div>
-        <div className="qar-skeleton-filter" />
-        <div className="students-table-container" style={{ marginTop: 20 }}>
-          <table className="students-table">
-            <thead><tr>{[...Array(9)].map((_, i) => <th key={i}><div className="qar-skel qar-skel-th" /></th>)}</tr></thead>
-            <tbody>
-              {[...Array(8)].map((_, i) => (
-                <tr key={i}>
-                  {[...Array(9)].map((_, j) => (
-                    <td key={j}><div className={`qar-skel qar-skel-td${j === 1 ? ' wide' : ''}`} /></td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="quiz-attempt-report-page data-table-page">
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
@@ -512,7 +513,22 @@ export default function QuizAttemptReportPage() {
       </div>
 
       {/* ── Rank Table ── */}
-      {filteredRankings.length > 0 ? (
+      {isLoading ? (
+        <div className="students-table-container">
+          <table className="students-table qar-loading">
+            <thead><tr>{[...Array(9)].map((_, i) => <th key={i}><div className="qar-skel qar-skel-th" /></th>)}</tr></thead>
+            <tbody>
+              {[...Array(8)].map((_, i) => (
+                <tr key={i}>
+                  {[...Array(9)].map((_, j) => (
+                    <td key={j}><div className={`qar-skel qar-skel-td${j === 1 ? ' wide' : ''}`} /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : filteredRankings.length > 0 ? (
         <div className="students-table-container">
           <table className="students-table">
             <thead>
@@ -625,56 +641,71 @@ export default function QuizAttemptReportPage() {
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="crispr-modal-body qarf-filter-body">
-              <style>{`
-                .qarf-filter-body { display: flex; flex-direction: column; gap: 20px; }
-                .qarf-fld { display: flex; flex-direction: column; gap: 8px; }
-                .qarf-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
-                .qarf-fld-label i { color: #006073; font-size: 15px; }
-                .qarf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-                .qarf-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
-              `}</style>
-
-              <div className="qarf-fld">
-                <label className="qarf-fld-label"><i className="ti ti-info-alt" /> Status</label>
-                <select className="qarf-input" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
-                  <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="in-progress">In Progress</option>
-                </select>
-              </div>
-
-              <div className="qarf-grid-2">
-                <div className="qarf-fld">
-                  <label className="qarf-fld-label"><i className="ti ti-calendar" /> From Date &amp; Time</label>
-                  <input type="datetime-local" className="qarf-input" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }} />
-                </div>
-                <div className="qarf-fld">
-                  <label className="qarf-fld-label"><i className="ti ti-calendar" /> To Date &amp; Time</label>
-                  <input type="datetime-local" className="qarf-input" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }} />
+            <div className="crispr-modal-body form-modal">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Status</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field float-always">
+                      <select className="float-control" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
+                        <option value="all">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="in-progress">In Progress</option>
+                      </select>
+                      <span className="float-label">Status</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              <div className="qarf-fld">
-                <label className="qarf-fld-label"><i className="ti ti-book" /> Course</label>
-                <select
-                  className="qarf-input"
-                  value={selectedCourseFilter}
-                  onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
-                >
-                  <option value="">All Courses</option>
-                  {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-calendar" /> Date Range</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell">
+                    <div className="float-field float-always date-custom">
+                      <input type="datetime-local" className="float-control" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }} onClick={openDateTimePicker} onKeyDown={openDateTimePicker} />
+                      <span className="float-label">From Date &amp; Time</span>
+                      <span className={`date-display ${!dateFrom ? 'is-empty' : ''}`}>{dateFrom ? formatDateTimeLabel(dateFrom) : 'Set Date & Time'}</span>
+                    </div>
+                  </label>
+                  <label className="field-cell">
+                    <div className="float-field float-always date-custom">
+                      <input type="datetime-local" className="float-control" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }} onClick={openDateTimePicker} onKeyDown={openDateTimePicker} />
+                      <span className="float-label">To Date &amp; Time</span>
+                      <span className={`date-display ${!dateTo ? 'is-empty' : ''}`}>{dateTo ? formatDateTimeLabel(dateTo) : 'Set Date & Time'}</span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              <div className="qarf-fld">
-                <label className="qarf-fld-label"><i className="ti ti-layout-grid2" /> Batch</label>
-                <BatchMultiSelect
-                  batches={filteredBatchesForCourse}
-                  selected={selectedBatchFilters}
-                  onChange={(val) => { setSelectedBatchFilters(val); setCurrentPage(1); }}
-                  disabled={!selectedCourseFilter}
-                />
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-book" /> Course &amp; Batch</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field float-always">
+                      <select
+                        className="float-control"
+                        value={selectedCourseFilter}
+                        onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
+                      >
+                        <option value="">All Courses</option>
+                        {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                      <span className="float-label">Course</span>
+                    </div>
+                  </label>
+                  <div className="field-cell full-span">
+                    <div className={`float-field float-always float-multiselect${!selectedCourseFilter ? ' is-disabled' : ''}`}>
+                      <BatchMultiSelect
+                        batches={filteredBatchesForCourse}
+                        selected={selectedBatchFilters}
+                        onChange={(val) => { setSelectedBatchFilters(val); setCurrentPage(1); }}
+                        disabled={!selectedCourseFilter}
+                      />
+                      <span className="float-label">Batch</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="crispr-modal-footer">

@@ -5,6 +5,7 @@ import ToastRegion from '../components/ToastRegion';
 import { Can } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { listMappings, createMapping, revokeMapping } from '../lib/attendanceMappingApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import { listCandidates } from '../lib/icardApi';
 import LocationPicker from '../components/LocationPicker';
 
@@ -68,6 +69,7 @@ export default function AttendanceMappingPage() {
 
   // Filters (search matches device key; filterBy maps to mapping status)
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [userTypeFilter, setUserTypeFilter] = useState('');
   const [filterBy, setFilterBy] = useState('');
 
@@ -139,7 +141,7 @@ export default function AttendanceMappingPage() {
     setLoadError(null);
     try {
       const resp = await listMappings({
-        search: searchQuery.trim() || undefined,
+        search: debouncedSearchQuery.trim() || undefined,
         userType: userTypeFilter || undefined,
         filterBy: filterBy || undefined,
         page,
@@ -164,7 +166,7 @@ export default function AttendanceMappingPage() {
     } finally {
       if (!signal.cancelled) setIsLoading(false);
     }
-  }, [searchQuery, userTypeFilter, filterBy, page, pageSize, showToast]);
+  }, [debouncedSearchQuery, userTypeFilter, filterBy, page, pageSize, showToast]);
 
   useEffect(() => {
     const signal = { cancelled: false };

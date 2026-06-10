@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ToastRegion from '../components/ToastRegion';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import {
   getCandidateProfile,
   listBatches,
@@ -167,6 +168,7 @@ export default function IcardGeneratorPage() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState(null);
   const [auditSearch, setAuditSearch] = useState('');
+  const debouncedAuditSearch = useDebouncedValue(auditSearch);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
@@ -265,7 +267,7 @@ export default function IcardGeneratorPage() {
       const data = await listIcardAudit({
         page,
         size: pageSize,
-        searchKey: auditSearch.trim() || undefined,
+        searchKey: debouncedAuditSearch.trim() || undefined,
       });
       const rows = data?.data || [];
       setAudit(rows);
@@ -277,16 +279,13 @@ export default function IcardGeneratorPage() {
     } finally {
       setAuditLoading(false);
     }
-  }, [page, pageSize, auditSearch]);
+  }, [page, pageSize, debouncedAuditSearch]);
 
-  // Debounce search-driven reloads so the user isn't hammering the API on
-  // every keystroke. Also reset to page 1 whenever the search text changes.
-  useEffect(() => {
-    const timer = setTimeout(() => { loadAudit(); }, 300);
-    return () => clearTimeout(timer);
-  }, [loadAudit]);
+  // The 2s-debounced search value (debouncedAuditSearch) already keeps us from
+  // hammering the API on every keystroke; reload whenever it (or paging) changes.
+  useEffect(() => { loadAudit(); }, [loadAudit]);
 
-  useEffect(() => { setPage(1); }, [auditSearch]);
+  useEffect(() => { setPage(1); }, [debouncedAuditSearch]);
 
   // Live preview using the sample profile from the API so the dropdown and
   // preview agree on the shape of the data.

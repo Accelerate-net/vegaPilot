@@ -14,6 +14,7 @@ import {
   unmapCandidate,
   updateResidence,
 } from '../lib/residencesApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
@@ -152,6 +153,7 @@ export default function ResidenceManagementPage() {
   const [pageSize, setPageSize] = useState(20);
   const [statusFilter, setStatusFilter] = useState('active'); // 'active' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
 
@@ -201,7 +203,7 @@ export default function ResidenceManagementPage() {
     try {
       const response = await listResidences({
         activeOnly: statusFilter === 'active' ? 1 : 0,
-        q: searchQuery.trim(),
+        q: debouncedSearchQuery.trim(),
         perPage: pageSize,
         page: currentPage,
       });
@@ -222,7 +224,7 @@ export default function ResidenceManagementPage() {
     } finally {
       if (!signal.cancelled) setIsLoading(false);
     }
-  }, [statusFilter, searchQuery, pageSize, currentPage, showToast]);
+  }, [statusFilter, debouncedSearchQuery, pageSize, currentPage, showToast]);
 
   useEffect(() => {
     const signal = { cancelled: false };

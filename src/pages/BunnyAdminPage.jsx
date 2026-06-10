@@ -316,25 +316,25 @@ export default function BunnyAdminPage() {
 
       {/* Rename Modal */}
       {renameModalOpen && (
-         <div className="ba-modal-backdrop ba-active" onClick={() => setRenameModalOpen(false)}>
-            <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-               <div className="ba-modal-header">
+         <div className="crispr-modal-backdrop active" onClick={() => setRenameModalOpen(false)}>
+            <div className="crispr-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+               <div className="crispr-modal-header">
                   <h3><i className="ti ti-pencil"></i> Rename Video</h3>
-                  <button className="ba-modal-close" onClick={() => setRenameModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button type="button" className="crispr-modal-close" onClick={() => setRenameModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="ba-modal-body">
-                  <div className="ba-form-group">
-                     <label>Video Name</label>
-                     <input type="text" className="ba-form-input" value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
+               <div className="crispr-modal-body">
+                  <div className="form-group">
+                     <label>Video Name <span className="required">*</span></label>
+                     <input type="text" className="form-input" value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
                   </div>
                </div>
-               <div className="ba-modal-footer">
-                  <button onClick={() => setRenameModalOpen(false)} style={{ padding: '8px 16px', background: 'none', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
-                  <button disabled={!renameData.newName} onClick={() => { 
+               <div className="crispr-modal-footer">
+                  <button type="button" className="btn-modal-cancel" onClick={() => setRenameModalOpen(false)}>Cancel</button>
+                  <button type="button" className="btn-modal-primary" disabled={!renameData.newName} onClick={() => {
                       setVideos(videos.map(v => v.id === currentVideo.id ? { ...v, title: renameData.newName } : v));
                       setRenameModalOpen(false);
                       showToast('success', 'Renamed', `Video renamed to ${renameData.newName}`);
-                  }} style={{ padding: '8px 16px', background: '#006073', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                  }}>
                      <i className="ti ti-check"></i> Rename
                   </button>
                </div>

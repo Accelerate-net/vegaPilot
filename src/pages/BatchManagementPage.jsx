@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
@@ -6,6 +6,7 @@ import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { batchesDemo } from '../data/adminRemainingDemo';
 import { listLocations } from '../lib/locationsApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 
 function titleToSlug(title) {
@@ -239,13 +240,14 @@ export default function BatchManagementPage() {
   const [attendanceDate, setAttendanceDate] = useState('');
   const [batches, setBatches] = useState(() => batchesDemo.map(normalizeBatch));
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [sortColumn, setSortColumn] = useState('batchName');
   const [sortReverse, setSortReverse] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalBatches, setTotalBatches] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
@@ -298,7 +300,7 @@ export default function BatchManagementPage() {
           size: pageSize,
           sortBy: sortColumn === 'batchName' ? 'name' : sortColumn,
           sortOrder: sortReverse ? 'DESC' : 'ASC',
-          searchKey: searchQuery.trim() || undefined,
+          searchKey: debouncedSearchQuery.trim() || undefined,
         },
       });
 
@@ -319,7 +321,7 @@ export default function BatchManagementPage() {
       
       // Demo Fallback
       let rows = batchesDemo.map(normalizeBatch);
-      const query = searchQuery.trim().toLowerCase();
+      const query = debouncedSearchQuery.trim().toLowerCase();
       if (query) {
         rows = rows.filter((batch) => {
           const haystack = [
@@ -361,7 +363,7 @@ export default function BatchManagementPage() {
         setHasLoaded(true);
       }
     }
-  }, [currentPage, pageSize, sortColumn, sortReverse, searchQuery]);
+  }, [currentPage, pageSize, sortColumn, sortReverse, debouncedSearchQuery]);
 
   const loadAvailableLocations = useCallback(async () => {
     try {
@@ -467,7 +469,11 @@ export default function BatchManagementPage() {
     return () => { isCancelled.current = true; };
   }, [loadBatchEnrolledStudents]);
 
-  useEffect(() => {
+  // useLayoutEffect so isLoading flips to true before the browser paints the
+  // frame triggered by a search/sort/page change. Otherwise React would paint
+  // one frame with the stale isLoading=false, briefly showing "No Batches
+  // Found" before the shimmer appears.
+  useLayoutEffect(() => {
     const isCancelled = { current: false };
     loadBatches(isCancelled);
     return () => { isCancelled.current = true; };

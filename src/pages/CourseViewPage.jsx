@@ -3,6 +3,16 @@ import ToastRegion from '../components/ToastRegion';
 import { courseViewDemo } from '../data/courseViewDemo';
 import { demoCourses } from '../data/coursesListDemo';
 
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  const maxVisible = 5;
+  let start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, start + maxVisible - 1);
+  if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+  for (let page = start; page <= end; page += 1) pages.push(page);
+  return pages;
+}
+
 export default function CourseViewPage() {
   const [toasts, setToasts] = useState([]);
   
@@ -15,6 +25,8 @@ export default function CourseViewPage() {
   
   const [selectCourseModalOpen, setSelectCourseModalOpen] = useState(false);
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const [coursePage, setCoursePage] = useState(1);
+  const [coursePageSize, setCoursePageSize] = useState(10);
 
   // Initialization
   useEffect(() => {
@@ -120,6 +132,22 @@ export default function CourseViewPage() {
     const q = courseSearchQuery.toLowerCase();
     return demoCourses.filter(c => c.title.toLowerCase().includes(q) || c.code.toLowerCase().includes(q));
   }, [demoCourses, courseSearchQuery]);
+
+  // Pagination for the Select Course modal table.
+  const courseTotal = filteredCoursesArray.length;
+  const courseTotalPages = Math.max(1, Math.ceil(courseTotal / coursePageSize));
+  const safeCoursePage = Math.min(coursePage, courseTotalPages);
+  const pagedCourses = useMemo(() => {
+    const start = (safeCoursePage - 1) * coursePageSize;
+    return filteredCoursesArray.slice(start, start + coursePageSize);
+  }, [filteredCoursesArray, safeCoursePage, coursePageSize]);
+  const coursePageNumbers = useMemo(() => getPageNumbers(safeCoursePage, courseTotalPages), [safeCoursePage, courseTotalPages]);
+  const courseShowingStart = courseTotal === 0 ? 0 : (safeCoursePage - 1) * coursePageSize + 1;
+  const courseShowingEnd = Math.min(safeCoursePage * coursePageSize, courseTotal);
+
+  useEffect(() => {
+    setCoursePage(1);
+  }, [courseSearchQuery, selectCourseModalOpen]);
 
   const selectCourseFromModal = (code) => {
     // In a real app we would refetch courseViewDemo based on the course code.
@@ -277,85 +305,133 @@ export default function CourseViewPage() {
          )}
       </div>
 
-      {/* Select Course Modal properly decoupled */}
+      {/* Select Course Modal — standard modal + table */}
       {selectCourseModalOpen && (
-         <div className="modal-scrim" style={{ display: 'grid', background: 'rgba(9, 26, 30, 0.48)' }} onClick={() => setSelectCourseModalOpen(false)}>
-             <div className="modal-card large" style={{ maxWidth: '800px', width: '100%', background: '#fff', borderRadius: '12px' }} onClick={e => e.stopPropagation()}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#006073', color: 'white', padding: '15px 20px', borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
-                     <h4 style={{ margin: 0 }}><i className="ti ti-layers"></i> Select Course</h4>
-                     <button onClick={() => setSelectCourseModalOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer', opacity: 0.8 }}>
-                         <i className="ti ti-close"></i>
-                     </button>
-                 </div>
-                 
-                 <div style={{ padding: '20px' }}>
-                     <div style={{ marginBottom: '20px', position: 'relative' }}>
-                         <input type="text" style={{ width: '100%', padding: '10px 10px 10px 35px', borderRadius: '6px', border: '1px solid #ccc' }} placeholder="Search courses by title or code..." value={courseSearchQuery} onChange={e => setCourseSearchQuery(e.target.value)} />
-                         <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '12px', color: '#999' }}></i>
-                     </div>
-                     
-                     <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                             <thead style={{ background: '#f8f9fa', position: 'sticky', top: 0, zIndex: 10 }}>
-                                 <tr>
-                                     <th style={{ padding: '10px', textAlign: 'left', width: '60px' }}><i className="ti ti-hash"></i></th>
-                                     <th style={{ padding: '10px', textAlign: 'left' }}>Course</th>
-                                     <th style={{ padding: '10px', textAlign: 'center', width: '150px' }}>Modules</th>
-                                     <th style={{ padding: '10px', textAlign: 'center', width: '150px' }}>Chapters</th>
-                                     <th style={{ padding: '10px', textAlign: 'center', width: '120px' }}>Category</th>
-                                 </tr>
-                             </thead>
-                             <tbody>
-                                 {filteredCoursesArray.map(course => (
-                                     <tr key={course.code} onClick={() => selectCourseFromModal(course.code)} style={{ cursor: 'pointer', borderBottom: '1px solid #eee' }} className="cv-course-tr-hover">
-                                         <td style={{ padding: '10px' }}>
-                                             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #008ba3 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>
-                                                 <i className="ti ti-book"></i>
-                                             </div>
-                                         </td>
-                                         <td style={{ padding: '10px' }}>
-                                             <div>
-                                                 <strong style={{ fontSize: '15px' }}>{course.title}</strong>
-                                                 <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>Code: {course.code}</div>
-                                             </div>
-                                         </td>
-                                         <td style={{ padding: '10px', textAlign: 'center' }}>
-                                             <span style={{ display: 'inline-block', padding: '4px 12px', background: '#e3f2fd', color: '#1976d2', borderRadius: '12px', fontWeight: 500 }}>{course.moduleCount}</span>
-                                         </td>
-                                         <td style={{ padding: '10px', textAlign: 'center' }}>
-                                             <span style={{ display: 'inline-block', padding: '4px 12px', background: '#fff3e0', color: '#f57c00', borderRadius: '12px', fontWeight: 500 }}>{course.chapterCount}</span>
-                                         </td>
-                                         <td style={{ padding: '10px', textAlign: 'center' }}>
-                                             <span style={{ display: 'inline-block', padding: '4px 12px', background: '#e0f7fa', color: '#006064', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>{course.category}</span>
-                                         </td>
-                                     </tr>
-                                 ))}
-                                 {filteredCoursesArray.length === 0 && (
-                                     <tr>
-                                         <td colSpan="5" style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
-                                             <i className="ti ti-info-alt" style={{ fontSize: '56px', display: 'block', marginBottom: '15px', opacity: 0.5 }}></i>
-                                             <p style={{ fontSize: '16px' }}>No courses available</p>
-                                         </td>
-                                     </tr>
-                                 )}
-                             </tbody>
-                         </table>
-                     </div>
-                 </div>
-                 <div style={{ padding: '15px 20px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end' }}>
-                     <button className="cv-btn" onClick={() => setSelectCourseModalOpen(false)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}>
-                         <i className="ti ti-close"></i> Close
-                     </button>
-                 </div>
-             </div>
-         </div>
+        <div className="legacy-modal-backdrop active" onClick={() => setSelectCourseModalOpen(false)}>
+          <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3>Select Course</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setSelectCourseModalOpen(false)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="legacy-modal-body">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-layers" /> Available Courses</div>
+                <div className="data-table-page" style={{ padding: 0 }}>
+                  <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                    <i className="ti ti-search" />
+                    <input
+                      type="text"
+                      className="search-input"
+                      placeholder="Search courses by title or code..."
+                      value={courseSearchQuery}
+                      onChange={e => setCourseSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="students-table-container">
+                    <table className="students-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: 64 }}><i className="ti ti-hash" /></th>
+                          <th>Course</th>
+                          <th className="cv-center">Modules</th>
+                          <th className="cv-center">Chapters</th>
+                          <th className="cv-center">Category</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pagedCourses.map(course => (
+                          <tr key={course.code} className="cv-course-row" onClick={() => selectCourseFromModal(course.code)}>
+                            <td>
+                              <div className="cv-course-avatar"><i className="ti ti-book" /></div>
+                            </td>
+                            <td>
+                              <div className="cv-course-name">{course.title}</div>
+                              <div className="cv-course-code">Code: {course.code}</div>
+                            </td>
+                            <td className="cv-center"><span className="cv-pill cv-pill-blue">{course.moduleCount}</span></td>
+                            <td className="cv-center"><span className="cv-pill cv-pill-amber">{course.chapterCount}</span></td>
+                            <td className="cv-center"><span className="cv-pill cv-pill-teal">{course.category}</span></td>
+                          </tr>
+                        ))}
+                        {courseTotal === 0 && (
+                          <tr>
+                            <td colSpan={5}>
+                              <div className="cv-empty">
+                                <i className="ti ti-info-alt" />
+                                <p>No courses available</p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {courseTotal > 0 && (
+                    <div className="pagination-container">
+                      <div className="pagination-info">
+                        <span>Showing {courseShowingStart} to {courseShowingEnd} of {courseTotal} entries</span>
+                        <select
+                          className="page-size-select"
+                          value={coursePageSize}
+                          onChange={e => { setCoursePageSize(Number(e.target.value)); setCoursePage(1); }}
+                        >
+                          <option value={10}>Show 10</option>
+                          <option value={20}>Show 20</option>
+                          <option value={50}>Show 50</option>
+                        </select>
+                      </div>
+                      <div className="pagination-controls">
+                        <button type="button" className="pagination-btn" disabled={safeCoursePage === 1} onClick={() => setCoursePage(p => Math.max(1, p - 1))}>
+                          <i className="ti ti-angle-left" /> Previous
+                        </button>
+                        {coursePageNumbers.map(page => (
+                          <button
+                            key={page}
+                            type="button"
+                            className={`pagination-btn ${safeCoursePage === page ? 'active' : ''}`}
+                            onClick={() => setCoursePage(page)}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        <button type="button" className="pagination-btn" disabled={safeCoursePage === courseTotalPages} onClick={() => setCoursePage(p => Math.min(courseTotalPages, p + 1))}>
+                          Next <i className="ti ti-angle-right" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSelectCourseModalOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
-      
+
       <style>
       {`
-        .cv-course-tr-hover:hover {
-            background-color: #f8f9fa;
+        .cv-center { text-align: center; }
+        .cv-course-row { cursor: pointer; }
+        .cv-course-avatar {
+          width: 36px; height: 36px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #006073 0%, #008ba3 100%);
+          color: #fff; font-size: 16px;
         }
+        .cv-course-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+        .cv-course-code { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .cv-pill { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .cv-pill-blue { background: #e3f2fd; color: #1976d2; }
+        .cv-pill-amber { background: #fff3e0; color: #f57c00; }
+        .cv-pill-teal { background: #e0f7fa; color: #006064; border-radius: 6px; }
+        .cv-empty { text-align: center; padding: 48px 20px; color: #94a3b8; }
+        .cv-empty i { font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.5; }
       `}
       </style>
     </div>

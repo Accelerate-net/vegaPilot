@@ -522,12 +522,12 @@ export default function CandidateDetailPage() {
       {/* ═══ Change Mentor Modal ═══ */}
       {mentorModalOpen && (
         <div className="crispr-modal-backdrop active" onClick={() => setMentorModalOpen(false)}>
-          <div className="crispr-modal" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
-            <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', color: 'white', borderRadius: '6px 6px 0 0' }}>
-              <h4 style={{ margin: 0, color: 'white' }}><i className="ti ti-user"></i> Change Mentor</h4>
-              <button onClick={() => setMentorModalOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer', opacity: 1 }}>×</button>
+          <div className="crispr-modal-dialog" style={{ maxWidth: '800px' }} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-user"></i> Change Mentor</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setMentorModalOpen(false)}><i className="ti ti-close" /></button>
             </div>
-            <div className="crispr-modal-body" style={{ padding: '25px', maxHeight: '500px', overflowY: 'auto' }}>
+            <div className="crispr-modal-body" style={{ maxHeight: '500px' }}>
               <div style={{ marginBottom: '20px' }}>
                 <input type="text" value={mentorSearch} onChange={e => setMentorSearch(e.target.value)} placeholder="Search mentors by name, institution, or specialization..."
                   style={{ width: '100%', padding: '10px', border: '1px solid #e9ecef', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
@@ -577,9 +577,9 @@ export default function CandidateDetailPage() {
                 )}
               </div>
             </div>
-            <div style={{ borderTop: '1px solid #e9ecef', padding: '15px 25px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button onClick={() => setMentorModalOpen(false)} style={{ padding: '8px 16px', background: '#e9ecef', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={assignMentor} disabled={!selectedNewMentor} style={{ padding: '8px 16px', background: '#006073', color: 'white', border: 'none', borderRadius: '4px', cursor: selectedNewMentor ? 'pointer' : 'not-allowed', opacity: selectedNewMentor ? 1 : 0.5 }}>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setMentorModalOpen(false)}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={assignMentor} disabled={!selectedNewMentor} style={{ cursor: selectedNewMentor ? 'pointer' : 'not-allowed', opacity: selectedNewMentor ? 1 : 0.5 }}>
                 <i className="ti ti-check"></i> Assign Mentor
               </button>
             </div>

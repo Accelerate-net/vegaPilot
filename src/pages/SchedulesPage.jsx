@@ -936,16 +936,20 @@ export default function SchedulesPage() {
 // ─── Subcomponents ─────────────────────────────────────────────────────
 function PageHeader({ onBack }) {
   return (
-    <div style={{ background: 'white', padding: 24, borderRadius: 18, border: '1px solid var(--line)', marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" onClick={onBack} style={btnGhost}>
+    <div style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: 18, overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(135deg, #006073 0%, #008ba3 100%)', padding: '15px 20px', color: 'white', display: 'flex', alignItems: 'center', gap: 15, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={onBack}
+          style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, flexShrink: 0 }}
+        >
           <i className="ti ti-angle-left" /> Back to list
         </button>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 22, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <i className="ti ti-calendar" style={{ color: 'var(--brand)' }} /> Schedule Calendar
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="ti ti-calendar" style={{ opacity: 0.9, fontSize: 18 }} /> Schedule Calendar
           </h2>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 13 }}>
+          <p style={{ margin: 0, opacity: 0.85, fontSize: 13 }}>
             Build day plans, publish them, and link them to batches.
           </p>
         </div>
@@ -1145,15 +1149,22 @@ function StringMultiSelect({ value, onChange, options, disabled, allLabel = 'All
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
         <i className={`ti ${open ? 'ti-angle-up' : 'ti-angle-down'}`} style={{ color: 'var(--muted)' }} />
       </button>
-      {open && rect && (
+      {open && rect && (() => {
+        // Flip the panel above the trigger when there isn't enough room below,
+        // so dropdowns near the bottom of the sidebar stay fully on-screen.
+        const spaceBelow = window.innerHeight - rect.bottom - 16;
+        const spaceAbove = rect.top - 16;
+        const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+        const maxHeight = Math.max(160, openUp ? spaceAbove : spaceBelow);
+        return (
         <div ref={dropRef} style={{
           position: 'fixed',
-          top: rect.bottom + 4,
+          ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
           left: rect.left,
           width: rect.width,
           background: '#fff', border: '1px solid var(--line)', borderRadius: 8,
           boxShadow: '0 14px 38px rgba(0,0,0,0.12)', zIndex: 1100,
-          maxHeight: Math.max(160, window.innerHeight - rect.bottom - 16),
+          maxHeight,
           overflow: 'auto',
         }}>
           {value.length > 0 && (
@@ -1188,7 +1199,8 @@ function StringMultiSelect({ value, onChange, options, disabled, allLabel = 'All
             );
           })}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
@@ -2061,6 +2073,15 @@ function ScheduleModal({ state, allSchedules, onClose, onCreate, onUpdate, onDel
     setBatchIds((cur) => cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]);
   }
 
+  // Open the native date picker on click/keydown so the whole field is the target.
+  function openDatePicker(e) {
+    if (published) return;
+    const el = e.currentTarget;
+    if (typeof el.showPicker === 'function') {
+      try { el.showPicker(); } catch { /* showPicker not allowed in this context */ }
+    }
+  }
+
   // Candidates to copy from: every other non-empty schedule (newest first).
   const copyCandidates = useMemo(() => {
     return allSchedules
@@ -2095,7 +2116,24 @@ function ScheduleModal({ state, allSchedules, onClose, onCreate, onUpdate, onDel
   // ─── Stage 2: content-duplication confirmation ──
   if (pendingCopy) {
     return (
-      <Modal onClose={() => setPendingCopy(null)} title="Copy shared content?" maxWidth={520}>
+      <Modal
+        onClose={() => setPendingCopy(null)}
+        title="Copy shared content?"
+        icon="ti-alert"
+        maxWidth={520}
+        footerClassName="form-modal"
+        footer={
+          <>
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setPendingCopy(null)}>Back</button>
+            <button type="button" className="legacy-btn legacy-btn-success" onClick={() => {
+              const confirmed = { ...pendingCopy, confirmContentDuplication: true };
+              editing ? onUpdate(confirmed) : onCreate(confirmed);
+            }}>
+              <i className="ti ti-files" /> Yes, copy anyway
+            </button>
+          </>
+        }
+      >
         <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: 14, marginBottom: 14, display: 'flex', gap: 12 }}>
           <i className="ti ti-alert" style={{ color: '#c2410c', fontSize: 22, lineHeight: 1, marginTop: 2 }} />
           <div style={{ color: '#7c2d12', fontSize: 13, lineHeight: 1.5 }}>
@@ -2121,87 +2159,129 @@ function ScheduleModal({ state, allSchedules, onClose, onCreate, onUpdate, onDel
         <p style={{ margin: '14px 0 0', color: 'var(--muted)', fontSize: 13 }}>
           If each schedule should have different content, copy without these events (cancel and rebuild manually) or replace them after copying.
         </p>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-          <button type="button" onClick={() => setPendingCopy(null)} style={btnGhost}>Back</button>
-          <button type="button" onClick={() => {
-            const confirmed = { ...pendingCopy, confirmContentDuplication: true };
-            editing ? onUpdate(confirmed) : onCreate(confirmed);
-          }} style={btnPrimary}>
-            <i className="ti ti-files" /> Yes, copy anyway
-          </button>
-        </div>
       </Modal>
     );
   }
 
-  return (
-    <Modal onClose={onClose} title={editing ? 'Edit schedule' : 'New schedule'} maxWidth={560}>
-      <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-        {published && (
-          <div style={{
-            margin: '-20px -20px 0',
-            background: '#d1fae5',
-            borderBottom: '1px solid #86efac',
-            color: '#065f46',
-            padding: '10px 20px',
-            fontSize: 13, fontWeight: 600,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}>
-            <i className="ti ti-check" /> This schedule is already Published, un-publish first to modify
-          </div>
+  const footer = (
+    <>
+      <div style={{ marginRight: 'auto' }}>
+        {editing && !published && (
+          <button type="button" className="legacy-btn legacy-btn-danger" onClick={() => onDelete(s.id)}>
+            <i className="ti ti-trash" /> Delete
+          </button>
         )}
-        <Field label="Schedule name">
-          <input type="text" autoFocus={!published} value={name} disabled={published} onChange={(e) => setName(e.target.value)} placeholder="e.g. Morning Batch Schedule" style={{ ...inputStyle, opacity: published ? 0.6 : 1 }} />
-        </Field>
-        <Field label="Date">
-          <input type="date" value={date} disabled={published} onChange={(e) => setDate(e.target.value)} style={{ ...inputStyle, opacity: published ? 0.6 : 1 }} />
-        </Field>
-        <BatchPicker
-          batchIds={batchIds}
-          onToggle={toggle}
-          disabled={published}
-          allSchedules={allSchedules} excludeId={s?.id || null} date={date}
-          helperText={published ? 'Read-only — schedule is published.' : 'Each batch may belong to only one schedule on a given date.'}
-        />
+      </div>
+      <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>
+        {published ? 'Close' : 'Cancel'}
+      </button>
+      {!published && (
+        <button type="submit" form="schedule-meta-form" className="legacy-btn legacy-btn-success">
+          <i className={`ti ${editing ? 'ti-check' : 'ti-plus'}`} /> {editing ? 'Save changes' : 'Create schedule'}
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <Modal
+      onClose={onClose}
+      title={editing ? 'Edit schedule' : 'New schedule'}
+      icon={editing ? 'ti-calendar' : 'ti-calendar-plus'}
+      maxWidth={560}
+      footer={footer}
+      footerClassName="form-modal"
+    >
+      {published && (
+        <div style={{
+          margin: '-24px -24px 20px',
+          background: '#d1fae5',
+          borderBottom: '1px solid #86efac',
+          color: '#065f46',
+          padding: '10px 24px',
+          fontSize: 13, fontWeight: 600,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <i className="ti ti-check" /> This schedule is already Published, un-publish first to modify
+        </div>
+      )}
+      <form id="schedule-meta-form" className="form-modal" onSubmit={submit}>
+        <div className="asset-form-section">
+          <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Details</div>
+          <div className="asset-form-grid basic-grid">
+            <label className="field-cell">
+              <div className="float-field">
+                <input
+                  type="text" className="float-control" placeholder=" "
+                  autoFocus={!published} value={name} disabled={published}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <span className="float-label">Schedule name <span className="req">*</span></span>
+              </div>
+            </label>
+            <label className="field-cell">
+              <div className="float-field float-always date-custom">
+                <input
+                  type="date" className="float-control"
+                  value={date} disabled={published}
+                  onChange={(e) => setDate(e.target.value)}
+                  onClick={openDatePicker} onKeyDown={openDatePicker}
+                />
+                <span className="float-label">Date <span className="req">*</span></span>
+                <span className={`date-display ${!date ? 'is-empty' : ''}`}>
+                  {date ? prettyDate(date) : 'Set a Date'}
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div className="asset-form-section">
+          <div className="asset-form-section-title"><i className="ti ti-users" /> Linked Batches</div>
+          <BatchPicker
+            batchIds={batchIds}
+            onToggle={toggle}
+            disabled={published}
+            label={null}
+            allSchedules={allSchedules} excludeId={s?.id || null} date={date}
+            helperText={published ? 'Read-only — schedule is published.' : 'Each batch may belong to only one schedule on a given date.'}
+          />
+        </div>
 
         {!published && (
-          <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 12, background: '#fbfcfd' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <i className="ti ti-files" style={{ color: 'var(--brand)' }} />
-              <span style={{ fontWeight: 700, color: 'var(--ink)' }}>Copy events from</span>
-              <span style={{ color: 'var(--muted)', fontSize: 12 }}>(optional)</span>
+          <div className="asset-form-section">
+            <div className="asset-form-section-title">
+              <i className="ti ti-files" /> Copy Events From
+              <span style={{ textTransform: 'none', letterSpacing: 0, color: '#94a3b8', fontWeight: 500 }}>(optional)</span>
             </div>
-            <select value={copyFromId} onChange={(e) => setCopyFromId(e.target.value)} style={selStyle}>
-              <option value="">— Don't copy —</option>
-              {copyCandidates.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} · {c.date} · {c.events.length} event{c.events.length === 1 ? '' : 's'}
-                  {c.batches.length ? ` · ${c.batches.map((b) => b.name).join(', ')}` : ''}
-                </option>
-              ))}
-            </select>
-            {source && (
-              <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted)' }}>
-                Will append {source.events.length} event{source.events.length === 1 ? '' : 's'} to this schedule.
-                {sourceBound.length > 0 && (
-                  <span style={{ display: 'block', marginTop: 6, color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '6px 10px' }}>
-                    <i className="ti ti-alert" /> {sourceBound.length} event(s) reference shared content (exam/quiz/recording) — you'll be asked to confirm before copying.
+            <div className="asset-form-grid">
+              <label className="field-cell full-span">
+                <div className="float-field float-always">
+                  <select className="float-control" value={copyFromId} onChange={(e) => setCopyFromId(e.target.value)}>
+                    <option value="">— Don't copy —</option>
+                    {copyCandidates.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} · {c.date} · {c.events.length} event{c.events.length === 1 ? '' : 's'}
+                        {c.batches.length ? ` · ${c.batches.map((b) => b.name).join(', ')}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="float-label">Source schedule</span>
+                </div>
+                {source && (
+                  <span className="field-hint">
+                    Will append {source.events.length} event{source.events.length === 1 ? '' : 's'} to this schedule.
                   </span>
                 )}
+              </label>
+            </div>
+            {source && sourceBound.length > 0 && (
+              <div style={{ marginTop: 10, color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+                <i className="ti ti-alert" /> {sourceBound.length} event(s) reference shared content (exam/quiz/recording) — you'll be asked to confirm before copying.
               </div>
             )}
           </div>
         )}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-          <div>{editing && !published && <button type="button" onClick={() => onDelete(s.id)} style={btnDanger}><i className="ti ti-trash" /> Delete</button>}</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" onClick={onClose} style={btnGhost}>{published ? 'Close' : 'Cancel'}</button>
-            {!published && (
-              <button type="submit" style={btnPrimary}>{editing ? 'Save changes' : 'Create schedule'}</button>
-            )}
-          </div>
-        </div>
       </form>
     </Modal>
   );
@@ -2694,9 +2774,11 @@ function BatchPicker({ batchIds, onToggle, allSchedules, excludeId, date, helper
   }
   return (
     <div>
-      <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 6 }}>
-        {label}
-      </div>
+      {label && (
+        <div style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600, marginBottom: 6 }}>
+          {label}
+        </div>
+      )}
       {helperText && (
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>{helperText}</div>
       )}
@@ -3084,29 +3166,78 @@ function DuplicateModal({ state, allSchedules, onClose, onConfirm }) {
     const k = String(bId);
     setBatchIds((cur) => cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]);
   }
+  function openDatePicker(e) {
+    const el = e.currentTarget;
+    if (typeof el.showPicker === 'function') {
+      try { el.showPicker(); } catch { /* showPicker not allowed in this context */ }
+    }
+  }
+
+  const footer = (
+    <>
+      <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+      <button type="submit" form="duplicate-schedule-form" className="legacy-btn legacy-btn-success">
+        <i className="ti ti-files" /> Duplicate
+      </button>
+    </>
+  );
+
   return (
-    <Modal onClose={onClose} title="Duplicate schedule" maxWidth={520}>
-      <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: 14 }}>
+    <Modal
+      onClose={onClose}
+      title="Duplicate schedule"
+      icon="ti-copy"
+      maxWidth={560}
+      footer={footer}
+      footerClassName="form-modal"
+    >
+      <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: 14 }}>
         Copies all events from <strong style={{ color: 'var(--ink)' }}>{src.name}</strong> ({src.date}) into a new draft schedule.
       </p>
-      <div style={{ display: 'grid', gap: 14 }}>
-        <Field label="New name"><input type="text" value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} /></Field>
-        <Field label="Target date"><input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} style={inputStyle} /></Field>
-        <BatchPicker
-          batchIds={batchIds} onToggle={toggle}
-          allSchedules={allSchedules} excludeId={null} date={toDate}
-          helperText="Each batch may belong to only one schedule on the target date."
-        />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-        <button type="button" onClick={onClose} style={btnGhost}>Cancel</button>
-        <button type="button" onClick={() => onConfirm({ toDate, name, batchIds })} style={btnPrimary}><i className="ti ti-files" /> Duplicate</button>
-      </div>
+      <form id="duplicate-schedule-form" className="form-modal" onSubmit={(e) => { e.preventDefault(); onConfirm({ toDate, name, batchIds }); }}>
+        <div className="asset-form-section">
+          <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Details</div>
+          <div className="asset-form-grid basic-grid">
+            <label className="field-cell">
+              <div className="float-field">
+                <input
+                  type="text" className="float-control" placeholder=" "
+                  autoFocus value={name} onChange={(e) => setName(e.target.value)}
+                />
+                <span className="float-label">New name <span className="req">*</span></span>
+              </div>
+            </label>
+            <label className="field-cell">
+              <div className="float-field float-always date-custom">
+                <input
+                  type="date" className="float-control"
+                  value={toDate} onChange={(e) => setToDate(e.target.value)}
+                  onClick={openDatePicker} onKeyDown={openDatePicker}
+                />
+                <span className="float-label">Target date <span className="req">*</span></span>
+                <span className={`date-display ${!toDate ? 'is-empty' : ''}`}>
+                  {toDate ? prettyDate(toDate) : 'Set a Date'}
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div className="asset-form-section">
+          <div className="asset-form-section-title"><i className="ti ti-users" /> Linked Batches</div>
+          <BatchPicker
+            batchIds={batchIds} onToggle={toggle}
+            label={null}
+            allSchedules={allSchedules} excludeId={null} date={toDate}
+            helperText="Each batch may belong to only one schedule on the target date."
+          />
+        </div>
+      </form>
     </Modal>
   );
 }
 
-function Modal({ children, onClose, title, maxWidth = 520, icon = 'ti-calendar' }) {
+function Modal({ children, onClose, title, maxWidth = 520, icon = 'ti-calendar', footer = null, footerClassName = '', headerClassName = '' }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
     document.addEventListener('keydown', onKey);
@@ -3116,13 +3247,14 @@ function Modal({ children, onClose, title, maxWidth = 520, icon = 'ti-calendar' 
     <div className="crispr-modal-backdrop active" role="presentation"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="crispr-modal-dialog" style={{ maxWidth }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+        <div className={`crispr-modal-header${headerClassName ? ` ${headerClassName}` : ''}`}>
           <h3>{icon && <i className={`ti ${icon}`} />} {title}</h3>
           <button type="button" className="crispr-modal-close" onClick={onClose}>
             <i className="ti ti-close" />
           </button>
         </div>
         <div className="crispr-modal-body">{children}</div>
+        {footer && <div className={`crispr-modal-footer${footerClassName ? ` ${footerClassName}` : ''}`}>{footer}</div>}
       </div>
     </div>
   );

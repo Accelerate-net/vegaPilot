@@ -186,9 +186,6 @@ export default function SchedulesListPage() {
             <i className="ti ti-calendar-x" style={{ fontSize: 28, color: 'var(--muted)', display: 'block', marginBottom: 8 }} />
             <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>No schedules in this range</div>
             <div style={{ fontSize: 13 }}>Try a different date filter, or create a new schedule.</div>
-            <div style={{ marginTop: 16 }}>
-              <button type="button" onClick={createNew} style={btnPrimary}><i className="ti ti-plus" /> New schedule</button>
-            </div>
           </div>
         )}
 

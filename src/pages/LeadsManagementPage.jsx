@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import { SEARCH_DEBOUNCE_MS } from '../hooks/useDebouncedValue';
 import { catalogItemsDemo } from '../data/adminRemainingDemo';
 import {
   listLeads,
@@ -210,7 +211,7 @@ export default function LeadsManagementPage() {
   // ── Debounced search query
   const [debouncedSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [searchQuery]);
 

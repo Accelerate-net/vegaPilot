@@ -18,6 +18,33 @@ function formatDateTime(value) {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${h12}:${mm} ${ampm}`;
 }
 
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Render a datetime-local value (e.g. "2026-06-17T03:45") as "17 Jun, 2026, 03:45 am".
+function formatDateTimeLabel(value) {
+  if (!value) return '';
+  const [datePart, timePart = '00:00'] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  let [hh, mm] = timePart.split(':').map(Number);
+  const ampm = hh >= 12 ? 'pm' : 'am';
+  hh = hh % 12 || 12;
+  return `${day} ${MONTH_SHORT[month - 1]}, ${year}, ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${ampm}`;
+}
+
+// Open the native picker on click/focus and block manual segment typing.
+function openDateTimePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function formatMinutes(startedAt, completedAt) {
   if (!startedAt || !completedAt) return '-';
   const diff = new Date(completedAt).getTime() - new Date(startedAt).getTime();
@@ -521,7 +548,11 @@ export default function ExamAttemptReportPage() {
       {/* ── Filter Bar ── */}
       <div className="filter-bar">
         <div className="search-wrapper">
-          <i className="ti ti-search search-icon" />
+          <i
+            className={`ti ${searchQuery ? 'ti-close' : 'ti-search'}`}
+            onClick={() => { if (searchQuery) { setSearchQuery(''); setCurrentPage(1); } }}
+            aria-hidden="true"
+          />
           <input
             type="text"
             className="search-input"
@@ -529,11 +560,6 @@ export default function ExamAttemptReportPage() {
             value={searchQuery}
             onChange={(event) => { setSearchQuery(event.target.value); setCurrentPage(1); }}
           />
-          {searchQuery && (
-            <button type="button" className="search-clear" onClick={() => { setSearchQuery(''); setCurrentPage(1); }}>
-              <i className="ti ti-close" />
-            </button>
-          )}
         </div>
 
         <button
@@ -710,56 +736,71 @@ export default function ExamAttemptReportPage() {
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="ear-modal-body earf-filter-body">
-              <style>{`
-                .earf-filter-body { display: flex; flex-direction: column; gap: 20px; }
-                .earf-fld { display: flex; flex-direction: column; gap: 8px; }
-                .earf-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
-                .earf-fld-label i { color: #006073; font-size: 15px; }
-                .earf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-                .earf-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
-              `}</style>
-
-              <div className="earf-fld">
-                <label className="earf-fld-label"><i className="ti ti-info-alt" /> Status</label>
-                <select className="earf-input" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
-                  <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="in-progress">In Progress</option>
-                </select>
-              </div>
-
-              <div className="earf-grid-2">
-                <div className="earf-fld">
-                  <label className="earf-fld-label"><i className="ti ti-calendar" /> From Date &amp; Time</label>
-                  <input type="datetime-local" className="earf-input" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }} />
-                </div>
-                <div className="earf-fld">
-                  <label className="earf-fld-label"><i className="ti ti-calendar" /> To Date &amp; Time</label>
-                  <input type="datetime-local" className="earf-input" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }} />
+            <div className="ear-modal-body form-modal">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Status</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field float-always">
+                      <select className="float-control" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
+                        <option value="all">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="in-progress">In Progress</option>
+                      </select>
+                      <span className="float-label">Status</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              <div className="earf-fld">
-                <label className="earf-fld-label"><i className="ti ti-book" /> Course</label>
-                <select
-                  className="earf-input"
-                  value={selectedCourseFilter}
-                  onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
-                >
-                  <option value="">All Courses</option>
-                  {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
-                </select>
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-calendar" /> Date Range</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell">
+                    <div className="float-field float-always date-custom">
+                      <input type="datetime-local" className="float-control" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }} onClick={openDateTimePicker} onKeyDown={openDateTimePicker} />
+                      <span className="float-label">From Date &amp; Time</span>
+                      <span className={`date-display ${!dateFrom ? 'is-empty' : ''}`}>{dateFrom ? formatDateTimeLabel(dateFrom) : 'Set Date & Time'}</span>
+                    </div>
+                  </label>
+                  <label className="field-cell">
+                    <div className="float-field float-always date-custom">
+                      <input type="datetime-local" className="float-control" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }} onClick={openDateTimePicker} onKeyDown={openDateTimePicker} />
+                      <span className="float-label">To Date &amp; Time</span>
+                      <span className={`date-display ${!dateTo ? 'is-empty' : ''}`}>{dateTo ? formatDateTimeLabel(dateTo) : 'Set Date & Time'}</span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              <div className="earf-fld">
-                <label className="earf-fld-label"><i className="ti ti-layout-grid2" /> Batch</label>
-                <BatchMultiselect
-                  batches={filteredBatches}
-                  selected={selectedBatchFilters}
-                  onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
-                  disabled={!selectedCourseFilter}
-                />
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-book" /> Course &amp; Batch</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field float-always">
+                      <select
+                        className="float-control"
+                        value={selectedCourseFilter}
+                        onChange={(e) => { setSelectedCourseFilter(e.target.value); setSelectedBatchFilters([]); setCurrentPage(1); }}
+                      >
+                        <option value="">All Courses</option>
+                        {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+                      </select>
+                      <span className="float-label">Course</span>
+                    </div>
+                  </label>
+                  <div className="field-cell full-span">
+                    <div className={`float-field float-always float-multiselect${!selectedCourseFilter ? ' is-disabled' : ''}`}>
+                      <BatchMultiselect
+                        batches={filteredBatches}
+                        selected={selectedBatchFilters}
+                        onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
+                        disabled={!selectedCourseFilter}
+                      />
+                      <span className="float-label">Batch</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="ear-modal-footer">

@@ -9,15 +9,16 @@ export const draftQuizzesDemo = [
 
 export function withSampleAttempts(quizzes) {
   const students = [
-    { name: 'Rajesh Kumar', email: 'rajesh.kumar@example.com' },
-    { name: 'Priya Sharma', email: 'priya.sharma@example.com' },
-    { name: 'Amit Patel', email: 'amit.patel@example.com' },
+    { id: 2942, name: 'Rajesh Kumar', email: 'rajesh.kumar@example.com' },
+    { id: 3187, name: 'Priya Sharma', email: 'priya.sharma@example.com' },
+    { id: 3506, name: 'Amit Patel', email: 'amit.patel@example.com' },
   ];
   return quizzes.map((quiz, index) => ({
     ...quiz,
     attempts: quiz.attempts?.length
       ? quiz.attempts
       : students.slice(0, (index % 3) + 1).map((student, attemptIndex) => ({
+          studentId: student.id,
           studentName: student.name,
           studentEmail: student.email,
           status: attemptIndex % 2 === 0 ? 'completed' : 'in-progress',

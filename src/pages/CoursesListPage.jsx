@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import { api } from '../lib/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 import { demoCourses, demoCourseStudents } from '../data/coursesListDemo';
 
 function getInitials(name) {
@@ -133,7 +134,8 @@ export default function CoursesListPage() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
+  const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('ASC');
   const [currentPage, setCurrentPage] = useState(1);
@@ -145,6 +147,7 @@ export default function CoursesListPage() {
   const [toasts, setToasts] = useState([]);
   const [selectedCourseForStudents, setSelectedCourseForStudents] = useState(null);
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const debouncedStudentSearchQuery = useDebouncedValue(studentSearchQuery);
   const [paginatedStudentsList, setPaginatedStudentsList] = useState([]);
   const [studentsCurrentPage, setStudentsCurrentPage] = useState(1);
   const [studentsItemsPerPage] = useState(5);
@@ -192,7 +195,7 @@ export default function CoursesListPage() {
             size: itemsPerPage,
             sortBy,
             sortOrder,
-            searchKey: searchQuery.trim() || undefined,
+            searchKey: debouncedSearchQuery.trim() || undefined,
           },
         });
 
@@ -235,7 +238,7 @@ export default function CoursesListPage() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, itemsPerPage, searchQuery, sortBy, sortOrder]);
+  }, [currentPage, itemsPerPage, debouncedSearchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     let cancelled = false;
@@ -250,7 +253,7 @@ export default function CoursesListPage() {
             size: studentsItemsPerPage,
             sortBy: studentsSortBy,
             sortOrder: studentsSortOrder,
-            searchKey: studentSearchQuery.trim() || undefined,
+            searchKey: debouncedStudentSearchQuery.trim() || undefined,
           },
         });
         if (response.data?.status === 'success') {
@@ -295,7 +298,7 @@ export default function CoursesListPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedCourseForStudents, studentSearchQuery, studentsCurrentPage, studentsItemsPerPage, studentsSortBy, studentsSortOrder]);
+  }, [selectedCourseForStudents, debouncedStudentSearchQuery, studentsCurrentPage, studentsItemsPerPage, studentsSortBy, studentsSortOrder]);
 
   const pageNumbers = useMemo(() => getPageNumbers(currentPage, totalPages), [currentPage, totalPages]);
   const studentPageNumbers = useMemo(() => getPageNumbers(studentsCurrentPage, studentsTotalPages), [studentsCurrentPage, studentsTotalPages]);
@@ -497,9 +500,13 @@ export default function CoursesListPage() {
                   <td><div className="time-info"><i className="ti ti-time" /> {course.totalDuration}</div></td>
                   <td><span className={`status-badge ${String(course.status).toLowerCase()}`}>{course.status}</span></td>
                   <td className="center-align" onClick={(event) => event.stopPropagation()}>
-                    <button type="button" className="student-count-button" onClick={() => viewCourseStudents(course)} title="View enrolled students">
-                      {course.totalStudents} Student{course.totalStudents !== 1 ? 's' : ''}
-                    </button>
+                    {course.totalStudents > 0 ? (
+                      <button type="button" className="student-count-button" onClick={() => viewCourseStudents(course)} title="View enrolled students">
+                        {course.totalStudents} Student{course.totalStudents !== 1 ? 's' : ''}
+                      </button>
+                    ) : (
+                      <span className="no-students-text">No Students</span>
+                    )}
                   </td>
                   <td className={`center-align ${activeKebabId === course.code ? 'cell-active-menu' : ''}`} onClick={(event) => event.stopPropagation()}>
                     <div className="kebab-menu-container">

@@ -477,50 +477,69 @@ function CreateSeriesModal({
   const selectedPremiumCount = selectedExamItems.filter((item) => item.accessType === 'premium').length;
   const canSave = formState.name.trim() && selectedExamItems.length > 0;
 
+  useEffect(() => {
+    const onKeyDown = (event) => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="crispr-modal-backdrop active" role="presentation" onClick={onClose}>
-      <div className="crispr-modal-dialog test-series-create-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+    <div
+      className="crispr-modal-backdrop active"
+      role="presentation"
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <div className="crispr-modal-dialog test-series-create-dialog form-modal" role="dialog" aria-modal="true">
         <div className="crispr-modal-header">
-          <h3><i className="ti ti-plus" /> {editMode ? 'Edit Test Series' : 'Create Test Series'}</h3>
+          <h3>{editMode ? 'Edit Test Series' : 'Create Test Series'}</h3>
           <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
         <div className="crispr-modal-body">
-          <div className="form-section">
-            <div className="form-section-title">Basic Information</div>
-            <div className="basic-info-grid">
-              <div className="form-group">
-                <label>Test Series Name <span className="required">*</span></label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="e.g., IAT 2026 - Mock Tests"
-                  value={formState.name}
-                  onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))}
-                />
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <div className="status-toggle">
-                  <button type="button" className={`status-toggle-btn ${formState.status === 1 ? 'active' : ''}`} onClick={() => setFormState((current) => ({ ...current, status: 1 }))}>Active</button>
-                  <button type="button" className={`status-toggle-btn ${formState.status === 0 ? 'active' : ''}`} onClick={() => setFormState((current) => ({ ...current, status: 0 }))}>Draft</button>
+          <div className="asset-form-section">
+            <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Information</div>
+            <div className="asset-form-grid basic-grid">
+              <label className="field-cell">
+                <div className="float-field">
+                  <input
+                    type="text"
+                    className="float-control"
+                    placeholder=" "
+                    value={formState.name}
+                    onChange={(event) => setFormState((current) => ({ ...current, name: event.target.value }))}
+                  />
+                  <span className="float-label">Test Series Name <span className="req">*</span></span>
                 </div>
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Description</label>
-              <textarea
-                className="form-control"
-                rows="2"
-                placeholder="Brief description of the test series"
-                value={formState.description}
-                onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))}
-              />
+              </label>
+              <label className="field-cell">
+                <div className="float-field float-always">
+                  <select
+                    className="float-control"
+                    value={formState.status}
+                    onChange={(event) => setFormState((current) => ({ ...current, status: Number(event.target.value) }))}
+                  >
+                    <option value={1}>Active</option>
+                    <option value={0}>Draft</option>
+                  </select>
+                  <span className="float-label">Status</span>
+                </div>
+              </label>
+              <label className="field-cell full-span">
+                <div className="float-field float-textarea">
+                  <textarea
+                    className="float-control"
+                    placeholder=" "
+                    value={formState.description}
+                    onChange={(event) => setFormState((current) => ({ ...current, description: event.target.value }))}
+                  />
+                  <span className="float-label">Description</span>
+                </div>
+              </label>
             </div>
           </div>
 
-          <div className="form-section">
+          <div className="asset-form-section">
             <div className="form-section-header">
-              <div className="form-section-title">Select Exams <span className="required">*</span></div>
+              <div className="asset-form-section-title"><i className="ti ti-list-check" /> Select Exams <span className="req">*</span></div>
               {selectedExamItems.length > 0 ? (
                 <div className="selected-exams-summary">
                   <SummaryItem label="Selected:" value={selectedExamItems.length} tone="total" />
@@ -623,12 +642,10 @@ function CreateSeriesModal({
             ) : null}
           </div>
         </div>
-        <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>
-            <i className="ti ti-close" /> Cancel
-          </button>
-          <button type="button" className="btn btn-success" disabled={!canSave} onClick={onSave}>
-            <i className="ti ti-check" /> {editMode ? 'Update' : 'Create'} Test Series
+        <div className="legacy-modal-footer">
+          <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+          <button type="button" className="legacy-btn legacy-btn-success" disabled={!canSave} onClick={onSave}>
+            {editMode ? 'Update' : 'Create'} Test Series
           </button>
         </div>
       </div>

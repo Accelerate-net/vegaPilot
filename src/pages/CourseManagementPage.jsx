@@ -10,6 +10,16 @@ function deepCopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+function getPageNumbers(currentPage, totalPages) {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+    for (let page = start; page <= end; page += 1) pages.push(page);
+    return pages;
+}
+
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         const r = (Math.random() * 16) | 0;
@@ -69,6 +79,8 @@ export default function CourseManagementPage() {
 
     // Search queries
     const [courseBundleSearchQuery, setCourseBundleSearchQuery] = useState('');
+    const [bundlePage, setBundlePage] = useState(1);
+    const [bundlePageSize, setBundlePageSize] = useState(10);
     const [instructorSearchQuery, setInstructorSearchQuery] = useState('');
     const [contentLibrarySearch, setContentLibrarySearch] = useState('');
     const [quizSearchQuery, setQuizSearchQuery] = useState('');
@@ -638,6 +650,19 @@ export default function CourseManagementPage() {
         const s = courseBundleSearchQuery.toLowerCase();
         return b.title.toLowerCase().includes(s) || (b.bundleCode && b.bundleCode.toLowerCase().includes(s));
     });
+
+    // Pagination for the Select Course Bundle modal table.
+    const bundleTotal = filteredBundles.length;
+    const bundleTotalPages = Math.max(1, Math.ceil(bundleTotal / bundlePageSize));
+    const safeBundlePage = Math.min(bundlePage, bundleTotalPages);
+    const pagedBundles = filteredBundles.slice((safeBundlePage - 1) * bundlePageSize, (safeBundlePage - 1) * bundlePageSize + bundlePageSize);
+    const bundlePageNumbers = getPageNumbers(safeBundlePage, bundleTotalPages);
+    const bundleShowingStart = bundleTotal === 0 ? 0 : (safeBundlePage - 1) * bundlePageSize + 1;
+    const bundleShowingEnd = Math.min(safeBundlePage * bundlePageSize, bundleTotal);
+
+    useEffect(() => {
+        setBundlePage(1);
+    }, [courseBundleSearchQuery, showSelectCourseModal]);
 
     const filteredInstructors = availableInstructors.filter(i => {
         if (!instructorSearchQuery) return true;
@@ -1225,156 +1250,192 @@ export default function CourseManagementPage() {
 
             {/* Course Bundle Creation Modal */}
             {showBundleModal && (
-                <div className="crispr-modal-backdrop active" onClick={() => setShowBundleModal(false)}>
-                    <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-                        <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)' }}>
-                            <h3><i className="ti ti-book-open"></i> Create New Course Bundle</h3>
-                            <button className="crispr-modal-close" onClick={() => setShowBundleModal(false)}>
-                                <i className="ti ti-close"></i>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowBundleModal(false)}>
+                    <div className="legacy-modal-dialog form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Create New Course Bundle</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowBundleModal(false)}>
+                                <i className="ti ti-close" />
                             </button>
                         </div>
-                        <div className="crispr-modal-body cmb-form-body">
-                            <style>{`
-                                .cmb-form-body { display: flex; flex-direction: column; gap: 20px; }
-                                .cmb-fld { display: flex; flex-direction: column; gap: 6px; }
-                                .cmb-fld-label { font-size: 13px; font-weight: 600; color: #334155; }
-                                .cmb-fld-label .req { color: #b42318; }
-                                .cmb-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
-                                .cmb-help { font-size: 12px; color: var(--muted); }
-                            `}</style>
+                        <form className="batch-modal-form form-modal" onSubmit={e => { e.preventDefault(); saveCourseBundle(); }}>
+                            <div className="legacy-modal-body">
+                                <div className="asset-form-section">
+                                    <div className="asset-form-section-title"><i className="ti ti-book-open" /> Bundle Details</div>
+                                    <div className="asset-form-grid">
+                                        <label className="field-cell full-span">
+                                            <div className="float-field">
+                                                <input
+                                                    type="text"
+                                                    className="float-control"
+                                                    placeholder=" "
+                                                    value={newBundle.title}
+                                                    onChange={e => setNewBundle({ ...newBundle, title: e.target.value })}
+                                                />
+                                                <span className="float-label">Bundle Title <span className="req">*</span></span>
+                                            </div>
+                                            <span className="field-hint">Enter a descriptive title for your course bundle</span>
+                                        </label>
+                                        <label className="field-cell">
+                                            <div className="float-field">
+                                                <input
+                                                    type="text"
+                                                    className="float-control"
+                                                    placeholder=" "
+                                                    value={newBundle.bundleCode}
+                                                    onChange={e => setNewBundle({ ...newBundle, bundleCode: e.target.value })}
+                                                />
+                                                <span className="float-label">Bundle Code <span className="req">*</span></span>
+                                            </div>
+                                            <span className="field-hint">Unique identifier for the course bundle</span>
+                                        </label>
+                                        <label className="field-cell">
+                                            <div className="float-field float-always">
+                                                <select
+                                                    className="float-control"
+                                                    value={newBundle.syllabusCode}
+                                                    onChange={e => setNewBundle({ ...newBundle, syllabusCode: e.target.value })}
+                                                >
+                                                    <option value="">-- Select a Syllabus --</option>
+                                                    {uniqueSyllabi.map(syl => (
+                                                        <option key={syl.code} value={syl.code}>{syl.name}</option>
+                                                    ))}
+                                                </select>
+                                                <span className="float-label">Select Syllabus <span className="req">*</span></span>
+                                            </div>
+                                            <span className="field-hint">Select a syllabus to initialize modules and chapters.</span>
+                                        </label>
+                                    </div>
 
-                            <div className="cmb-fld">
-                                <label className="cmb-fld-label">Bundle Title <span className="req">*</span></label>
-                                <input type="text" className="cmb-input" placeholder="Enter course bundle title" value={newBundle.title} onChange={e => setNewBundle({ ...newBundle, title: e.target.value })} />
-                                <small className="cmb-help">Enter a descriptive title for your course bundle</small>
-                            </div>
-
-                            <div className="cmb-fld">
-                                <label className="cmb-fld-label">Bundle Code <span className="req">*</span></label>
-                                <input type="text" className="cmb-input" placeholder="Enter bundle code (e.g., IAT-2024)" value={newBundle.bundleCode} onChange={e => setNewBundle({ ...newBundle, bundleCode: e.target.value })} />
-                                <small className="cmb-help">Unique identifier for the course bundle</small>
-                            </div>
-
-                            <div className="cmb-fld">
-                                <label className="cmb-fld-label">Select Syllabus <span className="req">*</span></label>
-                                <select className="cmb-input" value={newBundle.syllabusCode} onChange={e => setNewBundle({ ...newBundle, syllabusCode: e.target.value })}>
-                                    <option value="">-- Select a Syllabus --</option>
-                                    {uniqueSyllabi.map(syl => (
-                                        <option key={syl.code} value={syl.code}>{syl.name}</option>
-                                    ))}
-                                </select>
-                                <small className="cmb-help">Select a syllabus to initialize modules and chapters.</small>
-                            </div>
-
-                            {newBundle.syllabusCode && (
-                                <div className="alert alert-info" style={{ margin: 0 }}>
-                                    <i className="ti ti-info-alt"></i> <strong>Syllabus Selected:</strong> {uniqueSyllabi.find(s => s.code === newBundle.syllabusCode)?.name}
-                                    <br /><small>Modules will be organized by segments for easier classification</small>
+                                    {newBundle.syllabusCode && (
+                                        <div className="cmb-info-note">
+                                            <i className="ti ti-info-alt" />
+                                            <div>
+                                                <strong>Syllabus Selected:</strong> {uniqueSyllabi.find(s => s.code === newBundle.syllabusCode)?.name}
+                                                <div className="cmb-info-sub">Modules will be organized by segments for easier classification</div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                        <div className="crispr-modal-footer">
-                            <button type="button" className="btn btn-default" onClick={() => setShowBundleModal(false)}><i className="ti ti-close"></i> Cancel</button>
-                            <button type="button" className="btn btn-success" onClick={saveCourseBundle} disabled={!newBundle.title || !newBundle.bundleCode || !newBundle.syllabusCode}>
-                                <i className="ti ti-check"></i> Create Course Bundle
-                            </button>
-                        </div>
+                            </div>
+                            <div className="legacy-modal-footer">
+                                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowBundleModal(false)}>Cancel</button>
+                                <button type="submit" className="legacy-btn legacy-btn-success" disabled={!newBundle.title || !newBundle.bundleCode || !newBundle.syllabusCode}>
+                                    Create Course Bundle
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
 
-            {/* Select Course Modal */}
+            {/* Select Course Bundle Modal — standard modal + table */}
             {showSelectCourseModal && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowSelectCourseModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header" style={{ backgroundColor: '#006073', color: 'white' }}>
-                                <button type="button" className="close" style={{ color: 'white', opacity: 0.8 }} onClick={() => setShowSelectCourseModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-layers"></i> Select Course Bundle</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="row" style={{ marginBottom: 20 }}>
-                                    <div className="col-md-12">
-                                        <div className="input-group">
-                                            <span className="input-group-addon"><i className="ti ti-search"></i></span>
-                                            <input type="text" className="form-control" placeholder="Search course bundles by title or code..." value={courseBundleSearchQuery} onChange={e => setCourseBundleSearchQuery(e.target.value)} />
-                                            {courseBundleSearchQuery && (
-                                                <span className="input-group-btn">
-                                                    <button className="btn btn-default" onClick={() => setCourseBundleSearchQuery('')}><i className="ti ti-close"></i></button>
-                                                </span>
-                                            )}
-                                        </div>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowSelectCourseModal(false)}>
+                    <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Select Course Bundle</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowSelectCourseModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="asset-form-section">
+                                <div className="asset-form-section-title"><i className="ti ti-layers" /> Available Bundles</div>
+                                <div className="data-table-page" style={{ padding: 0 }}>
+                                    <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                                        <i className="ti ti-search" />
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="Search course bundles by title or code..."
+                                            value={courseBundleSearchQuery}
+                                            onChange={e => setCourseBundleSearchQuery(e.target.value)}
+                                        />
                                     </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-md-12">
-                                        <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-                                            <table className="table table-hover" style={{ marginBottom: 0 }}>
-                                                <thead style={{ background: '#f8f9fa', position: 'sticky', top: 0, zIndex: 10 }}>
-                                                    <tr>
-                                                        <th style={{ width: 60 }}><i className="ti ti-hash"></i></th>
-                                                        <th>Course Bundle</th>
-                                                        <th style={{ width: 150, textAlign: 'center' }}>Modules</th>
-                                                        <th style={{ width: 150, textAlign: 'center' }}>Chapters</th>
-                                                        <th style={{ width: 100, textAlign: 'center' }}>Status</th>
+
+                                    <div className="students-table-container">
+                                        <table className="students-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ width: 64 }}><i className="ti ti-hash" /></th>
+                                                    <th>Course Bundle</th>
+                                                    <th className="cm-center">Modules</th>
+                                                    <th className="cm-center">Chapters</th>
+                                                    <th className="cm-center">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {pagedBundles.map(bundle => (
+                                                    <tr
+                                                        key={bundle.id}
+                                                        className={`cm-bundle-row ${selectedCourseBundle && selectedCourseBundle.id === bundle.id ? 'is-selected' : ''}`}
+                                                        onClick={() => selectCourseBundleFromModal(bundle)}
+                                                    >
+                                                        <td><div className="cm-avatar"><i className="ti ti-book" /></div></td>
+                                                        <td>
+                                                            <div className="cm-name">{bundle.title}</div>
+                                                            <div className="cm-code">Code: {bundle.bundleCode}</div>
+                                                        </td>
+                                                        <td className="cm-center"><span className="cm-pill cm-pill-blue">{bundle.modulesIncluded ? bundle.modulesIncluded.length : 0}</span></td>
+                                                        <td className="cm-center"><span className="cm-pill cm-pill-amber">{getChapterCountForBundle(bundle)}</span></td>
+                                                        <td className="cm-center"><span className={`cm-status ${bundle.active === 1 ? 'active' : 'inactive'}`}>{bundle.active === 1 ? 'Active' : 'Inactive'}</span></td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {filteredBundles.length === 0 ? (
-                                                        <tr>
-                                                            <td colSpan="5" className="text-center" style={{ padding: '60px 20px', color: '#999' }}>
-                                                                <i className="ti ti-search" style={{ fontSize: 56, display: 'block', marginBottom: 15, opacity: 0.5 }}></i>
-                                                                <p style={{ fontSize: 16 }}>No course bundles found matching your search</p>
-                                                            </td>
-                                                        </tr>
-                                                    ) : (
-                                                        filteredBundles.map(bundle => (
-                                                            <tr
-                                                                key={bundle.id}
-                                                                onClick={() => selectCourseBundleFromModal(bundle)}
-                                                                style={{ cursor: 'pointer', transition: 'all 0.2s ease', ...(selectedCourseBundle && selectedCourseBundle.id === bundle.id ? { background: '#28a745', color: 'white' } : {}) }}
-                                                            >
-                                                                <td style={{ verticalAlign: 'middle' }}>
-                                                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #006073 0%, #008ba3 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>
-                                                                        <i className="ti ti-book"></i>
-                                                                    </div>
-                                                                </td>
-                                                                <td style={{ verticalAlign: 'middle' }}>
-                                                                    <div>
-                                                                        <strong style={{ fontSize: 15 }}>{bundle.title}</strong>
-                                                                        <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>Code: {bundle.bundleCode}</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                                    <span style={{ display: 'inline-block', padding: '4px 12px', background: '#e3f2fd', color: '#1976d2', borderRadius: 12, fontWeight: 500 }}>
-                                                                        {bundle.modulesIncluded ? bundle.modulesIncluded.length : 0}
-                                                                    </span>
-                                                                </td>
-                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                                    <span style={{ display: 'inline-block', padding: '4px 12px', background: '#fff3e0', color: '#f57c00', borderRadius: 12, fontWeight: 500 }}>
-                                                                        {getChapterCountForBundle(bundle)}
-                                                                    </span>
-                                                                </td>
-                                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                                    <span className={`badge ${bundle.active === 1 ? 'badge-success' : 'badge-warning'}`}>
-                                                                        {bundle.active === 1 ? 'Active' : 'Inactive'}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                ))}
+                                                {bundleTotal === 0 && (
+                                                    <tr>
+                                                        <td colSpan={5}>
+                                                            <div className="cm-empty">
+                                                                <i className="ti ti-search" />
+                                                                <p>No course bundles found matching your search</p>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
                                     </div>
+
+                                    {bundleTotal > 0 && (
+                                        <div className="pagination-container">
+                                            <div className="pagination-info">
+                                                <span>Showing {bundleShowingStart} to {bundleShowingEnd} of {bundleTotal} entries</span>
+                                                <select
+                                                    className="page-size-select"
+                                                    value={bundlePageSize}
+                                                    onChange={e => { setBundlePageSize(Number(e.target.value)); setBundlePage(1); }}
+                                                >
+                                                    <option value={10}>Show 10</option>
+                                                    <option value={20}>Show 20</option>
+                                                    <option value={50}>Show 50</option>
+                                                </select>
+                                            </div>
+                                            <div className="pagination-controls">
+                                                <button type="button" className="pagination-btn" disabled={safeBundlePage === 1} onClick={() => setBundlePage(p => Math.max(1, p - 1))}>
+                                                    <i className="ti ti-angle-left" /> Previous
+                                                </button>
+                                                {bundlePageNumbers.map(page => (
+                                                    <button
+                                                        key={page}
+                                                        type="button"
+                                                        className={`pagination-btn ${safeBundlePage === page ? 'active' : ''}`}
+                                                        onClick={() => setBundlePage(page)}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
+                                                <button type="button" className="pagination-btn" disabled={safeBundlePage === bundleTotalPages} onClick={() => setBundlePage(p => Math.min(bundleTotalPages, p + 1))}>
+                                                    Next <i className="ti ti-angle-right" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className="modal-footer" style={{ background: '#f8f9fa' }}>
-                                <div style={{ textAlign: 'left', flex: 1, color: '#666' }}>
-                                    <i className="ti ti-info-alt"></i> Click on a row to select and open the course bundle
-                                </div>
-                                <button type="button" className="btn btn-default" onClick={() => setShowSelectCourseModal(false)}><i className="ti ti-close"></i> Close</button>
-                            </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <div className="cm-footer-hint"><i className="ti ti-info-alt" /> Click on a row to select and open the course bundle</div>
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowSelectCourseModal(false)}>Close</button>
                         </div>
                     </div>
                 </div>
@@ -1382,60 +1443,60 @@ export default function CourseManagementPage() {
 
             {/* Teacher Profile Modal */}
             {showTeacherModal && selectedTeacherProfile && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowTeacherModal(false)}>
-                    <div className="cmp-modal-dialog" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header" style={{ backgroundColor: '#006073', color: 'white' }}>
-                                <button type="button" className="close" style={{ color: 'white', opacity: 0.8 }} onClick={() => setShowTeacherModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-user"></i> Instructor Profile</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="row">
-                                    <div className="col-md-4 text-center">
-                                        <Avatar
-                                            src={selectedTeacherProfile.photo}
-                                            name={selectedTeacherProfile.name}
-                                            style={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073', marginBottom: 15 }}
-                                            placeholderStyle={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073', marginBottom: 15, background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 48, fontWeight: 700 }}
-                                        />
-                                        <div className="star-rating" style={{ fontSize: 20, marginBottom: 10 }}>
-                                            {[0, 1, 2, 3, 4].map(i => (
-                                                <i key={i} className={`fa ${getStarClass(selectedTeacherProfile.rating, i)}`}></i>
-                                            ))}
-                                        </div>
-                                        <p style={{ fontSize: 18, fontWeight: 'bold', color: '#666' }}>{selectedTeacherProfile.rating}/5.0</p>
-                                        <p style={{ color: '#999', fontSize: 14 }}>{selectedTeacherProfile.studentsCount || 0} Students</p>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowTeacherModal(false)}>
+                    <div className="legacy-modal-dialog form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Instructor Profile</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowTeacherModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="cm-profile">
+                                <div className="cm-profile-side">
+                                    <Avatar
+                                        src={selectedTeacherProfile.photo}
+                                        name={selectedTeacherProfile.name}
+                                        style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073' }}
+                                        placeholderStyle={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', border: '4px solid #006073', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 40, fontWeight: 700 }}
+                                    />
+                                    <div className="cm-profile-rating">
+                                        {[0, 1, 2, 3, 4].map(i => (
+                                            <i key={i} className={`fa ${getStarClass(selectedTeacherProfile.rating, i)}`} />
+                                        ))}
                                     </div>
-                                    <div className="col-md-8">
-                                        <h3 style={{ color: '#006073', marginTop: 0 }}>{selectedTeacherProfile.name}</h3>
-                                        <p style={{ color: '#666', fontSize: 16, marginBottom: 20 }}><em>{selectedTeacherProfile.brief || selectedTeacherProfile.about}</em></p>
-                                        <div style={{ marginBottom: 15 }}>
-                                            <strong style={{ color: '#006073' }}><i className="ti ti-bookmark"></i> Specialization:</strong>
-                                            <p style={{ marginLeft: 25, color: '#666' }}>{selectedTeacherProfile.specialization || selectedTeacherProfile.expertSubject}</p>
-                                        </div>
-                                        <div style={{ marginBottom: 15 }}>
-                                            <strong style={{ color: '#006073' }}><i className="ti ti-briefcase"></i> Experience:</strong>
-                                            <p style={{ marginLeft: 25, color: '#666' }}>{selectedTeacherProfile.experience || 'N/A'}</p>
-                                        </div>
-                                        {(selectedTeacherProfile.education || selectedTeacherProfile.qualifications) && (
-                                            <div style={{ marginBottom: 15 }}>
-                                                <strong style={{ color: '#006073' }}><i className="ti ti-medall"></i> Education:</strong>
-                                                <p style={{ marginLeft: 25, color: '#666' }}>{selectedTeacherProfile.education || selectedTeacherProfile.qualifications}</p>
-                                            </div>
-                                        )}
-                                        {selectedTeacherProfile.about && (
-                                            <div>
-                                                <strong style={{ color: '#006073' }}><i className="ti ti-info-alt"></i> About:</strong>
-                                                <p style={{ marginLeft: 25, color: '#666' }}>{selectedTeacherProfile.about}</p>
-                                            </div>
-                                        )}
+                                    <div className="cm-profile-score">{selectedTeacherProfile.rating}/5.0</div>
+                                    <div className="cm-profile-students">{selectedTeacherProfile.studentsCount || 0} Students</div>
+                                </div>
+                                <div className="cm-profile-main">
+                                    <h4 className="cm-profile-name">{selectedTeacherProfile.name}</h4>
+                                    <p className="cm-profile-brief">{selectedTeacherProfile.brief || selectedTeacherProfile.about}</p>
+                                    <div className="cm-profile-row">
+                                        <strong><i className="ti ti-bookmark" /> Specialization</strong>
+                                        <p>{selectedTeacherProfile.specialization || selectedTeacherProfile.expertSubject}</p>
                                     </div>
+                                    <div className="cm-profile-row">
+                                        <strong><i className="ti ti-briefcase" /> Experience</strong>
+                                        <p>{selectedTeacherProfile.experience || 'N/A'}</p>
+                                    </div>
+                                    {(selectedTeacherProfile.education || selectedTeacherProfile.qualifications) && (
+                                        <div className="cm-profile-row">
+                                            <strong><i className="ti ti-medall" /> Education</strong>
+                                            <p>{selectedTeacherProfile.education || selectedTeacherProfile.qualifications}</p>
+                                        </div>
+                                    )}
+                                    {selectedTeacherProfile.about && (
+                                        <div className="cm-profile-row">
+                                            <strong><i className="ti ti-info-alt" /> About</strong>
+                                            <p>{selectedTeacherProfile.about}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary" onClick={openChangeInstructorModal}><i className="ti ti-reload"></i> Change Instructor</button>
-                                <button type="button" className="btn btn-default" onClick={() => setShowTeacherModal(false)}><i className="ti ti-close"></i> Close</button>
-                            </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowTeacherModal(false)}>Close</button>
+                            <button type="button" className="legacy-btn legacy-btn-success" onClick={openChangeInstructorModal}>Change Instructor</button>
                         </div>
                     </div>
                 </div>
@@ -1443,69 +1504,76 @@ export default function CourseManagementPage() {
 
             {/* Change Instructor Modal */}
             {showChangeInstructorModal && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowChangeInstructorModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header" style={{ backgroundColor: '#006073', color: 'white' }}>
-                                <button type="button" className="close" style={{ color: 'white', opacity: 0.8 }} onClick={() => setShowChangeInstructorModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title">
-                                    <i className="ti ti-reload"></i> Change Instructor{currentChapterForTeacherChange ? ` for: ${currentChapterForTeacherChange.title}` : ''}
-                                </h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="row" style={{ marginBottom: 15 }}>
-                                    <div className="col-md-12">
-                                        <div className="input-group">
-                                            <span className="input-group-addon"><i className="ti ti-search"></i></span>
-                                            <input type="text" className="form-control" placeholder="Search instructors by name, subject, or expertise..." value={instructorSearchQuery} onChange={e => setInstructorSearchQuery(e.target.value)} />
-                                        </div>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowChangeInstructorModal(false)}>
+                    <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Change Instructor</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowChangeInstructorModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="asset-form-section">
+                                <div className="asset-form-section-title"><i className="ti ti-user" /> Select Instructor</div>
+                                {currentChapterForTeacherChange && (
+                                    <div className="cmb-info-note">
+                                        <i className="ti ti-info-alt" />
+                                        <div>Reassigning instructor for <strong>{currentChapterForTeacherChange.title}</strong></div>
                                     </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-md-12">
-                                        <div style={{ maxHeight: 450, overflowY: 'auto', padding: 5 }}>
-                                            {filteredInstructors.map(instructor => (
-                                                <div
-                                                    key={instructor.id}
-                                                    className={`instructor-card${selectedNewInstructor && selectedNewInstructor.id === instructor.id ? ' instructor-selected' : ''}`}
-                                                    onClick={() => setSelectedNewInstructor(instructor)}
-                                                    style={{ padding: 15, border: '2px solid #ddd', marginBottom: 12, background: 'white', cursor: 'pointer', borderRadius: 8, transition: 'all 0.3s ease' }}
-                                                >
-                                                    <div className="row">
-                                                        <div className="col-md-2 text-center">
-                                                            <Avatar src={instructor.photo} name={instructor.name} style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid #ddd', objectFit: 'cover' }} placeholderStyle={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid #ddd', background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 22, fontWeight: 700 }} />
-                                                        </div>
-                                                        <div className="col-md-10">
-                                                            <h4 style={{ margin: '0 0 8px 0', color: '#006073', fontWeight: 600 }}>
-                                                                {instructor.name}
-                                                                {selectedNewInstructor && selectedNewInstructor.id === instructor.id && (
-                                                                    <span style={{ float: 'right', color: '#28a745' }}><i className="ti ti-check-box" style={{ fontSize: 24 }}></i></span>
-                                                                )}
-                                                            </h4>
-                                                            <p style={{ margin: '0 0 8px 0', color: '#666', fontSize: 14 }}>{instructor.brief}</p>
-                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 15, fontSize: 13, color: '#777' }}>
-                                                                <span><i className="ti ti-bookmark-alt"></i> <strong>Subject:</strong> {instructor.expertSubject}</span>
-                                                                <span><i className="ti ti-briefcase"></i> <strong>Experience:</strong> {instructor.experience} years</span>
-                                                                <span><i className="ti ti-star"></i> <strong>Rating:</strong> <span style={{ color: '#ffb706', fontWeight: 'bold' }}>{instructor.rating}/5</span></span>
-                                                            </div>
-                                                        </div>
+                                )}
+                                <div className="data-table-page" style={{ padding: 0, marginTop: 16 }}>
+                                    <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                                        <i className="ti ti-search" />
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="Search instructors by name, subject, or expertise..."
+                                            value={instructorSearchQuery}
+                                            onChange={e => setInstructorSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="cm-instructor-list">
+                                        {filteredInstructors.map(instructor => (
+                                            <div
+                                                key={instructor.id}
+                                                className={`cm-instructor-card${selectedNewInstructor && selectedNewInstructor.id === instructor.id ? ' is-selected' : ''}`}
+                                                onClick={() => setSelectedNewInstructor(instructor)}
+                                            >
+                                                <Avatar
+                                                    src={instructor.photo}
+                                                    name={instructor.name}
+                                                    style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                                                    placeholderStyle={{ width: 54, height: 54, borderRadius: '50%', flexShrink: 0, background: 'linear-gradient(135deg, #006073 0%, #004d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700 }}
+                                                />
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="cm-instructor-name">
+                                                        {instructor.name}
+                                                        {selectedNewInstructor && selectedNewInstructor.id === instructor.id && (
+                                                            <i className="ti ti-check-box cm-instructor-check" />
+                                                        )}
+                                                    </div>
+                                                    <div className="cm-instructor-brief">{instructor.brief}</div>
+                                                    <div className="cm-instructor-meta">
+                                                        <span><i className="ti ti-bookmark-alt" /> <strong>Subject:</strong> {instructor.expertSubject}</span>
+                                                        <span><i className="ti ti-briefcase" /> <strong>Experience:</strong> {instructor.experience} years</span>
+                                                        <span><i className="ti ti-star" /> <strong>Rating:</strong> {instructor.rating}/5</span>
                                                     </div>
                                                 </div>
-                                            ))}
-                                            {filteredInstructors.length === 0 && (
-                                                <div className="text-center" style={{ padding: '60px 20px', color: '#999' }}>
-                                                    <i className="ti ti-search" style={{ fontSize: 56, display: 'block', marginBottom: 15, opacity: 0.5 }}></i>
-                                                    <p style={{ fontSize: 16 }}>No instructors found matching your search.</p>
-                                                </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        ))}
+                                        {filteredInstructors.length === 0 && (
+                                            <div className="cm-empty">
+                                                <i className="ti ti-search" />
+                                                <p>No instructors found matching your search.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary" onClick={confirmInstructorChange} disabled={!selectedNewInstructor}><i className="ti ti-check"></i> Assign Instructor</button>
-                                <button type="button" className="btn btn-default" onClick={() => setShowChangeInstructorModal(false)}><i className="ti ti-close"></i> Cancel</button>
-                            </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowChangeInstructorModal(false)}>Cancel</button>
+                            <button type="button" className="legacy-btn legacy-btn-success" onClick={confirmInstructorChange} disabled={!selectedNewInstructor}>Assign Instructor</button>
                         </div>
                     </div>
                 </div>
@@ -1513,44 +1581,38 @@ export default function CourseManagementPage() {
 
             {/* Video Modal */}
             {showVideoModal && selectedVideo && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowVideoModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" onClick={() => setShowVideoModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-play"></i> {selectedVideo.title}</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="row">
-                                    <div className="col-md-8">
-                                        <div className="video-player-container">
-                                            <div className="video-placeholder">
-                                                <i className="ti ti-video-camera"></i>
-                                                <p>Video Player</p>
-                                                <small className="text-muted">Video URL: {selectedVideo.libraryId}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="col-md-4">
-                                        <div className="video-details">
-                                            <h5>Video Details</h5>
-                                            <ul className="list-unstyled">
-                                                <li><strong>Part:</strong> {selectedVideo.partNumber}</li>
-                                                <li><strong>Chapter:</strong> {selectedVideo.chapterTitle}</li>
-                                                <li><strong>Module:</strong> {selectedVideo.moduleCode}</li>
-                                                <li><strong>Type:</strong> {selectedVideo.type}</li>
-                                                <li><strong>Skip to Next:</strong> <span className={`badge ${selectedVideo.skipToNext ? 'badge-success' : 'badge-warning'}`}>{selectedVideo.skipToNext ? 'Yes' : 'No'}</span></li>
-                                            </ul>
-                                            <div className="video-actions">
-                                                <button className="btn btn-info btn-block" onClick={() => showToast('info', '', 'Added to playlist!')}><i className="ti ti-list"></i> Add to Playlist</button>
-                                            </div>
-                                        </div>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowVideoModal(false)}>
+                    <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>{selectedVideo.title}</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowVideoModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="cm-video-layout">
+                                <div className="cm-video-frame">
+                                    <div>
+                                        <i className="ti ti-video-camera" />
+                                        <p>Video Player</p>
+                                        <small>Video URL: {selectedVideo.libraryId}</small>
                                     </div>
                                 </div>
+                                <div className="cm-video-side">
+                                    <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Video Details</div>
+                                    <ul className="cm-detail-list">
+                                        <li><strong>Part</strong> <span>{selectedVideo.partNumber}</span></li>
+                                        <li><strong>Chapter</strong> <span>{selectedVideo.chapterTitle}</span></li>
+                                        <li><strong>Module</strong> <span>{selectedVideo.moduleCode}</span></li>
+                                        <li><strong>Type</strong> <span>{selectedVideo.type}</span></li>
+                                        <li><strong>Skip to Next</strong> <span className={`cm-status ${selectedVideo.skipToNext ? 'active' : 'inactive'}`}>{selectedVideo.skipToNext ? 'Yes' : 'No'}</span></li>
+                                    </ul>
+                                    <button type="button" className="legacy-btn legacy-btn-default cm-video-action" onClick={() => showToast('info', '', 'Added to playlist!')}>Add to Playlist</button>
+                                </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => setShowVideoModal(false)}>Close</button>
-                            </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowVideoModal(false)}>Close</button>
                         </div>
                     </div>
                 </div>
@@ -1558,157 +1620,175 @@ export default function CourseManagementPage() {
 
             {/* Video Preview Modal */}
             {showVideoPreviewModal && videoPreviewPart && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowVideoPreviewModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" onClick={() => setShowVideoPreviewModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-video-camera"></i> {videoPreviewPart.title}</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="video-container" style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000' }}>
-                                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6c757d' }}>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <i className="ti ti-video-camera" style={{ fontSize: 48, marginBottom: 15 }}></i>
-                                            <p>Video preview not available in demo</p>
-                                        </div>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowVideoPreviewModal(false)}>
+                    <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>{videoPreviewPart.title}</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowVideoPreviewModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="cm-video-embed">
+                                <div className="cm-video-embed-inner">
+                                    <div>
+                                        <i className="ti ti-video-camera" />
+                                        <p>Video preview not available in demo</p>
                                     </div>
                                 </div>
-                                <div style={{ marginTop: 15 }}>
-                                    <span style={{ marginRight: 20 }}><i className="ti ti-time"></i> {formatDuration(videoPreviewPart.duration)}</span>
-                                    <span><i className="ti ti-bookmark"></i> {videoPreviewPart.libraryId}</span>
-                                </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => setShowVideoPreviewModal(false)}><i className="ti ti-close"></i> Hide</button>
-                                <button
-                                    type="button"
-                                    className={`btn ${isPartSelected(videoPreviewPart.libraryId) ? 'btn-danger' : 'btn-success'}`}
-                                    onClick={() => togglePartSelection(videoPreviewPart)}
-                                >
-                                    <i className={`fa ${isPartSelected(videoPreviewPart.libraryId) ? 'fa-minus' : 'fa-plus'}`}></i>
-                                    {' '}{isPartSelected(videoPreviewPart.libraryId) ? 'Remove from Parts' : 'Add to Parts'}
-                                </button>
+                            <div className="cm-video-meta">
+                                <span><i className="ti ti-time" /> {formatDuration(videoPreviewPart.duration)}</span>
+                                <span><i className="ti ti-bookmark" /> {videoPreviewPart.libraryId}</span>
                             </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowVideoPreviewModal(false)}>Hide</button>
+                            <button
+                                type="button"
+                                className={`legacy-btn ${isPartSelected(videoPreviewPart.libraryId) ? 'legacy-btn-danger' : 'legacy-btn-success'}`}
+                                onClick={() => togglePartSelection(videoPreviewPart)}
+                            >
+                                {isPartSelected(videoPreviewPart.libraryId) ? 'Remove from Parts' : 'Add to Parts'}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Link Quiz Modal */}
+            {/* Link Quiz Modal — standard modal + table */}
             {showLinkQuizModal && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowLinkQuizModal(false)}>
-                    <div className="cmp-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" onClick={() => setShowLinkQuizModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-clipboard"></i> Link Quiz to Chapter</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="alert alert-info" style={{ marginBottom: 20 }}>
-                                    <i className="ti ti-info-alt"></i> Select a quiz from the list below to add it as a part in this chapter.
+                <div className="legacy-modal-backdrop active" onClick={() => setShowLinkQuizModal(false)}>
+                    <div className="legacy-modal-dialog legacy-large form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Link Quiz to Chapter</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowLinkQuizModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <div className="legacy-modal-body">
+                            <div className="asset-form-section">
+                                <div className="asset-form-section-title"><i className="ti ti-clipboard" /> Available Quizzes</div>
+                                <div className="cmb-info-note">
+                                    <i className="ti ti-info-alt" />
+                                    <div>Select a quiz from the list below to add it as a part in this chapter.</div>
                                 </div>
-                                <div className="form-group">
-                                    <div className="input-group">
-                                        <span className="input-group-addon"><i className="ti ti-search"></i></span>
-                                        <input type="text" className="form-control" placeholder="Search quizzes by title or description..." value={quizSearchQuery} onChange={e => setQuizSearchQuery(e.target.value)} />
-                                        {quizSearchQuery && (
-                                            <span className="input-group-btn">
-                                                <button className="btn btn-default" type="button" onClick={() => setQuizSearchQuery('')}><i className="ti ti-close"></i></button>
-                                            </span>
-                                        )}
+                                <div className="data-table-page" style={{ padding: 0, marginTop: 16 }}>
+                                    <div className="search-wrapper" style={{ marginBottom: 16 }}>
+                                        <i className="ti ti-search" />
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="Search quizzes by title or description..."
+                                            value={quizSearchQuery}
+                                            onChange={e => setQuizSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="students-table-container">
+                                        <table className="students-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ width: 56 }}></th>
+                                                    <th>Quiz Title</th>
+                                                    <th className="cm-center">Questions</th>
+                                                    <th className="cm-center">Max Marks</th>
+                                                    <th className="cm-center">Duration</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td colSpan={5}>
+                                                        <div className="cm-empty">
+                                                            <i className="ti ti-clipboard" />
+                                                            <p>No published quizzes available. Create quizzes in the Practice Quizzes section.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                                <div style={{ maxHeight: 400, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 4 }}>
-                                    <table className="table table-hover" style={{ marginBottom: 0 }}>
-                                        <thead style={{ background: '#f8f9fa' }}>
-                                            <tr>
-                                                <th style={{ width: 50 }}></th>
-                                                <th>Quiz Title</th>
-                                                <th style={{ width: 100, textAlign: 'center' }}>Questions</th>
-                                                <th style={{ width: 100, textAlign: 'center' }}>Max Marks</th>
-                                                <th style={{ width: 100, textAlign: 'center' }}>Duration</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td colSpan="5" className="text-center" style={{ padding: '40px', color: '#999' }}>
-                                                    <i className="ti ti-clipboard" style={{ fontSize: 48, display: 'block', marginBottom: 15, opacity: 0.3 }}></i>
-                                                    <p>No published quizzes available. Create quizzes in the Practice Quizzes section.</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => setShowLinkQuizModal(false)}><i className="ti ti-close"></i> Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={linkQuizToChapter} disabled={!selectedQuizForLink}><i className="ti ti-check"></i> Link Quiz</button>
-                            </div>
+                        </div>
+                        <div className="legacy-modal-footer">
+                            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowLinkQuizModal(false)}>Cancel</button>
+                            <button type="button" className="legacy-btn legacy-btn-success" onClick={linkQuizToChapter} disabled={!selectedQuizForLink}>Link Quiz</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Attach Material Modal */}
+            {/* Attach Material Modal — standard modal + form */}
             {showAttachMaterialModal && (
-                <div className="cmp-modal-backdrop" onClick={() => setShowAttachMaterialModal(false)}>
-                    <div className="cmp-modal-dialog" onClick={e => e.stopPropagation()}>
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" onClick={() => setShowAttachMaterialModal(false)}><span>&times;</span></button>
-                                <h4 className="modal-title"><i className="ti ti-file"></i> Attach Material (PDF)</h4>
-                            </div>
-                            <div className="modal-body">
-                                <div className="alert alert-info" style={{ marginBottom: 20 }}>
-                                    <i className="ti ti-info-alt"></i> Upload a PDF document to add it as a study material in this chapter.
-                                </div>
-                                <form className="form-horizontal">
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">Material Title <span className="text-danger">*</span></label>
-                                        <div className="col-sm-9">
-                                            <input type="text" className="form-control" placeholder="Enter material title" value={materialUpload.title} onChange={e => setMaterialUpload({ ...materialUpload, title: e.target.value })} />
-                                            <small className="help-block">This will be shown to students</small>
-                                        </div>
+                <div className="legacy-modal-backdrop active" onClick={() => setShowAttachMaterialModal(false)}>
+                    <div className="legacy-modal-dialog form-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+                        <div className="legacy-modal-header">
+                            <h3>Attach Material (PDF)</h3>
+                            <button type="button" className="legacy-modal-close" onClick={() => setShowAttachMaterialModal(false)}>
+                                <i className="ti ti-close" />
+                            </button>
+                        </div>
+                        <form className="batch-modal-form form-modal" onSubmit={e => { e.preventDefault(); attachMaterialToChapter(); }}>
+                            <div className="legacy-modal-body">
+                                <div className="asset-form-section">
+                                    <div className="asset-form-section-title"><i className="ti ti-file" /> Material Details</div>
+                                    <div className="cmb-info-note">
+                                        <i className="ti ti-info-alt" />
+                                        <div>Upload a PDF document to add it as a study material in this chapter.</div>
                                     </div>
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">PDF File <span className="text-danger">*</span></label>
-                                        <div className="col-sm-9">
-                                            <input type="file" ref={materialFileRef} accept=".pdf,application/pdf" onChange={handleMaterialFileSelect} style={{ display: 'none' }} />
-                                            <button type="button" className="btn btn-default btn-block" onClick={() => materialFileRef.current && materialFileRef.current.click()}>
-                                                <i className="ti ti-upload"></i> {materialUpload.fileName || 'Choose PDF File'}
-                                            </button>
-                                            <small className="help-block">Only PDF files are allowed</small>
-                                        </div>
+                                    <div className="asset-form-grid" style={{ marginTop: 16 }}>
+                                        <label className="field-cell full-span">
+                                            <div className="float-field">
+                                                <input
+                                                    type="text"
+                                                    className="float-control"
+                                                    placeholder=" "
+                                                    value={materialUpload.title}
+                                                    onChange={e => setMaterialUpload({ ...materialUpload, title: e.target.value })}
+                                                />
+                                                <span className="float-label">Material Title <span className="req">*</span></span>
+                                            </div>
+                                            <span className="field-hint">This will be shown to students</span>
+                                        </label>
+                                        <label className="field-cell full-span">
+                                            <div className="float-field float-always cm-upload-field">
+                                                <input type="file" ref={materialFileRef} accept=".pdf,application/pdf" onChange={handleMaterialFileSelect} style={{ display: 'none' }} />
+                                                <button type="button" className="cm-upload-btn" onClick={() => materialFileRef.current && materialFileRef.current.click()}>
+                                                    <i className="ti ti-upload" /> {materialUpload.fileName || 'Choose PDF File'}
+                                                </button>
+                                                <span className="float-label">PDF File <span className="req">*</span></span>
+                                            </div>
+                                            <span className="field-hint">Only PDF files are allowed</span>
+                                        </label>
+                                        <label className="field-cell full-span">
+                                            <div className="float-field float-textarea">
+                                                <textarea
+                                                    className="float-control"
+                                                    placeholder=" "
+                                                    value={materialUpload.brief}
+                                                    onChange={e => setMaterialUpload({ ...materialUpload, brief: e.target.value })}
+                                                />
+                                                <span className="float-label">Brief Description</span>
+                                            </div>
+                                        </label>
                                     </div>
-                                    <div className="form-group">
-                                        <label className="col-sm-3 control-label">Brief Description</label>
-                                        <div className="col-sm-9">
-                                            <textarea className="form-control" rows="3" placeholder="Optional brief description" value={materialUpload.brief} onChange={e => setMaterialUpload({ ...materialUpload, brief: e.target.value })}></textarea>
-                                        </div>
-                                    </div>
+
                                     {materialUpload.fileName && (
-                                        <div className="form-group">
-                                            <div className="col-sm-9 col-sm-offset-3">
-                                                <div style={{ padding: 15, background: '#f8f9fa', borderRadius: 4, borderLeft: '3px solid #28a745' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <i className="fa fa-file-pdf-o" style={{ fontSize: 32, color: '#dc3545', marginRight: 15 }}></i>
-                                                        <div>
-                                                            <div style={{ fontWeight: 'bold', color: '#333' }}>{materialUpload.fileName}</div>
-                                                            <div style={{ fontSize: 12, color: '#666' }}>PDF Document</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <div className="cm-file-preview">
+                                            <i className="ti ti-file-text cm-file-icon" />
+                                            <div>
+                                                <div className="cm-file-name">{materialUpload.fileName}</div>
+                                                <div className="cm-file-type">PDF Document</div>
                                             </div>
                                         </div>
                                     )}
-                                </form>
+                                </div>
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" onClick={() => setShowAttachMaterialModal(false)}><i className="ti ti-close"></i> Cancel</button>
-                                <button type="button" className="btn btn-success" onClick={attachMaterialToChapter} disabled={!materialUpload.file || !materialUpload.title}><i className="ti ti-check"></i> Attach Material</button>
+                            <div className="legacy-modal-footer">
+                                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowAttachMaterialModal(false)}>Cancel</button>
+                                <button type="submit" className="legacy-btn legacy-btn-success" disabled={!materialUpload.file || !materialUpload.title}>Attach Material</button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             )}

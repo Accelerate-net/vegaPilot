@@ -11,6 +11,7 @@ import { listBatches, listCandidates } from '../lib/icardApi';
 import { listLocations } from '../lib/locationsApi';
 import { searchInstructors } from '../lib/instructorsApi';
 import { listUsers } from '../lib/userAccountsApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
 
@@ -84,6 +85,7 @@ export default function DefaultAttendanceLocationPage() {
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [audienceFilter, setAudienceFilter] = useState(''); // '' | audience key
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -156,7 +158,7 @@ export default function DefaultAttendanceLocationPage() {
     setLoadError(null);
     try {
       const resp = await listDefaultLocations({
-        search: searchQuery.trim() || undefined,
+        search: debouncedSearchQuery.trim() || undefined,
         subjectType: selectedAudience?.subjectType || undefined,
         userType: selectedAudience?.userType || undefined,
         page,
@@ -181,7 +183,7 @@ export default function DefaultAttendanceLocationPage() {
     } finally {
       if (!signal.cancelled) setIsLoading(false);
     }
-  }, [searchQuery, selectedAudience, page, pageSize, showToast]);
+  }, [debouncedSearchQuery, selectedAudience, page, pageSize, showToast]);
 
   useEffect(() => {
     const signal = { cancelled: false };

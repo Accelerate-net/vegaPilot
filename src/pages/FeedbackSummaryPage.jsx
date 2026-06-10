@@ -5,6 +5,7 @@ import { availableBatches, availableCourses } from '../data/attemptReportsDemo';
 import { examsDemo } from '../data/examsDemo';
 import { feedbackDemoData } from '../data/feedbackDemo';
 import { feedbackSummary, listFeedback } from '../lib/feedbackApi';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 function formatLastReceived(unixSeconds) {
   if (!unixSeconds) return 'No submissions yet';
@@ -165,6 +166,7 @@ export default function FeedbackSummaryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery);
   const [dateFrom, setDateFrom] = useState(() => searchParams.get('from') || '');
   const [dateTo, setDateTo] = useState(() => searchParams.get('to') || '');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState(() => searchParams.get('course') || '');
@@ -246,9 +248,9 @@ export default function FeedbackSummaryPage() {
       sortBy: SORT_COL_TO_API[sortColumn] || 'createdAt',
       sortOrder: sortDirection.toUpperCase(),
     };
-    if (searchQuery.trim()) {
+    if (debouncedSearchQuery.trim()) {
       params.filterBy = 'Title';
-      params.searchKey = searchQuery.trim();
+      params.searchKey = debouncedSearchQuery.trim();
     }
     if (selectedTile) {
       params.type = selectedTile.type;
@@ -272,7 +274,7 @@ export default function FeedbackSummaryPage() {
         if (!cancelled) setListLoading(false);
       });
     return () => { cancelled = true; };
-  }, [currentPage, pageSize, sortColumn, sortDirection, searchQuery, selectedTile]);
+  }, [currentPage, pageSize, sortColumn, sortDirection, debouncedSearchQuery, selectedTile]);
 
   function showToast(type, title, message) {
     const id = Date.now() + Math.random();
