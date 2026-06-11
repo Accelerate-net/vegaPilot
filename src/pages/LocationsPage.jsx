@@ -341,11 +341,10 @@ export default function LocationsPage() {
                       style={{ background: loc.open ? '#16a34a' : '#dc2626' }}
                     />
                   </div>
-                  <div className="loc-item-meta">
-                    <span className="subject-badge">{locationTypeLabel(loc.type)}</span>
-                    {loc.isPublicAccessible && <span className="loc-mini-pill">Public</span>}
-                  </div>
                   <div className="loc-item-addr">{loc.address}</div>
+                  <div className="loc-item-meta">
+                    <span className="loc-item-type">{locationTypeLabel(loc.type)}</span>
+                  </div>
                 </button>
               ))
             )}
@@ -503,113 +502,132 @@ export default function LocationsPage() {
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="form-modal" onSubmit={(e) => { e.preventDefault(); saveLocation(); }}>
           <div className="legacy-modal-body">
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Details</div>
-              <div className="mentor-form-group">
-                <label>Name <span className="required">*</span></label>
-                <input
-                  type="text"
-                  className="mentor-form-input"
-                  maxLength={80}
-                  value={locForm.name}
-                  onChange={(e) => setLocForm((f) => ({ ...f, name: e.target.value }))}
-                />
-                {locFormErrors.name && <div className="ua-form-error">{locFormErrors.name}</div>}
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className={`float-field ${locFormErrors.name ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      maxLength={80}
+                      value={locForm.name}
+                      onChange={(e) => setLocForm((f) => ({ ...f, name: e.target.value }))}
+                    />
+                    <span className="float-label">Name <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.name && <span className="field-error">{locFormErrors.name}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field float-always ${locFormErrors.type ? 'has-error' : ''}`}>
+                    <select
+                      className="float-control"
+                      value={locForm.type}
+                      disabled={locEditMode}
+                      onChange={(e) => setLocForm((f) => ({ ...f, type: Number(e.target.value) }))}
+                    >
+                      {LOCATION_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">Type <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.type
+                    ? <span className="field-error">{locFormErrors.type}</span>
+                    : locEditMode && <span className="field-hint">Type cannot be changed after creation.</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${locFormErrors.contact ? 'has-error' : ''}`}>
+                    <input
+                      type="tel"
+                      className="float-control"
+                      placeholder=" "
+                      maxLength={15}
+                      value={locForm.contact}
+                      onChange={(e) => setLocForm((f) => ({ ...f, contact: e.target.value }))}
+                    />
+                    <span className="float-label">Contact <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.contact && <span className="field-error">{locFormErrors.contact}</span>}
+                </label>
+                <label className="field-cell full-span">
+                  <div className={`float-field float-textarea ${locFormErrors.address ? 'has-error' : ''}`}>
+                    <textarea
+                      className="float-control"
+                      placeholder=" "
+                      maxLength={240}
+                      value={locForm.address}
+                      onChange={(e) => setLocForm((f) => ({ ...f, address: e.target.value }))}
+                    />
+                    <span className="float-label">Address <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.address && <span className="field-error">{locFormErrors.address}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${locFormErrors.latitude ? 'has-error' : ''}`}>
+                    <input
+                      type="number"
+                      step="any"
+                      className="float-control"
+                      placeholder=" "
+                      value={locForm.latitude}
+                      disabled={locEditMode}
+                      onChange={(e) => setLocForm((f) => ({ ...f, latitude: e.target.value }))}
+                    />
+                    <span className="float-label">Latitude <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.latitude && <span className="field-error">{locFormErrors.latitude}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${locFormErrors.longitude ? 'has-error' : ''}`}>
+                    <input
+                      type="number"
+                      step="any"
+                      className="float-control"
+                      placeholder=" "
+                      value={locForm.longitude}
+                      disabled={locEditMode}
+                      onChange={(e) => setLocForm((f) => ({ ...f, longitude: e.target.value }))}
+                    />
+                    <span className="float-label">Longitude <span className="req">*</span></span>
+                  </div>
+                  {locFormErrors.longitude && <span className="field-error">{locFormErrors.longitude}</span>}
+                </label>
+                {!locEditMode && (
+                  <div className="field-cell field-cell-inline full-span">
+                    <span className="static-field-label">Publicly accessible</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={!!locForm.isPublicAccessible}
+                      className={`mas-switch ${locForm.isPublicAccessible ? 'on' : ''}`}
+                      onClick={() => setLocForm((f) => ({ ...f, isPublicAccessible: !f.isPublicAccessible }))}
+                    >
+                      <span className="mas-switch-label">{locForm.isPublicAccessible ? 'Yes' : 'No'}</span>
+                      <span className="mas-switch-track" />
+                    </button>
+                  </div>
+                )}
+                {locEditMode && (
+                  <div className="field-cell full-span">
+                    <span className="field-hint">Coordinates, type, and public access are managed separately after creation.</span>
+                  </div>
+                )}
               </div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Type <span className="required">*</span></label>
-                  <select
-                    className="mentor-form-input"
-                    value={locForm.type}
-                    disabled={locEditMode}
-                    onChange={(e) => setLocForm((f) => ({ ...f, type: Number(e.target.value) }))}
-                  >
-                    {LOCATION_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                  {locEditMode && <div className="ua-form-hint">Type cannot be changed after creation.</div>}
-                  {locFormErrors.type && <div className="ua-form-error">{locFormErrors.type}</div>}
-                </div>
-                <div className="mentor-form-group">
-                  <label>Contact <span className="required">*</span></label>
-                  <input
-                    type="tel"
-                    className="mentor-form-input"
-                    maxLength={15}
-                    value={locForm.contact}
-                    onChange={(e) => setLocForm((f) => ({ ...f, contact: e.target.value }))}
-                  />
-                  {locFormErrors.contact && <div className="ua-form-error">{locFormErrors.contact}</div>}
-                </div>
-              </div>
-              <div className="mentor-form-group">
-                <label>Address <span className="required">*</span></label>
-                <textarea
-                  className="mentor-form-input"
-                  rows={2}
-                  maxLength={240}
-                  value={locForm.address}
-                  onChange={(e) => setLocForm((f) => ({ ...f, address: e.target.value }))}
-                />
-                {locFormErrors.address && <div className="ua-form-error">{locFormErrors.address}</div>}
-              </div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Latitude <span className="required">*</span></label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="mentor-form-input"
-                    value={locForm.latitude}
-                    disabled={locEditMode}
-                    onChange={(e) => setLocForm((f) => ({ ...f, latitude: e.target.value }))}
-                  />
-                  {locFormErrors.latitude && <div className="ua-form-error">{locFormErrors.latitude}</div>}
-                </div>
-                <div className="mentor-form-group">
-                  <label>Longitude <span className="required">*</span></label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="mentor-form-input"
-                    value={locForm.longitude}
-                    disabled={locEditMode}
-                    onChange={(e) => setLocForm((f) => ({ ...f, longitude: e.target.value }))}
-                  />
-                  {locFormErrors.longitude && <div className="ua-form-error">{locFormErrors.longitude}</div>}
-                </div>
-              </div>
-              {!locEditMode && (
-                <div className="mentor-form-group">
-                  <label className="ua-inline-toggle">
-                    <span>Publicly accessible</span>
-                    <span className="ua-toggle">
-                      <input
-                        type="checkbox"
-                        checked={!!locForm.isPublicAccessible}
-                        onChange={(e) => setLocForm((f) => ({ ...f, isPublicAccessible: e.target.checked }))}
-                      />
-                      <span className="ua-toggle-slider" />
-                    </span>
-                  </label>
-                </div>
-              )}
-              {locEditMode && (
-                <div className="ua-form-hint">Coordinates, type, and public access are managed separately after creation.</div>
-              )}
             </div>
           </div>
           <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setLocModalOpen(false)} disabled={savingLoc}>
               Cancel
             </button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={saveLocation} disabled={savingLoc}>
+            <button type="submit" className="legacy-btn legacy-btn-success" disabled={savingLoc}>
               <i className="ti ti-check" /> {savingLoc ? 'Saving…' : (locEditMode ? 'Update' : 'Create')} Location
             </button>
           </div>
+          </form>
         </div>
       </div>
 
@@ -622,63 +640,74 @@ export default function LocationsPage() {
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="form-modal" onSubmit={(e) => { e.preventDefault(); saveVenue(); }}>
           <div className="legacy-modal-body">
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Details</div>
-              <div className="mentor-form-group">
-                <label>Name <span className="required">*</span></label>
-                <input
-                  type="text"
-                  className="mentor-form-input"
-                  maxLength={80}
-                  value={venueForm.name}
-                  onChange={(e) => setVenueForm((f) => ({ ...f, name: e.target.value }))}
-                />
-                {venueFormErrors.name && <div className="ua-form-error">{venueFormErrors.name}</div>}
-              </div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Type <span className="required">*</span></label>
-                  <select
-                    className="mentor-form-input"
-                    value={venueForm.type}
-                    onChange={(e) => setVenueForm((f) => ({ ...f, type: Number(e.target.value) }))}
-                  >
-                    {VENUE_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                  {venueFormErrors.type && <div className="ua-form-error">{venueFormErrors.type}</div>}
-                </div>
-                <div className="mentor-form-group">
-                  <label>Capacity</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={255}
-                    className="mentor-form-input"
-                    value={venueForm.capacity}
-                    onChange={(e) => setVenueForm((f) => ({ ...f, capacity: e.target.value }))}
-                  />
-                  {venueFormErrors.capacity && <div className="ua-form-error">{venueFormErrors.capacity}</div>}
-                </div>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className={`float-field ${venueFormErrors.name ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      maxLength={80}
+                      value={venueForm.name}
+                      onChange={(e) => setVenueForm((f) => ({ ...f, name: e.target.value }))}
+                    />
+                    <span className="float-label">Name <span className="req">*</span></span>
+                  </div>
+                  {venueFormErrors.name && <span className="field-error">{venueFormErrors.name}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field float-always ${venueFormErrors.type ? 'has-error' : ''}`}>
+                    <select
+                      className="float-control"
+                      value={venueForm.type}
+                      onChange={(e) => setVenueForm((f) => ({ ...f, type: Number(e.target.value) }))}
+                    >
+                      {VENUE_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">Type <span className="req">*</span></span>
+                  </div>
+                  {venueFormErrors.type && <span className="field-error">{venueFormErrors.type}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${venueFormErrors.capacity ? 'has-error' : ''}`}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={255}
+                      className="float-control"
+                      placeholder=" "
+                      value={venueForm.capacity}
+                      onChange={(e) => setVenueForm((f) => ({ ...f, capacity: e.target.value }))}
+                    />
+                    <span className="float-label">Capacity</span>
+                  </div>
+                  {venueFormErrors.capacity && <span className="field-error">{venueFormErrors.capacity}</span>}
+                </label>
               </div>
             </div>
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Amenities</div>
-              <div className="loc-amen-grid">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-sparkles" /> Amenities</div>
+              <div className="asset-form-grid config-grid">
                 {['AC', 'Studio', 'Premium'].map((k) => (
-                  <label key={k} className="ua-inline-toggle">
-                    <span>{k}</span>
-                    <span className="ua-toggle">
-                      <input
-                        type="checkbox"
-                        checked={!!venueForm.amenities[k]}
-                        onChange={(e) => setVenueForm((f) => ({ ...f, amenities: { ...f.amenities, [k]: e.target.checked } }))}
-                      />
-                      <span className="ua-toggle-slider" />
-                    </span>
-                  </label>
+                  <div key={k} className="field-cell field-cell-inline">
+                    <span className="static-field-label">{k}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={!!venueForm.amenities[k]}
+                      className={`mas-switch ${venueForm.amenities[k] ? 'on' : ''}`}
+                      onClick={() => setVenueForm((f) => ({ ...f, amenities: { ...f.amenities, [k]: !f.amenities[k] } }))}
+                    >
+                      <span className="mas-switch-label">{venueForm.amenities[k] ? 'Yes' : 'No'}</span>
+                      <span className="mas-switch-track" />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -687,10 +716,11 @@ export default function LocationsPage() {
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setVenueModalOpen(false)} disabled={savingVenue}>
               Cancel
             </button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={saveVenue} disabled={savingVenue}>
+            <button type="submit" className="legacy-btn legacy-btn-success" disabled={savingVenue}>
               <i className="ti ti-check" /> {savingVenue ? 'Saving…' : (venueEditMode ? 'Update' : 'Create')} Venue
             </button>
           </div>
+          </form>
         </div>
       </div>
 
@@ -734,6 +764,10 @@ export default function LocationsPage() {
         .loc-status-dot { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; cursor: default; }
         .loc-item-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .loc-item-addr { color: #64748b; font-size: 12px; line-height: 1.4; }
+        .loc-item-type {
+          font-size: 10px; font-weight: 600; letter-spacing: .03em;
+          text-transform: uppercase; color: #94a3b8;
+        }
 
         .loc-pill {
           font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
@@ -794,10 +828,6 @@ export default function LocationsPage() {
         .loc-add-venue-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
 
         .loc-amen-row { display: flex; gap: 4px; flex-wrap: wrap; }
-        .loc-amen-grid {
-          display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 8px 16px;
-        }
 
         .loc-empty {
           padding: 40px 12px; text-align: center; color: #64748b;

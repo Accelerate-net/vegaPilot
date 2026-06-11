@@ -1180,7 +1180,7 @@ function CalendarViewModal({ onClose, showToast, locationName }) {
   }
 
   return (
-    <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="legacy-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{`
         .att-cal-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
         .att-cal-tab { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid var(--line,#d7e5e8); border-radius:8px; background:#fff; cursor:pointer; font-size:12px; font-weight:600; color:var(--ink,#16353c); }
@@ -1207,96 +1207,112 @@ function CalendarViewModal({ onClose, showToast, locationName }) {
         .att-cal-dot.absent { background:#dc2626; }
         .att-cal-legend { display:flex; gap:16px; align-items:center; font-size:12px; color:#59757b; margin-bottom:12px; }
       `}</style>
-      <div className="crispr-modal-dialog" style={{ maxWidth: view === 'calendar' ? 920 : 560 }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+      <div className="legacy-modal-dialog" style={{ maxWidth: view === 'calendar' ? 920 : 560 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
           <h3>
             <i className="ti ti-calendar" /> Calendar View
             {view === 'calendar' ? ` — ${monthLabel}` : ''}
           </h3>
-          <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
 
         {view === 'select' ? (
-          <>
-            <div className="crispr-modal-body">
-              <div className="qar-filter-field" style={{ marginBottom: 16 }}>
-                <label className="qar-filter-label"><i className="ti ti-calendar" /> Month &amp; Year</label>
-                <input type="month" className="qar-input" value={monthDate} onChange={(e) => setMonthDate(e.target.value)} />
-              </div>
-
-              <div className="att-cal-tabs">
-                {AUDIENCES.map((a) => (
-                  <button
-                    key={a.key}
-                    type="button"
-                    className={`att-cal-tab${audience === a.key ? ' active' : ''}`}
-                    onClick={() => { setAudience(a.key); setSearch(''); setSelected([]); }}
-                  >
-                    <i className={`ti ${a.icon}`} /> {a.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="search-wrapper" style={{ marginBottom: 12 }}>
-                <i className="ti ti-search search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={`Search ${AUDIENCES.find((a) => a.key === audience)?.label.toLowerCase()}…`}
-                />
-              </div>
-
-              <div className="att-cal-list">
-                {searching ? (
-                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Searching…</div>
-                ) : results.length === 0 ? (
-                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No people found.</div>
-                ) : results.map((p) => {
-                  const uid = `${userTypeFor(audience)}:${p.id}`;
-                  const checked = selectedUids.has(uid);
-                  return (
-                    <div key={uid} className="att-cal-person" onClick={() => togglePerson(p)}>
-                      <span className={`att-cal-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
-                      <div>
-                        <div className="att-cal-name">{p.name}</div>
-                        {p.detail ? <div className="att-cal-detail">{p.detail} · ID: {p.id}</div> : <div className="att-cal-detail">ID: {p.id}</div>}
-                      </div>
+          <div className="cv-modal-form form-modal">
+            <div className="legacy-modal-body">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-calendar" /> Month &amp; Year</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field float-always">
+                      <input
+                        type="month"
+                        className="float-control"
+                        value={monthDate}
+                        onChange={(e) => setMonthDate(e.target.value)}
+                        onClick={openDatePicker}
+                      />
+                      <span className="float-label">Month &amp; Year</span>
                     </div>
-                  );
-                })}
+                  </label>
+                </div>
               </div>
 
-              {selected.length > 0 && (
-                <div className="att-cal-chips">
-                  {selected.map((s) => (
-                    <span key={s.uid} className="att-cal-chip">
-                      {s.name}
-                      <i className="ti ti-close" onClick={() => setSelected((cur) => cur.filter((x) => x.uid !== s.uid))} />
-                    </span>
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-user" /> Select People</div>
+                <div className="att-cal-tabs">
+                  {AUDIENCES.map((a) => (
+                    <button
+                      key={a.key}
+                      type="button"
+                      className={`att-cal-tab${audience === a.key ? ' active' : ''}`}
+                      onClick={() => { setAudience(a.key); setSearch(''); setSelected([]); }}
+                    >
+                      <i className={`ti ${a.icon}`} /> {a.label}
+                    </button>
                   ))}
                 </div>
-              )}
+
+                <div className="search-wrapper" style={{ marginBottom: 12 }}>
+                  <i className="ti ti-search search-icon" />
+                  <input
+                    type="text"
+                    className="search-input"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={`Search ${AUDIENCES.find((a) => a.key === audience)?.label.toLowerCase()}…`}
+                  />
+                </div>
+
+                <div className="att-cal-list">
+                  {searching ? (
+                    <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Searching…</div>
+                  ) : results.length === 0 ? (
+                    <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No people found.</div>
+                  ) : results.map((p) => {
+                    const uid = `${userTypeFor(audience)}:${p.id}`;
+                    const checked = selectedUids.has(uid);
+                    return (
+                      <div key={uid} className="att-cal-person" onClick={() => togglePerson(p)}>
+                        <span className={`att-cal-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
+                        <div>
+                          <div className="att-cal-name">{p.name}</div>
+                          {p.detail ? <div className="att-cal-detail">{p.detail} · ID: {p.id}</div> : <div className="att-cal-detail">ID: {p.id}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {selected.length > 0 && (
+                  <div className="att-cal-chips">
+                    {selected.map((s) => (
+                      <span key={s.uid} className="att-cal-chip">
+                        {s.name}
+                        <i className="ti ti-close" onClick={() => setSelected((cur) => cur.filter((x) => x.uid !== s.uid))} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="crispr-modal-footer">
+            <div className="legacy-modal-footer">
               <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
                 {selected.length}/{MAX_CALENDAR_PEOPLE} selected
               </span>
-              <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
               <button
                 type="button"
-                className="btn btn-success"
+                className="legacy-btn legacy-btn-success"
                 disabled={selected.length === 0 || loadingCal}
                 onClick={showCalendar}
               >
                 <i className="ti ti-calendar" /> {loadingCal ? 'Loading…' : 'Show Calendar'}
               </button>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="crispr-modal-body">
+          <div className="cv-modal-form form-modal">
+            <div className="legacy-modal-body">
               <div className="att-cal-legend">
                 <span><span className="att-cal-dot present" style={{ display: 'inline-block', marginRight: 6 }} />Present</span>
                 <span><span className="att-cal-dot absent" style={{ display: 'inline-block', marginRight: 6 }} />Absent</span>
@@ -1324,18 +1340,18 @@ function CalendarViewModal({ onClose, showToast, locationName }) {
                 })}
               </div>
             </div>
-            <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={() => setView('select')}>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setView('select')}>
                 <i className="ti ti-angle-left" /> Back
               </button>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" className="btn btn-default" onClick={downloadCalendarPDF}>
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={downloadCalendarPDF}>
                   <i className="ti ti-download" /> Download PDF
                 </button>
-                <button type="button" className="btn btn-success" onClick={onClose}>Done</button>
+                <button type="button" className="legacy-btn legacy-btn-success" onClick={onClose}>Done</button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

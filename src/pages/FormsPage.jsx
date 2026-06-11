@@ -772,10 +772,10 @@ export default function FormsPage() {
                     <div className={`kebab-dropdown ${activeMenu === form.id ? 'active' : ''}`} onClick={(e) => e.stopPropagation()}>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { previewForm(form); setActiveMenu(null); }}><i className="ti ti-eye" /> Preview Form</button>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { openSubmissions(form); setActiveMenu(null); }}><i className="ti ti-files" /> Check Submissions</button>
-                      <button type="button" className="kebab-dropdown-item" onClick={() => { openRecipients(form); setActiveMenu(null); }}><i className="ti ti-users" /> View Recipients List</button>
+                      <button type="button" className="kebab-dropdown-item" onClick={() => { openRecipients(form); setActiveMenu(null); }}><i className="fa fa-users" /> View Recipients List</button>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { openConfig(form); setActiveMenu(null); }}><i className="ti ti-settings" /> Configure</button>
                       <button type="button" className="kebab-dropdown-item enable-action" onClick={() => { openDispatch(form); setActiveMenu(null); }}><i className="ti ti-share" /> Dispatch Form</button>
-                      <button type="button" className="kebab-dropdown-item" onClick={() => { openWhatsappForForm(form); setActiveMenu(null); }}><i className="ti ti-brand-whatsapp" /> Share via WhatsApp</button>
+                      <button type="button" className="kebab-dropdown-item" onClick={() => { openWhatsappForForm(form); setActiveMenu(null); }}><i className="fa fa-whatsapp" /> Share via WhatsApp</button>
                     </div>
                   </div>
                 </td>
@@ -827,7 +827,7 @@ export default function FormsPage() {
         <i className="ti ti-layers-alt" /> Forms Set
       </h3>
       <div className="students-table-container">
-        <table className="students-table">
+        <table className={`students-table ${isLoading ? 'thead-loading' : ''}`}>
           <thead>
             <tr>
               <th>Set Name</th>
@@ -835,6 +835,17 @@ export default function FormsPage() {
               <th style={{ width: '60px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
+          {isLoading ? (
+          <tbody>
+            {Array.from({ length: 4 }, (_, i) => (
+              <tr key={`set-sk-${i}`}>
+                {Array.from({ length: 3 }, (_, j) => (
+                  <td key={j}><div className="table-skeleton medium" /></td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          ) : (
           <tbody>
             {sets.length > 0 ? sets.map((set) => (
               <tr key={set.id}>
@@ -856,7 +867,7 @@ export default function FormsPage() {
                     </button>
                     <div className={`kebab-dropdown ${activeSetMenu === set.id ? 'active' : ''}`} onClick={(e) => e.stopPropagation()}>
                       <button type="button" className="kebab-dropdown-item enable-action" onClick={() => { openSetDispatch(set); setActiveSetMenu(null); }}><i className="ti ti-share" /> Dispatch All Forms</button>
-                      <button type="button" className="kebab-dropdown-item" onClick={() => { openWhatsappForSet(set); setActiveSetMenu(null); }}><i className="ti ti-brand-whatsapp" /> Share via WhatsApp</button>
+                      <button type="button" className="kebab-dropdown-item" onClick={() => { openWhatsappForSet(set); setActiveSetMenu(null); }}><i className="fa fa-whatsapp" /> Share via WhatsApp</button>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { openEditSet(set); setActiveSetMenu(null); }}><i className="ti ti-settings" /> Edit Set</button>
                       <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { deleteSet(set); setActiveSetMenu(null); }}><i className="ti ti-trash" /> Delete Set</button>
                     </div>
@@ -875,61 +886,73 @@ export default function FormsPage() {
               </tr>
             )}
           </tbody>
+          )}
         </table>
       </div>
 
       {/* ── Configure Modal ── */}
-      {configForm && (
-        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigForm(null); }}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 520 }}>
-            <div className="crispr-modal-header">
+      <div className={`legacy-modal-backdrop ${configForm ? 'active' : ''}`} onClick={() => setConfigForm(null)}>
+        {configForm && (
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
               <h3><i className={`ti ${configMode === 'new' ? 'ti-plus' : 'ti-settings'}`} /> {configMode === 'new' ? 'Configure New Form' : 'Configure Form'}</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setConfigForm(null)}><i className="ti ti-close" /></button>
+              <button type="button" className="legacy-modal-close" onClick={() => setConfigForm(null)}><i className="ti ti-close" /></button>
             </div>
-            <form onSubmit={saveConfig}>
-              <div className="crispr-modal-body">
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Form ID {configMode === 'new' && <span className="required">*</span>}</label>
-                    {configMode === 'new' ? (
-                      <input type="text" className="form-input" value={cfgId} onChange={(e) => setCfgId(e.target.value)} placeholder="ADMISSION_FORM" />
-                    ) : (
-                      <input type="text" className="form-input" value={configForm.id} disabled />
-                    )}
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Title <span className="required">*</span></label>
-                    <input type="text" className="form-input" value={cfgTitle} onChange={(e) => setCfgTitle(e.target.value)} placeholder="Admission Form" />
-                  </div>
-                  <div className="form-group">
-                    <label>Version <span className="required">*</span></label>
-                    <input type="text" className="form-input" value={cfgVersion} onChange={(e) => setCfgVersion(e.target.value)} placeholder="1.0" />
-                  </div>
-                </div>
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Recipients <span className="required">*</span></label>
-                    <RecipientMultiSelect value={cfgRecipients} onChange={setCfgRecipients} />
-                    {cfgRecipients.length > 0 && (
-                      <div className="forms-chips" style={{ marginTop: '10px' }}>
-                        {cfgRecipients.map((r) => (
-                          <span key={r} className="forms-chip"><i className={`ti ${AUDIENCE_META[r].icon}`} /> {AUDIENCE_META[r].label}</span>
-                        ))}
+            <form className="form-modal" onSubmit={saveConfig}>
+              <div className="legacy-modal-body">
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Form Details</div>
+                  <div className="asset-form-grid basic-grid">
+                    <label className="field-cell full-span">
+                      <div className="float-field">
+                        {configMode === 'new' ? (
+                          <input type="text" className="float-control" placeholder=" " value={cfgId} onChange={(e) => setCfgId(e.target.value)} />
+                        ) : (
+                          <input type="text" className="float-control" placeholder=" " value={configForm.id} disabled />
+                        )}
+                        <span className="float-label">Form ID {configMode === 'new' && <span className="req">*</span>}</span>
                       </div>
-                    )}
+                    </label>
+                    <label className="field-cell">
+                      <div className="float-field">
+                        <input type="text" className="float-control" placeholder=" " value={cfgTitle} onChange={(e) => setCfgTitle(e.target.value)} />
+                        <span className="float-label">Title <span className="req">*</span></span>
+                      </div>
+                    </label>
+                    <label className="field-cell">
+                      <div className="float-field">
+                        <input type="text" className="float-control" placeholder=" " value={cfgVersion} onChange={(e) => setCfgVersion(e.target.value)} />
+                        <span className="float-label">Version <span className="req">*</span></span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="fa fa-users" /> Recipients</div>
+                  <div className="asset-form-grid">
+                    <div className="field-cell full-span">
+                      <span className="field-static-label">Recipients <span className="req">*</span></span>
+                      <RecipientMultiSelect value={cfgRecipients} onChange={setCfgRecipients} />
+                      {cfgRecipients.length > 0 && (
+                        <div className="forms-chips" style={{ marginTop: '10px' }}>
+                          {cfgRecipients.map((r) => (
+                            <span key={r} className="forms-chip"><i className={`ti ${AUDIENCE_META[r].icon}`} /> {AUDIENCE_META[r].label}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="crispr-modal-footer">
-                <button type="button" className="btn btn-default" onClick={() => setConfigForm(null)}>Cancel</button>
-                <button type="submit" className="btn btn-success"><i className={`ti ${configMode === 'new' ? 'ti-plus' : 'ti-check'}`} /> {configMode === 'new' ? 'Create Form' : 'Save Configuration'}</button>
+              <div className="legacy-modal-footer">
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setConfigForm(null)}>Cancel</button>
+                <button type="submit" className="legacy-btn legacy-btn-success"><i className={`ti ${configMode === 'new' ? 'ti-plus' : 'ti-check'}`} /> {configMode === 'new' ? 'Create Form' : 'Save Configuration'}</button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Submissions Modal ── */}
       {submissionsForm && (
@@ -1036,7 +1059,7 @@ export default function FormsPage() {
               )}
             </div>
             <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={() => setSubmissionsForm(null)}>Close</button>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSubmissionsForm(null)}>Close</button>
             </div>
           </div>
         </div>
@@ -1047,7 +1070,7 @@ export default function FormsPage() {
         <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setRecipientsForm(null); }}>
           <div className="crispr-modal-dialog" style={{ maxWidth: 640 }}>
             <div className="crispr-modal-header">
-              <h3><i className="ti ti-users" /> Recipients — {recipientsForm.title}</h3>
+              <h3><i className="fa fa-users" /> Recipients — {recipientsForm.title}</h3>
               <button type="button" className="crispr-modal-close" onClick={() => setRecipientsForm(null)}><i className="ti ti-close" /></button>
             </div>
             <div className="crispr-modal-body">
@@ -1137,14 +1160,14 @@ export default function FormsPage() {
                 </>
               ) : (
                 <div className="qar-empty-state" style={{ border: 'none', background: 'transparent' }}>
-                  <i className="ti ti-users" />
+                  <i className="fa fa-users" />
                   <h4>Not Shared Yet</h4>
                   <p>This form hasn't been dispatched to anyone.</p>
                 </div>
               )}
             </div>
             <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={() => setRecipientsForm(null)}>Close</button>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setRecipientsForm(null)}>Close</button>
             </div>
           </div>
         </div>
@@ -1201,51 +1224,60 @@ export default function FormsPage() {
             </div>
             <div className="crispr-modal-footer">
               <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>{dispatchSelected.length} selected</span>
-              <button type="button" className="btn btn-default" onClick={() => setDispatchForm(null)}>Cancel</button>
-              <button type="button" className="btn btn-success" onClick={confirmDispatch}><i className="ti ti-send" /> Dispatch to {dispatchSelected.length || ''}</button>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setDispatchForm(null)}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={confirmDispatch}><i className="ti ti-send" /> Dispatch to {dispatchSelected.length || ''}</button>
             </div>
           </div>
         </div>
       )}
 
       {/* ── Set Config Modal ── */}
-      {configSet && (
-        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigSet(null); }}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 520 }}>
-            <div className="crispr-modal-header">
+      <div className={`legacy-modal-backdrop ${configSet ? 'active' : ''}`} onClick={() => setConfigSet(null)}>
+        {configSet && (
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
               <h3><i className={`ti ${setMode === 'new' ? 'ti-plus' : 'ti-settings'}`} /> {setMode === 'new' ? 'Create Forms Set' : 'Edit Forms Set'}</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setConfigSet(null)}><i className="ti ti-close" /></button>
+              <button type="button" className="legacy-modal-close" onClick={() => setConfigSet(null)}><i className="ti ti-close" /></button>
             </div>
-            <form onSubmit={saveSet}>
-              <div className="crispr-modal-body">
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Set Name <span className="required">*</span></label>
-                    <input type="text" className="form-input" value={setName} onChange={(e) => setSetName(e.target.value)} placeholder="Admission Forms Set - Hosteller" />
+            <form className="form-modal" onSubmit={saveSet}>
+              <div className="legacy-modal-body">
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Set Details</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell full-span">
+                      <div className="float-field">
+                        <input type="text" className="float-control" placeholder=" " value={setName} onChange={(e) => setSetName(e.target.value)} />
+                        <span className="float-label">Set Name <span className="req">*</span></span>
+                      </div>
+                    </label>
                   </div>
                 </div>
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Forms <span className="required">*</span></label>
-                    <FormsMultiSelect options={forms} value={setFormIds} onChange={setSetFormIds} />
-                    {setFormIds.length > 0 && (
-                      <div className="forms-chips" style={{ marginTop: '10px' }}>
-                        {setFormIds.map((id) => (
-                          <span key={id} className="forms-chip"><i className="fa fa-wpforms" /> {formsById[id]?.title || id}</span>
-                        ))}
-                      </div>
-                    )}
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="fa fa-wpforms" /> Forms</div>
+                  <div className="asset-form-grid">
+                    <div className="field-cell full-span">
+                      <span className="field-static-label">Forms <span className="req">*</span></span>
+                      <FormsMultiSelect options={forms} value={setFormIds} onChange={setSetFormIds} />
+                      {setFormIds.length > 0 && (
+                        <div className="forms-chips" style={{ marginTop: '10px' }}>
+                          {setFormIds.map((id) => (
+                            <span key={id} className="forms-chip"><i className="fa fa-wpforms" /> {formsById[id]?.title || id}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="crispr-modal-footer">
-                <button type="button" className="btn btn-default" onClick={() => setConfigSet(null)}>Cancel</button>
-                <button type="submit" className="btn btn-success"><i className={`ti ${setMode === 'new' ? 'ti-plus' : 'ti-check'}`} /> {setMode === 'new' ? 'Create Set' : 'Save Set'}</button>
+              <div className="legacy-modal-footer">
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setConfigSet(null)}>Cancel</button>
+                <button type="submit" className="legacy-btn legacy-btn-success"><i className={`ti ${setMode === 'new' ? 'ti-plus' : 'ti-check'}`} /> {setMode === 'new' ? 'Create Set' : 'Save Set'}</button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Set Dispatch Modal ── */}
       {dispatchSet && (
@@ -1310,8 +1342,8 @@ export default function FormsPage() {
             </div>
             <div className="crispr-modal-footer">
               <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>{setDispSelected.length} selected</span>
-              <button type="button" className="btn btn-default" onClick={() => setDispatchSet(null)}>Cancel</button>
-              <button type="button" className="btn btn-success" onClick={confirmSetDispatch}><i className="ti ti-send" /> Dispatch All to {setDispSelected.length || ''}</button>
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setDispatchSet(null)}>Cancel</button>
+              <button type="button" className="legacy-btn legacy-btn-success" onClick={confirmSetDispatch}><i className="ti ti-send" /> Dispatch All to {setDispSelected.length || ''}</button>
             </div>
           </div>
         </div>
@@ -1323,7 +1355,7 @@ export default function FormsPage() {
           <div className="crispr-modal-dialog" style={{ maxWidth: 520 }}>
             <div className="crispr-modal-header">
               <h3>
-                <i className="ti ti-brand-whatsapp" /> Share via WhatsApp
+                <i className="fa fa-whatsapp" /> Share via WhatsApp
                 <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>
                   Step {whatsappStep === 'recipient' ? '1' : '2'} of 2
                 </span>
@@ -1388,8 +1420,8 @@ export default function FormsPage() {
                   <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
                     {whatsappRecipient ? `Selected: ${whatsappRecipient.name}` : 'No recipient selected'}
                   </span>
-                  <button type="button" className="btn btn-default" onClick={() => setWhatsappTarget(null)}>Cancel</button>
-                  <button type="button" className="btn btn-success" disabled={!whatsappRecipient} onClick={goToWhatsappNumber}>Next <i className="ti ti-angle-right" /></button>
+                  <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setWhatsappTarget(null)}>Cancel</button>
+                  <button type="button" className="legacy-btn legacy-btn-success" disabled={!whatsappRecipient} onClick={goToWhatsappNumber}>Next <i className="ti ti-angle-right" /></button>
                 </div>
               </>
             ) : (
@@ -1413,8 +1445,8 @@ export default function FormsPage() {
                   </div>
                 </div>
                 <div className="crispr-modal-footer">
-                  <button type="button" className="btn btn-default" onClick={() => setWhatsappStep('recipient')}><i className="ti ti-angle-left" /> Back</button>
-                  <button type="submit" className="btn btn-success"><i className="ti ti-send" /> Send</button>
+                  <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setWhatsappStep('recipient')}><i className="ti ti-angle-left" /> Back</button>
+                  <button type="submit" className="legacy-btn legacy-btn-success"><i className="ti ti-send" /> Send</button>
                 </div>
               </form>
             )}

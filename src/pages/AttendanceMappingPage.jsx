@@ -8,6 +8,7 @@ import { listMappings, createMapping, revokeMapping } from '../lib/attendanceMap
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import { listCandidates } from '../lib/icardApi';
 import LocationPicker from '../components/LocationPicker';
+import FilterDropdown from '../components/FilterDropdown';
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100, 200];
 
@@ -46,6 +47,37 @@ function formatTimestamp(value) {
   const date = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
   return `${date} ${time}`;
+}
+
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Renders a "yyyy-mm-dd" value as "23 Jun, 2026".
+function formatDateLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${day} ${MONTH_LABELS[month - 1]}, ${year}`;
+}
+
+// The whole date field opens the native picker; block manual segment typing.
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
+// Convert a "yyyy-mm-dd" date to the end-of-day (23:59:59.999) epoch in IST.
+// The explicit +05:30 offset makes this independent of the browser's timezone.
+function endOfDayIstEpoch(value) {
+  if (!value) return undefined;
+  const ts = new Date(`${value}T23:59:59.999+05:30`).getTime();
+  return Number.isNaN(ts) ? undefined : ts;
 }
 
 function getPageNumbers(currentPage, totalPages) {
@@ -97,6 +129,10 @@ export default function AttendanceMappingPage() {
   // Row kebab menu
   const [activeKebabId, setActiveKebabId] = useState(null);
   const kebabRef = useRef(null);
+
+  // Revoke confirmation
+  const [revokeTarget, setRevokeTarget] = useState(null);
+  const [revoking, setRevoking] = useState(false);
 
   function toggleKebab(id, event) {
     event.stopPropagation();
@@ -209,16 +245,24 @@ export default function AttendanceMappingPage() {
     }
   }
 
-  async function handleRevoke(row) {
+  function handleRevoke(row) {
     setActiveKebabId(null);
-    if (!window.confirm(`Revoke access for key ${row.key}?`)) return;
+    setRevokeTarget(row);
+  }
+
+  async function confirmRevoke() {
+    if (!revokeTarget) return;
+    setRevoking(true);
     try {
-      await revokeMapping(row.id);
-      showToast('success', 'Access Revoked', `Key ${row.key} revoked.`);
+      await revokeMapping(revokeTarget.id);
+      showToast('success', 'Access Revoked', `Key ${revokeTarget.key} revoked.`);
+      setRevokeTarget(null);
       loadMappings();
     } catch (error) {
       const msg = apiErrorMessage(error, 'Failed to revoke mapping.');
       showToast('error', 'Failed to Revoke', msg);
+    } finally {
+      setRevoking(false);
     }
   }
 
@@ -227,6 +271,10 @@ export default function AttendanceMappingPage() {
       <style>{`
         .attendance-mapping-page .am-table-scroll { overflow-x: auto; }
         .attendance-mapping-page .am-table-scroll .students-table { min-width: 1080px; }
+        /* overflow-x:auto forces overflow-y to auto, which clips the kebab dropdown.
+           Let it escape while a menu is open (matches the assets-table pattern). */
+        .attendance-mapping-page .am-table-scroll:has(.kebab-dropdown.active) { overflow: visible; }
+        .attendance-mapping-page .cell-active-menu { overflow: visible; }
       `}</style>
       <ToastRegion toasts={toasts} onDismiss={(id) => setToasts((cur) => cur.filter((t) => t.id !== id))} />
 
@@ -292,12 +340,17 @@ export default function AttendanceMappingPage() {
             </div>
           )}
         </div>
-        <select className="qar-select" style={{ maxWidth: 150 }} value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="expired">Expired</option>
-          <option value="revoked">Revoked</option>
-        </select>
+        <FilterDropdown
+          label="All Status"
+          value={filterBy}
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'active', label: 'Active' },
+            { value: 'expired', label: 'Expired' },
+            { value: 'revoked', label: 'Revoked' },
+          ]}
+          onChange={(value) => setFilterBy(value)}
+        />
       </div>
 
       {/* ── Add Mapping Modal ── */}
@@ -307,6 +360,39 @@ export default function AttendanceMappingPage() {
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddSubmit}
         />
+      )}
+
+      {/* ── Revoke Confirmation Modal ── */}
+      {revokeTarget && (
+        <div
+          className="legacy-modal-backdrop active"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !revoking) setRevokeTarget(null); }}
+        >
+          <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true">
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-alert" /> Revoke Access</h3>
+              <button type="button" className="legacy-modal-close" disabled={revoking} onClick={() => setRevokeTarget(null)}>
+                <i className="ti ti-close" />
+              </button>
+            </div>
+            <div className="legacy-modal-body">
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#334155' }}>
+                Are you sure you want to revoke attendance access for key{' '}
+                <strong>{revokeTarget.key}</strong>
+                {revokeTarget.userName ? <> ({revokeTarget.userName})</> : null}? This action cannot be undone.
+              </p>
+            </div>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" disabled={revoking} onClick={() => setRevokeTarget(null)}>
+                Cancel
+              </button>
+              <button type="button" className="legacy-btn legacy-btn-danger" disabled={revoking} onClick={confirmRevoke}>
+                <i className="ti ti-ban" /> {revoking ? 'Revoking…' : 'Revoke Access'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Table ── */}
@@ -507,7 +593,6 @@ function AddMappingModal({ submitting, onClose, onSubmit }) {
     setResults([]);
   }
 
-  const toEpoch = (val) => (val ? new Date(val).getTime() : undefined);
   const numericUserId = Number(selected?.userId);
   const hasNumericUser = Number.isInteger(numericUserId);
   const canSubmit = !!key.trim() && hasNumericUser && !!locationId && !!accessExpiryAt && !submitting;
@@ -518,7 +603,8 @@ function AddMappingModal({ submitting, onClose, onSubmit }) {
       userId: numericUserId,
       userType: Number(userType),
       locationId: Number(locationId),
-      accessExpiryAt: toEpoch(accessExpiryAt),
+      // Backend expects the access to lapse at the end of the chosen day (IST).
+      accessExpiryAt: endOfDayIstEpoch(accessExpiryAt),
     });
   }
 
@@ -639,16 +725,21 @@ function AddMappingModal({ submitting, onClose, onSubmit }) {
                   />
                 </div>
 
-                {/* Access expiry */}
+                {/* Access expiry — date only; expires at end of day (IST) */}
                 <label className="field-cell">
-                  <div className="float-field float-always">
+                  <div className="float-field float-always date-custom">
                     <input
-                      type="datetime-local"
+                      type="date"
                       className="float-control"
                       value={accessExpiryAt}
                       onChange={(e) => setAccessExpiryAt(e.target.value)}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
                     />
                     <span className="float-label">Access Expiry <span className="req">*</span></span>
+                    <span className={`date-display ${!accessExpiryAt ? 'is-empty' : ''}`}>
+                      {accessExpiryAt ? formatDateLabel(accessExpiryAt) : 'Set a Date'}
+                    </span>
                   </div>
                 </label>
               </div>

@@ -621,9 +621,11 @@ function AddDefaultLocationModal({ submitting, editRecord, onClose, onSubmit }) 
 
   const subjectNoun = audience.subjectType === 'batch' ? 'batch' : audience.label.toLowerCase().replace(/s$/, '');
 
+  const captionStyle = { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, letterSpacing: '0.2px', color: '#64748b', marginBottom: 6 };
+
   return (
     <div
-      className="crispr-modal-backdrop active"
+      className="legacy-modal-backdrop active"
       role="presentation"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -647,171 +649,175 @@ function AddDefaultLocationModal({ submitting, editRecord, onClose, onSubmit }) 
         .dal-chip i { cursor:pointer; color:#6c757d; }
         .dal-suggestions { position:absolute; left:0; right:0; top:100%; margin-top:4px; z-index:20; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 24px rgba(16,53,60,.12); max-height:220px; overflow-y:auto; }
       `}</style>
-      <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+      <div className="legacy-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
           <h3><i className="ti ti-map-pin" /> Attendance Capture Location</h3>
-          <button type="button" className="crispr-modal-close" onClick={onClose}>
+          <button type="button" className="legacy-modal-close" onClick={onClose}>
             <i className="ti ti-close" />
           </button>
         </div>
-        <div className="crispr-modal-body">
-          {isEditing ? (
-            /* Audience + subject are fixed when editing — only locations change. */
-            <div style={{ marginBottom: 6 }}>
-              <label className="qar-filter-label" style={{ display: 'block', marginBottom: 6 }}>
-                <i className={`ti ${audience.icon}`} /> {audience.label}
-              </label>
-              <div className="dal-row" style={{ border: '1px solid #e2e8f0', borderRadius: 10, cursor: 'default' }}>
-                <i className="ti ti-user" style={{ color: '#6c757d' }} />
-                <div className="dal-name">{subject?.name}</div>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Audience */}
-              <div className="dal-tabs">
-                {AUDIENCES.map((a) => (
-                  <button
-                    key={a.key}
-                    type="button"
-                    className={`dal-tab${audienceKey === a.key ? ' active' : ''}`}
-                    onClick={() => setAudienceKey(a.key)}
-                  >
-                    <i className={`ti ${a.icon}`} /> {a.label}
-                  </button>
-                ))}
-              </div>
+        <form className="batch-modal-form form-modal" onSubmit={(e) => { e.preventDefault(); if (canSubmit) submit(); }}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-users" /> Audience &amp; Subject</div>
+              {isEditing ? (
+                /* Audience + subject are fixed when editing — only locations change. */
+                <div>
+                  <span style={captionStyle}><i className={`ti ${audience.icon}`} /> {audience.label}</span>
+                  <div className="dal-row" style={{ border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'default' }}>
+                    <i className="ti ti-user" style={{ color: '#64748b' }} />
+                    <div className="dal-name">{subject?.name}</div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Audience */}
+                  <div className="dal-tabs">
+                    {AUDIENCES.map((a) => (
+                      <button
+                        key={a.key}
+                        type="button"
+                        className={`dal-tab${audienceKey === a.key ? ' active' : ''}`}
+                        onClick={() => setAudienceKey(a.key)}
+                      >
+                        <i className={`ti ${a.icon}`} /> {a.label}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Subject picker */}
-              <label className="qar-filter-label" style={{ display: 'block', marginBottom: 6 }}>
-                <i className="ti ti-search" /> {audience.subjectType === 'batch' ? 'Batch' : audience.label.replace(/s$/, '')}
-              </label>
-              <div className="dal-typeahead" ref={subjectBoxRef}>
-                <div className="search-wrapper">
-                  <i className="ti ti-search search-icon" />
-                  <input
-                    type="text"
-                    className="search-input"
-                    value={subject ? subject.name : query}
-                    onChange={(e) => { setQuery(e.target.value); if (subject) setSubject(null); setSubjectOpen(true); }}
-                    onFocus={() => setSubjectOpen(true)}
-                    placeholder={`Search ${subjectNoun}…`}
-                  />
-                  {(subject || query) && (
-                    <i
-                      className="ti ti-close search-icon"
-                      style={{ left: 'auto', right: 12, cursor: 'pointer' }}
-                      onClick={() => { setSubject(null); setQuery(''); setSubjectOpen(true); }}
-                      aria-label="Clear selection"
+                  {/* Subject picker */}
+                  <span style={captionStyle}><i className="ti ti-search" /> {audience.subjectType === 'batch' ? 'Batch' : audience.label.replace(/s$/, '')} <span className="req">*</span></span>
+                  <div className="dal-typeahead" ref={subjectBoxRef}>
+                    <div className="search-wrapper">
+                      <i className="ti ti-search search-icon" />
+                      <input
+                        type="text"
+                        className="search-input"
+                        value={subject ? subject.name : query}
+                        onChange={(e) => { setQuery(e.target.value); if (subject) setSubject(null); setSubjectOpen(true); }}
+                        onFocus={() => setSubjectOpen(true)}
+                        placeholder={`Search ${subjectNoun}…`}
+                      />
+                      {(subject || query) && (
+                        <i
+                          className="ti ti-close search-icon"
+                          style={{ left: 'auto', right: 12, cursor: 'pointer' }}
+                          onClick={() => { setSubject(null); setQuery(''); setSubjectOpen(true); }}
+                          aria-label="Clear selection"
+                        />
+                      )}
+                    </div>
+                    {subjectOpen && (
+                      <div className="dal-suggestions">
+                        {searching ? (
+                          <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
+                        ) : results.length === 0 ? (
+                          <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Nothing found.</div>
+                        ) : results.map((p) => {
+                          const checked = subject?.id === p.id;
+                          return (
+                            <div key={p.id} className="dal-row" onClick={() => { setSubject({ id: p.id, name: p.name }); setQuery(''); setSubjectOpen(false); }}>
+                              <span className={`dal-check dal-radio${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
+                              <div>
+                                <div className="dal-name">{p.name}</div>
+                                {p.detail ? <div className="dal-detail">{p.detail} · ID: {p.id}</div> : <div className="dal-detail">ID: {p.id}</div>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Locations */}
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-location-pin" /> Locations to Capture Attendance</div>
+              <div
+                className="dal-any"
+                onClick={() => setAnyLocation((v) => !v)}
+                role="checkbox"
+                aria-checked={anyLocation}
+                style={{ paddingTop: 0 }}
+              >
+                <span className={`dal-check${anyLocation ? ' on' : ''}`}>{anyLocation && <i className="ti ti-check" />}</span>
+                At any location
+              </div>
+              {!anyLocation && (
+                <div className="dal-typeahead" ref={locBoxRef}>
+                  {selectedLocs.length > 0 && (
+                    <div className="dal-chips">
+                      {selectedLocs.map((l) => (
+                        <span key={String(l.id)} className="dal-chip">
+                          {l.name}
+                          <i className="ti ti-close" onClick={() => removeLocation(l.id)} />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="search-wrapper" style={{ margin: '8px 0 0' }}>
+                    <i className="ti ti-search search-icon" />
+                    <input
+                      type="text"
+                      className="search-input"
+                      value={locSearch}
+                      onChange={(e) => { setLocSearch(e.target.value); setLocOpen(true); }}
+                      onFocus={() => setLocOpen(true)}
+                      placeholder="Type to search locations…"
                     />
+                  </div>
+                  {locOpen && (
+                    <div className="dal-suggestions">
+                      {locLoading ? (
+                        <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
+                      ) : locSuggestions.length === 0 ? (
+                        <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>No locations found.</div>
+                      ) : locSuggestions.map((l) => {
+                        const id = String(l.id ?? l.code);
+                        return (
+                          <div key={id} className="dal-row" onClick={() => addLocation(l)}>
+                            <i className="ti ti-location-pin" style={{ color: '#6c757d' }} />
+                            <div className="dal-name">{locName(l)}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-                {subjectOpen && (
-                  <div className="dal-suggestions">
-                    {searching ? (
-                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
-                    ) : results.length === 0 ? (
-                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Nothing found.</div>
-                    ) : results.map((p) => {
-                      const checked = subject?.id === p.id;
-                      return (
-                        <div key={p.id} className="dal-row" onClick={() => { setSubject({ id: p.id, name: p.name }); setQuery(''); setSubjectOpen(false); }}>
-                          <span className={`dal-check dal-radio${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
-                          <div>
-                            <div className="dal-name">{p.name}</div>
-                            {p.detail ? <div className="dal-detail">{p.detail} · ID: {p.id}</div> : <div className="dal-detail">ID: {p.id}</div>}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Locations */}
-          <label className="qar-filter-label" style={{ display: 'block', margin: '18px 0 6px' }}>
-            <i className="ti ti-location-pin" /> Locations to Capture Attendance
-          </label>
-          <div
-            className="dal-any"
-            onClick={() => setAnyLocation((v) => !v)}
-            role="checkbox"
-            aria-checked={anyLocation}
-          >
-            <span className={`dal-check${anyLocation ? ' on' : ''}`}>{anyLocation && <i className="ti ti-check" />}</span>
-            At any location
-          </div>
-          {!anyLocation && (
-            <div className="dal-typeahead" ref={locBoxRef}>
-              {selectedLocs.length > 0 && (
-                <div className="dal-chips">
-                  {selectedLocs.map((l) => (
-                    <span key={String(l.id)} className="dal-chip">
-                      {l.name}
-                      <i className="ti ti-close" onClick={() => removeLocation(l.id)} />
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="search-wrapper" style={{ margin: '8px 0 0' }}>
-                <i className="ti ti-search search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  value={locSearch}
-                  onChange={(e) => { setLocSearch(e.target.value); setLocOpen(true); }}
-                  onFocus={() => setLocOpen(true)}
-                  placeholder="Type to search locations…"
-                />
-              </div>
-              {locOpen && (
-                <div className="dal-suggestions">
-                  {locLoading ? (
-                    <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
-                  ) : locSuggestions.length === 0 ? (
-                    <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>No locations found.</div>
-                  ) : locSuggestions.map((l) => {
-                    const id = String(l.id ?? l.code);
-                    return (
-                      <div key={id} className="dal-row" onClick={() => addLocation(l)}>
-                        <i className="ti ti-location-pin" style={{ color: '#6c757d' }} />
-                        <div className="dal-name">{locName(l)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
               )}
             </div>
-          )}
 
-          {/* Auto-notify schedule — students/batches only (set at creation) */}
-          {!isEditing && audience.subjectType === 'batch' && (
-            <>
-              <label className="qar-filter-label" style={{ display: 'block', margin: '18px 0 6px' }}>
-                <i className="ti ti-bell" /> When to send automated notifications
-              </label>
-              <select className="qar-select" style={{ width: '100%' }} value={notifySchedule} onChange={(e) => setNotifySchedule(e.target.value)}>
-                {NOTIFY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </>
-          )}
-        </div>
-        <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
-          <button
-            type="button"
-            className="btn btn-success"
-            disabled={!canSubmit}
-            style={!canSubmit ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
-            onClick={submit}
-          >
-            <i className="ti ti-check" /> {submitting ? 'Saving…' : (isEditing ? 'Update Mapping' : 'Save Mapping')}
-          </button>
-        </div>
+            {/* Auto-notify schedule — students/batches only (set at creation) */}
+            {!isEditing && audience.subjectType === 'batch' && (
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-bell" /> Notifications</div>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={notifySchedule} onChange={(e) => setNotifySchedule(e.target.value)}>
+                      {NOTIFY_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">When to send automated notifications</span>
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button
+              type="submit"
+              className="legacy-btn legacy-btn-success"
+              disabled={!canSubmit}
+              style={!canSubmit ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            >
+              <i className="ti ti-check" /> {submitting ? 'Saving…' : (isEditing ? 'Update Mapping' : 'Save Mapping')}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

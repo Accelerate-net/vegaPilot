@@ -90,6 +90,18 @@ function formatReleaseDate(iso) {
   return `${day} ${month}, ${d.getFullYear()}`;
 }
 
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return; // keep keyboard navigation working
+    event.preventDefault(); // block manual text entry into the segments
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function formatExamDate(iso) {
   if (!iso) return '—';
   const d = new Date(`${iso}T00:00:00`);
@@ -125,9 +137,11 @@ function RichTextEditor({ valueRef, initialHtml = '' }) {
     if (editorRef.current) valueRef.current = editorRef.current.innerHTML;
   }
 
+  // Themify Icons has no bold/italic glyphs, so those two render as styled
+  // letter glyphs (B / I) instead of an icon font.
   const tools = [
-    { cmd: 'bold', icon: 'ti-bold', title: 'Bold' },
-    { cmd: 'italic', icon: 'ti-italic', title: 'Italic' },
+    { cmd: 'bold', label: 'B', title: 'Bold', labelStyle: { fontWeight: 800 } },
+    { cmd: 'italic', label: 'I', title: 'Italic', labelStyle: { fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' } },
     { cmd: 'underline', icon: 'ti-underline', title: 'Underline' },
     { cmd: 'insertUnorderedList', icon: 'ti-list', title: 'Bulleted list' },
     { cmd: 'insertOrderedList', icon: 'ti-menu-alt', title: 'Numbered list' },
@@ -138,7 +152,7 @@ function RichTextEditor({ valueRef, initialHtml = '' }) {
       <div className="mas-rte-toolbar">
         {tools.map((t) => (
           <button key={t.cmd} type="button" title={t.title} onMouseDown={(e) => { e.preventDefault(); exec(t.cmd); }}>
-            <i className={`ti ${t.icon}`} />
+            {t.icon ? <i className={`ti ${t.icon}`} /> : <span style={t.labelStyle}>{t.label}</span>}
           </button>
         ))}
         <button
@@ -197,6 +211,7 @@ export default function MobileAppSettingsPage() {
 
   // View summary modal
   const [viewRelease, setViewRelease] = useState(null);
+  const [confirmDeleteRelease, setConfirmDeleteRelease] = useState(null);
 
   // Home screen sliders
   const [sliders, setSliders] = useState(SEED_SLIDERS);
@@ -207,6 +222,7 @@ export default function MobileAppSettingsPage() {
   const [editingSliderId, setEditingSliderId] = useState(null);
   const [activeSliderMenu, setActiveSliderMenu] = useState(null);
   const [sliderIndex, setSliderIndex] = useState(0);
+  const [confirmDeleteSlider, setConfirmDeleteSlider] = useState(null);
 
   // Keep the active slide index within bounds when sliders change
   useEffect(() => {
@@ -224,6 +240,7 @@ export default function MobileAppSettingsPage() {
   const [loginCodeError, setLoginCodeError] = useState('');
   const [editingLoginId, setEditingLoginId] = useState(null);
   const [activeLoginMenu, setActiveLoginMenu] = useState(null);
+  const [confirmDeleteLogin, setConfirmDeleteLogin] = useState(null);
 
   // Preparation Journeys
   const [journeys, setJourneys] = useState([]);
@@ -520,9 +537,21 @@ export default function MobileAppSettingsPage() {
         .mobile-app-settings-page .mas-input-error { border-color: #dc2626; }
         .mobile-app-settings-page .mas-error-text { color: #dc2626; font-size: 12px; }
         .mobile-app-settings-page .mas-hint { color: #94a3b8; font-size: 12px; }
+        .mobile-app-settings-page .static-field-label { display: block; font-size: 12px; font-weight: 600; color: #52606d; margin-bottom: 8px; }
         .mobile-app-settings-page .mas-toggle { display: inline-flex; background: #f1f5f8; border: 1px solid #d7e1e7; border-radius: 8px; padding: 3px; gap: 3px; }
         .mobile-app-settings-page .mas-toggle button { border: none; background: transparent; padding: 8px 22px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #52606d; cursor: pointer; transition: all .15s ease; }
         .mobile-app-settings-page .mas-toggle button.active { background: #006073; color: #fff; }
+        .mobile-app-settings-page .mas-switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+        .mobile-app-settings-page .mas-switch-track { position: relative; width: 44px; height: 24px; flex: none; background: #cbd5e1; border-radius: 999px; transition: background .15s ease; }
+        .mobile-app-settings-page .mas-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .15s ease; }
+        .mobile-app-settings-page .mas-switch.on .mas-switch-track { background: #006073; }
+        .mobile-app-settings-page .mas-switch.on .mas-switch-track::after { transform: translateX(20px); }
+        .mobile-app-settings-page .mas-switch-label { font-size: 13px; font-weight: 600; color: #52606d; }
+        .mobile-app-settings-page .field-cell-inline { flex-direction: row; align-items: center; justify-content: space-between; }
+        .mobile-app-settings-page .field-cell-inline .static-field-label { margin-bottom: 0; }
+        .mobile-app-settings-page .mas-check-row { flex-direction: row; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
+        .mobile-app-settings-page .mas-check { width: 17px; height: 17px; flex: none; accent-color: #006073; cursor: pointer; }
+        .mobile-app-settings-page .mas-check-label { font-size: 13px; font-weight: 600; color: #334155; }
         .mobile-app-settings-page .mas-rte { border: 1px solid #d7e1e7; border-radius: 8px; overflow: hidden; }
         .mobile-app-settings-page .mas-rte-toolbar { display: flex; gap: 2px; padding: 6px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
         .mobile-app-settings-page .mas-rte-toolbar button { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; color: #475569; cursor: pointer; font-size: 15px; }
@@ -709,7 +738,7 @@ export default function MobileAppSettingsPage() {
                     </button>
                     <div className={`kebab-dropdown ${activeRelMenu === r.id ? 'active' : ''}`} onClick={(e) => e.stopPropagation()}>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { setViewRelease(r); setActiveRelMenu(null); }}><i className="ti ti-eye" /> Release Notes</button>
-                      <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { deleteRelease(r); setActiveRelMenu(null); }}><i className="ti ti-trash" /> Delete</button>
+                      <button type="button" className="kebab-dropdown-item delete-action" onClick={() => { setConfirmDeleteRelease(r); setActiveRelMenu(null); }}><i className="ti ti-trash" /> Delete</button>
                     </div>
                   </div>
                 </td>
@@ -808,7 +837,7 @@ export default function MobileAppSettingsPage() {
                 </div>
                 <div className="mas-slide-actions">
                   <button type="button" className="mas-slide-action" onClick={() => openSliderModal(s)}><i className="ti ti-pencil" /> Edit</button>
-                  <button type="button" className="mas-slide-action danger" onClick={() => removeSlider(s)}><i className="ti ti-trash" /> Delete</button>
+                  <button type="button" className="mas-slide-action danger" onClick={() => setConfirmDeleteSlider(s)}><i className="ti ti-trash" /> Delete</button>
                 </div>
               </div>
 
@@ -891,7 +920,7 @@ export default function MobileAppSettingsPage() {
                     </button>
                     <div className={`kebab-dropdown ${activeLoginMenu === m.id ? 'active' : ''}`} onClick={(e) => e.stopPropagation()}>
                       <button type="button" className="kebab-dropdown-item" onClick={() => { openLoginModal(m); setActiveLoginMenu(null); }}><i className="ti ti-pencil" /> Edit</button>
-                      <button type="button" className="kebab-dropdown-item" style={{ color: '#dc2626' }} onClick={() => { deleteLoginMethod(m); setActiveLoginMenu(null); }}><i className="ti ti-trash" /> Delete</button>
+                      <button type="button" className="kebab-dropdown-item" style={{ color: '#dc2626' }} onClick={() => { setConfirmDeleteLogin(m); setActiveLoginMenu(null); }}><i className="ti ti-trash" /> Delete</button>
                     </div>
                   </div>
                 </td>
@@ -1002,101 +1031,144 @@ export default function MobileAppSettingsPage() {
       </div>
 
       {/* ── Add Release Note Modal ── */}
-      {showAddModal && (
-        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 620 }}>
-            <div className="crispr-modal-header">
-              <h3><i className="ti ti-plus" /> Add Release Note</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setShowAddModal(false)}><i className="ti ti-close" /></button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="crispr-modal-body">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Release Name <span className="required">*</span></label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      style={versionError ? { borderColor: '#dc2626' } : undefined}
-                      value={formVersion}
-                      onChange={(e) => handleVersionChange(e.target.value)}
-                      placeholder="2.0.1"
-                    />
-                    {versionError
-                      ? <small style={{ color: '#dc2626', fontSize: '12px', display: 'block', marginTop: '6px' }}>{versionError}</small>
-                      : <small style={{ color: '#94a3b8', fontSize: '12px', display: 'block', marginTop: '6px' }}>Format must be *.*.* (e.g. 2.0.1)</small>}
-                  </div>
-                  <div className="form-group">
-                    <label>Release Date <span className="required">*</span></label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={formDate}
-                      onChange={(e) => setFormDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Mandatory Update</label>
-                    <div className="mas-toggle" role="group">
-                      <button type="button" className={!formMandatory ? 'active' : ''} onClick={() => setFormMandatory(false)}>No</button>
-                      <button type="button" className={formMandatory ? 'active' : ''} onClick={() => setFormMandatory(true)}>Yes</button>
+      <div className={`legacy-modal-backdrop ${showAddModal ? 'active' : ''}`} onMouseDown={(e) => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3>Add Release Note</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setShowAddModal(false)}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <form className="form-modal" onSubmit={handleSubmit}>
+            <div className="legacy-modal-body">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Release Details</div>
+                <div className="asset-form-grid basic-grid">
+                  <label className="field-cell">
+                    <div className={`float-field ${versionError ? 'has-error' : ''}`}>
+                      <input
+                        type="text"
+                        className="float-control"
+                        placeholder=" "
+                        value={formVersion}
+                        onChange={(e) => handleVersionChange(e.target.value)}
+                      />
+                      <span className="float-label">Release Name <span className="req">*</span></span>
                     </div>
-                  </div>
+                    {versionError
+                      ? <span className="field-error">{versionError}</span>
+                      : <span className="field-hint">Format must be *.*.* (e.g. 2.0.1)</span>}
+                  </label>
+                  <label className="field-cell">
+                    <div className="float-field float-always date-custom">
+                      <input
+                        type="date"
+                        className="float-control"
+                        value={formDate}
+                        onChange={(e) => setFormDate(e.target.value)}
+                        onClick={openDatePicker}
+                        onKeyDown={openDatePicker}
+                      />
+                      <span className="float-label">Release Date <span className="req">*</span></span>
+                      <span className={`date-display ${!formDate ? 'is-empty' : ''}`}>
+                        {formDate ? formatReleaseDate(formDate) : 'Set a Date'}
+                      </span>
+                    </div>
+                  </label>
+                  <label className="field-cell full-span mas-check-row">
+                    <input
+                      type="checkbox"
+                      className="mas-check"
+                      checked={formMandatory}
+                      onChange={(e) => setFormMandatory(e.target.checked)}
+                    />
+                    <span className="mas-check-label">Mandatory Upgrade Required</span>
+                  </label>
                 </div>
+              </div>
 
-                <div className="form-row full">
-                  <div className="form-group">
-                    <label>Release Summary</label>
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-file-text" /> Release Summary</div>
+                <div className="asset-form-grid">
+                  <div className="field-cell full-span">
                     <RichTextEditor valueRef={summaryRef} />
                   </div>
                 </div>
               </div>
-              <div className="crispr-modal-footer">
-                <button type="button" className="btn btn-default" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-success" disabled={!!versionError || !formVersion.trim()}>
-                  <i className="ti ti-check" /> Publish Release
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button type="submit" className="legacy-btn legacy-btn-success" disabled={!!versionError || !formVersion.trim()}>
+                <i className="ti ti-check" /> Publish Release
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
 
       {/* ── Add Slider Modal ── */}
-      {showSliderModal && (
-        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowSliderModal(false); }}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }}>
-            <div className="crispr-modal-header">
-              <h3><i className="ti ti-layout-slider" /> {editingSliderId ? 'Edit Home Screen Slider' : 'Add Home Screen Slider'}</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setShowSliderModal(false)}><i className="ti ti-close" /></button>
-            </div>
-            <form onSubmit={handleSliderSubmit}>
-              <div className="crispr-modal-body">
-                <div className="mas-field">
-                  <label><i className="ti ti-text" /> Line 1 <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input type="text" className="mas-input" value={sliderLine1} onChange={(e) => setSliderLine1(e.target.value)} placeholder="Crack NEET 2026" />
-                </div>
-                <div className="mas-field">
-                  <label><i className="ti ti-text" /> Line 2</label>
-                  <input type="text" className="mas-input" value={sliderLine2} onChange={(e) => setSliderLine2(e.target.value)} placeholder="Live classes by top rankers" />
-                </div>
-                <div className="mas-field">
-                  <label><i className="ti ti-image" /> Image CDN <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input type="url" className="mas-input" value={sliderImage} onChange={(e) => setSliderImage(e.target.value)} placeholder="https://crisprlearning.com/wp-content/uploads/.../banner.jpg" />
-                  <span className="mas-hint">Full CDN URL of the slide background image.</span>
-                </div>
-              </div>
-              <div className="crispr-modal-footer">
-                <button type="button" className="btn btn-default" onClick={() => setShowSliderModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-success"><i className="ti ti-check" /> {editingSliderId ? 'Save Changes' : 'Add Slider'}</button>
-              </div>
-            </form>
+      <div className={`legacy-modal-backdrop ${showSliderModal ? 'active' : ''}`} onClick={() => setShowSliderModal(false)}>
+        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3>{editingSliderId ? 'Edit Home Screen Slider' : 'Add Home Screen Slider'}</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setShowSliderModal(false)}>
+              <i className="ti ti-close" />
+            </button>
           </div>
+          <form className="form-modal" onSubmit={handleSliderSubmit}>
+            <div className="legacy-modal-body">
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-text" /> Slide Content</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field">
+                      <input
+                        type="text"
+                        className="float-control"
+                        placeholder=" "
+                        value={sliderLine1}
+                        onChange={(e) => setSliderLine1(e.target.value)}
+                      />
+                      <span className="float-label">Line 1 <span className="req">*</span></span>
+                    </div>
+                  </label>
+                  <label className="field-cell full-span">
+                    <div className="float-field">
+                      <input
+                        type="text"
+                        className="float-control"
+                        placeholder=" "
+                        value={sliderLine2}
+                        onChange={(e) => setSliderLine2(e.target.value)}
+                      />
+                      <span className="float-label">Line 2</span>
+                    </div>
+                  </label>
+                  <label className="field-cell full-span">
+                    <div className="float-field">
+                      <input
+                        type="url"
+                        className="float-control"
+                        placeholder=" "
+                        value={sliderImage}
+                        onChange={(e) => setSliderImage(e.target.value)}
+                      />
+                      <span className="float-label">Image CDN <span className="req">*</span></span>
+                    </div>
+                    <span className="field-hint">Full CDN URL of the slide background image.</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowSliderModal(false)}>Cancel</button>
+              <button type="submit" className="legacy-btn legacy-btn-success">
+                {editingSliderId ? 'Save Changes' : 'Add Slider'}
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
 
       {/* ── Add Login Method Modal ── */}
       {showLoginModal && (
@@ -1169,6 +1241,75 @@ export default function MobileAppSettingsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Slider Confirmation ── */}
+      {confirmDeleteSlider && (
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmDeleteSlider(null); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 440 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-alert-triangle" style={{ color: '#dc2626' }} /> Delete Slider</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setConfirmDeleteSlider(null)}><i className="ti ti-close" /></button>
+            </div>
+            <div className="crispr-modal-body">
+              <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.6 }}>
+                Are you sure you want to delete {confirmDeleteSlider.line1 ? <>the slider <strong>"{confirmDeleteSlider.line1}"</strong></> : 'this slider'}? It will no longer appear on the app home screen.
+              </p>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setConfirmDeleteSlider(null)}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={() => { removeSlider(confirmDeleteSlider); setConfirmDeleteSlider(null); }}>
+                <i className="ti ti-trash" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Release Confirmation ── */}
+      {confirmDeleteRelease && (
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmDeleteRelease(null); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 440 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-alert-triangle" style={{ color: '#dc2626' }} /> Delete Release Note</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setConfirmDeleteRelease(null)}><i className="ti ti-close" /></button>
+            </div>
+            <div className="crispr-modal-body">
+              <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.6 }}>
+                Are you sure you want to delete release <strong>{confirmDeleteRelease.version}</strong>? This release note will be permanently removed and can't be recovered.
+              </p>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setConfirmDeleteRelease(null)}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={() => { deleteRelease(confirmDeleteRelease); setConfirmDeleteRelease(null); }}>
+                <i className="ti ti-trash" /> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Login Method Confirmation ── */}
+      {confirmDeleteLogin && (
+        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmDeleteLogin(null); }}>
+          <div className="crispr-modal-dialog" style={{ maxWidth: 440 }}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-alert-triangle" style={{ color: '#dc2626' }} /> Remove Login Method</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setConfirmDeleteLogin(null)}><i className="ti ti-close" /></button>
+            </div>
+            <div className="crispr-modal-body">
+              <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.6 }}>
+                Are you sure you want to remove <strong>{confirmDeleteLogin.country} ({confirmDeleteLogin.code})</strong> as a login method? Users from this country will no longer be able to sign in.
+              </p>
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="btn btn-default" onClick={() => setConfirmDeleteLogin(null)}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={() => { deleteLoginMethod(confirmDeleteLogin); setConfirmDeleteLogin(null); }}>
+                <i className="ti ti-trash" /> Remove
+              </button>
+            </div>
           </div>
         </div>
       )}

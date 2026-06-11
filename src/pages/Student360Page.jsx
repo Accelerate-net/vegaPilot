@@ -1,4 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { api } from '../lib/api';
+import useDebouncedValue from '../hooks/useDebouncedValue';
 
 /**
  * Student 360 — a 360° performance view for a single student.
@@ -17,7 +20,7 @@ const STUDENT = {
   avatar: 'https://i.pravatar.cc/160?img=12',
   email: 'aarav.sharma@example.com',
   phone: '+91 98765 43210',
-  goal: 'IISER (IAT)',
+  goal: 'IISER',
   target: 89, // % readiness toward goal
   mentor: {
     name: 'Dr. Kavya Nair',
@@ -93,6 +96,28 @@ const ACTIVITY = Array.from({ length: 12 }, (_, w) =>
 );
 
 // ── Small primitives ───────────────────────────────────────────────────────
+
+// Fires once when the element scrolls into view, so charts animate on entry.
+// Under reduced-motion (or no IntersectionObserver) it reports "in view"
+// immediately and the CSS disables the transitions — final state, no motion.
+function useInView(options) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) { setInView(true); return; }
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect(); } },
+      options || { threshold: 0.25 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
 function Card({ title, icon, action, children, className = '', style }) {
   return (
     <section className={`s360-card ${className}`} style={style}>
@@ -111,15 +136,17 @@ function Card({ title, icon, action, children, className = '', style }) {
 }
 
 function Donut({ value, size = 150, stroke = 14, label, sub }) {
+  const [ref, inView] = useInView();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const offset = c - (value / 100) * c;
+  const offset = inView ? c - (value / 100) * c : c;
   return (
     <>
-      <div className="s360-donut" style={{ width: size, height: size }}>
+      <div className="s360-donut" ref={ref} style={{ width: size, height: size }}>
         <svg width={size} height={size}>
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
           <circle
+            className="s360-donut-prog"
             cx={size / 2}
             cy={size / 2}
             r={r}
@@ -149,15 +176,21 @@ function Donut({ value, size = 150, stroke = 14, label, sub }) {
 }
 
 function BarChart({ data, labels, height = 160, color = '#006073' }) {
+  const [ref, inView] = useInView();
   const max = Math.max(...data, 1);
   return (
-    <div className="s360-bars" style={{ height }}>
+    <div className="s360-bars" ref={ref} style={{ height }}>
       {data.map((v, i) => (
         <div className="s360-bar-col" key={i}>
           <div className="s360-bar-track">
             <div
               className="s360-bar-fill"
-              style={{ height: `${(v / max) * 100}%`, background: color }}
+              style={{
+                height: inView ? `${(v / max) * 100}%` : '0%',
+                transitionDelay: `${i * 0.04}s`,
+                background: color,
+                '--bar': color,
+              }}
               title={`${v}`}
             >
               <span className="s360-bar-val">{v}</span>
@@ -184,18 +217,24 @@ function LineChart({ points, height = 180, width = 460 }) {
   });
   const path = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c[0]},${c[1]}`).join(' ');
   const area = `${path} L${coords[coords.length - 1][0]},${pad + innerH} L${coords[0][0]},${pad + innerH} Z`;
+  const [ref, inView] = useInView();
   return (
-    <svg className="s360-line" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
+    <svg
+      ref={ref}
+      className={`s360-line${inView ? ' s360-line-in' : ''}`}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMidYMid meet"
+    >
       <defs>
         <linearGradient id="s360area" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#00a8cc" stopOpacity="0.28" />
           <stop offset="100%" stopColor="#00a8cc" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={area} fill="url(#s360area)" />
-      <path d={path} fill="none" stroke="#006073" strokeWidth="2.5" strokeLinejoin="round" />
+      <path className="s360-line-area" d={area} fill="url(#s360area)" />
+      <path className="s360-line-path" d={path} pathLength="1" fill="none" stroke="#006073" strokeWidth="2.5" strokeLinejoin="round" />
       {coords.map((c, i) => (
-        <g key={i}>
+        <g className="s360-line-pt" style={{ animationDelay: `${0.55 + i * 0.08}s` }} key={i}>
           <circle cx={c[0]} cy={c[1]} r="4.5" fill="#fff" stroke="#006073" strokeWidth="2.5" />
           <text x={c[0]} y={c[1] - 12} textAnchor="middle" className="s360-line-val">
             {points[i].percentile}
@@ -209,10 +248,177 @@ function LineChart({ points, height = 180, width = 460 }) {
   );
 }
 
+// ── Student typeahead ───────────────────────────────────────────────────────
+// Searches the live candidate list (debounced) and emits the picked student.
+function StudentSearch({ onSelect }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [highlight, setHighlight] = useState(-1);
+  const debounced = useDebouncedValue(query);
+  const boxRef = useRef(null);
+
+  // Close on outside click.
+  useEffect(() => {
+    function onDown(e) {
+      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, []);
+
+  // Fetch on debounced query.
+  useEffect(() => {
+    const q = debounced.trim();
+    if (q.length < 2) { setResults([]); setLoading(false); setError(false); return; }
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    api
+      .get('/restricted/people/candidate/list', { params: { searchKey: q, page: 1, size: 8, sortBy: 'name' } })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.data?.data || [];
+        setResults(
+          list.map((c) => ({
+            id: c.candidateKey || c.id,
+            name: c.name,
+            email: c.email,
+            phone: c.communicationMobile || c.registeredMobile || c.mobile,
+            avatar: c.photo,
+          }))
+        );
+        setHighlight(-1);
+      })
+      .catch(() => { if (!cancelled) { setResults([]); setError(true); } })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [debounced]);
+
+  function pick(student) {
+    onSelect(student);
+    setQuery(student.name || '');
+    setOpen(false);
+  }
+
+  function onKeyDown(e) {
+    if (!open || !results.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlight((h) => Math.min(h + 1, results.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlight((h) => Math.max(h - 1, 0)); }
+    else if (e.key === 'Enter' && highlight >= 0) { e.preventDefault(); pick(results[highlight]); }
+    else if (e.key === 'Escape') { setOpen(false); }
+  }
+
+  const showDropdown = open && debounced.trim().length >= 2;
+
+  return (
+    <div className="s360-search" ref={boxRef}>
+      <i className="fa fa-search s360-search-icon" />
+      <input
+        type="text"
+        className="s360-search-input"
+        placeholder="Search a student by name, email or phone…"
+        value={query}
+        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+      />
+      {query && (
+        <button type="button" className="s360-search-clear" onClick={() => { setQuery(''); setResults([]); }}>
+          <i className="fa fa-times" />
+        </button>
+      )}
+      {showDropdown && (
+        <div className="s360-search-menu">
+          {loading && <div className="s360-search-state"><i className="fa fa-spinner fa-spin" /> Searching…</div>}
+          {!loading && error && <div className="s360-search-state">Couldn't reach the server. Try again.</div>}
+          {!loading && !error && results.length === 0 && (
+            <div className="s360-search-state">No students match “{debounced.trim()}”.</div>
+          )}
+          {!loading && results.map((r, i) => (
+            <button
+              type="button"
+              key={r.id}
+              className={`s360-search-item${i === highlight ? ' active' : ''}`}
+              onMouseEnter={() => setHighlight(i)}
+              onClick={() => pick(r)}
+            >
+              {r.avatar
+                ? <img src={r.avatar} alt="" className="s360-search-avatar" />
+                : <span className="s360-search-avatar s360-search-avatar-fallback">{(r.name || '?').charAt(0).toUpperCase()}</span>}
+              <span className="s360-search-meta">
+                <strong>{r.name || 'Unnamed'}</strong>
+                <small>{r.email || r.phone || r.id}</small>
+              </span>
+              <span className="s360-search-pick">View <i className="fa fa-arrow-right" /></span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Page ────────────────────────────────────────────────────────────────────
 export default function Student360Page() {
-  const s = STUDENT;
   const [range, setRange] = useState('14d');
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedId = searchParams.get('id');
+
+  // Live profile fields for the selected student. Analytics blocks below still
+  // render from the mock model until their endpoints are wired; the hero and
+  // identity reflect the real student behind ?id.
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // When a student is picked from the typeahead, push ?id and prime the profile
+  // immediately from the list row (no extra round-trip).
+  const handleSelect = useCallback((student) => {
+    setProfile(student);
+    setSearchParams((sp) => {
+      const next = new URLSearchParams(sp);
+      next.set('id', String(student.id));
+      return next;
+    }, { replace: false });
+  }, [setSearchParams]);
+
+  // On load / direct link with ?id (and no primed profile for that id), fetch it.
+  useEffect(() => {
+    if (!selectedId) { setProfile(null); return; }
+    if (profile && String(profile.id) === String(selectedId)) return;
+    let cancelled = false;
+    setProfileLoading(true);
+    api
+      .get('/restricted/people/candidate/profile', { params: { id: selectedId } })
+      .then((res) => {
+        if (cancelled) return;
+        const d = res?.data?.data || res?.data || {};
+        setProfile({
+          id: selectedId,
+          name: d.name || d.candidateName,
+          email: d.email,
+          phone: d.communicationMobile || d.registeredMobile || d.mobile,
+          avatar: d.photo || d.image,
+        });
+      })
+      .catch(() => { if (!cancelled) setProfile({ id: selectedId }); })
+      .finally(() => { if (!cancelled) setProfileLoading(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  // Merge the live identity over the mock model so analytics keep rendering.
+  const s = useMemo(() => ({
+    ...STUDENT,
+    id: profile?.id || STUDENT.id,
+    name: profile?.name || STUDENT.name,
+    email: profile?.email || STUDENT.email,
+    phone: profile?.phone || STUDENT.phone,
+    avatar: profile?.avatar || STUDENT.avatar,
+  }), [profile]);
 
   const avgMock = useMemo(
     () => Math.round(s.mockTests.reduce((a, b) => a + b.percentile, 0) / s.mockTests.length),
@@ -228,6 +434,33 @@ export default function Student360Page() {
 
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
+  // Subtle reveal-on-scroll: fade + lift each tile as it enters the viewport.
+  useEffect(() => {
+    const els = document.querySelectorAll(
+      '.student360-page .s360-card, .student360-page .s360-kpi'
+    );
+    if (!els.length) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('s360-in'));
+      return;
+    }
+    els.forEach((el) => el.classList.add('s360-reveal'));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('s360-in');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div className="student360-page">
       {/* Header */}
@@ -239,21 +472,36 @@ export default function Student360Page() {
             <p>A complete view of the student's preparation, performance and engagement.</p>
           </div>
         </div>
-        <button type="button" className="s360-btn-ghost">
-          <i className="fa fa-download" /> Export report
-        </button>
+        <div className="s360-pagehead-actions">
+          <StudentSearch onSelect={handleSelect} />
+          <button type="button" className="s360-btn-ghost" onClick={() => window.print()}>
+            <i className="fa fa-download" /> Export report
+          </button>
+        </div>
       </div>
 
       {/* Row 1 — Profile hero + headline stats */}
       <div className="s360-grid s360-grid-hero">
-        <Card className="s360-hero">
+        <Card className={`s360-hero${profileLoading ? ' s360-hero-loading' : ''}`}>
           <div className="s360-hero-top">
-            <img className="s360-avatar" src={s.avatar} alt={s.name} />
+            {s.avatar ? (
+              <button
+                type="button"
+                className="s360-avatar-btn"
+                onClick={() => setPhotoOpen(true)}
+                title="View photo"
+                aria-label={`View ${s.name}'s photo`}
+              >
+                <img className="s360-avatar" src={s.avatar} alt={s.name} />
+                <span className="s360-avatar-zoom"><i className="fa fa-search-plus" /></span>
+              </button>
+            ) : (
+              <span className="s360-avatar s360-avatar-empty">{(s.name || '?').charAt(0).toUpperCase()}</span>
+            )}
             <div className="s360-hero-id">
-              <h3>{s.name}</h3>
+              <h3>{s.name} {profileLoading && <i className="fa fa-spinner fa-spin s360-hero-spin" />}</h3>
               <span className="s360-id-chip">{s.id}</span>
               <ul className="s360-contact">
-                <li><i className="fa fa-envelope-o" /> {s.email}</li>
                 <li><i className="fa fa-phone" /> {s.phone}</li>
               </ul>
             </div>
@@ -266,25 +514,21 @@ export default function Student360Page() {
           {/* Prep Journey */}
           <div className="s360-journey">
             <div className="s360-journey-head">
-              <h4><i className="fa fa-flag-checkered" /> Prep Journey</h4>
+              <h4><i className="fa fa-flag-checkered" /> Prep Journey: IAT 2026</h4>
               <span className="s360-journey-mentor">
-                <img src={s.mentor.avatar} alt={s.mentor.name} />
-                Mentor: <strong>{s.mentor.name}</strong> · {s.mentor.role}
+                <img src={s.mentor.avatar} alt={s.mentor.name} className="s360-journey-dp" /> Mentor:{' '}
+                <Link to="/mentor-profiles?id=20425492429424524" className="s360-mentor-link">
+                  {s.mentor.name}
+                </Link>
+                <span className="s360-journey-sep">·</span>
+                <img src="https://i.pravatar.cc/80?img=53" alt="Ajeesh Nair" className="s360-journey-dp" /> Parent:{' '}
+                <Link to="/parent-profiles?id=20425492429424524" className="s360-mentor-link">
+                  Ajeesh Nair
+                </Link>
+                <span className="s360-journey-sep">·</span>
+                <i className="fa fa-cubes s360-journey-ic" /> Batch: <strong>Offline O1</strong>
               </span>
             </div>
-            <ol className="s360-steps">
-              {s.prepJourney.map((step, i) => (
-                <li
-                  key={i}
-                  className={`s360-step${step.done ? ' done' : ''}${step.current ? ' current' : ''}`}
-                >
-                  <span className="s360-step-dot">
-                    {step.done ? <i className="fa fa-check" /> : i + 1}
-                  </span>
-                  <span className="s360-step-label">{step.label}</span>
-                </li>
-              ))}
-            </ol>
           </div>
         </Card>
 
@@ -444,6 +688,31 @@ export default function Student360Page() {
           </div>
         </div>
       </Card>
+
+      {/* Photo lightbox */}
+      {photoOpen && s.avatar && (
+        <PhotoLightbox src={s.avatar} name={s.name} onClose={() => setPhotoOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+function PhotoLightbox({ src, name, onClose }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="s360-lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${name} photo`}>
+      <button type="button" className="s360-lightbox-close" onClick={onClose} aria-label="Close">
+        <i className="fa fa-times" />
+      </button>
+      <figure className="s360-lightbox-figure" onClick={(e) => e.stopPropagation()}>
+        <img src={src} alt={name} />
+        {name && <figcaption>{name}</figcaption>}
+      </figure>
     </div>
   );
 }
@@ -451,7 +720,7 @@ export default function Student360Page() {
 function KpiTile({ icon, tint, value, label, sub }) {
   return (
     <div className="s360-kpi">
-      <span className="s360-kpi-icon" style={{ background: `${tint}1a`, color: tint }}>
+      <span className="s360-kpi-icon" style={{ '--kpi-bg': `${tint}1a`, '--kpi-fg': tint, background: `${tint}1a`, color: tint }}>
         <i className={`fa ${icon}`} />
       </span>
       <div className="s360-kpi-meta">

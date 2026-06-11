@@ -484,62 +484,91 @@ export default function UsersTab({ roles, showToast }) {
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="form-modal" onSubmit={(e) => { e.preventDefault(); if (!saving) saveUser(); }}>
           <div className="legacy-modal-body">
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Profile</div>
-              <div className="mentor-form-group">
-                <label>Name <span className="required">*</span></label>
-                <input type="text" className="mentor-form-input" value={current?.name || ''} onChange={(e) => setCurrent((c) => ({ ...c, name: e.target.value }))} />
-                {formErrors.name && <div className="ua-form-error">{formErrors.name}</div>}
-              </div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Email <span className="required">*</span></label>
-                  <input type="email" className="mentor-form-input" value={current?.email || ''} onChange={(e) => setCurrent((c) => ({ ...c, email: e.target.value }))} />
-                  {formErrors.email && <div className="ua-form-error">{formErrors.email}</div>}
-                </div>
-                <div className="mentor-form-group">
-                  <label>Mobile</label>
-                  <input type="tel" className="mentor-form-input" value={current?.mobile || ''} onChange={(e) => setCurrent((c) => ({ ...c, mobile: e.target.value }))} />
-                  {formErrors.mobile && <div className="ua-form-error">{formErrors.mobile}</div>}
-                </div>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-user" /> Profile</div>
+              <div className="asset-form-grid basic-grid">
+                <label className="field-cell full-span">
+                  <div className={`float-field ${formErrors.name ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={current?.name || ''}
+                      onChange={(e) => setCurrent((c) => ({ ...c, name: e.target.value }))}
+                    />
+                    <span className="float-label">Name <span className="req">*</span></span>
+                  </div>
+                  {formErrors.name && <span className="field-error">{formErrors.name}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.email ? 'has-error' : ''}`}>
+                    <input
+                      type="email"
+                      className="float-control"
+                      placeholder=" "
+                      value={current?.email || ''}
+                      onChange={(e) => setCurrent((c) => ({ ...c, email: e.target.value }))}
+                    />
+                    <span className="float-label">Email <span className="req">*</span></span>
+                  </div>
+                  {formErrors.email && <span className="field-error">{formErrors.email}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.mobile ? 'has-error' : ''}`}>
+                    <input
+                      type="tel"
+                      className="float-control"
+                      placeholder=" "
+                      value={current?.mobile || ''}
+                      onChange={(e) => setCurrent((c) => ({ ...c, mobile: e.target.value }))}
+                    />
+                    <span className="float-label">Mobile</span>
+                  </div>
+                  {formErrors.mobile && <span className="field-error">{formErrors.mobile}</span>}
+                </label>
               </div>
             </div>
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Access</div>
-              <div className="mentor-form-group">
-                <label>Roles <span className="required">*</span></label>
-                <MultiRoleSelect
-                  roles={roles}
-                  value={current?.roleIds || []}
-                  onChange={(ids) => setCurrent((c) => ({ ...c, roleIds: ids }))}
-                  disabled={editMode && current ? isSelf(current) : false}
-                />
-                {editMode && current && isSelf(current) && (
-                  <div className="ua-form-hint">You cannot change your own roles.</div>
-                )}
-                {formErrors.roleIds && <div className="ua-form-error">{formErrors.roleIds}</div>}
-              </div>
-              <div className="mentor-form-group">
-                <label className="ua-inline-toggle">
-                  <span>Account enabled</span>
-                  <span className="ua-toggle" style={editMode && current && isSelf(current) ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
-                    <input type="checkbox" checked={!!current?.active} disabled={editMode && current ? isSelf(current) : false} onChange={(e) => setCurrent((c) => ({ ...c, active: e.target.checked }))} />
-                    <span className="ua-toggle-slider" />
-                  </span>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-shield-lock" /> Access</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <span className="field-static-label">Roles <span className="req">*</span></span>
+                  <MultiRoleSelect
+                    roles={roles}
+                    value={current?.roleIds || []}
+                    onChange={(ids) => setCurrent((c) => ({ ...c, roleIds: ids }))}
+                    disabled={editMode && current ? isSelf(current) : false}
+                  />
+                  {editMode && current && isSelf(current) && (
+                    <span className="field-hint">You cannot change your own roles.</span>
+                  )}
+                  {formErrors.roleIds && <span className="field-error">{formErrors.roleIds}</span>}
                 </label>
-                {editMode && current && isSelf(current) && (
-                  <div className="ua-form-hint">You cannot disable your own account.</div>
-                )}
               </div>
             </div>
           </div>
           <div className="legacy-modal-footer">
+            <div className="ua-footer-toggle" style={{ marginRight: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
+              <label className="ua-inline-toggle">
+                <span className="ua-toggle" style={editMode && current && isSelf(current) ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
+                  <input type="checkbox" checked={!!current?.active} disabled={editMode && current ? isSelf(current) : false} onChange={(e) => setCurrent((c) => ({ ...c, active: e.target.checked }))} />
+                  <span className="ua-toggle-slider" />
+                </span>
+                <span className="field-static-label" style={{ margin: 0 }}>Account enabled</span>
+              </label>
+              {editMode && current && isSelf(current) && (
+                <span className="field-hint">You cannot disable your own account.</span>
+              )}
+            </div>
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setModalOpen(false)} disabled={saving}>Cancel</button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={saveUser} disabled={saving}>
+            <button type="submit" className="legacy-btn legacy-btn-success" disabled={saving}>
               <i className="ti ti-check" /> {saving ? 'Saving…' : (editMode ? 'Update' : 'Create')} User
             </button>
           </div>
+          </form>
         </div>
       </div>
 

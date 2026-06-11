@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import FilterDropdown from '../components/FilterDropdown';
@@ -106,6 +107,9 @@ function starClass(rating, index) {
 
 export default function MentorProfilesPage() {
   const { can } = usePermission();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const mentorIdFromUrl = searchParams.get('id');
+  const autoOpenedIdRef = useRef(null);
   const [mentors, setMentors] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSpecialization, setFilterSpecialization] = useState('');
@@ -155,6 +159,17 @@ export default function MentorProfilesPage() {
       setToasts((current) => current.filter((toast) => toast.id !== id));
     }, 4500);
   };
+
+  // Close the profile modal and drop the ?id from the URL (and tab title).
+  const closeViewModal = useCallback(() => {
+    setViewModalOpen(false);
+    setSearchParams((sp) => {
+      if (!sp.get('id')) return sp;
+      const next = new URLSearchParams(sp);
+      next.delete('id');
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const loadMentors = useCallback(async (isCancelled = { current: false }) => {
     setIsLoading(true);
@@ -324,18 +339,32 @@ export default function MentorProfilesPage() {
   useEffect(() => {
     if (!viewModalOpen || !selectedMentor?.id || isDemoMode) return;
 
+    // A bare { id } (no name) means the modal was opened from a ?id deep link and
+    // the mentor wasn't in the loaded list — it must resolve from the API, or we
+    // close the modal and fall back to the listing.
+    const isUnresolvedDeepLink = !selectedMentor.name;
     let isCancelled = false;
 
     async function fetchMentorProfile() {
       setIsMentorProfileLoading(true);
       try {
         const response = await api.get(`/restricted/people/mentor/profile?id=${selectedMentor.id}`);
-        if (response.data?.status === 'success' && !isCancelled) {
-          const detailed = normalizeMentor(response.data.data, 0);
-          setSelectedMentor(detailed);
+        if (isCancelled) return;
+        if (response.data?.status === 'success' && response.data?.data) {
+          setSelectedMentor(normalizeMentor(response.data.data, 0));
+          return;
+        }
+        if (isUnresolvedDeepLink) {
+          showToast('error', 'Mentor Not Found', `No mentor profile found for ID ${selectedMentor.id}.`);
+          closeViewModal();
         }
       } catch (error) {
-        // Fallback: selectedMentor already has basic data from list
+        if (isCancelled) return;
+        // Only bail out when there's no list data to fall back on (deep link).
+        if (isUnresolvedDeepLink) {
+          showToast('error', 'Mentor Not Found', `No mentor profile found for ID ${selectedMentor.id}.`);
+          closeViewModal();
+        }
       } finally {
         if (!isCancelled) setIsMentorProfileLoading(false);
       }
@@ -343,7 +372,7 @@ export default function MentorProfilesPage() {
 
     fetchMentorProfile();
     return () => { isCancelled = true; };
-  }, [viewModalOpen, selectedMentor?.id, isDemoMode]);
+  }, [viewModalOpen, selectedMentor?.id, isDemoMode, closeViewModal]);
 
   const safeStudentsPage = Math.min(studentsCurrentPage, mappedStudentsPages);
   const paginatedStudents = mappedStudents;
@@ -488,9 +517,31 @@ export default function MentorProfilesPage() {
     setActiveKebabId(null);
   }
 
+  // Direct link / reload with ?id: open the Mentor Profile modal by default once
+  // the list has loaded (so we can prime the row, including in demo mode).
+  useEffect(() => {
+    if (!mentorIdFromUrl) {
+      autoOpenedIdRef.current = null;
+      return;
+    }
+    if (autoOpenedIdRef.current === mentorIdFromUrl) return;
+    const found = mentors.find((mentor) => String(mentor.id) === String(mentorIdFromUrl));
+    if (!found && isLoading) return;
+    autoOpenedIdRef.current = mentorIdFromUrl;
+    // Demo mode has no API to resolve an unknown id against — if it isn't in the
+    // loaded list, drop straight back to the listing instead of an empty modal.
+    if (!found && isDemoMode) {
+      showToast('error', 'Mentor Not Found', `No mentor profile found for ID ${mentorIdFromUrl}.`);
+      closeViewModal();
+      return;
+    }
+    setSelectedMentor(found || { id: mentorIdFromUrl });
+    setViewModalOpen(true);
+  }, [mentorIdFromUrl, mentors, isLoading, isDemoMode, closeViewModal]);
+
   function editFromView() {
     if (!selectedMentor) return;
-    setViewModalOpen(false);
+    closeViewModal();
     openEditModal(selectedMentor);
   }
 
@@ -1034,11 +1085,11 @@ export default function MentorProfilesPage() {
       )}
 
       {viewModalOpen && (
-      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setViewModalOpen(false); }}>
+      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeViewModal(); }}>
         <div className="crispr-modal-dialog" style={{ maxWidth: 720 }} role="dialog" aria-modal="true">
           <div className="crispr-modal-header">
             <h3><i className="ti ti-user" /> Mentor Profile</h3>
-            <button type="button" className="crispr-modal-close" onClick={() => setViewModalOpen(false)}>
+            <button type="button" className="crispr-modal-close" onClick={closeViewModal}>
               <i className="ti ti-close" />
             </button>
           </div>
@@ -1106,7 +1157,7 @@ export default function MentorProfilesPage() {
             ) : null}
           </div>
           <div className="legacy-modal-footer">
-            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setViewModalOpen(false)}>Close</button>
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={closeViewModal}>Close</button>
             <button type="button" className="legacy-btn legacy-btn-success" onClick={editFromView}>
               <i className="ti ti-pencil" /> Edit Mentor
             </button>

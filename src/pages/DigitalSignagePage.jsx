@@ -58,10 +58,10 @@ const TABS = [
   { id: 'overview',  label: 'Overview',  icon: 'ti-layout-grid2' },
   { id: 'schedules', label: 'Schedules', icon: 'ti-calendar' },
   { id: 'timelines', label: 'Loops',     icon: 'ti-layers' },
-  { id: 'screens',   label: 'Screens',   icon: 'ti-device-desktop' },
+  { id: 'screens',   label: 'Screens',   icon: 'ti-desktop' },
   { id: 'branding',  label: 'Branding Kit', icon: 'ti-stamp' },
   { id: 'alerts',    label: 'Alert',     icon: 'ti-alert' },
-  { id: 'media',     label: 'Media',     icon: 'ti-photo' },
+  { id: 'media',     label: 'Media',     icon: 'ti-image' },
 ];
 
 const VALID_TABS = TABS.map((t) => t.id);
@@ -152,24 +152,27 @@ export default function DigitalSignagePage() {
   return (
     <section className="data-table-page" style={{ position: 'relative', minHeight: '100vh', paddingBottom: 40 }}>
       <ToastRegion toasts={toasts} onDismiss={removeToast} />
-      <PageHeader branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} />
-      <TabBar tab={tab} setTab={setTab} />
+      <PageHeader />
 
-      <div style={{ marginTop: 16 }}>
-        {tab === 'overview'  && <OverviewTab branchFilter={branchFilter} onJump={setTab} />}
-        {tab === 'screens'   && <ScreensTab branchFilter={branchFilter} showToast={showToast} />}
-        {tab === 'timelines' && <TimelinesTab branchFilter={branchFilter} editingId={editingTimelineId} setEditingId={setEditingTimelineId} showToast={showToast} />}
-        {tab === 'media'     && <MediaTab branchFilter={branchFilter} showToast={showToast} />}
-        {tab === 'branding'  && <BrandingKitsTab branchFilter={branchFilter} showToast={showToast} />}
-        {tab === 'schedules' && <SchedulesTab branchFilter={branchFilter} showToast={showToast} />}
-        {tab === 'alerts'    && <AlertsTab branchFilter={branchFilter} showToast={showToast} />}
+      <div style={{ display: 'flex', gap: 16, marginTop: 16, alignItems: 'flex-start' }}>
+        <TabBar tab={tab} setTab={setTab} />
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {tab === 'overview'  && <OverviewTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} onJump={setTab} />}
+          {tab === 'screens'   && <ScreensTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} showToast={showToast} />}
+          {tab === 'timelines' && <TimelinesTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} editingId={editingTimelineId} setEditingId={setEditingTimelineId} showToast={showToast} />}
+          {tab === 'media'     && <MediaTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} showToast={showToast} />}
+          {tab === 'branding'  && <BrandingKitsTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} showToast={showToast} />}
+          {tab === 'schedules' && <SchedulesTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} showToast={showToast} />}
+          {tab === 'alerts'    && <AlertsTab branchFilter={branchFilter} setBranchFilter={setBranchFilter} branchFilterLabel={branchFilterLabel} showToast={showToast} />}
+        </div>
       </div>
     </section>
   );
 }
 
 // ───────────────────────── Header + Tabs ──────────────────────────────
-function PageHeader({ branchFilter, setBranchFilter, branchFilterLabel }) {
+function PageHeader() {
   return (
     <div className="page-header-section" style={{ flexWrap: 'wrap' }}>
       <div className="page-header-title-group">
@@ -179,34 +182,29 @@ function PageHeader({ branchFilter, setBranchFilter, branchFilterLabel }) {
           <p>Manage TV kiosks, build loops, broadcast alerts across all branches.</p>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>Branch</span>
-        <div style={{ minWidth: 220 }}>
-          <LocationPicker
-            value={branchFilter || null}
-            initialLabel={branchFilterLabel}
-            placeholder="All branches"
-            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
-          />
-        </div>
-      </div>
     </div>
   );
 }
 
 function TabBar({ tab, setTab }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 6, display: 'inline-flex', gap: 4, flexWrap: 'wrap' }}>
+    <div
+      style={{
+        background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 6,
+        display: 'flex', flexDirection: 'column', gap: 4,
+        width: 196, flexShrink: 0, position: 'sticky', top: 16,
+      }}
+    >
       {TABS.map((t) => {
         const sel = t.id === tab;
         return (
           <button key={t.id} type="button" onClick={() => setTab(t.id)}
             style={{
               border: 'none', background: sel ? 'var(--brand)' : 'transparent', color: sel ? '#fff' : 'var(--ink)',
-              padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13,
-              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '10px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13,
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
             }}>
-            <i className={`ti ${t.icon}`} /> {t.label}
+            <i className={`ti ${t.icon}`} style={{ fontSize: 16, width: 18, textAlign: 'center', flexShrink: 0 }} /> {t.label}
           </button>
         );
       })}
@@ -215,7 +213,7 @@ function TabBar({ tab, setTab }) {
 }
 
 // ───────────────────────── Overview ───────────────────────────────────
-function OverviewTab({ branchFilter, onJump }) {
+function OverviewTab({ branchFilter, setBranchFilter, onJump }) {
   const screens   = useScreens();
   const timelines = useTimelines();
   const alerts    = useAlerts();
@@ -233,7 +231,6 @@ function OverviewTab({ branchFilter, onJump }) {
 
   const activeAlerts = alerts.filter((a) => a.is_active);
   const onlineCount  = filteredScreens.filter((s) => s.device_status === 'online').length;
-  const activeLoops  = timelines.filter((t) => t.is_active).length;
   const activeScheds = schedules.filter((s) => s.is_active).length;
 
   // Prefer the server-authoritative dashboard.now_playing when available;
@@ -246,6 +243,7 @@ function OverviewTab({ branchFilter, onJump }) {
           screen_id:    np.screen?.id,
           name:         np.screen?.name,
           screen_code:  np.screen?.screen_code,
+          loop_id:      np.loop?.id || null,
           loop_name:    np.loop?.name || null,
           current_item: np.current_item?.title || null,
         }));
@@ -254,7 +252,7 @@ function OverviewTab({ branchFilter, onJump }) {
       .filter((s) => s.playback_status === 'playing')
       .map((s) => {
         const tl = timelines.find((t) => t.id === s.assigned_timeline_id);
-        return { screen_id: s.id, name: s.name, screen_code: s.screen_code, loop_name: tl?.name || null, current_item: null };
+        return { screen_id: s.id, name: s.name, screen_code: s.screen_code, loop_id: tl?.id || null, loop_name: tl?.name || null, current_item: null };
       });
   }, [dash, branchFilter, filteredScreens, timelines]);
 
@@ -278,22 +276,25 @@ function OverviewTab({ branchFilter, onJump }) {
 
       {/* Summary stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <StatTile icon="ti-device-desktop" label="Screens"     value={filteredScreens.length} accent="#0ea5e9" onClick={() => onJump('screens')} />
-        <StatTile icon="ti-wifi"           label="Online"      value={onlineCount} sub={`${filteredScreens.length - onlineCount} offline`} accent="#10b981" onClick={() => onJump('screens')} />
+        <StatTile icon="ti-desktop"        label="Screens"     value={filteredScreens.length} accent="#0ea5e9" onClick={() => onJump('screens')} />
+        <StatTile icon="ti-signal"         label="Online"      value={onlineCount} accent="#10b981" onClick={() => onJump('screens')} />
         <StatTile icon="ti-control-play"   label="Now playing" value={nowPlaying.length} accent="#8b5cf6" onClick={() => onJump('screens')} />
-        <StatTile icon="ti-layers"         label="Active loops" value={activeLoops} accent="#f59e0b" onClick={() => onJump('timelines')} />
         <StatTile icon="ti-calendar"       label="Schedules"   value={activeScheds} accent="#ec4899" onClick={() => onJump('schedules')} />
       </div>
 
       {/* Branches (left) + Now playing (right) */}
-      <Card title="Overview" icon="ti-layout-grid2">
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) 1fr', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 300px) 1fr', gap: 20, alignItems: 'start' }}>
           {/* Left: branches */}
           <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 14, background: '#fbfcfd' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <i className="ti ti-building" style={{ color: 'var(--brand)' }} />
               <strong style={{ fontSize: 13, color: 'var(--ink)' }}>Branches</strong>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>{branches.length}</span>
+              {branchFilter && (
+                <button type="button" onClick={() => setBranchFilter('')}
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 11, color: 'var(--brand)', textDecoration: 'underline', fontWeight: 600 }}>
+                  Clear
+                </button>
+              )}
             </div>
             <div style={{ display: 'grid', gap: 2 }}>
               {branches.map((b) => {
@@ -301,12 +302,21 @@ function OverviewTab({ branchFilter, onJump }) {
                 const on = ss.filter((s) => s.device_status === 'online').length;
                 const allOnline = ss.length > 0 && on === ss.length;
                 const dot = ss.length === 0 ? '#94a3b8' : allOnline ? '#10b981' : on > 0 ? '#f59e0b' : '#dc2626';
+                const selected = sameId(b.id, branchFilter);
+                // Clicking a branch filters Now playing to it (?branch=<id>);
+                // clicking the selected branch again clears the filter.
                 return (
-                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 8px', borderRadius: 8 }}>
+                  <button key={b.id} type="button"
+                    onClick={() => setBranchFilter(selected ? '' : b.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, padding: '7px 8px', borderRadius: 8,
+                      border: '1px solid transparent', background: selected ? 'var(--brand)15' : 'transparent',
+                      borderColor: selected ? 'var(--brand)' : 'transparent', cursor: 'pointer', textAlign: 'left', width: '100%',
+                    }}>
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: dot, flex: '0 0 auto', boxShadow: `0 0 0 3px ${dot}22` }} />
-                    <strong style={{ color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</strong>
+                    <strong style={{ color: selected ? 'var(--brand)' : 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</strong>
                     <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: 12, flex: '0 0 auto' }}>{on}/{ss.length}</span>
-                  </div>
+                  </button>
                 );
               })}
               {branches.length === 0 && (
@@ -320,55 +330,140 @@ function OverviewTab({ branchFilter, onJump }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <i className="ti ti-control-play" style={{ color: 'var(--brand)' }} />
               <strong style={{ fontSize: 13, color: 'var(--ink)' }}>Now playing</strong>
-              {nowPlaying.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>{nowPlaying.length} live</span>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
               {nowPlaying.slice(0, 9).map((np) => (
-                <div key={np.screen_id} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: 12, background: '#fff', boxShadow: '0 1px 2px rgba(15,23,42,.04)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 999, background: '#10b981', animation: 'pulse 1.5s infinite', boxShadow: '0 0 0 3px #10b98122' }} />
-                    <strong style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{np.name}</strong>
-                    <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)', flex: '0 0 auto' }}>{np.screen_code}</span>
-                  </div>
-                  <div style={{ marginTop: 8, fontSize: 12, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <i className="ti ti-layers" style={{ color: 'var(--brand)' }} />
-                    {np.loop_name || <em style={{ color: 'var(--muted)' }}>No loop</em>}
-                  </div>
-                  {np.current_item && (
-                    <div style={{ marginTop: 6, fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5, paddingTop: 6, borderTop: '1px solid var(--line)' }}>
-                      <i className="ti ti-music" /> {np.current_item}
-                    </div>
-                  )}
-                </div>
+                <NowPlayingTile key={np.screen_id} np={np} timelines={timelines} />
               ))}
               {nowPlaying.length === 0 && (
                 <div style={{ gridColumn: '1 / -1', border: '1px dashed var(--line)', borderRadius: 10, padding: 28, textAlign: 'center', color: 'var(--muted)', background: '#fbfcfd' }}>
                   <i className="ti ti-device-desktop" style={{ fontSize: 26, display: 'block', marginBottom: 8, color: 'var(--muted)' }} />
                   <div style={{ fontWeight: 600, color: 'var(--ink)' }}>No screens currently playing</div>
-                  <div style={{ fontSize: 12, marginTop: 6, lineHeight: 1.6, maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
-                    {filteredScreens.length === 0
-                      ? <>Register a screen, then open its player URL (<code style={{ fontFamily: 'monospace' }}>/player/&lt;code&gt;</code>) and pair it. Playing screens show up here once they start reporting.</>
-                      : <>You have {filteredScreens.length} screen{filteredScreens.length === 1 ? '' : 's'}, but none are reporting active playback yet. Open a screen's player URL and pair it to start streaming.</>}
-                  </div>
-                  <button type="button" style={{ ...btnGhost, marginTop: 14 }} onClick={() => onJump('screens')}>
-                    <i className="ti ti-arrow-right" /> Go to Screens
-                  </button>
+                  {filteredScreens.length > 0 && (
+                    <div style={{ fontSize: 12, marginTop: 6, lineHeight: 1.6, maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
+                      You have {filteredScreens.length} screen{filteredScreens.length === 1 ? '' : 's'}, but none are reporting active playback yet. Open a screen's player URL and pair it to start streaming.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
-      </Card>
+      </div>
+  );
+}
+
+// Full-resolution virtual stage for the mini loop preview. PreviewSurface's
+// type sizes are tuned for a screen this size; we render at this resolution and
+// CSS-scale the whole thing down to the tile header's actual width.
+const STAGE_W = 1280;
+const STAGE_H = 720;
+
+// A single "Now playing" card. Idle, it shows a play glyph on a faux screen.
+// On hover it lifts (subtle animation), lazy-loads the assigned loop's items,
+// and plays a live, scaled-down preview of the loop inside the mini screen.
+// Clicking (or Enter/Space) opens the screen's player in a new tab.
+function NowPlayingTile({ np, timelines }) {
+  const [hovered, setHovered] = useState(false);
+  const [preview, setPreview] = useState({ idx: 0, elapsed: 0 });
+  const [scale, setScale] = useState(0.16);
+  const headerRef = useRef(null);
+  const loadedRef = useRef(false);
+
+  const loop  = np.loop_id ? timelines.find((t) => String(t.id) === String(np.loop_id)) : null;
+  const items = Array.isArray(loop?.items) ? loop.items : [];
+  const showPreview = hovered && items.length > 0;
+
+  // Render the loop on a full-resolution 16:9 stage (1280×720, which is what
+  // PreviewSurface's type sizes are tuned for) and scale it down to the
+  // header's real width so the miniature looks like a real screen.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+    const measure = () => setScale(el.clientWidth / STAGE_W);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Lazy-load the loop's items the first time the card is hovered.
+  useEffect(() => {
+    if (hovered && np.loop_id && !loadedRef.current) {
+      loadedRef.current = true;
+      ensureLoopDetail(np.loop_id).catch(() => {});
+    }
+  }, [hovered, np.loop_id]);
+
+  // Run a lightweight playback ticker only while hovered; reset on leave.
+  useEffect(() => {
+    if (!hovered) { setPreview({ idx: 0, elapsed: 0 }); return undefined; }
+    if (items.length === 0) return undefined;
+    const interval = setInterval(() => {
+      setPreview((p) => {
+        const cur = items[p.idx];
+        if (!cur) return { idx: 0, elapsed: 0 };
+        if (p.elapsed + 1 >= (cur.duration_seconds || 1)) return { idx: (p.idx + 1) % items.length, elapsed: 0 };
+        return { ...p, elapsed: p.elapsed + 1 };
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [hovered, items]);
+
+  function openPlayer() { window.open(`/player/${np.screen_code}`, '_blank', 'noopener,noreferrer'); }
+
+  return (
+    <div title={`Open player · ${np.screen_code}`} role="button" tabIndex={0}
+      onClick={openPlayer}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayer(); } }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: 12, overflow: 'hidden', background: '#fff',
+        border: `1px solid ${hovered ? 'var(--brand)' : 'var(--line)'}`,
+        boxShadow: hovered ? '0 10px 22px rgba(15,23,42,.13)' : '0 1px 3px rgba(15,23,42,.06)',
+        transform: hovered ? 'translateY(-3px)' : 'none', cursor: 'pointer',
+        transition: 'transform .18s ease, box-shadow .18s ease, border-color .18s ease',
+      }}>
+      {/* Screen preview header (mimics a powered-on display) */}
+      <div ref={headerRef} style={{ position: 'relative', aspectRatio: '16 / 9', background: 'linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#334155 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {showPreview ? (
+          <div style={{ position: 'absolute', top: 0, left: 0, width: STAGE_W, height: STAGE_H, transformOrigin: 'top left', transform: `scale(${scale})` }}>
+            <PreviewSurface items={items} preview={{ ...preview, playing: true }} />
+          </div>
+        ) : (
+          <i className="ti ti-control-play" style={{ fontSize: 24, color: 'rgba(255,255,255,.85)' }} />
+        )}
+        {/* LIVE badge */}
+        <span style={{ position: 'absolute', top: 8, left: 8, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 7px', borderRadius: 999, background: 'rgba(16,185,129,.18)', border: '1px solid rgba(16,185,129,.45)', fontSize: 9, fontWeight: 800, letterSpacing: '.08em', color: '#6ee7b7' }}>
+          <span style={{ width: 5, height: 5, borderRadius: 999, background: '#10b981', animation: 'pulse 1.5s infinite' }} />
+          LIVE
+        </span>
+        {/* screen code chip */}
+        <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 9, fontFamily: 'monospace', color: 'rgba(255,255,255,.65)', background: 'rgba(255,255,255,.08)', padding: '2px 6px', borderRadius: 5 }}>{np.screen_code}</span>
+      </div>
+      {/* Info body */}
+      <div style={{ padding: 10, display: 'grid', gap: 7 }}>
+        <strong style={{ fontSize: 13, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{np.name}</strong>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <i className="ti ti-layers" style={{ color: 'var(--brand)', flex: '0 0 auto' }} />
+          {np.loop_name || <em style={{ color: 'var(--muted)' }}>No loop</em>}
+        </span>
+        {np.current_item && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingTop: 6, borderTop: '1px solid var(--line)' }}>
+            <i className="ti ti-music" style={{ flex: '0 0 auto' }} /> {np.current_item}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
 // ───────────────────────── Screens ────────────────────────────────────
-function ScreensTab({ branchFilter, showToast }) {
+function ScreensTab({ branchFilter, setBranchFilter, branchFilterLabel, showToast }) {
   const screens   = useScreens();
   const branches  = useBranches();
   const timelines = useTimelines();
-  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [editing, setEditing] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -380,21 +475,23 @@ function ScreensTab({ branchFilter, showToast }) {
   const filtered = useMemo(() => {
     return screens
       .filter((s) => !branchFilter || String(s.branch_id) === String(branchFilter))
-      .filter((s) => !statusFilter || s.device_status === statusFilter)
-      .filter((s) => {
-        if (!search) return true;
-        const q = search.toLowerCase();
-        return s.name.toLowerCase().includes(q) || s.screen_code.toLowerCase().includes(q);
-      });
-  }, [screens, branchFilter, statusFilter, search]);
+      .filter((s) => !statusFilter || s.device_status === statusFilter);
+  }, [screens, branchFilter, statusFilter]);
 
   function toggleSel(id) { setSelected((cur) => { const n = new Set(cur); n.has(id) ? n.delete(id) : n.add(id); return n; }); }
   function toggleAll() { setSelected(selected.size === filtered.length ? new Set() : new Set(filtered.map((s) => s.id))); }
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <Toolbar>
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by name or code…" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
+        </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selStyle}>
           <option value="">All statuses</option>
           <option value="online">Online</option>
@@ -411,7 +508,7 @@ function ScreensTab({ branchFilter, showToast }) {
             <i className="ti ti-plus" /> Register screen
           </button>
         </div>
-      </Toolbar>
+      </div>
 
       <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
         <table style={tableStyle}>
@@ -426,7 +523,6 @@ function ScreensTab({ branchFilter, showToast }) {
               <th style={thStyle}>Now playing</th>
               <th style={thStyle}>Last seen</th>
               <th style={thStyle}>Resolution</th>
-              <th style={thStyle}>Pairing code</th>
               <th style={{ ...thStyle, textAlign: 'right', width: 200 }}>Actions</th>
             </tr>
           </thead>
@@ -458,25 +554,21 @@ function ScreensTab({ branchFilter, showToast }) {
                   </td>
                   <td style={tdStyle}><span style={{ color: 'var(--muted)', fontSize: 12 }}>{fmtRelTime(s.last_seen_at)}</span></td>
                   <td style={tdStyle}><span style={{ fontSize: 12, color: 'var(--muted)' }}>{s.resolution}</span></td>
-                  <td style={tdStyle}>
-                    <button type="button" style={btnGhost} onClick={() => setViewCode(s)}>
-                      View
-                    </button>
-                  </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: 6 }}>
-                      <a href={`/player/${s.screen_code}`} target="_blank" rel="noreferrer" style={btnGhost} title="Open player URL">
-                        <i className="ti ti-external-link" /> Player
-                      </a>
-                      <button type="button" style={btnGhost} onClick={() => setEditing(s)}><i className="ti ti-pencil" /> Edit</button>
-                      <button type="button" style={btnDanger} onClick={() => setConfirmDelete(s)}><i className="ti ti-trash" /></button>
+                    <div style={{ display: 'inline-flex', justifyContent: 'flex-end' }}>
+                      <KebabMenu items={[
+                        { label: 'View Pairing Code', icon: 'ti-eye', onClick: () => setViewCode(s) },
+                        { label: 'Open Player', icon: 'ti-new-window', onClick: () => window.open(`/player/${s.screen_code}`, '_blank', 'noopener,noreferrer') },
+                        { label: 'Edit', icon: 'ti-pencil', onClick: () => setEditing(s) },
+                        { label: 'Delete', icon: 'ti-trash', danger: true, onClick: () => setConfirmDelete(s) },
+                      ]} />
                     </div>
                   </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
-              <tr><td colSpan={9} style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No screens match your filters.</td></tr>
+              <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No screens match your filters.</td></tr>
             )}
           </tbody>
         </table>
@@ -658,49 +750,97 @@ function ScreenModal({ screen, onClose, onSave }) {
     });
   }
 
+  const captionStyle = { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, letterSpacing: '.2px', color: '#64748b' };
+
   return (
-    <Modal title={screen ? 'Edit screen' : 'Register screen'} onClose={onClose} maxWidth={560} icon="ti-device-desktop">
-      <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-        <Field label="Display name"><input autoFocus value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} placeholder="e.g. Reception TV" /></Field>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Branch">
-            <LocationPicker
-              value={branchId || null}
-              initialLabel={initialBranchLabel}
-              placeholder="— Unassigned —"
-              onChange={(picked) => setBranchId(picked ? picked.id : '')}
-            />
-          </Field>
-          <Field label="Screen code" hint="Used for /player/{code}">
-            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} style={{ ...inputStyle, fontFamily: 'monospace' }} placeholder="auto" />
-          </Field>
+    <div
+      className="legacy-modal-backdrop active"
+      role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="legacy-modal-dialog" style={{ maxWidth: 600 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
+          <h3><i className="ti ti-desktop" /> {screen ? 'Edit screen' : 'Register screen'}</h3>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          <Field label="Resolution">
-            <select value={resolution} onChange={(e) => setResolution(e.target.value)} style={selStyle}>
-              {RESOLUTIONS.map((r) => <option key={r}>{r}</option>)}
-            </select>
-          </Field>
-          <Field label="Orientation">
-            <select value={orientation} onChange={(e) => setOrientation(e.target.value)} style={selStyle}>
-              {ORIENTATIONS.map((o) => <option key={o}>{o}</option>)}
-            </select>
-          </Field>
-          <Field label="Timezone">
-            <select value={timezone} onChange={(e) => setTimezone(e.target.value)} style={selStyle}>
-              {TIMEZONES.map((t) => <option key={t}>{t}</option>)}
-            </select>
-          </Field>
-        </div>
-        <Field label="Assigned loop">
-          <select value={assigned} onChange={(e) => setAssigned(e.target.value)} style={selStyle}>
-            <option value="">— None —</option>
-            {timelines.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </Field>
-        <FormActions onCancel={onClose} submitLabel={screen ? 'Save' : 'Register'} />
-      </form>
-    </Modal>
+        <form className="batch-modal-form form-modal" onSubmit={submit}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-desktop" /> Screen Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input autoFocus className="float-control" placeholder=" " value={name} onChange={(e) => setName(e.target.value)} />
+                    <span className="float-label">Display Name <span className="req">*</span></span>
+                  </div>
+                </label>
+                <div className="field-cell">
+                  <span style={captionStyle}>Branch</span>
+                  <LocationPicker
+                    value={branchId || null}
+                    initialLabel={initialBranchLabel}
+                    placeholder="— Unassigned —"
+                    onChange={(picked) => setBranchId(picked ? picked.id : '')}
+                  />
+                </div>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input className="float-control" placeholder=" " style={{ fontFamily: 'monospace' }} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+                    <span className="float-label">Screen Code</span>
+                  </div>
+                  <span className="field-hint">Used for /player/&#123;code&#125; — leave blank to auto-generate.</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-settings" /> Display Settings</div>
+              <div className="asset-form-grid config-grid">
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={resolution} onChange={(e) => setResolution(e.target.value)}>
+                      {RESOLUTIONS.map((r) => <option key={r}>{r}</option>)}
+                    </select>
+                    <span className="float-label">Resolution</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={orientation} onChange={(e) => setOrientation(e.target.value)}>
+                      {ORIENTATIONS.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                    <span className="float-label">Orientation</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+                      {TIMEZONES.map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                    <span className="float-label">Timezone</span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={assigned} onChange={(e) => setAssigned(e.target.value)}>
+                      <option value="">— None —</option>
+                      {timelines.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <span className="float-label">Assigned Loop</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button type="submit" className="legacy-btn legacy-btn-success">
+              <i className={`ti ${screen ? 'ti-check' : 'ti-plus'}`} /> {screen ? 'Save' : 'Register'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -723,7 +863,7 @@ function BulkAssignModal({ timelines, onClose, onAssign }) {
 }
 
 // ───────────────────────── Timelines ──────────────────────────────────
-function TimelinesTab({ branchFilter, editingId, setEditingId, showToast }) {
+function TimelinesTab({ branchFilter, setBranchFilter, branchFilterLabel, editingId, setEditingId, showToast }) {
   const timelines = useTimelines();
   const branches  = useBranches();
   const [creating, setCreating] = useState(false);
@@ -751,12 +891,19 @@ function TimelinesTab({ branchFilter, editingId, setEditingId, showToast }) {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <Toolbar>
-        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{filtered.length} loop{filtered.length === 1 ? '' : 's'}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
+        </div>
         <button type="button" style={{ ...btnPrimary, marginLeft: 'auto' }} onClick={() => setCreating(true)}>
           <i className="ti ti-plus" /> New loop
         </button>
-      </Toolbar>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 12 }}>
         {filtered.map((t) => {
@@ -1751,12 +1898,11 @@ function BulkDurationsModal({ onClose, onApply }) {
 }
 
 // ───────────────────────── Media library ──────────────────────────────
-function MediaTab({ branchFilter, showToast }) { // eslint-disable-line no-unused-vars
+function MediaTab({ branchFilter, setBranchFilter, branchFilterLabel, showToast }) { // eslint-disable-line no-unused-vars
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [typeFilter, setTypeFilter] = useState('');
-  const [search, setSearch] = useState('');
   const [uploadOpen, setUploadOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
@@ -1774,14 +1920,20 @@ function MediaTab({ branchFilter, showToast }) { // eslint-disable-line no-unuse
   useEffect(() => { reload(); }, [reload]);
 
   const filtered = useMemo(() => media
-    .filter((m) => !typeFilter || m.type === typeFilter)
-    .filter((m) => !search || m.displayName.toLowerCase().includes(search.toLowerCase()) || m.name.toLowerCase().includes(search.toLowerCase())),
-  [media, typeFilter, search]);
+    .filter((m) => !typeFilter || m.type === typeFilter),
+  [media, typeFilter]);
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <Toolbar>
-        <SearchBox value={search} onChange={setSearch} placeholder="Search by file name…" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
+        </div>
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selStyle}>
           <option value="">All types</option>
           <option value="image">Images</option>
@@ -1789,14 +1941,11 @@ function MediaTab({ branchFilter, showToast }) { // eslint-disable-line no-unuse
           <option value="audio">Audio</option>
           <option value="lottie">Lottie</option>
         </select>
-        <span style={{ fontSize: 12, color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <i className="ti ti-folder" /> Bunny.net · /{SIGNAGE_FOLDER}
-        </span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button type="button" style={btnGhost} onClick={reload} disabled={loading}><i className="ti ti-reload" /> Refresh</button>
           <button type="button" style={btnPrimary} onClick={() => setUploadOpen(true)}><i className="ti ti-upload" /> Upload</button>
         </div>
-      </Toolbar>
+      </div>
 
       {error && (
         <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', borderRadius: 10, padding: '10px 14px', fontSize: 13 }}>
@@ -1926,7 +2075,7 @@ function UploadMediaModal({ onClose, onUploaded, onError }) {
 // ───────────────────────── Branding Kit ───────────────────────────────
 const TAGLINE_MAX = 120;
 
-function BrandingKitsTab({ branchFilter, showToast }) {
+function BrandingKitsTab({ branchFilter, setBranchFilter, branchFilterLabel, showToast }) {
   const kits     = useBrandingKits();
   const branches = useBranches();
   const [creating, setCreating] = useState(false);
@@ -1944,10 +2093,17 @@ function BrandingKitsTab({ branchFilter, showToast }) {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <Toolbar>
-        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{filtered.length} branding kit{filtered.length === 1 ? '' : 's'}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
+        </div>
         <button type="button" style={{ ...btnPrimary, marginLeft: 'auto' }} onClick={() => setCreating(true)}><i className="ti ti-plus" /> New kit</button>
-      </Toolbar>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
         {filtered.map((k) => (
@@ -2178,7 +2334,7 @@ function BrandingKitModal({ kit, onClose, onSave }) {
 
 
 // ───────────────────────── Schedules ──────────────────────────────────
-function SchedulesTab({ branchFilter, showToast }) {
+function SchedulesTab({ branchFilter, setBranchFilter, branchFilterLabel, showToast }) {
   const schedules = useSchedules();
   const timelines = useTimelines();
   const screens   = useScreens();
@@ -2196,10 +2352,17 @@ function SchedulesTab({ branchFilter, showToast }) {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <Toolbar>
-        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{filtered.length} schedule{filtered.length === 1 ? '' : 's'}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
+        </div>
         <button type="button" style={{ ...btnPrimary, marginLeft: 'auto' }} onClick={() => setCreating(true)}><i className="ti ti-plus" /> New schedule</button>
-      </Toolbar>
+      </div>
 
       <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
         <table style={tableStyle}>
@@ -2363,7 +2526,7 @@ function ScheduleModal({ schedule, timelines, screens, onClose, onSave }) {
 }
 
 // ───────────────────────── Alerts ─────────────────────────────────────
-function AlertsTab({ branchFilter, showToast }) {
+function AlertsTab({ branchFilter, setBranchFilter, branchFilterLabel, showToast }) {
   const alerts   = useAlerts();
   const branches = useBranches();
   const screens  = useScreens();
@@ -2376,13 +2539,16 @@ function AlertsTab({ branchFilter, showToast }) {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <i className="ti ti-alert" style={{ color: '#c2410c', fontSize: 22 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, color: '#7c2d12', fontSize: 14 }}>Alert broadcasts override all content</div>
-          <div style={{ fontSize: 12, color: '#9a3412', marginTop: 4 }}>Active alerts replace whatever is playing on the targeted screens — across branches if no branch is selected.</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 220 }}>
+          <LocationPicker
+            value={branchFilter || null}
+            initialLabel={branchFilterLabel}
+            placeholder="All branches"
+            onChange={(picked) => setBranchFilter(picked ? picked.id : '')}
+          />
         </div>
-        <button type="button" style={{ ...btnDanger, background: '#dc2626', color: '#fff', borderColor: '#dc2626' }} onClick={() => setCreating(true)}>
+        <button type="button" style={{ ...btnDanger, background: '#dc2626', color: '#fff', borderColor: '#dc2626', marginLeft: 'auto' }} onClick={() => setCreating(true)}>
           <i className="ti ti-alert" /> New alert
         </button>
       </div>
@@ -2539,45 +2705,98 @@ function AlertModal({ alert, branches, screens, onClose, onSave }) {
       start_time: fromLocalInputValue(startTime), end_time: fromLocalInputValue(endTime), is_active: active,
     });
   }
+  const captionStyle = { display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, letterSpacing: '.2px', color: '#64748b' };
+
   return (
-    <Modal title={alert ? 'Edit alert' : 'New alert broadcast'} onClose={onClose} maxWidth={580} icon="ti-alert">
-      <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-        <Field label="Title"><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} placeholder="e.g. Branch Closed Today" /></Field>
-        <Field label="Message"><textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} placeholder="Short message to display on every screen…" /></Field>
-        <Field label="Severity">
-          <div style={{ display: 'flex', gap: 6 }}>
-            {SEVERITIES.map((s) => {
-              const sel = severity === s.id;
-              return (
-                <button key={s.id} type="button" onClick={() => setSeverity(s.id)}
-                  style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: `1px solid ${sel ? s.color : 'var(--line)'}`, background: sel ? s.bg : '#fff', color: sel ? s.color : 'var(--ink)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                  {s.label}
-                </button>
-              );
-            })}
+    <div
+      className="legacy-modal-backdrop active"
+      role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="legacy-modal-dialog" style={{ maxWidth: 600 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
+          <h3><i className="ti ti-alert" /> {alert ? 'Edit alert' : 'New alert broadcast'}</h3>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
+        </div>
+        <form className="batch-modal-form form-modal" onSubmit={submit}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-alert" /> Alert Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input autoFocus className="float-control" placeholder=" " value={title} onChange={(e) => setTitle(e.target.value)} />
+                    <span className="float-label">Title <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea className="float-control" rows={3} placeholder=" " value={message} onChange={(e) => setMessage(e.target.value)} />
+                    <span className="float-label">Message</span>
+                  </div>
+                </label>
+                <div className="field-cell full-span">
+                  <span style={captionStyle}>Severity</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {SEVERITIES.map((s) => {
+                      const sel = severity === s.id;
+                      return (
+                        <button key={s.id} type="button" onClick={() => setSeverity(s.id)}
+                          style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: `1px solid ${sel ? s.color : 'var(--line)'}`, background: sel ? s.bg : '#fff', color: sel ? s.color : 'var(--ink)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-map-pin" /> Targeting &amp; Schedule</div>
+              <div className="asset-form-grid">
+                <div className="field-cell full-span">
+                  <span style={captionStyle}>Target branches</span>
+                  <LocationMultiPicker
+                    valueIds={branchIds}
+                    initialLabels={branchLabels}
+                    placeholder="Add branches…"
+                    onChange={(ids, labels) => { setBranchIds(ids); setBranchLabels(labels); }}
+                  />
+                  <span className="field-hint">Leave empty to broadcast to all branches.</span>
+                </div>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <input type="datetime-local" className="float-control" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                    <span className="float-label">Start</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <input type="datetime-local" className="float-control" value={endTime} min={startTime || undefined} onChange={(e) => setEndTime(e.target.value)} />
+                    <span className="float-label">End</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-settings" /> Options</div>
+              <div style={{ display: 'grid', gap: 8 }}>
+                <Toggle label="Play siren audio" hint="Loud audio cue accompanies the visual" checked={audio} onChange={setAudio} />
+                <Toggle label="Broadcast immediately" hint="Overrides all assigned loops right now" checked={active} onChange={setActive} />
+              </div>
+            </div>
           </div>
-        </Field>
-        <div>
-          <div style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>Target branches</div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>Leave empty to broadcast to all branches.</div>
-          <LocationMultiPicker
-            valueIds={branchIds}
-            initialLabels={branchLabels}
-            placeholder="Add branches…"
-            onChange={(ids, labels) => { setBranchIds(ids); setBranchLabels(labels); }}
-          />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Start"><input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={inputStyle} /></Field>
-          <Field label="End"><input type="datetime-local" value={endTime} min={startTime || undefined} onChange={(e) => setEndTime(e.target.value)} style={inputStyle} /></Field>
-        </div>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <Toggle label="Play siren audio" hint="Loud audio cue accompanies the visual" checked={audio} onChange={setAudio} />
-          <Toggle label="Broadcast immediately" hint="Overrides all assigned loops right now" checked={active} onChange={setActive} />
-        </div>
-        <FormActions onCancel={onClose} submitLabel={active ? 'Broadcast' : 'Save'} submitClass={active ? 'btn-danger' : 'btn-success'} />
-      </form>
-    </Modal>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button type="submit" className={`legacy-btn ${active ? 'legacy-btn-danger' : 'legacy-btn-success'}`}>
+              <i className={`ti ${active ? 'ti-alert' : 'ti-check'}`} /> {active ? 'Broadcast' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -2635,26 +2854,44 @@ function Pill({ color, bg, children }) {
 }
 
 // Three-dot "kebab" action menu. `items`: [{ label, icon, onClick, danger }].
+// The menu is rendered with fixed positioning anchored to the button so it is
+// never clipped by ancestor containers with `overflow: hidden` (e.g. tables).
 function KebabMenu({ items = [] }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [rect, setRect] = useState(null);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
   useEffect(() => {
-    if (!open) return;
-    function onDown(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    if (!open) return undefined;
+    function onDown(e) {
+      if (btnRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+      setOpen(false);
+    }
     function onKey(e) { if (e.key === 'Escape') setOpen(false); }
+    function reposition() { if (btnRef.current) setRect(btnRef.current.getBoundingClientRect()); }
+    reposition();
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
   }, [open]);
 
+  const MENU_WIDTH = 180;
+
   return (
-    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button type="button" title="Actions" onClick={() => setOpen((o) => !o)}
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      <button ref={btnRef} type="button" title="Actions" onClick={() => setOpen((o) => !o)}
         style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--line)', background: open ? '#f1f5f9' : '#fff', color: 'var(--muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
         <i className="ti ti-more-alt" />
       </button>
-      {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: 168, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, boxShadow: '0 14px 38px rgba(0,0,0,0.14)', zIndex: 50, padding: 4, overflow: 'hidden' }}>
+      {open && rect && (
+        <div ref={menuRef} style={{ position: 'fixed', top: rect.bottom + 4, left: Math.max(8, rect.right - MENU_WIDTH), width: MENU_WIDTH, background: '#fff', border: '1px solid var(--line)', borderRadius: 10, boxShadow: '0 14px 38px rgba(0,0,0,0.14)', zIndex: 12100, padding: 4, overflow: 'hidden' }}>
           {items.map((it, i) => (
             <button key={i} type="button"
               onClick={() => { setOpen(false); it.onClick?.(); }}
@@ -2950,7 +3187,7 @@ function LocationPicker({ value, initialLabel, onChange, placeholder = 'Select l
           cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1,
         }}
       >
-        <i className="ti ti-building" style={{ color: 'var(--muted)' }} />
+        <i className={`ti ${value ? 'ti-map-pin' : 'ti-building'}`} style={{ color: value ? 'var(--brand)' : 'var(--muted)' }} />
         <span style={{ flex: 1, color: label ? 'var(--ink)' : 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {label || (value ? `#${value}` : placeholder)}
         </span>

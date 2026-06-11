@@ -233,7 +233,7 @@ export default function LocationPicker({ value, initialLabel, onChange, placehol
           cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1,
         }}
       >
-        <i className="ti ti-building" style={{ color: 'var(--muted)' }} />
+        <i className={`ti ${value ? 'ti-map-pin' : 'ti-building'}`} style={{ color: value ? 'var(--brand)' : 'var(--muted)' }} />
         <span style={{ flex: 1, color: label ? 'var(--ink)' : 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {label || (value ? `#${value}` : placeholder)}
         </span>

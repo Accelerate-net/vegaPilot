@@ -670,53 +670,69 @@ export default function Layout({ children, currentScreen }) {
               <i className="fa fa-times" />
             </button>
           </div>
-          <form onSubmit={submitPasswordChange}>
+          <form className="password-modal-form form-modal" onSubmit={submitPasswordChange}>
             <div className="legacy-modal-body">
-              <div className="sb-password-field">
-                <label htmlFor="pwd-current">Current Password</label>
-                <input
-                  id="pwd-current"
-                  type={pwdShow ? 'text' : 'password'}
-                  value={pwdCurrent}
-                  onChange={(e) => setPwdCurrent(e.target.value)}
-                  autoComplete="current-password"
-                  disabled={pwdSaving}
-                />
-              </div>
-              <div className="sb-password-field">
-                <label htmlFor="pwd-new">New Password</label>
-                <input
-                  id="pwd-new"
-                  type={pwdShow ? 'text' : 'password'}
-                  value={pwdNew}
-                  onChange={(e) => setPwdNew(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={pwdSaving}
-                />
-                <div className="sb-password-hint">At least 8 characters.</div>
-              </div>
-              <div className="sb-password-field">
-                <label htmlFor="pwd-confirm">Confirm New Password</label>
-                <input
-                  id="pwd-confirm"
-                  type={pwdShow ? 'text' : 'password'}
-                  value={pwdConfirm}
-                  onChange={(e) => setPwdConfirm(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={pwdSaving}
-                />
-              </div>
-              <label className="sb-password-show">
-                <input
-                  type="checkbox"
-                  checked={pwdShow}
-                  onChange={(e) => setPwdShow(e.target.checked)}
-                />
-                <span>Show passwords</span>
-              </label>
+              <div className="asset-form-section">
+                <div className="asset-form-grid">
+                  <label className="field-cell full-span">
+                    <div className="float-field">
+                      <input
+                        id="pwd-current"
+                        type={pwdShow ? 'text' : 'password'}
+                        className="float-control"
+                        placeholder=" "
+                        value={pwdCurrent}
+                        onChange={(e) => setPwdCurrent(e.target.value)}
+                        autoComplete="current-password"
+                        disabled={pwdSaving}
+                      />
+                      <span className="float-label">Current Password <span className="req">*</span></span>
+                    </div>
+                  </label>
+                  <label className="field-cell full-span">
+                    <div className={`float-field ${pwdError ? 'has-error' : ''}`}>
+                      <input
+                        id="pwd-new"
+                        type={pwdShow ? 'text' : 'password'}
+                        className="float-control"
+                        placeholder=" "
+                        value={pwdNew}
+                        onChange={(e) => setPwdNew(e.target.value)}
+                        autoComplete="new-password"
+                        disabled={pwdSaving}
+                      />
+                      <span className="float-label">New Password <span className="req">*</span></span>
+                    </div>
+                    <span className="field-hint">At least 8 characters.</span>
+                  </label>
+                  <label className="field-cell full-span">
+                    <div className={`float-field ${pwdError ? 'has-error' : ''}`}>
+                      <input
+                        id="pwd-confirm"
+                        type={pwdShow ? 'text' : 'password'}
+                        className="float-control"
+                        placeholder=" "
+                        value={pwdConfirm}
+                        onChange={(e) => setPwdConfirm(e.target.value)}
+                        autoComplete="new-password"
+                        disabled={pwdSaving}
+                      />
+                      <span className="float-label">Confirm New Password <span className="req">*</span></span>
+                    </div>
+                  </label>
+                </div>
+                <label className="sb-password-show">
+                  <input
+                    type="checkbox"
+                    checked={pwdShow}
+                    onChange={(e) => setPwdShow(e.target.checked)}
+                  />
+                  <span>Show passwords</span>
+                </label>
 
-              {pwdError && <div className="sb-password-error">{pwdError}</div>}
-              {pwdSuccess && <div className="sb-password-success">{pwdSuccess}</div>}
+                {pwdError && <div className="sb-password-error">{pwdError}</div>}
+                {pwdSuccess && <div className="sb-password-success">{pwdSuccess}</div>}
+              </div>
             </div>
             <div className="legacy-modal-footer">
               <button
