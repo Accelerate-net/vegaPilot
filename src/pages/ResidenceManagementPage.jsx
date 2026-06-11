@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import {
@@ -17,6 +18,8 @@ import {
 import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
+const STUDENT_PAGE_SIZE = 10;
 
 const AMENITY_OPTIONS = ['AC', 'Washing Machine', 'Drinking Water', 'Power Backup', 'Ready to Move'];
 
@@ -101,6 +104,13 @@ function getResidenceStatus(residence) {
   return 'Active';
 }
 
+function isOperational(residence) {
+  const raw = residence?.status;
+  if (raw === 1 || raw === '1') return true;
+  if (raw === 0 || raw === '0') return false;
+  return getResidenceStatus(residence) !== 'Disabled';
+}
+
 function getStatusClass(status) {
   if (status === 'Disabled') return 'status-completed';
   return 'status-active';
@@ -173,12 +183,15 @@ export default function ResidenceManagementPage() {
   const [residenceStudents, setResidenceStudents] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState('');
+  const [studentHouseFilter, setStudentHouseFilter] = useState('');
+  const [studentPage, setStudentPage] = useState(1);
 
   const [mapDrawerOpen, setMapDrawerOpen] = useState(false);
   const [candidateQuery, setCandidateQuery] = useState('');
   const [candidates, setCandidates] = useState([]);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidatesOpen, setCandidatesOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState('');
   const [isMapping, setIsMapping] = useState(false);
 
@@ -188,6 +201,7 @@ export default function ResidenceManagementPage() {
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
   const kebabRef = useRef(null);
+  const candidateBoxRef = useRef(null);
 
   const showToast = useCallback((type, title, message) => {
     const id = toastIdRef.current + 1;
@@ -242,10 +256,52 @@ export default function ResidenceManagementPage() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  useEffect(() => {
+    if (!candidatesOpen) return undefined;
+    const handleClick = (event) => {
+      if (candidateBoxRef.current && !candidateBoxRef.current.contains(event.target)) {
+        setCandidatesOpen(false);
+      }
+    };
+    const handleKey = (event) => { if (event.key === 'Escape') setCandidatesOpen(false); };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [candidatesOpen]);
+
   const safePage = Math.min(currentPage, totalPages);
   const showingStart = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const showingEnd = Math.min(safePage * pageSize, total);
   const paginationPages = useMemo(() => getPageNumbers(safePage, totalPages), [safePage, totalPages]);
+
+  const filteredStudents = useMemo(() => {
+    const q = studentSearch.trim().toLowerCase();
+    return residenceStudents.filter((s) => {
+      if (studentHouseFilter && (s.house || '') !== studentHouseFilter) return false;
+      if (!q) return true;
+      const haystack = [s.name, s.candidateName, s.mobile, s.phone, s.house]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [residenceStudents, studentHouseFilter, studentSearch]);
+  const studentTotal = filteredStudents.length;
+  const studentTotalPages = Math.max(1, Math.ceil(studentTotal / STUDENT_PAGE_SIZE));
+  const studentSafePage = Math.min(studentPage, studentTotalPages);
+  const studentShowingStart = studentTotal === 0 ? 0 : (studentSafePage - 1) * STUDENT_PAGE_SIZE + 1;
+  const studentShowingEnd = Math.min(studentSafePage * STUDENT_PAGE_SIZE, studentTotal);
+  const pagedStudents = useMemo(
+    () => filteredStudents.slice((studentSafePage - 1) * STUDENT_PAGE_SIZE, studentSafePage * STUDENT_PAGE_SIZE),
+    [filteredStudents, studentSafePage],
+  );
+  const studentPaginationPages = useMemo(
+    () => getPageNumbers(studentSafePage, studentTotalPages),
+    [studentSafePage, studentTotalPages],
+  );
 
   function toggleKebab(id, event) {
     event.stopPropagation();
@@ -386,11 +442,13 @@ export default function ResidenceManagementPage() {
     }
   }
 
-  async function openStudentsModal(residence) {
+  async function openStudentsModal(residence, houseFilter = '') {
     setActiveKebabId(null);
     setSelectedResidence(residence);
     setStudentsModalOpen(true);
     setStudentSearch('');
+    setStudentHouseFilter(houseFilter);
+    setStudentPage(1);
     await Promise.all([
       loadStudents(residence.id, ''),
       loadHousesOnly(residence.id),
@@ -411,14 +469,6 @@ export default function ResidenceManagementPage() {
       setStudentsLoading(false);
     }
   }, [showToast]);
-
-  useEffect(() => {
-    if (!studentsModalOpen || !selectedResidence?.id) return undefined;
-    const timer = setTimeout(() => {
-      loadStudents(selectedResidence.id, studentSearch.trim());
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [studentSearch, studentsModalOpen, selectedResidence?.id, loadStudents]);
 
   function askDisable(residence) {
     setActiveKebabId(null);
@@ -462,7 +512,7 @@ export default function ResidenceManagementPage() {
         showToast('success', 'Student Removed', 'Student has been unmapped.');
         if (selectedResidence?.id) {
           await Promise.all([
-            loadStudents(selectedResidence.id, studentSearch.trim()),
+            loadStudents(selectedResidence.id, ''),
             loadHousesOnly(selectedResidence.id),
           ]);
         }
@@ -479,8 +529,29 @@ export default function ResidenceManagementPage() {
     setMapDrawerOpen(true);
     setCandidateQuery('');
     setSelectedCandidate(null);
+    setCandidatesOpen(false);
     setSelectedHouse('');
     setCandidates([]);
+  }
+
+  function pickCandidate(candidate) {
+    setSelectedCandidate(candidate);
+    setCandidateQuery(candidate.name || '');
+    setCandidatesOpen(false);
+  }
+
+  function clearCandidate() {
+    setSelectedCandidate(null);
+    setCandidateQuery('');
+    setCandidates([]);
+    setCandidatesOpen(true);
+  }
+
+  async function openAllotForResidence(residence) {
+    setActiveKebabId(null);
+    setSelectedResidence(residence);
+    openMapDrawer();
+    await loadHousesOnly(residence.id);
   }
 
   const loadCandidates = useCallback(async (q) => {
@@ -530,7 +601,7 @@ export default function ResidenceManagementPage() {
       showToast('success', 'Student Mapped', `${selectedCandidate.name} has been allotted to ${selectedHouse}.`);
       setMapDrawerOpen(false);
       await Promise.all([
-        loadStudents(selectedResidence.id, studentSearch.trim()),
+        loadStudents(selectedResidence.id, ''),
         loadHousesOnly(selectedResidence.id),
       ]);
     } catch (error) {
@@ -574,15 +645,15 @@ export default function ResidenceManagementPage() {
             placeholder="Search residences by name, code, or address..."
           />
         </div>
-        <select
-          className="search-input"
-          style={{ maxWidth: 180 }}
+        <FilterDropdown
+          label="Active only"
           value={statusFilter}
-          onChange={(event) => { setStatusFilter(event.target.value); setCurrentPage(1); }}
-        >
-          <option value="active">Active only</option>
-          <option value="all">All statuses</option>
-        </select>
+          options={[
+            { value: 'active', label: 'Active only' },
+            { value: 'all', label: 'All statuses' },
+          ]}
+          onChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}
+        />
       </div>
 
       {(!isLoading && total === 0) ? (
@@ -590,9 +661,6 @@ export default function ResidenceManagementPage() {
           <i className="ti ti-home" />
           <h3>No Residences Found</h3>
           <p>Add your first residence to start managing student housing.</p>
-          <button type="button" className="legacy-btn legacy-btn-success" onClick={openCreateModal}>
-            <i className="ti ti-plus" /> Add Residence
-          </button>
         </div>
       ) : null}
 
@@ -603,10 +671,7 @@ export default function ResidenceManagementPage() {
               <tr>
                 <th>Residence</th>
                 <th>Address</th>
-                <th className="center-align">Capacity</th>
-                <th className="center-align">Occupied</th>
-                <th className="center-align">Available</th>
-                <th className="center-align">Status</th>
+                <th className="center-align">Availability</th>
                 <th className="center-align actions-column">Actions</th>
               </tr>
             </thead>
@@ -620,9 +685,6 @@ export default function ResidenceManagementPage() {
                     </td>
                     <td><div className="batch-skeleton medium" /></td>
                     <td><div className="batch-skeleton short centered" /></td>
-                    <td><div className="batch-skeleton short centered" /></td>
-                    <td><div className="batch-skeleton short centered" /></td>
-                    <td><div className="batch-skeleton short centered" /></td>
                     <td><div className="batch-skeleton icon centered" /></td>
                   </tr>
                 ))}
@@ -630,16 +692,29 @@ export default function ResidenceManagementPage() {
             ) : (
               <tbody ref={kebabRef}>
                 {residences.map((residence) => {
-                  const capacity = getCapacity(residence);
-                  const occupied = getOccupied(residence);
                   const available = getAvailable(residence);
+                  const capacity = getCapacity(residence);
                   const status = getResidenceStatus(residence);
-                  const occupancyPct = capacity > 0 ? Math.min(100, Math.round((occupied / capacity) * 100)) : 0;
+                  const operational = isOperational(residence);
                   return (
                     <tr key={residence.id} className={activeKebabId === residence.id ? 'row-active-menu' : ''}>
                       <td>
                         <div className="batch-name-container">
-                          <div className="batch-name">{residence.name}</div>
+                          <div className="batch-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span
+                              className="residence-status-dot"
+                              title={operational ? 'Operational' : 'Shut Down'}
+                              aria-label={operational ? 'Operational' : 'Shut Down'}
+                              style={{
+                                width: 9,
+                                height: 9,
+                                borderRadius: '50%',
+                                flex: '0 0 auto',
+                                background: operational ? '#059669' : '#dc2626',
+                              }}
+                            />
+                            {residence.name}
+                          </div>
                           {residence.code ? (
                             <span className="batch-journey-tag">{residence.code}</span>
                           ) : null}
@@ -657,37 +732,8 @@ export default function ResidenceManagementPage() {
                           </div>
                         ) : null}
                       </td>
-                      <td className="center-align">{capacity}</td>
                       <td className="center-align">
-                        <div className="student-count">{occupied}</div>
-                        <div className="course-info muted" style={{ marginTop: 4 }}>
-                          <div
-                            aria-hidden="true"
-                            style={{
-                              width: 80,
-                              height: 6,
-                              background: 'rgba(0,0,0,0.08)',
-                              borderRadius: 999,
-                              overflow: 'hidden',
-                              margin: '0 auto',
-                            }}
-                          >
-                            <div style={{
-                              width: `${occupancyPct}%`,
-                              height: '100%',
-                              background: occupancyPct >= 90 ? '#dc2626' : occupancyPct >= 70 ? '#d97706' : '#059669',
-                            }} />
-                          </div>
-                          <span style={{ fontSize: 11 }}>{occupancyPct}%</span>
-                        </div>
-                      </td>
-                      <td className="center-align">
-                        {available === 0 ? (
-                          <span className="badge badge-warning"><i className="ti ti-alert" /> Full</span>
-                        ) : available}
-                      </td>
-                      <td className="center-align">
-                        <span className={`batch-status ${getStatusClass(status)}`}>{status}</span>
+                        {available} / {capacity}
                       </td>
                       <td className={`center-align ${activeKebabId === residence.id ? 'cell-active-menu' : ''}`}>
                         <div className="kebab-menu-container">
@@ -701,8 +747,14 @@ export default function ResidenceManagementPage() {
                             </button>
                             {can(PERMS.RESIDENCES_STUDENTS_EDIT) && (
                               <button type="button" className="kebab-dropdown-item manage-students" onClick={() => openStudentsModal(residence)}>
-                                <i className="ti ti-user" />
-                                <span className="item-label">Manage Students</span>
+                                <i className="ti ti-users" />
+                                <span className="item-label">View Residents</span>
+                              </button>
+                            )}
+                            {can(PERMS.RESIDENCES_STUDENTS_EDIT) && (
+                              <button type="button" className="kebab-dropdown-item allot-student" onClick={() => openAllotForResidence(residence)}>
+                                <i className="ti ti-plus" />
+                                <span className="item-label">Allot New Student</span>
                               </button>
                             )}
                             {can(PERMS.RESIDENCES_EDIT) && (
@@ -776,109 +828,144 @@ export default function ResidenceManagementPage() {
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="residence-modal-form form-modal" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div className="legacy-modal-body">
-            <div className="batch-form-grid">
-              <label>
-                <span>Name *</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.name}
-                  onChange={(e) => updateDraftField('name', e.target.value)}
-                />
-                {formErrors.name ? <small style={{ color: '#dc2626' }}>{formErrors.name}</small> : null}
-              </label>
-              <label>
-                <span>Code {isEditing ? '' : '*'}</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.code}
-                  onChange={(e) => updateDraftField('code', e.target.value)}
-                  disabled={isEditing}
-                />
-                {formErrors.code ? <small style={{ color: '#dc2626' }}>{formErrors.code}</small> : null}
-              </label>
-              <label>
-                <span>Location</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.location}
-                  onChange={(e) => updateDraftField('location', e.target.value)}
-                />
-              </label>
-              <label>
-                <span>Total Capacity *</span>
-                <input
-                  type="number"
-                  min="1"
-                  className="search-input"
-                  value={draft.capacity}
-                  onChange={(e) => updateDraftField('capacity', e.target.value)}
-                />
-                {formErrors.capacity ? <small style={{ color: '#dc2626' }}>{formErrors.capacity}</small> : null}
-              </label>
-              <label className="full-span">
-                <span>Address *</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.address}
-                  onChange={(e) => updateDraftField('address', e.target.value)}
-                />
-                {formErrors.address ? <small style={{ color: '#dc2626' }}>{formErrors.address}</small> : null}
-              </label>
-              <label>
-                <span>Contact Person *</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.wardenName}
-                  onChange={(e) => updateDraftField('wardenName', e.target.value)}
-                />
-                {formErrors.wardenName ? <small style={{ color: '#dc2626' }}>{formErrors.wardenName}</small> : null}
-              </label>
-              <label>
-                <span>Contact Number *</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.wardenContact}
-                  onChange={(e) => updateDraftField('wardenContact', e.target.value)}
-                />
-                {formErrors.wardenContact ? <small style={{ color: '#dc2626' }}>{formErrors.wardenContact}</small> : null}
-              </label>
-              <label>
-                <span>Alternate Contact</span>
-                <input
-                  type="text"
-                  className="search-input"
-                  value={draft.contact}
-                  onChange={(e) => updateDraftField('contact', e.target.value)}
-                />
-              </label>
-              <label className="full-span">
-                <span>Notes</span>
-                <textarea
-                  className="search-input textarea-like"
-                  rows={2}
-                  value={draft.notes}
-                  onChange={(e) => updateDraftField('notes', e.target.value)}
-                />
-              </label>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Details</div>
+              <div className="asset-form-grid basic-grid">
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.name ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.name}
+                      onChange={(e) => updateDraftField('name', e.target.value)}
+                    />
+                    <span className="float-label">Name <span className="req">*</span></span>
+                  </div>
+                  {formErrors.name && <span className="field-error">{formErrors.name}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.code ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.code}
+                      onChange={(e) => updateDraftField('code', e.target.value)}
+                      disabled={isEditing}
+                    />
+                    <span className="float-label">Code {isEditing ? '' : <span className="req">*</span>}</span>
+                  </div>
+                  {formErrors.code && <span className="field-error">{formErrors.code}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.location}
+                      onChange={(e) => updateDraftField('location', e.target.value)}
+                    />
+                    <span className="float-label">Location</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.capacity ? 'has-error' : ''}`}>
+                    <input
+                      type="number"
+                      min="1"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.capacity}
+                      onChange={(e) => updateDraftField('capacity', e.target.value)}
+                    />
+                    <span className="float-label">Total Capacity <span className="req">*</span></span>
+                  </div>
+                  {formErrors.capacity && <span className="field-error">{formErrors.capacity}</span>}
+                </label>
+                <label className="field-cell full-span">
+                  <div className={`float-field ${formErrors.address ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.address}
+                      onChange={(e) => updateDraftField('address', e.target.value)}
+                    />
+                    <span className="float-label">Address <span className="req">*</span></span>
+                  </div>
+                  {formErrors.address && <span className="field-error">{formErrors.address}</span>}
+                </label>
+              </div>
             </div>
 
-            <div style={{ marginTop: 16 }}>
-              <div className="page-header-section" style={{ marginBottom: 8 }}>
-                <div>
-                  <h3 style={{ fontSize: 16, margin: 0 }}>Houses</h3>
-                  <p style={{ fontSize: 12, margin: 0 }}>Define the houses/rooms inside this residence.</p>
-                </div>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-user" /> Contact</div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.wardenName ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.wardenName}
+                      onChange={(e) => updateDraftField('wardenName', e.target.value)}
+                    />
+                    <span className="float-label">Contact Person <span className="req">*</span></span>
+                  </div>
+                  {formErrors.wardenName && <span className="field-error">{formErrors.wardenName}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className={`float-field ${formErrors.wardenContact ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.wardenContact}
+                      onChange={(e) => updateDraftField('wardenContact', e.target.value)}
+                    />
+                    <span className="float-label">Contact Number <span className="req">*</span></span>
+                  </div>
+                  {formErrors.wardenContact && <span className="field-error">{formErrors.wardenContact}</span>}
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={draft.contact}
+                      onChange={(e) => updateDraftField('contact', e.target.value)}
+                    />
+                    <span className="float-label">Alternate Contact</span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea
+                      className="float-control"
+                      placeholder=" "
+                      rows={2}
+                      value={draft.notes}
+                      onChange={(e) => updateDraftField('notes', e.target.value)}
+                    />
+                    <span className="float-label">Notes</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span><i className="ti ti-building-community" /> Houses</span>
                 <button type="button" className="legacy-btn legacy-btn-success" onClick={addHouseRow}>
                   <i className="ti ti-plus" /> Add House
                 </button>
               </div>
+              <p className="field-hint" style={{ margin: '0 0 8px' }}>Define the houses/rooms inside this residence.</p>
               <div className="students-table-container" style={{ marginTop: 0 }}>
                 <table className="students-table">
                   <thead>
@@ -964,14 +1051,15 @@ export default function ResidenceManagementPage() {
               </div>
             </div>
           </div>
-          <div className="legacy-modal-footer" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', padding: 16 }}>
-            <button type="button" className="legacy-btn" disabled={isSaving} onClick={() => setFormModalOpen(false)}>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" disabled={isSaving} onClick={() => setFormModalOpen(false)}>
               Cancel
             </button>
-            <button type="button" className="legacy-btn legacy-btn-success" disabled={isSaving} onClick={handleSave}>
+            <button type="submit" className="legacy-btn legacy-btn-success" disabled={isSaving}>
               {isSaving ? (<><i className="ti ti-reload" /> Saving...</>) : (<><i className="ti ti-check" /> {isEditing ? 'Save Changes' : 'Create Residence'}</>)}
             </button>
           </div>
+          </form>
         </div>
       </div>
 
@@ -979,7 +1067,14 @@ export default function ResidenceManagementPage() {
       <div className={`legacy-modal-backdrop ${detailsModalOpen ? 'active' : ''}`} onClick={() => setDetailsModalOpen(false)}>
         <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <div className="legacy-modal-header">
-            <h3>{selectedResidence?.name || 'Residence Details'}</h3>
+            <div className="rd-header-titles">
+              <h3><i className="ti ti-building-community" />{selectedResidence?.name || 'Residence Details'}</h3>
+              {selectedResidence && (selectedResidence.code || selectedResidence.location) ? (
+                <div className="rd-header-sub">
+                  {[selectedResidence.code, selectedResidence.location].filter(Boolean).join(' · ')}
+                </div>
+              ) : null}
+            </div>
             <button type="button" className="legacy-modal-close" onClick={() => setDetailsModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
@@ -993,63 +1088,65 @@ export default function ResidenceManagementPage() {
               </div>
             ) : selectedResidence ? (
               <>
-                <div className="batch-form-grid">
-                  <div>
-                    <small>Code</small>
-                    <div className="batch-name">{selectedResidence.code || '—'}</div>
-                  </div>
-                  <div>
-                    <small>Location</small>
-                    <div className="batch-name">{selectedResidence.location || '—'}</div>
-                  </div>
-                  <div className="full-span">
-                    <small>Address</small>
-                    <div>{selectedResidence.address || '—'}</div>
-                  </div>
-                  <div>
-                    <small>Contact Person</small>
-                    <div>{selectedResidence.wardenName || '—'}</div>
-                  </div>
-                  <div>
-                    <small>Contact Number</small>
-                    <div>{selectedResidence.wardenContact || '—'}</div>
-                  </div>
-                  <div>
-                    <small>Created</small>
-                    <div>{formatDate(selectedResidence.createdAt || selectedResidence.dateCreated)}</div>
-                  </div>
-                  <div>
-                    <small>Status</small>
-                    <div>
-                      <span className={`batch-status ${getStatusClass(getResidenceStatus(selectedResidence))}`}>
-                        {getResidenceStatus(selectedResidence)}
-                      </span>
+                <div className="rd-content-top">
+                  <div className="rd-stats-inline">
+                    <div className="rd-stat">
+                      <span className="rd-stat-val">{getCapacity(selectedResidence)}</span>
+                      <span className="rd-stat-lbl">Capacity</span>
+                    </div>
+                    <div className="rd-stat">
+                      <span className="rd-stat-val" style={{ color: '#d97706' }}>{getOccupied(selectedResidence)}</span>
+                      <span className="rd-stat-lbl">Occupied</span>
+                    </div>
+                    <div className="rd-stat">
+                      <span className="rd-stat-val" style={{ color: '#059669' }}>{getAvailable(selectedResidence)}</span>
+                      <span className="rd-stat-lbl">Available</span>
                     </div>
                   </div>
+                  <span className={`rd-status-pill ${isOperational(selectedResidence) ? 'is-on' : 'is-off'}`}>
+                    <span className="rd-status-dot-sm" />
+                    {isOperational(selectedResidence) ? 'Operational' : 'Shut Down'}
+                  </span>
+                </div>
+                {(() => {
+                  const cap = getCapacity(selectedResidence);
+                  const occ = getOccupied(selectedResidence);
+                  const pct = cap > 0 ? Math.min(100, Math.round((occ / cap) * 100)) : 0;
+                  return (
+                    <div className="rd-occupancy-progress">
+                      <div className="rd-progress">
+                        <div
+                          className="rd-progress-fill"
+                          style={{ width: `${pct}%`, background: pct >= 90 ? '#dc2626' : pct >= 70 ? '#d97706' : '#059669' }}
+                        />
+                      </div>
+                      <div className="rd-progress-label">{pct}% occupied</div>
+                    </div>
+                  );
+                })()}
+
+                <div className="rd-info-grid">
+                  <InfoItem icon="ti-map-pin" label="Location" value={selectedResidence.location} />
+                  <InfoItem icon="ti-home" label="Address" value={selectedResidence.address} />
+                  <InfoItem
+                    icon="ti-user"
+                    label="Contact Person"
+                    value={selectedResidence.wardenName
+                      ? `${selectedResidence.wardenName}${selectedResidence.wardenContact ? ` (${selectedResidence.wardenContact})` : ''}`
+                      : ''}
+                  />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, margin: '16px 0' }}>
-                  <OccupancyCard label="Total Capacity" value={getCapacity(selectedResidence)} color="#0891b2" />
-                  <OccupancyCard label="Occupied" value={getOccupied(selectedResidence)} color="#d97706" />
-                  <OccupancyCard label="Available" value={getAvailable(selectedResidence)} color="#059669" />
-                </div>
-
-                <div className="page-header-section" style={{ marginBottom: 8 }}>
-                  <div>
-                    <h3 style={{ fontSize: 16, margin: 0 }}>Houses</h3>
-                    <p style={{ fontSize: 12, margin: 0 }}>Live occupancy by house.</p>
-                  </div>
-                </div>
                 <div className="students-table-container">
                   <table className="students-table">
                     <thead>
                       <tr>
                         <th>House</th>
                         <th className="center-align">Floor</th>
-                        <th className="center-align">Capacity</th>
                         <th className="center-align">Occupied</th>
-                        <th className="center-align">Available</th>
+                        <th className="center-align">Availability</th>
                         <th>Amenities</th>
+                        <th className="center-align" />
                       </tr>
                     </thead>
                     <tbody>
@@ -1064,9 +1161,8 @@ export default function ResidenceManagementPage() {
                           <tr key={h.house}>
                             <td><div className="batch-name">{h.house}</div></td>
                             <td className="center-align">{h.floor ?? '—'}</td>
-                            <td className="center-align">{hCap}</td>
                             <td className="center-align">
-                              {hOcc}
+                              {hOcc} / {hCap}
                               <div aria-hidden="true" style={{
                                 width: 80, height: 6, background: 'rgba(0,0,0,0.08)', borderRadius: 999,
                                 overflow: 'hidden', margin: '4px auto 0',
@@ -1084,9 +1180,21 @@ export default function ResidenceManagementPage() {
                               ) : hAvail}
                             </td>
                             <td>
-                              {parseAmenities(h.amenities).map((a) => (
-                                <span key={a} className="batch-course-badge" style={{ marginRight: 4 }}>{a}</span>
-                              ))}
+                              <div className="rd-amenities">
+                                {parseAmenities(h.amenities).map((a) => (
+                                  <span key={a} className="rd-amenity-chip">{a}</span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="center-align">
+                              <button
+                                type="button"
+                                className="rd-link-btn"
+                                disabled={hOcc === 0}
+                                onClick={() => selectedResidence && openStudentsModal(selectedResidence, h.house)}
+                              >
+                                View Inmates
+                              </button>
                             </td>
                           </tr>
                         );
@@ -1101,7 +1209,7 @@ export default function ResidenceManagementPage() {
             <button type="button" className="legacy-btn" onClick={() => setDetailsModalOpen(false)}>Close</button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" className="legacy-btn" onClick={() => selectedResidence && openStudentsModal(selectedResidence)}>
-                <i className="ti ti-user" /> Manage Students
+                <i className="ti ti-users" /> View Residents
               </button>
               <button type="button" className="legacy-btn legacy-btn-success" onClick={() => selectedResidence && openEditModal(selectedResidence)}>
                 <i className="ti ti-pencil" /> Edit
@@ -1115,7 +1223,12 @@ export default function ResidenceManagementPage() {
       <div className={`legacy-modal-backdrop ${studentsModalOpen ? 'active' : ''}`} onClick={() => setStudentsModalOpen(false)}>
         <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <div className="legacy-modal-header">
-            <h3>Students · {selectedResidence?.name || ''}</h3>
+            <div className="rd-header-titles">
+              <h3>Residents · {selectedResidence?.name || ''}</h3>
+              {studentHouseFilter ? (
+                <div className="rd-header-sub">House: {studentHouseFilter}</div>
+              ) : null}
+            </div>
             <button type="button" className="legacy-modal-close" onClick={() => setStudentsModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
@@ -1125,32 +1238,36 @@ export default function ResidenceManagementPage() {
               <div className="search-wrapper">
                 <i
                   className={`ti ${studentSearch ? 'ti-close' : 'ti-search'}`}
-                  onClick={() => setStudentSearch('')}
+                  onClick={() => { setStudentSearch(''); setStudentPage(1); }}
                   aria-hidden="true"
                 />
                 <input
                   type="text"
                   className="search-input"
                   value={studentSearch}
-                  onChange={(e) => setStudentSearch(e.target.value)}
-                  placeholder="Search students..."
+                  onChange={(e) => { setStudentSearch(e.target.value); setStudentPage(1); }}
+                  placeholder="Search residents by name or mobile..."
                 />
               </div>
-              <button type="button" className="create-batch-button" onClick={openMapDrawer}>
-                <i className="ti ti-plus" /> Allot Student
-              </button>
+              <FilterDropdown
+                label="All Inmates"
+                value={studentHouseFilter}
+                options={[
+                  { value: '', label: 'All Inmates' },
+                  ...houses.map((h) => ({ value: h.house, label: `${h.house} Inmates` })),
+                ]}
+                onChange={(value) => { setStudentHouseFilter(value); setStudentPage(1); }}
+              />
             </div>
 
             <div className="students-table-container">
               <table className="students-table">
                 <thead>
                   <tr>
-                    <th>Candidate ID</th>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Accommodation</th>
+                    <th>Inmate</th>
+                    <th>Guardian Contact</th>
                     <th>House</th>
-                    <th>Mapped Date</th>
+                    <th>Allotted On</th>
                     <th className="center-align actions-column">Actions</th>
                   </tr>
                 </thead>
@@ -1158,19 +1275,17 @@ export default function ResidenceManagementPage() {
                   {studentsLoading ? (
                     Array.from({ length: 5 }, (_, i) => (
                       <tr key={`stsk-${i}`}>
-                        {Array.from({ length: 7 }, (_, j) => (
+                        {Array.from({ length: 5 }, (_, j) => (
                           <td key={j}><div className="batch-skeleton medium" /></td>
                         ))}
                       </tr>
                     ))
                   ) : residenceStudents.length === 0 ? (
-                    <tr><td colSpan={7} className="center-align muted">No students mapped yet.</td></tr>
-                  ) : residenceStudents.map((s) => (
+                    <tr><td colSpan={5} className="center-align muted">No students mapped yet.</td></tr>
+                  ) : pagedStudents.map((s) => (
                     <tr key={s.candidateId ?? s.id}>
-                      <td>{s.candidateId ?? s.id}</td>
                       <td><div className="batch-name">{s.name || s.candidateName}</div></td>
                       <td>{s.mobile || s.phone || '—'}</td>
-                      <td>{s.accommodationType || '—'}</td>
                       <td>{s.house || '—'}</td>
                       <td>{formatDate(s.mappedDate || s.mappedAt || s.createdAt)}</td>
                       <td className="center-align">
@@ -1182,6 +1297,39 @@ export default function ResidenceManagementPage() {
                   ))}
                 </tbody>
               </table>
+
+              {!studentsLoading && studentTotal > 0 && (
+                <div className="pagination-container">
+                  <div className="pagination-info">
+                    <span>Showing {studentShowingStart} to {studentShowingEnd} of {studentTotal} residents</span>
+                  </div>
+                  {studentTotalPages > 1 && (
+                    <div className="pagination-controls">
+                      <button type="button" className="pagination-btn" disabled={studentSafePage === 1} onClick={() => setStudentPage((p) => Math.max(1, p - 1))}>
+                        <i className="ti ti-angle-left" /> Previous
+                      </button>
+                      {studentPaginationPages.map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          className={`pagination-btn ${studentSafePage === p ? 'active' : ''}`}
+                          onClick={() => setStudentPage(p)}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="pagination-btn"
+                        disabled={studentSafePage === studentTotalPages}
+                        onClick={() => setStudentPage((p) => Math.min(studentTotalPages, p + 1))}
+                      >
+                        Next <i className="ti ti-angle-right" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="legacy-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', padding: 16 }}>
@@ -1192,7 +1340,7 @@ export default function ResidenceManagementPage() {
 
       {/* ── Map Student Drawer ────────────────────────────────────────── */}
       <div className={`legacy-modal-backdrop ${mapDrawerOpen ? 'active' : ''}`} onClick={() => !isMapping && setMapDrawerOpen(false)}>
-        <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className="legacy-modal-dialog form-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <div className="legacy-modal-header">
             <h3>Allot Student to {selectedResidence?.name || ''}</h3>
             <button type="button" className="legacy-modal-close" onClick={() => !isMapping && setMapDrawerOpen(false)}>
@@ -1200,69 +1348,104 @@ export default function ResidenceManagementPage() {
             </button>
           </div>
           <div className="legacy-modal-body">
-            <label style={{ display: 'block', marginBottom: 12 }}>
-              <span>Search Student</span>
-              <input
-                type="text"
-                className="search-input"
-                value={candidateQuery}
-                onChange={(e) => setCandidateQuery(e.target.value)}
-                placeholder="Search by name, mobile or ID..."
-              />
-            </label>
-            <div className="students-table-container" style={{ maxHeight: 240, overflowY: 'auto' }}>
-              <table className="students-table">
-                <thead>
-                  <tr>
-                    <th>&nbsp;</th>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {candidatesLoading ? (
-                    <tr><td colSpan={3} className="center-align muted">Loading...</td></tr>
-                  ) : candidates.length === 0 ? (
-                    <tr><td colSpan={3} className="center-align muted">Type to search students</td></tr>
-                  ) : candidates.map((c) => (
-                    <tr
-                      key={c.id}
-                      onClick={() => setSelectedCandidate(c)}
-                      className={selectedCandidate?.id === c.id ? 'row-active-menu' : ''}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <td className="center-align">
-                        <input type="radio" readOnly checked={selectedCandidate?.id === c.id} />
-                      </td>
-                      <td><div className="batch-name">{c.name}</div></td>
-                      <td>{c.mobile || c.phone || '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-user-search" /> Select Student</div>
+              <div className="residence-typeahead" ref={candidateBoxRef} style={{ position: 'relative' }}>
+                <div className="float-field">
+                  <input
+                    type="text"
+                    className="float-control"
+                    placeholder=" "
+                    value={candidateQuery}
+                    onChange={(e) => {
+                      setCandidateQuery(e.target.value);
+                      setSelectedCandidate(null);
+                      setCandidatesOpen(true);
+                    }}
+                    onFocus={() => setCandidatesOpen(true)}
+                    autoComplete="off"
+                    style={{ paddingRight: 34 }}
+                  />
+                  <span className="float-label">Search by name, mobile or ID</span>
+                  <button
+                    type="button"
+                    className="residence-typeahead-icon"
+                    tabIndex={-1}
+                    onClick={() => (candidateQuery || selectedCandidate ? clearCandidate() : setCandidatesOpen(true))}
+                    title={candidateQuery ? 'Clear' : 'Search'}
+                    style={{
+                      position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                      background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4,
+                    }}
+                  >
+                    <i className={`ti ${candidateQuery ? 'ti-close' : 'ti-search'}`} />
+                  </button>
+                </div>
+
+                {candidatesOpen && (
+                  <div
+                    className="residence-typeahead-menu"
+                    style={{
+                      position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                      background: '#fff', border: '1px solid var(--line, rgba(0,0,0,0.12))', borderRadius: 8,
+                      boxShadow: '0 14px 38px rgba(0,0,0,0.12)', zIndex: 30,
+                      maxHeight: 260, overflowY: 'auto',
+                    }}
+                  >
+                    {candidatesLoading ? (
+                      <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--muted)' }}>
+                        <i className="ti ti-reload" style={{ marginRight: 6 }} />Searching…
+                      </div>
+                    ) : candidates.length === 0 ? (
+                      <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--muted)' }}>
+                        {candidateQuery.trim() ? `No students found for “${candidateQuery.trim()}”` : 'Type to search students'}
+                      </div>
+                    ) : candidates.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); pickCandidate(c); }}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                          width: '100%', textAlign: 'left', background: selectedCandidate?.id === c.id ? '#f1f9fb' : '#fff',
+                          border: 'none', borderTop: '1px solid #f3f5f6', cursor: 'pointer', padding: '8px 12px',
+                        }}
+                      >
+                        <span className="batch-name">{c.name}</span>
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{c.mobile || c.phone || '—'}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <label style={{ display: 'block', marginTop: 12 }}>
-              <span>Select House</span>
-              <select
-                className="search-input"
-                value={selectedHouse}
-                onChange={(e) => setSelectedHouse(e.target.value)}
-              >
-                <option value="">Choose a house...</option>
-                {houses.map((h) => {
-                  const hCap = Number(h.capacity || 0);
-                  const hOcc = Number(h.occupied ?? h.occupiedCount ?? 0);
-                  const hAvail = Number(h.available ?? h.availableCount ?? Math.max(0, hCap - hOcc));
-                  const disabled = hAvail <= 0;
-                  return (
-                    <option key={h.house} value={h.house} disabled={disabled}>
-                      {h.house} — {hAvail}/{hCap} available{disabled ? ' (Full)' : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-building-community" /> Assign House</div>
+              <label className="field-cell">
+                <div className="float-field float-always">
+                  <select
+                    className="float-control"
+                    value={selectedHouse}
+                    onChange={(e) => setSelectedHouse(e.target.value)}
+                  >
+                    <option value="">Choose a house...</option>
+                    {houses.map((h) => {
+                      const hCap = Number(h.capacity || 0);
+                      const hOcc = Number(h.occupied ?? h.occupiedCount ?? 0);
+                      const hAvail = Number(h.available ?? h.availableCount ?? Math.max(0, hCap - hOcc));
+                      const disabled = hAvail <= 0;
+                      return (
+                        <option key={h.house} value={h.house} disabled={disabled}>
+                          {h.house} — {hAvail}/{hCap} available{disabled ? ' (Full)' : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span className="float-label">House <span className="req">*</span></span>
+                </div>
+              </label>
+            </div>
           </div>
           <div className="legacy-modal-footer" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', padding: 16 }}>
             <button type="button" className="legacy-btn" disabled={isMapping} onClick={() => setMapDrawerOpen(false)}>Cancel</button>
@@ -1302,16 +1485,14 @@ export default function ResidenceManagementPage() {
   );
 }
 
-function OccupancyCard({ label, value, color }) {
+function InfoItem({ icon, label, value, full }) {
   return (
-    <div style={{
-      border: '1px solid rgba(0,0,0,0.08)',
-      borderRadius: 8,
-      padding: 12,
-      background: '#fff',
-    }}>
-      <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color, marginTop: 4 }}>{value}</div>
+    <div className={`rd-info-item ${full ? 'rd-info-full' : ''}`}>
+      <span className="rd-info-icon"><i className={`ti ${icon}`} /></span>
+      <div className="rd-info-text">
+        <small>{label}</small>
+        <div className="rd-info-value">{value || '—'}</div>
+      </div>
     </div>
   );
 }

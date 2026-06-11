@@ -1779,58 +1779,6 @@ input {
   box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.08);
 }
 
-.candidate-filter-dropdown {
-  position: relative;
-}
-
-.candidate-filter-dropdown:hover .candidate-filter-dropdown-menu {
-  display: block;
-}
-
-.candidate-profile-page .filter-dropdown-btn {
-  min-width: 146px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.candidate-filter-dropdown-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 150px;
-  background: white;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  z-index: 10;
-  padding: 6px 0;
-}
-
-.candidate-filter-dropdown-menu button {
-  width: 100%;
-  padding: 10px 14px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: #334155;
-}
-
-.candidate-filter-dropdown-menu button:hover {
-  background: #f8fafc;
-}
-
 .candidate-profile-page .student-name-cell {
   display: flex;
   align-items: center;
@@ -2090,7 +2038,9 @@ input {
 
 /* When a <form> wraps the body + footer, it becomes the dialog's flex child,
    so it must pass the height constraint through for the body to scroll. */
-.batch-modal-form {
+.batch-modal-form,
+.residence-modal-form,
+.catalog-modal-form {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -3010,6 +2960,21 @@ input {
   font-size: 15px;
 }
 
+.field-static-label {
+  margin: 0 0 8px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field-hint-inline {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .asset-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3378,59 +3343,6 @@ input {
   transform: translateY(-2px);
 }
 
-.mentor-profiles-page .filter-dropdown {
-  position: relative;
-}
-
-.mentor-profiles-page .filter-dropdown-btn {
-  min-width: 210px;
-  height: 44px;
-  padding: 0 16px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.mentor-profiles-page .mentor-filter-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 230px;
-  display: none;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  overflow: hidden;
-  z-index: 20;
-}
-
-.mentor-profiles-page .mentor-filter-menu.active {
-  display: block;
-}
-
-.mentor-profiles-page .mentor-filter-menu button {
-  width: 100%;
-  padding: 11px 14px;
-  border: 0;
-  background: transparent;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.mentor-profiles-page .mentor-filter-menu button:hover {
-  background: #f8fafc;
-}
-
 .mentor-profiles-page .mentors-table-container {
   background: white;
   border-radius: 8px;
@@ -3531,6 +3443,17 @@ input {
 
 .mentor-profiles-page .students-count-badge i {
   font-size: 15px;
+}
+
+.mentor-profiles-page .students-count-empty {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .mentor-profiles-page .mentor-actions-cell {
@@ -4097,59 +4020,6 @@ input {
 .instructor-portfolio-page .create-instructor-button:hover {
   background: #ffa500;
   transform: translateY(-2px);
-}
-
-.instructor-portfolio-page .filter-dropdown {
-  position: relative;
-}
-
-.instructor-portfolio-page .filter-dropdown-btn {
-  min-width: 210px;
-  height: 44px;
-  padding: 0 16px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.instructor-portfolio-page .instructor-filter-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 210px;
-  display: none;
-  overflow: hidden;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  z-index: 20;
-}
-
-.instructor-portfolio-page .instructor-filter-menu.active {
-  display: block;
-}
-
-.instructor-portfolio-page .instructor-filter-menu button {
-  width: 100%;
-  padding: 11px 14px;
-  border: 0;
-  background: transparent;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.instructor-portfolio-page .instructor-filter-menu button:hover {
-  background: #f8fafc;
 }
 
 .instructor-portfolio-page .profile-cell {
@@ -4927,59 +4797,6 @@ input {
   box-shadow: 0 0 10px rgba(0, 96, 115, 0.3);
 }
 
-.exam-listing-page .filter-dropdown {
-  position: relative;
-}
-
-.exam-listing-page .filter-dropdown-btn {
-  min-width: 180px;
-  height: 46px;
-  padding: 0 16px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.exam-listing-page .exam-filter-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 180px;
-  display: none;
-  overflow: hidden;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  z-index: 20;
-}
-
-.exam-listing-page .exam-filter-menu.active {
-  display: block;
-}
-
-.exam-listing-page .exam-filter-menu button {
-  width: 100%;
-  padding: 11px 14px;
-  border: 0;
-  background: transparent;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.exam-listing-page .exam-filter-menu button:hover {
-  background: #f8fafc;
-}
-
 .exam-listing-page .exam-id {
   color: #006073;
   font-weight: 600;
@@ -5420,59 +5237,6 @@ input {
 
 .quiz-listing-page .attempt-search .search-input {
   padding-left: 15px;
-}
-
-.quiz-listing-page .filter-dropdown {
-  position: relative;
-}
-
-.quiz-listing-page .filter-dropdown-btn {
-  min-width: 180px;
-  height: 46px;
-  padding: 0 16px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.quiz-listing-page .quiz-filter-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 180px;
-  display: none;
-  overflow: hidden;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  z-index: 30;
-}
-
-.quiz-listing-page .quiz-filter-menu.active {
-  display: block;
-}
-
-.quiz-listing-page .quiz-filter-menu button {
-  width: 100%;
-  padding: 11px 14px;
-  border: 0;
-  background: transparent;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.quiz-listing-page .quiz-filter-menu button:hover {
-  background: #f8fafc;
 }
 
 .quiz-listing-page .quiz-list-table {
@@ -6551,13 +6315,22 @@ input {
   box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
 }
 
-.orders-page .filter-dropdown {
+/* ── Shared filter dropdown ───────────────────────────────────────────────
+   Standard design for filter dropdowns placed inline next to a search bar.
+   Rendered by src/components/FilterDropdown.jsx. Single source of truth — do
+   not re-style these classes per page. */
+.filter-dropdown {
   position: relative;
 }
 
-.orders-page .filter-dropdown-btn {
-  min-width: 180px;
-  height: 46px;
+.filter-dropdown-btn {
+  min-width: 160px;
+  max-width: 240px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 0 16px;
   border: 1px solid #d9e2e7;
   border-radius: 8px;
@@ -6565,43 +6338,86 @@ input {
   color: #334155;
   cursor: pointer;
   font: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  font-size: 14px;
+  transition: border-color 0.2s;
 }
 
-.orders-page .orders-filter-menu {
+.filter-dropdown-btn:hover {
+  border-color: #006073;
+}
+
+.filter-dropdown-btn.open,
+.filter-dropdown-btn.active {
+  border-color: #006073;
+  color: #006073;
+  background: #f0fafb;
+}
+
+.filter-dropdown-btn > .ti {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.filter-dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   min-width: 190px;
   display: none;
   overflow: hidden;
+  padding: 4px 0;
   border: 1px solid #d9e2e7;
   border-radius: 8px;
   background: white;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  z-index: 30;
+  z-index: 50;
 }
 
-.orders-page .orders-filter-menu.active {
+.filter-dropdown-menu.active {
   display: block;
 }
 
-.orders-page .orders-filter-menu button {
+.filter-dropdown-menu.align-right {
+  left: auto;
+  right: 0;
+}
+
+.filter-dropdown-item {
   width: 100%;
-  padding: 11px 14px;
+  display: block;
+  padding: 10px 14px;
   border: 0;
   background: transparent;
   color: #334155;
   cursor: pointer;
   font: inherit;
+  font-size: 14px;
   text-align: left;
 }
 
-.orders-page .orders-filter-menu button:hover {
+.filter-dropdown-item:hover {
   background: #f8fafc;
+}
+
+.filter-dropdown-item.active {
+  color: #006073;
+  font-weight: 600;
+  background: #f0fafb;
+}
+
+.filter-dropdown-group {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .orders-page .crispr-table-container {
@@ -7455,70 +7271,6 @@ input {
   box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
 }
 
-.video-content-page .filter-dropdown {
-  position: relative;
-}
-
-.video-content-page .filter-dropdown-btn {
-  min-width: 160px;
-  height: 44px;
-  padding: 0 14px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  transition: border-color 0.2s;
-}
-
-.video-content-page .filter-dropdown-btn:hover {
-  border-color: #006073;
-}
-
-.video-content-page .filter-dropdown-btn.active {
-  border-color: #006073;
-  color: #006073;
-  background: #f0fafb;
-}
-
-.video-content-page .filter-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 180px;
-  list-style: none;
-  margin: 0;
-  padding: 4px 0;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  z-index: 50;
-}
-
-.video-content-page .filter-dropdown-menu li {
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #334155;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.video-content-page .filter-dropdown-menu li:hover {
-  background: #f8fafc;
-}
-
-.video-content-page .filter-dropdown-menu li.active {
-  color: #006073;
-  font-weight: 600;
-  background: #f0fafb;
-}
 
 /* Table */
 .video-content-page .crispr-table-container {
@@ -8384,88 +8136,6 @@ input {
   margin-top: 4px;
 }
 
-/* Filter bar — mirrors candidate-profile-page */
-.question-bank-page .filter-dropdown {
-  position: relative;
-}
-
-.question-bank-page .filter-dropdown-btn {
-  min-width: 155px;
-  max-width: 220px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  background: white;
-  color: #334155;
-  cursor: pointer;
-  font: inherit;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.question-bank-page .filter-dropdown-btn:hover {
-  border-color: #006073;
-}
-
-.question-bank-page .filter-dropdown-btn.active {
-  border-color: #006073;
-  color: #006073;
-  background: #f0fafb;
-}
-
-.question-bank-page .filter-dropdown-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.question-bank-page .filter-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 200px;
-  list-style: none;
-  margin: 0;
-  padding: 4px 0;
-  background: white;
-  border: 1px solid #d9e2e7;
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  z-index: 50;
-}
-
-.question-bank-page .filter-dropdown-menu li {
-  padding: 9px 14px;
-  font-size: 13px;
-  color: #334155;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-
-.question-bank-page .filter-dropdown-menu li:hover {
-  background: #f8fafc;
-}
-
-.question-bank-page .filter-dropdown-menu li.active {
-  color: #006073;
-  font-weight: 600;
-  background: #f0fafb;
-}
-
-.question-bank-page .filter-dropdown-group {
-  padding: 7px 14px 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: default !important;
-  background: transparent !important;
-}
 
 .question-bank-page .students-table tbody tr:last-child td {
   border-bottom: none;
@@ -11022,7 +10692,6 @@ input {
 .ba-folder-item {
          padding: 12px 15px;
          cursor: pointer;
-         transition: all 0.2s ease;
          display: flex;
          align-items: center;
          gap: 12px;
@@ -11036,13 +10705,12 @@ input {
 .ba-folder-item:hover {
          background: #f9fafb;
          color: #006073;
-         transform: translateX(5px);
       }
 
 .ba-folder-item.ba-active {
          background: #e5faff;
          color: #006073;
-         border-left: 3px solid #006073;
+         box-shadow: inset 3px 0 0 0 #006073;
          font-weight: 600;
       }
 
@@ -12839,6 +12507,17 @@ input {
     background: #c82333;
 }
 
+.crispr-modal-footer .btn-primary {
+    background: #03a9f4;
+    border-color: #03a9f4;
+    color: #ffffff;
+}
+
+.crispr-modal-footer .btn-primary:hover {
+    background: #0286c2;
+    border-color: #027fb8;
+}
+
 /* Form Styles used in Modals */
 .form-section {
     margin-bottom: 24px;
@@ -14247,13 +13926,46 @@ input {
   font-style: normal;
 }
 
+.compose-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.compose-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 10px rgba(0, 96, 115, 0.25);
+}
+
+.compose-btn:active {
+  animation: compose-pop 0.32s ease;
+}
+
+@keyframes compose-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.88); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
 .admin-reply-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--brand, #006073);
+  color: rgba(255, 255, 255, 0.7);
   font-style: normal;
 }
 
@@ -15687,4 +15399,275 @@ input {
   font-weight: 400;
   color: #94a3b8;
   line-height: 1.3;
+}
+
+/* ── Residence Details modal ─────────────────────────────────────── */
+.rd-header-titles {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-header-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rd-occupancy-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
+}
+
+.rd-occupancy-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rd-occupancy-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rd-occupancy-title i {
+  color: #006073;
+  font-size: 18px;
+}
+
+.rd-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rd-status-pill .rd-status-dot-sm {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.rd-status-pill.is-on {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.rd-status-pill.is-on .rd-status-dot-sm {
+  background: #059669;
+}
+
+.rd-status-pill.is-off {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.rd-status-pill.is-off .rd-status-dot-sm {
+  background: #dc2626;
+}
+
+.rd-occupancy-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.rd-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #eef2f6;
+}
+
+.rd-stat-val {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.rd-stat-lbl {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.rd-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.rd-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.rd-progress-label {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #64748b;
+  text-align: right;
+}
+
+.rd-content-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rd-stats-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.rd-occupancy-progress {
+  margin-bottom: 16px;
+}
+
+.rd-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 24px;
+  margin-bottom: 22px;
+}
+
+.rd-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rd-info-item.rd-info-full {
+  grid-column: 1 / -1;
+}
+
+.rd-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #ecf5f7;
+  color: #006073;
+  font-size: 17px;
+}
+
+.rd-info-text {
+  min-width: 0;
+}
+
+.rd-info-text small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.rd-info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.rd-section-head {
+  margin-bottom: 10px;
+}
+
+.rd-section-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rd-section-head h3 i {
+  color: #006073;
+  font-size: 17px;
+}
+
+.rd-section-head p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.rd-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #006073;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rd-link-btn:hover {
+  color: #00455a;
+}
+
+.rd-link-btn:disabled {
+  color: #94a3b8;
+  text-decoration: none;
+  cursor: not-allowed;
+}
+
+.rd-amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rd-amenity-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: transparent;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
 }

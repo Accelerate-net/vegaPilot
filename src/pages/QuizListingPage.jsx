@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { draftQuizzesDemo, publishedQuizzesDemo, withSampleAttempts } from '../data/quizzesDemo';
@@ -112,7 +113,6 @@ export default function QuizListingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [activeKebabId, setActiveKebabId] = useState(null);
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizToDelete, setQuizToDelete] = useState(null);
   const [quizToPublish, setQuizToPublish] = useState(null);
@@ -122,13 +122,11 @@ export default function QuizListingPage() {
   const [toasts, setToasts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const kebabRef = useRef(null);
-  const filterRef = useRef(null);
   const toastIdRef = useRef(0);
 
   useEffect(() => {
     const closeMenus = (event) => {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) setActiveKebabId(null);
-      if (filterRef.current && !filterRef.current.contains(event.target)) setFilterMenuOpen(false);
     };
     document.addEventListener('click', closeMenus);
     return () => document.removeEventListener('click', closeMenus);
@@ -218,7 +216,6 @@ export default function QuizListingPage() {
   const attemptsStart = totalAttempts === 0 ? 0 : (visibleAttemptsPage - 1) * attemptsPageSize;
   const paginatedAttempts = filteredAttempts.slice(attemptsStart, attemptsStart + attemptsPageSize);
   const attemptStats = getAttemptStats(attemptsQuiz?.attempts);
-  const selectedTabLabel = currentTab === 'published' ? 'Published' : currentTab === 'draft' ? 'Drafts' : 'All Quizzes';
 
   return (
     <section className="quiz-listing-page data-table-page">
@@ -254,38 +251,16 @@ export default function QuizListingPage() {
               }}
             />
           </div>
-          <div className="filter-dropdown" ref={filterRef}>
-            <button
-              type="button"
-              className="filter-dropdown-btn"
-              onClick={(event) => {
-                event.stopPropagation();
-                setFilterMenuOpen((current) => !current);
-              }}
-            >
-              {selectedTabLabel}
-              <i className="ti ti-angle-down" />
-            </button>
-            <div className={`quiz-filter-menu ${filterMenuOpen ? 'active' : ''}`}>
-              {[
-                ['all', 'All Quizzes'],
-                ['published', 'Published'],
-                ['draft', 'Drafts'],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    setCurrentTab(value);
-                    setCurrentPage(1);
-                    setFilterMenuOpen(false);
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterDropdown
+            label="All Quizzes"
+            value={currentTab}
+            options={[
+              { value: 'all', label: 'All Quizzes' },
+              { value: 'published', label: 'Published' },
+              { value: 'draft', label: 'Drafts' },
+            ]}
+            onChange={(value) => { setCurrentTab(value); setCurrentPage(1); }}
+          />
         </div>
       ) : null}
 

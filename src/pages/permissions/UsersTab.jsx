@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useUser, getCachedUser } from '../../lib/userStore';
 import MultiRoleSelect from './MultiRoleSelect';
+import FilterDropdown from '../../components/FilterDropdown';
 import { SEARCH_DEBOUNCE_MS } from '../../hooks/useDebouncedValue';
 import {
   listUsers,
@@ -99,9 +100,7 @@ export default function UsersTab({ roles, showToast }) {
   const [saving, setSaving] = useState(false);
 
   const [activeKebabId, setActiveKebabId] = useState(null);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const kebabRef = useRef(null);
-  const filterRef = useRef(null);
 
   const roleLookup = useMemo(() => {
     const map = new Map();
@@ -157,7 +156,6 @@ export default function UsersTab({ roles, showToast }) {
   useEffect(() => {
     const handleClick = (event) => {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) setActiveKebabId(null);
-      if (filterRef.current && !filterRef.current.contains(event.target)) setRoleMenuOpen(false);
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -294,9 +292,6 @@ export default function UsersTab({ roles, showToast }) {
 
   const startIndex = totalUsers === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
   const endIndex = Math.min(safeCurrentPage * pageSize, totalUsers);
-  const selectedRoleLabel = filterRoleId
-    ? (roleLookup.get(String(filterRoleId))?.label || 'All Roles')
-    : 'All Roles';
 
   function RoleChips({ list }) {
     if (!list || list.length === 0) return <span style={{ color: '#9ca3af' }}>—</span>;
@@ -346,22 +341,15 @@ export default function UsersTab({ roles, showToast }) {
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        <div className="filter-dropdown" ref={filterRef}>
-          <button type="button" className="filter-dropdown-btn" onClick={() => setRoleMenuOpen((v) => !v)}>
-            {selectedRoleLabel}
-            <i className="ti ti-angle-down" />
-          </button>
-          <div className={`mentor-filter-menu ${roleMenuOpen ? 'active' : ''}`}>
-            <button type="button" onClick={() => { setFilterRoleId(''); setCurrentPage(1); setRoleMenuOpen(false); }}>
-              All Roles
-            </button>
-            {roles.map((r) => (
-              <button key={r.id} type="button" onClick={() => { setFilterRoleId(r.id); setCurrentPage(1); setRoleMenuOpen(false); }}>
-                {r.label || r.name}
-              </button>
-            ))}
-          </div>
-        </div>
+        <FilterDropdown
+          label="All Roles"
+          value={filterRoleId}
+          options={[
+            { value: '', label: 'All Roles' },
+            ...roles.map((r) => ({ value: r.id, label: r.label || r.name })),
+          ]}
+          onChange={(value) => { setFilterRoleId(value); setCurrentPage(1); }}
+        />
       </div>
 
       {(users.length > 0 || isLoading) && (

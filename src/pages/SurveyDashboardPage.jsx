@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { availableBatches, availableCourses } from '../data/attemptReportsDemo';
@@ -601,25 +602,40 @@ export default function SurveyDashboardPage() {
               />
             </div>
 
-            <select className="search-input" style={{ maxWidth: 170 }} value={listStatusFilter} onChange={(e) => setListStatusFilter(e.target.value)}>
-              <option value="all">All Statuses</option>
-              <option value={String(SURVEY_STATUS.ACTIVE)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.ACTIVE]}</option>
-              <option value={String(SURVEY_STATUS.PAUSED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.PAUSED]}</option>
-              <option value={String(SURVEY_STATUS.RECALLED)}>{SURVEY_STATUS_LABEL[SURVEY_STATUS.RECALLED]}</option>
-            </select>
+            <FilterDropdown
+              label="All Statuses"
+              value={listStatusFilter}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: String(SURVEY_STATUS.ACTIVE), label: SURVEY_STATUS_LABEL[SURVEY_STATUS.ACTIVE] },
+                { value: String(SURVEY_STATUS.PAUSED), label: SURVEY_STATUS_LABEL[SURVEY_STATUS.PAUSED] },
+                { value: String(SURVEY_STATUS.RECALLED), label: SURVEY_STATUS_LABEL[SURVEY_STATUS.RECALLED] },
+              ]}
+              onChange={(value) => setListStatusFilter(value)}
+            />
 
-            <select className="search-input" style={{ maxWidth: 200 }} value={listResponseFilter} onChange={(e) => setListResponseFilter(e.target.value)}>
-              <option value="all">All Responses</option>
-              <option value="has_responses">Has Responses (&gt; 0)</option>
-              <option value="zero_responses">No Responses (0)</option>
-            </select>
+            <FilterDropdown
+              label="All Responses"
+              value={listResponseFilter}
+              options={[
+                { value: 'all', label: 'All Responses' },
+                { value: 'has_responses', label: 'Has Responses (> 0)' },
+                { value: 'zero_responses', label: 'No Responses (0)' },
+              ]}
+              onChange={(value) => setListResponseFilter(value)}
+            />
 
-            <select className="search-input" style={{ maxWidth: 200 }} value={listAudienceFilter} onChange={(e) => setListAudienceFilter(e.target.value)}>
-              <option value="">All Audiences</option>
-              <option value={String(SURVEY_AUDIENCE.OPEN)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.OPEN]}</option>
-              <option value={String(SURVEY_AUDIENCE.ALL_ENROLLED)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.ALL_ENROLLED]}</option>
-              <option value={String(SURVEY_AUDIENCE.BATCH)}>{SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.BATCH]}</option>
-            </select>
+            <FilterDropdown
+              label="All Audiences"
+              value={listAudienceFilter}
+              options={[
+                { value: '', label: 'All Audiences' },
+                { value: String(SURVEY_AUDIENCE.OPEN), label: SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.OPEN] },
+                { value: String(SURVEY_AUDIENCE.ALL_ENROLLED), label: SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.ALL_ENROLLED] },
+                { value: String(SURVEY_AUDIENCE.BATCH), label: SURVEY_AUDIENCE_LABEL[SURVEY_AUDIENCE.BATCH] },
+              ]}
+              onChange={(value) => setListAudienceFilter(value)}
+            />
 
             {hasActiveListFilters && (
               <button type="button" className="filter-clear-btn" onClick={() => {

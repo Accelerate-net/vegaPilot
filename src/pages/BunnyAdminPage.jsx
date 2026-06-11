@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ToastRegion from '../components/ToastRegion';
 import { bunnyFoldersDemo, bunnyVideosDemo } from '../data/adminRemainingDemo';
 
@@ -37,6 +37,9 @@ export default function BunnyAdminPage() {
   const [renameFolderData, setRenameFolderData] = useState({ newName: '' });
   const [currentFolderToRename, setCurrentFolderToRename] = useState(null);
   const [uploadFolder, setUploadFolder] = useState('');
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const fileInputRef = useRef(null);
+  const [hoveredFolderId, setHoveredFolderId] = useState(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
@@ -176,7 +179,13 @@ export default function BunnyAdminPage() {
 
       <div className="ba-filter-bar" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
         <div className="ba-search-wrapper" style={{ flex: 1, position: 'relative' }}>
-          <i className="ti ti-search" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}></i>
+          {searchQuery ? (
+            <button type="button" aria-label="Clear search" onClick={() => { setSearchQuery(''); setCurrentPage(1); }} style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+              <i className="ti ti-close"></i>
+            </button>
+          ) : (
+            <i className="ti ti-search" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}></i>
+          )}
           <input type="text" className="ba-search-input" placeholder="Search videos by name, folder, or tags..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
         </div>
         
@@ -216,7 +225,13 @@ export default function BunnyAdminPage() {
           </div>
 
           <div className="ba-search-wrapper" style={{ position: 'relative', marginBottom: '15px' }}>
-            <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: '#9ca3af' }}></i>
+            {folderSearchQuery ? (
+              <button type="button" aria-label="Clear search" onClick={() => { setFolderSearchQuery(''); setCurrentFolderPage(1); }} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '13px', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                <i className="ti ti-close"></i>
+              </button>
+            ) : (
+              <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: '#9ca3af' }}></i>
+            )}
             <input type="text" className="ba-search-input" placeholder="Search folders..." value={folderSearchQuery} onChange={(e) => { setFolderSearchQuery(e.target.value); setCurrentFolderPage(1); }} style={{ padding: '8px 10px 8px 30px', fontSize: '13px', height: '36px' }} />
           </div>
 
@@ -228,14 +243,15 @@ export default function BunnyAdminPage() {
              </li>
              {paginatedFolders.map(folder => (
                <li key={folder.id} className={`ba-folder-item ${selectedFolder === folder.id ? 'ba-active' : ''}`} onClick={() => { setSelectedFolder(folder.id); setCurrentPage(1); }}>
-                  <i className="ti ti-folder"></i>
+                  <button type="button" className="ba-folder-icon-btn" title="Rename folder"
+                     onMouseEnter={() => setHoveredFolderId(folder.id)}
+                     onMouseLeave={() => setHoveredFolderId(null)}
+                     onClick={e => { e.stopPropagation(); setCurrentFolderToRename(folder); setRenameFolderData({ newName: folder.name }); setRenameFolderModalOpen(true); }}
+                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                     <i className={`ti ${hoveredFolderId === folder.id ? 'ti-pencil' : 'ti-folder'}`}></i>
+                  </button>
                   <span className="ba-folder-name">{folder.name}</span>
                   <span className="ba-folder-count">{videos.filter(v => v.folderId === folder.id).length}</span>
-                  <div className="ba-folder-actions" onClick={e => e.stopPropagation()}>
-                     <button className="folder-action-ba-btn" onClick={() => { setCurrentFolderToRename(folder); setRenameFolderData({ newName: folder.name }); setRenameFolderModalOpen(true); }} title="Rename folder">
-                        <i className="ti ti-pencil"></i>
-                     </button>
-                  </div>
                </li>
              ))}
           </ul>
@@ -322,22 +338,26 @@ export default function BunnyAdminPage() {
                   <h3><i className="ti ti-pencil"></i> Rename Video</h3>
                   <button type="button" className="crispr-modal-close" onClick={() => setRenameModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
-               <div className="crispr-modal-body">
-                  <div className="form-group">
-                     <label>Video Name <span className="required">*</span></label>
-                     <input type="text" className="form-input" value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
+               <form onSubmit={e => {
+                   e.preventDefault();
+                   if (!renameData.newName.trim()) return;
+                   setVideos(videos.map(v => v.id === currentVideo.id ? { ...v, title: renameData.newName } : v));
+                   setRenameModalOpen(false);
+                   showToast('success', 'Renamed', `Video renamed to ${renameData.newName}`);
+               }}>
+                  <div className="crispr-modal-body">
+                     <div className="form-group">
+                        <label>Video Name <span className="required">*</span></label>
+                        <input type="text" className="form-control" required autoFocus value={renameData.newName} onChange={e => setRenameData({ newName: e.target.value })} placeholder="Enter new name" />
+                     </div>
                   </div>
-               </div>
-               <div className="crispr-modal-footer">
-                  <button type="button" className="btn-modal-cancel" onClick={() => setRenameModalOpen(false)}>Cancel</button>
-                  <button type="button" className="btn-modal-primary" disabled={!renameData.newName} onClick={() => {
-                      setVideos(videos.map(v => v.id === currentVideo.id ? { ...v, title: renameData.newName } : v));
-                      setRenameModalOpen(false);
-                      showToast('success', 'Renamed', `Video renamed to ${renameData.newName}`);
-                  }}>
-                     <i className="ti ti-check"></i> Rename
-                  </button>
-               </div>
+                  <div className="crispr-modal-footer">
+                     <button type="button" className="btn-modal-cancel" onClick={() => setRenameModalOpen(false)}>Cancel</button>
+                     <button type="submit" className="btn-modal-primary" disabled={!renameData.newName.trim()}>
+                        <i className="ti ti-check"></i> Rename
+                     </button>
+                  </div>
+               </form>
             </div>
          </div>
       )}
@@ -348,7 +368,7 @@ export default function BunnyAdminPage() {
             <div className="ba-modal-dialog" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
                <div className="ba-modal-header" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' }}>
                   <h3 style={{ color: 'white' }}><i className="ti ti-alert"></i> Confirm Delete</h3>
-                  <button className="ba-modal-close" style={{ color: 'white' }} onClick={() => setDeleteModalOpen(false)}><i className="ti ti-close"></i></button>
+                  <button type="button" className="crispr-modal-close" onClick={() => setDeleteModalOpen(false)}><i className="ti ti-close"></i></button>
                </div>
                <div className="ba-modal-body">
                   <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -487,20 +507,42 @@ export default function BunnyAdminPage() {
                         ))}
                      </select>
                   </div>
-                  <div className="ba-upload-zone" style={{ border: '2px dashed #cbd5e0', borderRadius: '8px', padding: '30px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer' }}>
+                  <div className="ba-upload-zone" style={{ border: '2px dashed #cbd5e0', borderRadius: '8px', padding: '30px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer' }}
+                     onClick={() => fileInputRef.current?.click()}
+                     onDragOver={e => { e.preventDefault(); }}
+                     onDrop={e => { e.preventDefault(); if (e.dataTransfer.files?.length) setUploadFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); }}>
                      <i className="ti ti-cloud-up" style={{ fontSize: '48px', color: '#94a3b8', marginBottom: '15px', display: 'block' }}></i>
                      <h4 style={{ margin: '0 0 5px 0', color: '#334155', fontSize: '16px', fontWeight: 600 }}>Drag & Drop Videos Here</h4>
                      <p style={{ margin: '0 0 15px 0', color: '#64748b', fontSize: '14px' }}>or click to browse files</p>
-                     <button className="ba-btn" style={{ background: '#006073', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', pointerEvents: 'none' }}>
-                        <i className="ti ti-folder"></i> Browse Files
+                     <button type="button" className="ba-btn" style={{ background: '#006073', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px' }}>
+                        Browse Files
                      </button>
+                     <input ref={fileInputRef} type="file" accept="video/*" multiple style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files?.length) setUploadFiles(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; }} />
                   </div>
+                  {uploadFiles.length > 0 && (
+                     <div className="form-group" style={{ marginTop: '15px' }}>
+                        <label>Selected Files ({uploadFiles.length})</label>
+                        {uploadFiles.map((file, idx) => (
+                           <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '8px' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#334155', overflow: 'hidden' }}>
+                                 <i className="ti ti-video" style={{ color: '#006073' }}></i>
+                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                              </span>
+                              <button type="button" aria-label="Remove file" onClick={() => setUploadFiles(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
+                                 <i className="ti ti-close"></i>
+                              </button>
+                           </div>
+                        ))}
+                     </div>
+                  )}
                </div>
                <div className="crispr-modal-footer">
-                  <button type="button" className="btn-modal-cancel" onClick={() => setUploadModalOpen(false)}>Cancel</button>
-                  <button type="button" className="btn-modal-primary" disabled={!uploadFolder} onClick={() => {
+                  <button type="button" className="btn-modal-cancel" onClick={() => { setUploadModalOpen(false); setUploadFiles([]); }}>Cancel</button>
+                  <button type="button" className="btn-modal-primary" disabled={!uploadFolder || uploadFiles.length === 0} onClick={() => {
                       setUploadModalOpen(false);
-                      showToast('success', 'Upload Demo', 'Upload started.');
+                      showToast('success', 'Upload Demo', `Upload started for ${uploadFiles.length} file${uploadFiles.length > 1 ? 's' : ''}.`);
+                      setUploadFiles([]);
                   }}>
                      <i className="ti ti-upload"></i> Upload Files
                   </button>

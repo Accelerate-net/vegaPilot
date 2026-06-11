@@ -3,9 +3,21 @@ import { api } from '../lib/api';
 import useDebouncedValue from '../hooks/useDebouncedValue';
 import { availableCourses, demoCandidates } from '../data/candidateProfileDemo';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
+
+// Map the API status to a badge key. Numeric: 1 = active, 0 = inactive,
+// 2 = blocked. Falls back to a lowercased string for legacy/demo data.
+function mapStatus(rawStatus, blocked) {
+  if (blocked) return 'blocked';
+  const numeric = { 0: 'inactive', 1: 'active', 2: 'blocked' };
+  if (rawStatus === 0 || rawStatus === 1 || rawStatus === 2) return numeric[rawStatus];
+  const str = String(rawStatus ?? '').trim().toLowerCase();
+  if (str in numeric) return numeric[str];
+  return str || 'active';
+}
 
 function normalizeCandidate(candidate) {
   return {
@@ -15,8 +27,8 @@ function normalizeCandidate(candidate) {
     email: candidate.email || '',
     mobile: candidate.mobile || candidate.registeredMobile || candidate.communicationMobile || '',
     avatar: candidate.photo || candidate.avatar || null,
-    status: candidate.blocked ? 'blocked' : String(candidate.status || 'active').toLowerCase(),
-    blocked: Boolean(candidate.blocked),
+    status: mapStatus(candidate.status, candidate.blocked),
+    blocked: Boolean(candidate.blocked) || candidate.status === 2,
     joinedDate: candidate.joinedDate || null,
     enrollmentDate: candidate.joinedDate ? new Date(candidate.joinedDate) : null,
     totalCourseEnrollments: candidate.totalCourseEnrollments || 0,
@@ -426,18 +438,17 @@ export default function StudentManagementPage() {
           />
         </div>
 
-        <div className="candidate-filter-dropdown">
-          <button type="button" className="filter-dropdown-btn">
-            {filterStatus === 'active' ? 'Active' : filterStatus === 'inactive' ? 'Inactive' : filterStatus === 'blocked' ? 'Blocked' : 'All Status'}
-            <i className="ti ti-angle-down" />
-          </button>
-          <div className="candidate-filter-dropdown-menu">
-            <button type="button" onClick={() => { setFilterStatus(''); setCurrentPage(1); }}>All Status</button>
-            <button type="button" onClick={() => { setFilterStatus('active'); setCurrentPage(1); }}>Active</button>
-            <button type="button" onClick={() => { setFilterStatus('inactive'); setCurrentPage(1); }}>Inactive</button>
-            <button type="button" onClick={() => { setFilterStatus('blocked'); setCurrentPage(1); }}>Blocked</button>
-          </div>
-        </div>
+        <FilterDropdown
+          label="All Status"
+          value={filterStatus}
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+            { value: 'blocked', label: 'Blocked' },
+          ]}
+          onChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
+        />
       </div>
 
       <div className="students-table-container">
@@ -461,7 +472,7 @@ export default function StudentManagementPage() {
                 <i className={`sort-icon ti ${sortIcon('coursesCount', sortColumn, sortReverse)}`} />
               </th>
               <th className={`sortable ${sortColumn === 'joinedDate' ? 'active' : ''}`} onClick={() => handleSort('enrollmentDate')}>
-                Enrollment Date
+                Prep Journey
                 <i className={`sort-icon ti ${sortIcon('enrollmentDate', sortColumn, sortReverse)}`} />
               </th>
               <th className={`sortable ${sortColumn === 'status' ? 'active' : ''}`} onClick={() => handleSort('status')}>

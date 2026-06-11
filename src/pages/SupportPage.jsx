@@ -158,16 +158,28 @@ export default function SupportPage() {
   const hasOpenTicket = !!activeTicket && (activeTicket.status === 'DRAFT' || activeTicket.status === 'IN_PROGRESS');
   const isThreadBlocked = useMemo(() => localMessages.some(m => m.blockedThread === 1), [localMessages]);
   const [blocking, setBlocking] = useState(false);
+  // 'block' | 'unblock' | null — drives the confirmation modal.
+  const [confirmBlockAction, setConfirmBlockAction] = useState(null);
+
+  const requestBlockThread = () => {
+    if (!selectedThread || blocking || isThreadBlocked) return;
+    setConfirmBlockAction('block');
+  };
+
+  const requestUnblockThread = () => {
+    if (!selectedThread || blocking || !isThreadBlocked) return;
+    setConfirmBlockAction('unblock');
+  };
 
   const handleBlockThread = async () => {
     if (!selectedThread || blocking || isThreadBlocked) return;
-    if (!window.confirm('Block this WhatsApp number? They will no longer be able to message Support.')) return;
     setBlocking(true);
     try {
       await apiBlockThread(selectedThread.id);
       setLocalMessages(prev => prev.map(m => ({ ...m, blockedThread: 1 })));
       setThreads(prev => prev.map(c => c.id === selectedThread.id ? { ...c, blockedThread: 1 } : c));
       bumpThreadsRefresh();
+      setConfirmBlockAction(null);
     } catch (err) {
       window.alert(extractApiError(err, 'Failed to block this thread.'));
     } finally {
@@ -177,13 +189,13 @@ export default function SupportPage() {
 
   const handleUnblockThread = async () => {
     if (!selectedThread || blocking || !isThreadBlocked) return;
-    if (!window.confirm('Unblock this WhatsApp number? They will be able to message Support again.')) return;
     setBlocking(true);
     try {
       await apiUnblockThread(selectedThread.id);
       setLocalMessages(prev => prev.map(m => ({ ...m, blockedThread: 0 })));
       setThreads(prev => prev.map(c => c.id === selectedThread.id ? { ...c, blockedThread: 0 } : c));
       bumpThreadsRefresh();
+      setConfirmBlockAction(null);
     } catch (err) {
       window.alert(extractApiError(err, 'Failed to unblock this thread.'));
     } finally {
@@ -890,7 +902,7 @@ export default function SupportPage() {
                         type="button"
                         className="thread-block-btn"
                         title="Block this WhatsApp number"
-                        onClick={handleBlockThread}
+                        onClick={requestBlockThread}
                         disabled={blocking}
                       >
                         {blocking ? 'BLOCKING…' : 'BLOCK'}
@@ -901,7 +913,7 @@ export default function SupportPage() {
                         type="button"
                         className="thread-block-btn thread-unblock-btn"
                         title="Unblock this WhatsApp number"
-                        onClick={handleUnblockThread}
+                        onClick={requestUnblockThread}
                         disabled={blocking}
                       >
                         {blocking ? 'UNBLOCKING…' : 'UNBLOCK'}
@@ -1290,17 +1302,62 @@ export default function SupportPage() {
         </div>
       </div>
 
-      {/* Profile Modal */}
-      {showProfileModal && (
-        <div className="support-modal-backdrop active" onClick={() => setShowProfileModal(null)}>
-          <div className="support-modal-dialog" onClick={e => e.stopPropagation()}>
-            <div className="support-modal-header">
-              <h3><i className="ti ti-user"></i> Student Profile</h3>
-              <button type="button" className="support-modal-close" onClick={() => setShowProfileModal(null)}>
+      {/* Block / Unblock confirmation Modal */}
+      {confirmBlockAction && (
+        <div className="legacy-modal-backdrop active" onClick={() => !blocking && setConfirmBlockAction(null)}>
+          <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3>
+                <i className={`ti ${confirmBlockAction === 'block' ? 'ti-na' : 'ti-check'}`}></i>
+                {confirmBlockAction === 'block' ? ' Block WhatsApp Number' : ' Unblock WhatsApp Number'}
+              </h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setConfirmBlockAction(null)} disabled={blocking}>
                 <i className="ti ti-close"></i>
               </button>
             </div>
-            <div className="support-modal-body">
+            <div className="legacy-modal-body">
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: '#16353c' }}>
+                {confirmBlockAction === 'block'
+                  ? 'Block this WhatsApp number? They will no longer be able to message Support.'
+                  : 'Unblock this WhatsApp number? They will be able to message Support again.'}
+              </p>
+            </div>
+            <div className="legacy-modal-footer">
+              <button
+                type="button"
+                className="legacy-btn legacy-btn-default"
+                onClick={() => setConfirmBlockAction(null)}
+                disabled={blocking}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`legacy-btn ${confirmBlockAction === 'block' ? 'legacy-btn-danger' : 'legacy-btn-success'}`}
+                onClick={confirmBlockAction === 'block' ? handleBlockThread : handleUnblockThread}
+                disabled={blocking}
+              >
+                <i className={`ti ${confirmBlockAction === 'block' ? 'ti-na' : 'ti-check'}`}></i>
+                {blocking
+                  ? (confirmBlockAction === 'block' ? ' Blocking…' : ' Unblocking…')
+                  : (confirmBlockAction === 'block' ? ' Block' : ' Unblock')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div className="legacy-modal-backdrop active" onClick={() => setShowProfileModal(null)}>
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3><i className="ti ti-user"></i> Student Profile</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setShowProfileModal(null)}>
+                <i className="ti ti-close"></i>
+              </button>
+            </div>
+            <div className="legacy-modal-body">
               <div className="profile-summary-card">
                 <div className="profile-avatar-circle">
                   {showProfileModal.studentName.charAt(0).toUpperCase()}
@@ -1326,18 +1383,17 @@ export default function SupportPage() {
                 </div>
               </div>
             </div>
-            <div className="support-modal-footer">
+            <div className="legacy-modal-footer">
               <button
                 type="button"
-                className="btn-send"
-                style={{ background: '#f0f4f5', color: '#16353c', boxShadow: 'none' }}
+                className="legacy-btn legacy-btn-default"
                 onClick={() => setShowProfileModal(null)}
               >
                 Close
               </button>
               <button
                 type="button"
-                className="btn-send"
+                className="legacy-btn legacy-btn-success"
                 onClick={() => {
                   window.open('/candidate-detail', '_blank');
                   setShowProfileModal(null);
@@ -1352,77 +1408,89 @@ export default function SupportPage() {
 
       {/* Create Ticket Modal */}
       {showCreateTicket && selectedThread && (
-        <div className="support-modal-backdrop active" onClick={() => !creatingTicket && setShowCreateTicket(false)}>
-          <div className="support-modal-dialog" onClick={e => e.stopPropagation()}>
-            <div className="support-modal-header">
+        <div className="legacy-modal-backdrop active" onClick={() => !creatingTicket && setShowCreateTicket(false)}>
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
               <h3><i className="ti ti-ticket"></i> Create Support Ticket</h3>
-              <button type="button" className="support-modal-close" onClick={() => setShowCreateTicket(false)} disabled={creatingTicket}>
+              <button type="button" className="legacy-modal-close" onClick={() => setShowCreateTicket(false)} disabled={creatingTicket}>
                 <i className="ti ti-close"></i>
               </button>
             </div>
-            <div className="support-modal-body">
+            <div className="legacy-modal-body form-modal">
               <div className="ticket-form-meta">
                 Raising a ticket for <strong>{selectedThread.studentName}</strong> on thread <strong>#{selectedThread.id}</strong>.
               </div>
 
-              <div className="ticket-form-row">
-                <label className="ticket-form-label">Title <span style={{ color: '#c0392b' }}>*</span></label>
-                <input
-                  type="text"
-                  className="legacy-input"
-                  placeholder="Short summary of the issue"
-                  value={ticketForm.title}
-                  maxLength={120}
-                  onChange={e => { setTicketForm(f => ({ ...f, title: e.target.value })); setTicketFormError(''); }}
-                />
-              </div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className={`float-field ${ticketFormError ? 'has-error' : ''}`}>
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={ticketForm.title}
+                      maxLength={120}
+                      onChange={e => { setTicketForm(f => ({ ...f, title: e.target.value })); setTicketFormError(''); }}
+                    />
+                    <span className="float-label">Title <span className="req">*</span></span>
+                  </div>
+                </label>
 
-              <div className="ticket-form-row">
-                <label className="ticket-form-label">Description</label>
-                <textarea
-                  className="legacy-input"
-                  rows={4}
-                  placeholder="Add context the assignee will need to resolve this..."
-                  value={ticketForm.description}
-                  onChange={e => setTicketForm(f => ({ ...f, description: e.target.value }))}
-                />
-              </div>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea
+                      className="float-control"
+                      rows={4}
+                      placeholder=" "
+                      value={ticketForm.description}
+                      onChange={e => setTicketForm(f => ({ ...f, description: e.target.value }))}
+                    />
+                    <span className="float-label">Description</span>
+                  </div>
+                </label>
 
-              <div className="ticket-form-grid">
-                <div className="ticket-form-row">
-                  <label className="ticket-form-label">Assignee</label>
-                  <select
-                    className="legacy-select"
-                    value={ticketForm.assigneeId}
-                    onChange={e => setTicketForm(f => ({ ...f, assigneeId: e.target.value }))}
-                  >
-                    <option value="">Unassigned</option>
-                    {activeAssociates.map(a => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="ticket-form-row">
-                  <label className="ticket-form-label">Tag</label>
-                  <select
-                    className="legacy-select"
-                    value={ticketForm.tag}
-                    onChange={e => setTicketForm(f => ({ ...f, tag: e.target.value }))}
-                  >
-                    {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="ticket-form-row">
-                  <label className="ticket-form-label">Initial Status</label>
-                  <select
-                    className="legacy-select"
-                    value={ticketForm.status}
-                    onChange={e => setTicketForm(f => ({ ...f, status: e.target.value }))}
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                  </select>
-                </div>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select
+                      className="float-control"
+                      value={ticketForm.assigneeId}
+                      onChange={e => setTicketForm(f => ({ ...f, assigneeId: e.target.value }))}
+                    >
+                      <option value="">Unassigned</option>
+                      {activeAssociates.map(a => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">Assignee</span>
+                  </div>
+                </label>
+
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select
+                      className="float-control"
+                      value={ticketForm.tag}
+                      onChange={e => setTicketForm(f => ({ ...f, tag: e.target.value }))}
+                    >
+                      {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <span className="float-label">Tag</span>
+                  </div>
+                </label>
+
+                <label className="field-cell full-span">
+                  <div className="float-field float-always">
+                    <select
+                      className="float-control"
+                      value={ticketForm.status}
+                      onChange={e => setTicketForm(f => ({ ...f, status: e.target.value }))}
+                    >
+                      <option value="DRAFT">Draft</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                    </select>
+                    <span className="float-label">Initial Status</span>
+                  </div>
+                </label>
               </div>
 
               {ticketFormError && (
@@ -1431,11 +1499,10 @@ export default function SupportPage() {
                 </div>
               )}
             </div>
-            <div className="support-modal-footer">
+            <div className="legacy-modal-footer">
               <button
                 type="button"
-                className="btn-send"
-                style={{ background: '#f0f4f5', color: '#16353c', boxShadow: 'none' }}
+                className="legacy-btn legacy-btn-default"
                 onClick={() => setShowCreateTicket(false)}
                 disabled={creatingTicket}
               >
@@ -1443,7 +1510,7 @@ export default function SupportPage() {
               </button>
               <button
                 type="button"
-                className="btn-create-ticket-confirm"
+                className="legacy-btn legacy-btn-success"
                 onClick={handleCreateTicket}
                 disabled={creatingTicket}
               >
@@ -1457,15 +1524,15 @@ export default function SupportPage() {
 
       {/* Previous Tickets Modal */}
       {showPreviousTickets && (
-        <div className="support-modal-backdrop active" onClick={() => { setShowPreviousTickets(false); setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}>
-          <div className="support-modal-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
-            <div className="support-modal-header">
+        <div className="legacy-modal-backdrop active" onClick={() => { setShowPreviousTickets(false); setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}>
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
+            <div className="legacy-modal-header">
               <h3><i className="ti ti-list"></i> {drillTicket ? `Ticket ${drillTicket.ticketCode}` : 'Support Tickets'}</h3>
-              <button type="button" className="support-modal-close" onClick={() => { setShowPreviousTickets(false); setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}>
+              <button type="button" className="legacy-modal-close" onClick={() => { setShowPreviousTickets(false); setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}>
                 <i className="ti ti-close"></i>
               </button>
             </div>
-            <div className="support-modal-body">
+            <div className="legacy-modal-body">
               {drillTicket ? (
                 <div>
                   <div className="ticket-view-title">{drillTicket.title}</div>
@@ -1492,14 +1559,6 @@ export default function SupportPage() {
                   </div>
 
                   <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      className="btn-send"
-                      style={{ background: '#f0f4f5', color: '#16353c', boxShadow: 'none' }}
-                      onClick={() => { setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}
-                    >
-                      <i className="ti ti-angle-left"></i> Back to list
-                    </button>
                     <button
                       type="button"
                       className="btn-send"
@@ -1561,6 +1620,24 @@ export default function SupportPage() {
                   ))}
                 </div>
               )}
+            </div>
+            <div className="legacy-modal-footer">
+              {drillTicket && (
+                <button
+                  type="button"
+                  className="legacy-btn legacy-btn-default"
+                  onClick={() => { setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}
+                >
+                  <i className="ti ti-angle-left"></i> Back to list
+                </button>
+              )}
+              <button
+                type="button"
+                className="legacy-btn legacy-btn-default"
+                onClick={() => { setShowPreviousTickets(false); setDrillTicket(null); setDrillNotesVisible(false); setDrillNotes([]); }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

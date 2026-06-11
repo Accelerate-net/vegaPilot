@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import {
   listLiveClasses,
   createLiveClass,
@@ -465,27 +466,29 @@ export default function LiveClassSchedulerPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <select
-          className="filter-select"
+        <FilterDropdown
+          label="All Statuses"
+          ariaLabel="Filter by status"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label="Filter by status"
-        >
-          <option value="">All Statuses</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="live">Live Now</option>
-          <option value="completed">Completed</option>
-        </select>
-        <select
-          className="filter-select"
+          options={[
+            { value: '', label: 'All Statuses' },
+            { value: 'scheduled', label: 'Scheduled' },
+            { value: 'live', label: 'Live Now' },
+            { value: 'completed', label: 'Completed' },
+          ]}
+          onChange={(value) => setStatusFilter(value)}
+        />
+        <FilterDropdown
+          label="All Modes"
+          ariaLabel="Filter by mode"
           value={modeFilter}
-          onChange={(e) => setModeFilter(e.target.value)}
-          aria-label="Filter by mode"
-        >
-          <option value="">All Modes</option>
-          <option value="system">System</option>
-          <option value="youtube">YouTube</option>
-        </select>
+          options={[
+            { value: '', label: 'All Modes' },
+            { value: 'system', label: 'System' },
+            { value: 'youtube', label: 'YouTube' },
+          ]}
+          onChange={(value) => setModeFilter(value)}
+        />
         {hasActiveFilters && (
           <button type="button" className="filter-clear-btn" onClick={clearFilters}>
             <i className="ti ti-reload" /> Clear

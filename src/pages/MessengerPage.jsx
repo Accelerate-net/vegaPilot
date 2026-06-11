@@ -783,6 +783,16 @@ export default function MessengerPage() {
         <div style={{ padding: '24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
           <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#111827' }}>Inbox</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={handleCompose}
+              title="Compose"
+              aria-label="Compose"
+              className="compose-btn"
+              style={{ background: isComposing ? '#006073' : '#E5E7EB', color: isComposing ? 'white' : '#4B5563' }}
+            >
+              <i className="ti ti-pencil-alt" />
+            </button>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
               <select
                 value={messageType}
@@ -798,6 +808,8 @@ export default function MessengerPage() {
                   border: '1px solid #E5E7EB',
                   borderRadius: '20px',
                   padding: '8px 30px 8px 14px',
+                  textAlign: 'right',
+                  textAlignLast: 'right',
                   cursor: 'pointer',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                   transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -805,7 +817,7 @@ export default function MessengerPage() {
                 onFocus={e => { e.target.style.borderColor = '#006073'; e.target.style.boxShadow = '0 0 0 3px rgba(0,96,115,0.12)'; }}
                 onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)'; }}
               >
-                <option value="">All</option>
+                <option value="">All Messages</option>
                 <option value="2">Transactional</option>
                 <option value="1">Broadcast</option>
               </select>
@@ -814,13 +826,6 @@ export default function MessengerPage() {
                 style={{ position: 'absolute', right: '12px', fontSize: '12px', color: '#6B7280', pointerEvents: 'none' }}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleCompose}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isComposing ? '#006073' : '#E5E7EB', color: isComposing ? 'white' : '#4B5563', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
-            >
-              <i className="ti ti-pencil-alt" /> Compose
-            </button>
           </div>
         </div>
 

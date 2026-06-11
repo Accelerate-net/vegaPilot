@@ -32,6 +32,9 @@ export default function SchedulesListPage() {
   const [rangeTo, setRangeTo] = useState(() => dateKey(addDays(today, 6)));
   const [batchFilter, setBatchFilter] = useState(''); // batch id
   const [search, setSearch] = useState('');
+  const [dateMenuOpen, setDateMenuOpen] = useState(false);
+  const dateMenuRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   const [editModal, setEditModal] = useState(null);
   const [confirmCancel, setConfirmCancel] = useState(null);
@@ -57,6 +60,27 @@ export default function SchedulesListPage() {
     }
     return { fromKey: rangeFrom, toKey: rangeTo };
   }, [filter, rangeFrom, rangeTo, today]);
+
+  // Close the date dropdown on outside click / Escape.
+  useEffect(() => {
+    if (!dateMenuOpen) return undefined;
+    function onDown(e) { if (!dateMenuRef.current?.contains(e.target)) setDateMenuOpen(false); }
+    function onKey(e) { if (e.key === 'Escape') setDateMenuOpen(false); }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [dateMenuOpen]);
+
+  const dateLabel = (() => {
+    if (filter === 'today') return 'Today';
+    if (filter === 'tomorrow') return 'Tomorrow';
+    return `${prettyDate(rangeFrom)} – ${prettyDate(rangeTo)}`;
+  })();
+
+  function setDatePreset(id) {
+    setFilter(id);
+    if (id !== 'range') setDateMenuOpen(false);
+  }
 
   // ─── Filtered / grouped data ──
   const groupsByDate = useMemo(() => {
@@ -92,8 +116,10 @@ export default function SchedulesListPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
+    setLoading(true);
     loadSchedulesInRange({ from: fromKey, to: toKey })
-      .catch((e) => showToast('error', 'Failed to load schedules', asApiError(e).message));
+      .catch((e) => showToast('error', 'Failed to load schedules', asApiError(e).message))
+      .finally(() => setLoading(false));
   }, [fromKey, toKey]);
 
   // ─── Actions ──
@@ -135,53 +161,84 @@ export default function SchedulesListPage() {
       </div>
 
       {/* Filter bar */}
-      <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, padding: 14, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {FILTER_OPTIONS.map((opt) => {
-            const sel = filter === opt.id;
-            return (
-              <button
-                key={opt.id} type="button" onClick={() => setFilter(opt.id)}
-                style={{
-                  border: `1px solid ${sel ? 'var(--brand)' : 'var(--line)'}`,
-                  background: sel ? 'var(--brand)' : '#fff',
-                  color: sel ? '#fff' : 'var(--ink)',
-                  borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
-                  fontWeight: 600, fontSize: 13,
-                }}
-              >
-                {opt.label}
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <style>{`
+          .fb-date-menu { position:relative; }
+          .fb-date-btn { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:170px; padding:9px 12px; border:1px solid var(--line,#d7e5e8); border-radius:8px; background:#fff; font-size:13px; font-weight:600; color:var(--ink,#16353c); cursor:pointer; outline:none; }
+          .fb-date-btn.active { border-color:var(--brand); }
+          .fb-date-lbl { display:flex; align-items:center; gap:6px; }
+          .fb-date-lbl i { color:#6b7280; font-size:14px; }
+          .fb-date-pop { position:absolute; top:calc(100% + 4px); left:0; z-index:40; min-width:200px; background:#fff; border:1px solid var(--line,#d7e5e8); border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.12); overflow:hidden; }
+          .fb-date-opt { display:flex; align-items:center; justify-content:space-between; width:100%; padding:9px 14px; border:none; background:#fff; color:#374151; font-size:13px; text-align:left; cursor:pointer; }
+          .fb-date-opt:hover { background:#f3f8f9; }
+          .fb-date-opt.on { background:#e0f2f1; font-weight:600; }
+          .fb-date-opt.on i { color:var(--brand); font-size:12px; }
+          .fb-date-opt-custom { border-top:1px solid #f1f5f9; }
+        `}</style>
+        <div className="search-wrapper" style={{ flex: '1 1 50%', minWidth: 240 }}>
+          <i className="ti ti-search" />
+          <input
+            type="text" className="search-input"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or batch…"
+          />
+        </div>
+        <div ref={dateMenuRef} className="fb-date-menu">
+          <button
+            type="button"
+            className={`fb-date-btn${filter !== 'today' ? ' active' : ''}`}
+            onClick={() => setDateMenuOpen((o) => !o)}
+          >
+            <span className="fb-date-lbl"><i className="ti ti-calendar" /> {dateLabel}</span>
+            <i className={`ti ti-chevron-${dateMenuOpen ? 'up' : 'down'}`} style={{ fontSize: 12 }} />
+          </button>
+          {dateMenuOpen && (
+            <div className="fb-date-pop">
+              {FILTER_OPTIONS.filter((o) => o.id !== 'range').map((o) => {
+                const isOn = filter === o.id;
+                return (
+                  <button key={o.id} type="button" className={`fb-date-opt${isOn ? ' on' : ''}`} onClick={() => setDatePreset(o.id)}>
+                    {o.label}
+                    {isOn && <i className="ti ti-check" />}
+                  </button>
+                );
+              })}
+              <button type="button" className={`fb-date-opt fb-date-opt-custom${filter === 'range' ? ' on' : ''}`} onClick={() => setDatePreset('range')}>
+                Date range
+                {filter === 'range' && <i className="ti ti-check" />}
               </button>
-            );
-          })}
+              {filter === 'range' && (
+                <div style={{ padding: '10px 14px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>From
+                    <input type="date" value={rangeFrom} onChange={(e) => setRangeFrom(e.target.value)} style={{ ...inputStyle, width: '100%', marginTop: 3 }} />
+                  </label>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>To
+                    <input type="date" value={rangeTo} max={dateKey(addDays(parseKey(rangeFrom), 90))} onChange={(e) => setRangeTo(e.target.value)} style={{ ...inputStyle, width: '100%', marginTop: 3 }} />
+                  </label>
+                  <button
+                    type="button"
+                    className="crispr-btn crispr-btn-primary"
+                    style={{ alignSelf: 'flex-end', padding: '5px 12px', fontSize: 12 }}
+                    onClick={() => setDateMenuOpen(false)}
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        {filter === 'range' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>From</span>
-            <input type="date" value={rangeFrom} onChange={(e) => setRangeFrom(e.target.value)} style={inputStyle} />
-            <span style={{ fontSize: 12, color: 'var(--muted)' }}>To</span>
-            <input type="date" value={rangeTo} max={dateKey(addDays(parseKey(rangeFrom), 90))} onChange={(e) => setRangeTo(e.target.value)} style={inputStyle} />
-          </div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexWrap: 'wrap' }}>
-          <div className="search-wrapper" style={{ width: 260 }}>
-            <i className="ti ti-search" />
-            <input
-              type="text" className="search-input"
-              value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or batch…"
-            />
-          </div>
-          <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} style={{ ...selStyle, width: 'auto', minWidth: 200, paddingRight: 28 }}>
-            <option value="">All batches</option>
-            {batchPool.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        </div>
+        <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} style={{ ...selStyle, width: 'auto', minWidth: 200, paddingRight: 28 }}>
+          <option value="">All batches</option>
+          {batchPool.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
       </div>
 
       {/* Table sections */}
-      <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
-        {totalCount === 0 && (
+      <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 14 }}>
+        {loading && <ScheduleListSkeleton />}
+
+        {!loading && totalCount === 0 && (
           <div style={{ padding: 48, textAlign: 'center', color: 'var(--muted)' }}>
             <i className="ti ti-calendar-x" style={{ fontSize: 28, color: 'var(--muted)', display: 'block', marginBottom: 8 }} />
             <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>No schedules in this range</div>
@@ -189,7 +246,7 @@ export default function SchedulesListPage() {
           </div>
         )}
 
-        {[...groupsByDate.entries()].map(([dk, list], idx) => (
+        {!loading && [...groupsByDate.entries()].map(([dk, list], idx) => (
           <DayGroup
             key={dk}
             dateKey={dk}
@@ -266,12 +323,41 @@ export default function SchedulesListPage() {
   );
 }
 
+// ─── Loading skeleton ─────────────────────────────────────────────────
+function ScheduleListSkeleton({ groups = 2, rows = 3 }) {
+  return (
+    <>
+      {Array.from({ length: groups }).map((_, gi) => (
+        <div key={gi} style={{ borderTop: gi === 0 ? 'none' : '1px solid var(--line)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#fbfcfd', borderBottom: '1px solid var(--line)', borderTopLeftRadius: gi === 0 ? 13 : 0, borderTopRightRadius: gi === 0 ? 13 : 0 }}>
+            <div className="table-skeleton medium" />
+            <div className="table-skeleton long" style={{ height: 30, borderRadius: 8 }} />
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <tbody>
+              {Array.from({ length: rows }).map((__, ri) => (
+                <tr key={ri} style={{ borderBottom: '1px solid var(--line)' }}>
+                  <td style={tdStyle}><div className="table-skeleton long" /></td>
+                  <td style={tdStyle}><div className="table-skeleton medium" /></td>
+                  <td style={tdStyle}><div className="table-skeleton short" /></td>
+                  <td style={tdStyle}><div className="table-skeleton short" /></td>
+                  <td style={tdStyle}><div className="table-skeleton icon" style={{ marginLeft: 'auto', width: 34, height: 34, borderRadius: 8 }} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </>
+  );
+}
+
 // ─── Day group ────────────────────────────────────────────────────────
 function DayGroup({ dateKey: dk, schedules, isFirst, onView, onViewCalendar, onEdit, onCancel }) {
   const totalEvents = schedules.reduce((a, s) => a + s.events.length, 0);
   return (
     <div style={{ borderTop: isFirst ? 'none' : '1px solid var(--line)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#fbfcfd', borderBottom: '1px solid var(--line)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#fbfcfd', borderBottom: '1px solid var(--line)', borderTopLeftRadius: isFirst ? 13 : 0, borderTopRightRadius: isFirst ? 13 : 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <i className="ti ti-calendar" style={{ color: 'var(--brand)' }} />
           <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 15 }}>{prettyDate(dk)}</div>
@@ -279,7 +365,7 @@ function DayGroup({ dateKey: dk, schedules, isFirst, onView, onViewCalendar, onE
             {schedules.length} schedule{schedules.length === 1 ? '' : 's'} · {totalEvents} event{totalEvents === 1 ? '' : 's'}
           </span>
         </div>
-        <button type="button" onClick={() => onViewCalendar(dk)} style={btnGhost}>
+        <button type="button" onClick={() => onViewCalendar(dk)} style={{ ...btnGhost, background: '#005d6e', color: '#fff', borderColor: '#005d6e' }}>
           <i className="ti ti-layout-grid2" /> View day on calendar
         </button>
       </div>

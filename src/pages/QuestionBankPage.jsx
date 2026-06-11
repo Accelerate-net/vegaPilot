@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { questionBankDemoLite } from '../data/adminRemainingDemo';
 
 // ─── Chapter data (keyed by subject, grouped by grade) ───────────────────────
@@ -100,63 +101,6 @@ function getPYQLabel(q) {
   if (q.pyqType && q.pyqYear) return `${q.pyqType} ${q.pyqYear}`;
   if (q.pyqType) return q.pyqType;
   return 'Practice';
-}
-
-// ─── FilterDropdown ───────────────────────────────────────────────────────────
-function FilterDropdown({ label, options, value, onChange, maxHeight }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    function handler(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const currentLabel = options.flatMap((o) => o.options || [o]).find((o) => o.value === value)?.label;
-
-  return (
-    <div className="filter-dropdown" ref={ref}>
-      <button
-        type="button"
-        className={`filter-dropdown-btn${value ? ' active' : ''}`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="filter-dropdown-label">{currentLabel || label}</span>
-        <i className={`ti ti-angle-${open ? 'up' : 'down'}`} />
-      </button>
-      {open && (
-        <ul className="filter-dropdown-menu" style={maxHeight ? { maxHeight, overflowY: 'auto' } : {}}>
-          {options.map((o, i) =>
-            o.group ? (
-              <React.Fragment key={i}>
-                <li className="filter-dropdown-group">{o.group}</li>
-                {o.options.map((opt) => (
-                  <li
-                    key={opt.value}
-                    className={opt.value === value ? 'active' : ''}
-                    onClick={() => { onChange(opt.value); setOpen(false); }}
-                  >
-                    {opt.label}
-                  </li>
-                ))}
-              </React.Fragment>
-            ) : (
-              <li
-                key={o.value}
-                className={o.value === value ? 'active' : ''}
-                onClick={() => { onChange(o.value); setOpen(false); }}
-              >
-                {o.label}
-              </li>
-            )
-          )}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 // ─── KebabMenu ────────────────────────────────────────────────────────────────

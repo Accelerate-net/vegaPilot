@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
@@ -117,7 +118,6 @@ export default function MentorProfilesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
-  const [specializationMenuOpen, setSpecializationMenuOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -142,8 +142,9 @@ export default function MentorProfilesPage() {
   const [selectedMappedStudents, setSelectedMappedStudents] = useState({});
   const [menteeSearchQuery, setMenteeSearchQuery] = useState('');
   const [selectedMenteesToAdd, setSelectedMenteesToAdd] = useState({});
+  const [menteeCurrentPage, setMenteeCurrentPage] = useState(1);
+  const [menteePageSize] = useState(8);
   const kebabRef = useRef(null);
-  const filterRef = useRef(null);
   const allAvailableStudents = useMemo(() => createAvailableStudents(), []);
 
   const showToast = (type, title, message) => {
@@ -303,7 +304,6 @@ export default function MentorProfilesPage() {
   useEffect(() => {
     const handleClick = (event) => {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) setActiveKebabId(null);
-      if (filterRef.current && !filterRef.current.contains(event.target)) setSpecializationMenuOpen(false);
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -367,6 +367,21 @@ export default function MentorProfilesPage() {
         .some((value) => String(value).toLowerCase().includes(query));
     });
   }, [allAvailableStudents, menteeSearchQuery, selectedMentorForManagement]);
+
+  const menteeTotalCount = filteredAvailableMentees.length;
+  const menteeTotalPages = Math.max(1, Math.ceil(menteeTotalCount / menteePageSize));
+  const safeMenteePage = Math.min(menteeCurrentPage, menteeTotalPages);
+  const paginatedMentees = useMemo(
+    () => filteredAvailableMentees.slice((safeMenteePage - 1) * menteePageSize, safeMenteePage * menteePageSize),
+    [filteredAvailableMentees, safeMenteePage, menteePageSize],
+  );
+  const menteePageNumbers = useMemo(() => getPageNumbers(safeMenteePage, menteeTotalPages), [safeMenteePage, menteeTotalPages]);
+  const menteeStartIndex = menteeTotalCount === 0 ? 0 : (safeMenteePage - 1) * menteePageSize + 1;
+  const menteeEndIndex = Math.min(safeMenteePage * menteePageSize, menteeTotalCount);
+
+  useEffect(() => {
+    setMenteeCurrentPage(1);
+  }, [menteeSearchQuery]);
 
   function sortIcon(column) {
     if (sortColumn !== column) return 'ti-arrows-vertical';
@@ -549,6 +564,7 @@ export default function MentorProfilesPage() {
     setSelectedMentorForManagement(mentor);
     setSelectedMenteesToAdd({});
     setMenteeSearchQuery('');
+    setMenteeCurrentPage(1);
     setManageMenteesModalOpen(true);
     setActiveKebabId(null);
   }
@@ -640,30 +656,15 @@ export default function MentorProfilesPage() {
             }}
           />
         </div>
-        <div className="filter-dropdown" ref={filterRef}>
-          <button type="button" className="filter-dropdown-btn" onClick={() => setSpecializationMenuOpen((value) => !value)}>
-            {filterSpecialization || 'All Specializations'}
-            <i className="ti ti-angle-down" />
-          </button>
-          <div className={`mentor-filter-menu ${specializationMenuOpen ? 'active' : ''}`}>
-            <button type="button" onClick={() => { setFilterSpecialization(''); setCurrentPage(1); setSpecializationMenuOpen(false); }}>
-              All Specializations
-            </button>
-            {specializationList.map((spec) => (
-              <button
-                key={spec}
-                type="button"
-                onClick={() => {
-                  setFilterSpecialization(spec);
-                  setCurrentPage(1);
-                  setSpecializationMenuOpen(false);
-                }}
-              >
-                {spec}
-              </button>
-            ))}
-          </div>
-        </div>
+        <FilterDropdown
+          label="All Specializations"
+          value={filterSpecialization}
+          options={[
+            { value: '', label: 'All Specializations' },
+            ...specializationList.map((spec) => ({ value: spec, label: spec })),
+          ]}
+          onChange={(value) => { setFilterSpecialization(value); setCurrentPage(1); }}
+        />
       </div>
 
       {(paginatedMentors.length > 0 || isLoading) && (
@@ -679,10 +680,6 @@ export default function MentorProfilesPage() {
                 <th className={`sortable ${sortColumn === 'institution' ? 'active' : ''}`} onClick={() => handleSort('institution')}>
                   Alma Mater
                   <i className={`sort-icon ti ${sortIcon('institution')}`} />
-                </th>
-                <th className={`sortable ${sortColumn === 'specialization' ? 'active' : ''}`} onClick={() => handleSort('specialization')}>
-                  Specialization
-                  <i className={`sort-icon ti ${sortIcon('specialization')}`} />
                 </th>
                 <th>Students</th>
                 <th className="actions-column" />
@@ -700,7 +697,6 @@ export default function MentorProfilesPage() {
                     </td>
                     <td><div className="mentor-skeleton long" /></td>
                     <td><div className="mentor-skeleton medium" /></td>
-                    <td><div className="mentor-skeleton short" /></td>
                     <td><div className="mentor-skeleton short" /></td>
                     <td />
                   </tr>
@@ -731,13 +727,14 @@ export default function MentorProfilesPage() {
                       <div className="mentor-alma-sub">Graduated {mentor.graduationYear}</div>
                     </td>
                     <td>
-                      <span className="subject-badge">{mentor.specialisation}</span>
-                    </td>
-                    <td>
-                      <button type="button" className="students-count-badge" onClick={() => viewMentoringStudents(mentor)} title="View Mapped Students">
-                        <i className="ti ti-user" />
-                        <span>{mentor.studentCount || 0} Students</span>
-                      </button>
+                      {(mentor.studentCount || 0) > 0 ? (
+                        <button type="button" className="students-count-badge" onClick={() => viewMentoringStudents(mentor)} title="View Mapped Students">
+                          <i className="ti ti-user" />
+                          <span>{mentor.studentCount} Students</span>
+                        </button>
+                      ) : (
+                        <span className="students-count-empty">No Mentees</span>
+                      )}
                     </td>
                     <td className="mentor-actions-cell">
                       <div className="kebab-menu-container">
@@ -856,7 +853,7 @@ export default function MentorProfilesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredAvailableMentees.map((student) => (
+                      {paginatedMentees.map((student) => (
                         <tr key={student.id} className={selectedMenteesToAdd[student.id] ? 'selected-row' : ''} onClick={() => toggleMenteeSelection(student)}>
                           <td className="checkbox-column" onClick={(event) => event.stopPropagation()}>
                             <input type="checkbox" checked={Boolean(selectedMenteesToAdd[student.id])} onChange={() => toggleMenteeSelection(student)} />
@@ -874,6 +871,24 @@ export default function MentorProfilesPage() {
                       ))}
                     </tbody>
                   </table>
+                  <div className="pagination-container mentor-inner-pagination">
+                    <div className="pagination-info">
+                      Showing {menteeStartIndex} to {menteeEndIndex} of {menteeTotalCount} students
+                    </div>
+                    <div className="pagination-controls">
+                      <button type="button" className="pagination-btn" onClick={() => setMenteeCurrentPage((page) => Math.max(1, page - 1))} disabled={safeMenteePage === 1}>
+                        <i className="ti ti-angle-left" /> Previous
+                      </button>
+                      {menteePageNumbers.map((page) => (
+                        <button key={page} type="button" className={`pagination-btn ${page === safeMenteePage ? 'active' : ''}`} onClick={() => setMenteeCurrentPage(page)}>
+                          {page}
+                        </button>
+                      ))}
+                      <button type="button" className="pagination-btn" onClick={() => setMenteeCurrentPage((page) => Math.min(menteeTotalPages, page + 1))} disabled={safeMenteePage === menteeTotalPages}>
+                        Next <i className="ti ti-angle-right" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
@@ -897,79 +912,100 @@ export default function MentorProfilesPage() {
       </div>
 
       {editModalOpen && (
-      <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditModalOpen(false); }}>
-        <div className="crispr-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
-          <div className="crispr-modal-header">
-            <h3><i className="ti ti-id-badge" /> {editMode ? 'Edit' : 'Add New'} Mentor</h3>
-            <button type="button" className="crispr-modal-close" onClick={() => setEditModalOpen(false)}>
+      <div className="legacy-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditModalOpen(false); }}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true">
+          <div className="legacy-modal-header">
+            <h3>{editMode ? 'Edit Mentor' : 'Add New Mentor'}</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => setEditModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="crispr-modal-body">
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Basic Information</div>
-              <div className="mentor-form-group">
-                <label>Mentor Name <span className="required">*</span></label>
-                <input type="text" className="mentor-form-input" value={currentMentor?.name || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, name: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Brief Description <span className="required">*</span></label>
-                <textarea className="mentor-form-textarea" rows={2} value={currentMentor?.brief || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, brief: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Profile Photo <span className="muted-note">(Optional)</span></label>
-                <div className="mentor-photo-upload">
-                  {currentMentor?.photo || currentMentor?.photoPreview ? (
-                    <img src={currentMentor.photoPreview || currentMentor.photo} alt="Preview" className="mentor-photo-preview" />
-                  ) : (
-                    <div className="mentor-photo-placeholder"><i className="ti ti-camera" /></div>
-                  )}
-                  <div className="mentor-photo-meta">
-                    <span className="file-name"><i className="ti ti-info-alt" /> JPG, PNG (Max 2MB)</span>
+          <form className="batch-modal-form form-modal" onSubmit={(event) => { event.preventDefault(); saveMentor(); }}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Information</div>
+              <div className="asset-form-grid basic-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={currentMentor?.name || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, name: event.target.value }))} />
+                    <span className="float-label">Mentor Name <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea className="float-control" placeholder=" " value={currentMentor?.brief || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, brief: event.target.value }))} />
+                    <span className="float-label">Brief Description <span className="req">*</span></span>
+                  </div>
+                </label>
+                <div className="field-cell full-span">
+                  <div className="field-static-label">Profile Photo <span className="field-hint-inline">(Optional)</span></div>
+                  <div className="mentor-photo-upload">
+                    {currentMentor?.photo || currentMentor?.photoPreview ? (
+                      <img src={currentMentor.photoPreview || currentMentor.photo} alt="Preview" className="mentor-photo-preview" />
+                    ) : (
+                      <div className="mentor-photo-placeholder"><i className="ti ti-camera" /></div>
+                    )}
+                    <div className="mentor-photo-meta">
+                      <span className="file-name"><i className="ti ti-info-alt" /> JPG, PNG (Max 2MB)</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Academic Details</div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Specialization <span className="required">*</span></label>
-                  <input type="text" className="mentor-form-input" value={currentMentor?.specialisation || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, specialisation: event.target.value }))} />
-                </div>
-                <div className="mentor-form-group">
-                  <label>Graduation Year <span className="required">*</span></label>
-                  <input type="number" className="mentor-form-input" value={currentMentor?.graduationYear || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, graduationYear: event.target.value }))} />
-                </div>
-              </div>
-              <div className="mentor-form-group">
-                <label>Alma Mater <span className="required">*</span></label>
-                <input type="text" className="mentor-form-input" value={currentMentor?.almaMater || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, almaMater: event.target.value }))} />
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-school" /> Academic Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={currentMentor?.specialisation || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, specialisation: event.target.value }))} />
+                    <span className="float-label">Specialization <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="number" className="float-control" placeholder=" " value={currentMentor?.graduationYear || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, graduationYear: event.target.value }))} />
+                    <span className="float-label">Graduation Year <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={currentMentor?.almaMater || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, almaMater: event.target.value }))} />
+                    <span className="float-label">Alma Mater <span className="req">*</span></span>
+                  </div>
+                </label>
               </div>
             </div>
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Contact Information <span className="muted-note">(Optional)</span></div>
-              <div className="mentor-form-group">
-                <label>Email</label>
-                <input type="email" className="mentor-form-input" value={currentMentor?.email || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, email: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Mobile</label>
-                <input type="tel" className="mentor-form-input" value={currentMentor?.mobile || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, mobile: event.target.value }))} />
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-address-book" /> Contact Information <span className="field-hint-inline">(Optional)</span></div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="email" className="float-control" placeholder=" " value={currentMentor?.email || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, email: event.target.value }))} />
+                    <span className="float-label">Email</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="tel" className="float-control" placeholder=" " value={currentMentor?.mobile || ''} onChange={(event) => setCurrentMentor((current) => ({ ...current, mobile: event.target.value }))} />
+                    <span className="float-label">Mobile</span>
+                  </div>
+                </label>
               </div>
             </div>
           </div>
-          <div className="crispr-modal-footer">
-            <button type="button" className="btn btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
             <button
-              type="button"
-              className="btn btn-success"
-              onClick={saveMentor}
+              type="submit"
+              className="legacy-btn legacy-btn-success"
               disabled={!currentMentor?.name || !currentMentor?.brief || !currentMentor?.specialisation || !currentMentor?.almaMater || !currentMentor?.graduationYear}
             >
-              <i className="ti ti-check" /> {editMode ? 'Update' : 'Create'} Mentor
+              {editMode ? 'Update Mentor' : 'Create Mentor'}
             </button>
           </div>
+          </form>
         </div>
       </div>
       )}
@@ -1069,11 +1105,9 @@ export default function MentorProfilesPage() {
               </>
             ) : null}
           </div>
-          <div className="crispr-modal-footer">
-            <button type="button" className="btn btn-default" onClick={() => setViewModalOpen(false)}>
-              <i className="ti ti-close" /> Close
-            </button>
-            <button type="button" className="btn btn-success" onClick={editFromView}>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setViewModalOpen(false)}>Close</button>
+            <button type="button" className="legacy-btn legacy-btn-success" onClick={editFromView}>
               <i className="ti ti-pencil" /> Edit Mentor
             </button>
           </div>

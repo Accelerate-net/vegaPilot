@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import Avatar from '../components/Avatar';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
@@ -135,7 +136,6 @@ export default function InstructorPortfolioPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isInstructorProfileLoading, setIsInstructorProfileLoading] = useState(false);
-  const [subjectMenuOpen, setSubjectMenuOpen] = useState(false);
   const [activeKebabId, setActiveKebabId] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -149,7 +149,6 @@ export default function InstructorPortfolioPage() {
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
   const kebabRef = useRef(null);
-  const filterRef = useRef(null);
 
   const showToast = (type, title, message) => {
     const id = toastIdRef.current + 1;
@@ -268,7 +267,6 @@ export default function InstructorPortfolioPage() {
   useEffect(() => {
     const handleClick = (event) => {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) setActiveKebabId(null);
-      if (filterRef.current && !filterRef.current.contains(event.target)) setSubjectMenuOpen(false);
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -466,28 +464,15 @@ export default function InstructorPortfolioPage() {
             }}
           />
         </div>
-        <div className="filter-dropdown" ref={filterRef}>
-          <button type="button" className="filter-dropdown-btn" onClick={() => setSubjectMenuOpen((value) => !value)}>
-            {filterSubject || 'All Subjects'}
-            <i className="ti ti-angle-down" />
-          </button>
-          <div className={`instructor-filter-menu ${subjectMenuOpen ? 'active' : ''}`}>
-            <button type="button" onClick={() => { setFilterSubject(''); setCurrentPage(1); setSubjectMenuOpen(false); }}>All Subjects</button>
-            {subjectList.map((subject) => (
-              <button
-                key={subject}
-                type="button"
-                onClick={() => {
-                  setFilterSubject(subject);
-                  setCurrentPage(1);
-                  setSubjectMenuOpen(false);
-                }}
-              >
-                {subject}
-              </button>
-            ))}
-          </div>
-        </div>
+        <FilterDropdown
+          label="All Subjects"
+          value={filterSubject}
+          options={[
+            { value: '', label: 'All Subjects' },
+            ...subjectList.map((subject) => ({ value: subject, label: subject })),
+          ]}
+          onChange={(value) => { setFilterSubject(value); setCurrentPage(1); }}
+        />
       </div>
 
       {(totalInstructors > 0 || isLoading) && (
@@ -634,76 +619,100 @@ export default function InstructorPortfolioPage() {
         </div>
       ) : null}
 
-      <div className={`legacy-modal-backdrop ${editModalOpen ? 'active' : ''}`} onClick={() => setEditModalOpen(false)}>
-        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+      <div className={`legacy-modal-backdrop ${editModalOpen ? 'active' : ''}`} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditModalOpen(false); }}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true">
           <div className="legacy-modal-header">
-            <h3><i className="ti ti-id-badge" /> {editMode ? 'Edit' : 'Add New'} Instructor</h3>
+            <h3>{editMode ? 'Edit Instructor' : 'Add New Instructor'}</h3>
             <button type="button" className="legacy-modal-close" onClick={() => setEditModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
+          <form className="batch-modal-form form-modal" onSubmit={(event) => { event.preventDefault(); saveInstructor(); }}>
           <div className="legacy-modal-body">
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Basic Information</div>
-              <div className="mentor-form-group">
-                <label>Instructor Name <span className="required">*</span></label>
-                <input type="text" className="mentor-form-input" value={currentInstructor?.name || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, name: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Brief Description <span className="required">*</span></label>
-                <textarea className="mentor-form-textarea" rows={2} value={currentInstructor?.brief || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, brief: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Profile Photo <span className="muted-note">(Optional)</span></label>
-                <div className="mentor-photo-upload">
-                  {currentInstructor?.photo || currentInstructor?.photoPreview ? (
-                    <img src={currentInstructor.photoPreview || currentInstructor.photo} alt="Preview" className="mentor-photo-preview" />
-                  ) : (
-                    <div className="mentor-photo-placeholder"><i className="ti ti-camera" /></div>
-                  )}
-                  <div className="mentor-photo-meta">
-                    <span className="file-name"><i className="ti ti-info-alt" /> JPG, PNG (Max 2MB)</span>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Information</div>
+              <div className="asset-form-grid basic-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={currentInstructor?.name || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, name: event.target.value }))} />
+                    <span className="float-label">Instructor Name <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea className="float-control" placeholder=" " value={currentInstructor?.brief || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, brief: event.target.value }))} />
+                    <span className="float-label">Brief Description <span className="req">*</span></span>
+                  </div>
+                </label>
+                <div className="field-cell full-span">
+                  <div className="field-static-label">Profile Photo <span className="field-hint-inline">(Optional)</span></div>
+                  <div className="mentor-photo-upload">
+                    {currentInstructor?.photo || currentInstructor?.photoPreview ? (
+                      <img src={currentInstructor.photoPreview || currentInstructor.photo} alt="Preview" className="mentor-photo-preview" />
+                    ) : (
+                      <div className="mentor-photo-placeholder"><i className="ti ti-camera" /></div>
+                    )}
+                    <div className="mentor-photo-meta">
+                      <span className="file-name"><i className="ti ti-info-alt" /> JPG, PNG (Max 2MB)</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Professional Details</div>
-              <div className="mentor-form-row">
-                <div className="mentor-form-group">
-                  <label>Expert Subject <span className="required">*</span></label>
-                  <input type="text" className="mentor-form-input" value={currentInstructor?.expertSubject || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, expertSubject: event.target.value }))} />
-                </div>
-                <div className="mentor-form-group">
-                  <label>Years of Experience <span className="required">*</span></label>
-                  <input type="number" className="mentor-form-input" value={currentInstructor?.experienceYears || currentInstructor?.experience || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, experienceYears: event.target.value }))} />
-                </div>
-              </div>
-              <div className="mentor-form-group">
-                <label>Qualifications <span className="required">*</span></label>
-                <textarea className="mentor-form-textarea" rows={3} value={currentInstructor?.qualifications || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, qualifications: event.target.value }))} />
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-school" /> Professional Details</div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={currentInstructor?.expertSubject || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, expertSubject: event.target.value }))} />
+                    <span className="float-label">Expert Subject <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="number" className="float-control" placeholder=" " value={currentInstructor?.experienceYears || currentInstructor?.experience || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, experienceYears: event.target.value }))} />
+                    <span className="float-label">Years of Experience <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field float-textarea">
+                    <textarea className="float-control" placeholder=" " value={currentInstructor?.qualifications || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, qualifications: event.target.value }))} />
+                    <span className="float-label">Qualifications <span className="req">*</span></span>
+                  </div>
+                </label>
               </div>
             </div>
 
-            <div className="mentor-form-section">
-              <div className="mentor-form-title">Additional Information <span className="muted-note">(Optional)</span></div>
-              <div className="mentor-form-group">
-                <label>Email</label>
-                <input type="email" className="mentor-form-input" value={currentInstructor?.email || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, email: event.target.value }))} />
-              </div>
-              <div className="mentor-form-group">
-                <label>Phone</label>
-                <input type="tel" className="mentor-form-input" value={currentInstructor?.phone || currentInstructor?.mobile || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, phone: event.target.value, mobile: event.target.value }))} />
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-address-book" /> Additional Information <span className="field-hint-inline">(Optional)</span></div>
+              <div className="asset-form-grid">
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="email" className="float-control" placeholder=" " value={currentInstructor?.email || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, email: event.target.value }))} />
+                    <span className="float-label">Email</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="tel" className="float-control" placeholder=" " value={currentInstructor?.phone || currentInstructor?.mobile || ''} onChange={(event) => setCurrentInstructor((current) => ({ ...current, phone: event.target.value, mobile: event.target.value }))} />
+                    <span className="float-label">Phone</span>
+                  </div>
+                </label>
               </div>
             </div>
           </div>
           <div className="legacy-modal-footer">
             <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setEditModalOpen(false)}>Cancel</button>
-            <button type="button" className="legacy-btn legacy-btn-success" onClick={saveInstructor}>
-              <i className="ti ti-check" /> {editMode ? 'Update' : 'Create'} Instructor
+            <button
+              type="submit"
+              className="legacy-btn legacy-btn-success"
+              disabled={!currentInstructor?.name || !currentInstructor?.brief || !currentInstructor?.expertSubject || !currentInstructor?.qualifications || !(currentInstructor?.experienceYears || currentInstructor?.experience)}
+            >
+              {editMode ? 'Update Instructor' : 'Create Instructor'}
             </button>
           </div>
+          </form>
         </div>
       </div>
 
@@ -818,21 +827,21 @@ export default function InstructorPortfolioPage() {
         </div>
       </div>
 
-      <div className={`instructor-modal-backdrop ${lessonsModalOpen ? 'active' : ''}`} onClick={() => setLessonsModalOpen(false)}>
-        <div className="instructor-lessons-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-          <div className="instructor-modal-header">
+      <div className={`legacy-modal-backdrop ${lessonsModalOpen ? 'active' : ''}`} onClick={() => setLessonsModalOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+          <div className="legacy-modal-header">
             <h3><i className="ti ti-book" /> Lessons Taught by {selectedInstructorForLessons?.name}</h3>
-            <button type="button" className="instructor-modal-close" onClick={() => setLessonsModalOpen(false)}>
+            <button type="button" className="legacy-modal-close" onClick={() => setLessonsModalOpen(false)}>
               <i className="ti ti-close" />
             </button>
           </div>
-          <div className="instructor-modal-body">
+          <div className="legacy-modal-body">
             {selectedInstructorForLessons?.lessons?.length ? (
               <>
                 <p className="lessons-modal-copy">
                   <strong>{selectedInstructorForLessons.name}</strong> has contributed to <strong>{selectedInstructorForLessons.lessons.length}</strong> lesson(s) across different courses.
                 </p>
-                <div className="lessons-scroll-box">
+                <div className="mentor-scroll-table tall">
                   <table className="instructors-lessons-table">
                     <thead>
                       <tr>
@@ -866,10 +875,8 @@ export default function InstructorPortfolioPage() {
               </div>
             )}
           </div>
-          <div className="instructor-modal-footer">
-            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setLessonsModalOpen(false)}>
-              <i className="ti ti-close" /> Close
-            </button>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setLessonsModalOpen(false)}>Close</button>
           </div>
         </div>
       </div>

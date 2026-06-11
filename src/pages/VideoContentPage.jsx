@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { bunnyFoldersDemo, bunnyVideosDemo, instructorsDemo, videoLibraryDemo } from '../data/adminRemainingDemo';
 
 const SUBJECTS = ['Biology', 'Chemistry', 'Mathematics', 'Physics'];
@@ -15,48 +16,6 @@ function formatDuration(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-// ---- FilterDropdown (same pattern as OrdersPage) ----
-function FilterDropdown({ label, options, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    function handler(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const current = options.find((o) => o.value === value);
-
-  return (
-    <div className="filter-dropdown" ref={ref}>
-      <button
-        type="button"
-        className={`filter-dropdown-btn${value ? ' active' : ''}`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {current ? current.label : label}
-        <i className={`ti ti-angle-${open ? 'up' : 'down'}`} />
-      </button>
-      {open && (
-        <ul className="filter-dropdown-menu">
-          {options.map((o) => (
-            <li
-              key={o.value}
-              className={o.value === value ? 'active' : ''}
-              onClick={() => { onChange(o.value); setOpen(false); }}
-            >
-              {o.label}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 // ---- KebabMenu ----

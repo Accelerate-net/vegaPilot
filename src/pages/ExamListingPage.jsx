@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { examsDemo } from '../data/examsDemo';
 
 function generateUUID() {
@@ -133,7 +134,6 @@ export default function ExamListingPage() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
   const [examToDelete, setExamToDelete] = useState(null);
   const [sortColumn, setSortColumn] = useState('');
@@ -145,7 +145,6 @@ export default function ExamListingPage() {
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
   const kebabRef = useRef(null);
-  const filterRef = useRef(null);
 
   const showToast = (type, title, message) => {
     const id = toastIdRef.current + 1;
@@ -162,7 +161,6 @@ export default function ExamListingPage() {
   useEffect(() => {
     const handleClick = (event) => {
       if (kebabRef.current && !kebabRef.current.contains(event.target)) setActiveKebabId(null);
-      if (filterRef.current && !filterRef.current.contains(event.target)) setFilterMenuOpen(false);
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -319,17 +317,16 @@ export default function ExamListingPage() {
             }}
           />
         </div>
-        <div className="filter-dropdown" ref={filterRef}>
-          <button type="button" className="filter-dropdown-btn" onClick={() => setFilterMenuOpen((value) => !value)}>
-            {filterStatus === 'active' ? 'Active' : filterStatus === 'inactive' ? 'Inactive' : 'All Status'}
-            <i className="ti ti-angle-down" />
-          </button>
-          <div className={`exam-filter-menu ${filterMenuOpen ? 'active' : ''}`}>
-            <button type="button" onClick={() => { setFilterStatus(''); setCurrentPage(1); setFilterMenuOpen(false); }}>All Status</button>
-            <button type="button" onClick={() => { setFilterStatus('active'); setCurrentPage(1); setFilterMenuOpen(false); }}>Active</button>
-            <button type="button" onClick={() => { setFilterStatus('inactive'); setCurrentPage(1); setFilterMenuOpen(false); }}>Inactive</button>
-          </div>
-        </div>
+        <FilterDropdown
+          label="All Status"
+          value={filterStatus}
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ]}
+          onChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
+        />
       </div>
 
       <div className="students-table-container" ref={kebabRef}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
 import { ordersDemo } from '../data/ordersDemo';
@@ -100,7 +101,6 @@ export default function OrdersPage() {
   const [sortReverse, setSortReverse] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [filterMenuOpen, setFilterMenuOpen] = useState('');
   const [openKebabId, setOpenKebabId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -122,7 +122,6 @@ export default function OrdersPage() {
     const closeMenus = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenKebabId(null);
-        setFilterMenuOpen('');
       }
     };
     document.addEventListener('click', closeMenus);
@@ -181,6 +180,81 @@ export default function OrdersPage() {
     setOpenKebabId(null);
   }
 
+  function downloadInvoice(order) {
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+    ));
+    const rupee = (value) => `&#8377;${formatMoney(value)}`;
+
+    const itemRows = order.items.map((item, index) => (
+      `<tr><td>${index + 1}</td><td><strong>${esc(item.title)}</strong><br><small>Code: ${esc(item.code)}</small></td><td>${rupee(item.price)}</td><td>1</td><td>${rupee(item.price)}</td></tr>`
+    )).join('');
+
+    const summaryRows = [
+      `<tr><td>Subtotal</td><td>${rupee(order.subtotal)}</td></tr>`,
+      order.taxAmount > 0 ? `<tr><td>Tax (${esc(order.taxPercent)}%)</td><td>${rupee(order.taxAmount)}</td></tr>` : '',
+      order.discountAmount > 0 ? `<tr><td>Discount</td><td>-${rupee(order.discountAmount)}</td></tr>` : '',
+      `<tr class="total"><td>Total</td><td>${rupee(order.totalAmount)}</td></tr>`,
+    ].join('');
+
+    const discountsBlock = order.discounts?.length
+      ? `<div class="discounts"><h4>Discounts Applied:</h4>${order.discounts.map((discount) => `<p>${esc(discount.code)} - ${esc(discount.description)} (-${rupee(discount.amount)})</p>`).join('')}</div>`
+      : '';
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${esc(order.orderNumber)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #16353c; margin: 32px; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .top h2 { margin: 0 0 4px; }
+  .top p { margin: 0; color: #59757b; font-size: 13px; line-height: 1.5; }
+  .meta { text-align: right; }
+  .meta h3 { margin: 0 0 6px; letter-spacing: 1px; }
+  hr { border: none; border-top: 1px solid #d7e5e8; margin: 18px 0; }
+  .info { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .info h5 { margin: 0 0 6px; font-size: 13px; }
+  .info p { margin: 0; font-size: 13px; line-height: 1.5; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 18px; }
+  th, td { border: 1px solid #d7e5e8; padding: 7px 10px; text-align: left; }
+  thead th { background: #006073; color: #fff; }
+  .bottom { display: flex; justify-content: space-between; gap: 24px; }
+  .discounts h4 { margin: 0 0 6px; font-size: 13px; }
+  .discounts p { margin: 0; font-size: 12px; color: #1f8a4c; }
+  .summary { width: 260px; }
+  .summary table { margin: 0; }
+  .summary td:last-child { text-align: right; }
+  .summary tr.total td { font-weight: 700; background: #f4f9fa; }
+  .terms { margin-top: 24px; font-size: 11px; color: #59757b; line-height: 1.6; }
+  @media print { body { margin: 12mm; } }
+</style></head><body>
+  <div class="top">
+    <div><h2>Crispr Pilot</h2><p>Educational Platform<br>www.crisprlearning.com<br>support@crisprlearning.com</p></div>
+    <div class="meta"><h3>INVOICE</h3><p><strong>Invoice #:</strong> INV-${esc(order.orderNumber)}<br><strong>Date:</strong> ${esc(formatDate(order.orderDate))}<br><strong>Status:</strong> ${esc(order.status.toUpperCase())}</p></div>
+  </div>
+  <hr>
+  <div class="info">
+    <div><h5>Bill To:</h5><p><strong>${esc(order.customer.name)}</strong><br>${esc(order.customer.email)}<br>${esc(order.customer.phone)}</p></div>
+    <div><h5>Payment Details:</h5><p><strong>Method:</strong> ${esc(order.paymentMethod.toUpperCase())}<br><strong>Reference:</strong> ${esc(order.paymentReference)}<br><strong>Status:</strong> ${esc(order.status.toUpperCase())}</p></div>
+  </div>
+  <table><thead><tr><th>#</th><th>Item Description</th><th>Price</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
+  <div class="bottom">
+    <div>${discountsBlock}</div>
+    <div class="summary"><table>${summaryRows}</table></div>
+  </div>
+  <div class="terms"><strong>Terms &amp; Conditions:</strong><br>Thank you for your purchase. This is a computer-generated invoice and does not require a physical signature. All sales are final. For any queries, please contact our support team.</div>
+  <script>window.onload = function () { window.print(); };</script>
+</body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      showToast('error', 'Pop-up blocked', 'Allow pop-ups for this site to download the invoice.');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
   function confirmRefund() {
     const code = refundData.code.join('');
     if (code.length !== 4) {
@@ -221,8 +295,6 @@ export default function OrdersPage() {
   const page = Math.min(currentPage, totalPages);
   const startIndex = filteredOrders.length === 0 ? 0 : (page - 1) * pageSize;
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + pageSize);
-  const statusLabel = filterStatus ? `${filterStatus.slice(0, 1).toUpperCase()}${filterStatus.slice(1)}` : 'All Status';
-  const paymentLabel = filterPaymentMethod ? `${filterPaymentMethod.slice(0, 1).toUpperCase()}${filterPaymentMethod.slice(1)}` : 'All Payment Methods';
 
   return (
     <section className="orders-page data-table-page">
@@ -260,38 +332,28 @@ export default function OrdersPage() {
           />
         </div>
         <FilterDropdown
-          label={statusLabel}
-          open={filterMenuOpen === 'status'}
-          onToggle={() => setFilterMenuOpen((current) => (current === 'status' ? '' : 'status'))}
+          label="All Status"
+          value={filterStatus}
           options={[
-            ['', 'All Status'],
-            ['completed', 'Completed'],
-            ['pending', 'Pending'],
-            ['failed', 'Failed'],
-            ['refunded', 'Refunded'],
+            { value: '', label: 'All Status' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'failed', label: 'Failed' },
+            { value: 'refunded', label: 'Refunded' },
           ]}
-          onSelect={(value) => {
-            setFilterStatus(value);
-            setCurrentPage(1);
-            setFilterMenuOpen('');
-          }}
+          onChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
         />
         <FilterDropdown
-          label={paymentLabel}
-          open={filterMenuOpen === 'payment'}
-          onToggle={() => setFilterMenuOpen((current) => (current === 'payment' ? '' : 'payment'))}
+          label="All Payment Methods"
+          value={filterPaymentMethod}
           options={[
-            ['', 'All Payment Methods'],
-            ['card', 'Card'],
-            ['upi', 'UPI'],
-            ['netbanking', 'Net Banking'],
-            ['wallet', 'Wallet'],
+            { value: '', label: 'All Payment Methods' },
+            { value: 'card', label: 'Card' },
+            { value: 'upi', label: 'UPI' },
+            { value: 'netbanking', label: 'Net Banking' },
+            { value: 'wallet', label: 'Wallet' },
           ]}
-          onSelect={(value) => {
-            setFilterPaymentMethod(value);
-            setCurrentPage(1);
-            setFilterMenuOpen('');
-          }}
+          onChange={(value) => { setFilterPaymentMethod(value); setCurrentPage(1); }}
         />
       </div>
 
@@ -405,26 +467,10 @@ export default function OrdersPage() {
       )}
 
       {orderModalOpen && selectedOrder ? <OrderModal order={selectedOrder} onClose={() => setOrderModalOpen(false)} onInvoice={() => viewInvoice(selectedOrder)} /> : null}
-      {invoiceModalOpen && selectedOrder ? <InvoiceModal order={selectedOrder} onClose={() => setInvoiceModalOpen(false)} onDownload={() => showToast('info', 'Generating PDF', 'Generating PDF...')} /> : null}
+      {invoiceModalOpen && selectedOrder ? <InvoiceModal order={selectedOrder} onClose={() => setInvoiceModalOpen(false)} onDownload={() => downloadInvoice(selectedOrder)} /> : null}
       {emailModalOpen ? <EmailModal emailData={emailData} setEmailData={setEmailData} onClose={() => setEmailModalOpen(false)} onSend={() => { if (!emailData.to) { showToast('error', 'Email', 'Please enter an email address'); return; } setEmailModalOpen(false); showToast('success', 'Email Sent', `Invoice email sent to ${emailData.to}`); }} /> : null}
       {refundModalOpen && refundData.order ? <RefundModal refundData={refundData} setRefundData={setRefundData} onClose={() => setRefundModalOpen(false)} onConfirm={confirmRefund} /> : null}
     </section>
-  );
-}
-
-function FilterDropdown({ label, open, onToggle, options, onSelect }) {
-  return (
-    <div className="filter-dropdown">
-      <button type="button" className="filter-dropdown-btn" onClick={(event) => { event.stopPropagation(); onToggle(); }}>
-        {label}
-        <i className="ti ti-angle-down" />
-      </button>
-      <div className={`orders-filter-menu ${open ? 'active' : ''}`}>
-        {options.map(([value, optionLabel]) => (
-          <button key={optionLabel} type="button" onClick={() => onSelect(value)}>{optionLabel}</button>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -467,8 +513,8 @@ function OrderModal({ order, onClose, onInvoice }) {
           </div>
         </div>
         <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>Close</button>
-          <button type="button" className="btn btn-primary" onClick={onInvoice}><i className="ti ti-receipt" /> View Invoice</button>
+          <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Close</button>
+          <button type="button" className="legacy-btn legacy-btn-success" onClick={onInvoice}><i className="ti ti-receipt" /> View Invoice</button>
         </div>
       </div>
     </div>
@@ -504,8 +550,8 @@ function InvoiceModal({ order, onClose, onDownload }) {
           <div className="invoice-terms"><strong>Terms & Conditions:</strong><br />Thank you for your purchase. This is a computer-generated invoice and does not require a physical signature. All sales are final. For any queries, please contact our support team.</div>
         </div>
         <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>Close</button>
-          <button type="button" className="btn btn-primary" onClick={onDownload}><i className="ti ti-download" /> Download</button>
+          <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Close</button>
+          <button type="button" className="legacy-btn legacy-btn-success" onClick={onDownload}><i className="ti ti-download" /> Download</button>
         </div>
       </div>
     </div>
@@ -514,15 +560,38 @@ function InvoiceModal({ order, onClose, onDownload }) {
 
 function EmailModal({ emailData, setEmailData, onClose, onSend }) {
   return (
-    <div className="crispr-modal-backdrop active" role="presentation" onClick={onClose}>
-      <div className="crispr-modal-dialog email-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-        <div className="crispr-modal-header"><h3><i className="ti ti-email" /> Email Invoice</h3><button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button></div>
-        <div className="crispr-modal-body">
-          <p className="email-copy">Send invoice for Order <strong>#{emailData.orderNumber}</strong> to the customer.</p>
-          <label className="form-group"><span>Recipient Email <strong>*</strong></span><input type="email" className="form-control" value={emailData.to} onChange={(event) => setEmailData((current) => ({ ...current, to: event.target.value }))} /></label>
-          <label className="form-group"><span>Subject</span><input type="text" className="form-control" value={emailData.subject} onChange={(event) => setEmailData((current) => ({ ...current, subject: event.target.value }))} /></label>
+    <div className="legacy-modal-backdrop active" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div className="legacy-modal-dialog" role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
+          <h3><i className="ti ti-email" /> Email Invoice</h3>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
-        <div className="crispr-modal-footer"><button type="button" className="btn btn-default" onClick={onClose}>Cancel</button><button type="button" className="btn btn-primary" onClick={onSend}><i className="ti ti-check" /> Send Email</button></div>
+        <form className="orders-modal-form form-modal" onSubmit={(event) => { event.preventDefault(); onSend(); }}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-send" /> Send Invoice</div>
+              <p className="field-static-label">Send invoice for Order <strong>#{emailData.orderNumber}</strong> to the customer.</p>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input type="email" className="float-control" placeholder=" " value={emailData.to} onChange={(event) => setEmailData((current) => ({ ...current, to: event.target.value }))} />
+                    <span className="float-label">Recipient Email <span className="req">*</span></span>
+                  </div>
+                </label>
+                <label className="field-cell full-span">
+                  <div className="float-field">
+                    <input type="text" className="float-control" placeholder=" " value={emailData.subject} onChange={(event) => setEmailData((current) => ({ ...current, subject: event.target.value }))} />
+                    <span className="float-label">Subject</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button type="submit" className="legacy-btn legacy-btn-success" disabled={!emailData.to}><i className="ti ti-check" /> Send Email</button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -564,7 +633,7 @@ function RefundModal({ refundData, setRefundData, onClose, onConfirm }) {
             ))}
           </div>
           {refundData.error ? <p className="refund-error">{refundData.error}</p> : null}
-          <div className="refund-actions"><button type="button" className="btn btn-default" onClick={onClose}>Cancel</button><button type="button" className="btn btn-danger" disabled={!complete} onClick={onConfirm}>Confirm Refund</button></div>
+          <div className="refund-actions"><button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button><button type="button" className="legacy-btn legacy-btn-danger" disabled={!complete} onClick={onConfirm}>Confirm Refund</button></div>
         </div>
       </div>
     </div>

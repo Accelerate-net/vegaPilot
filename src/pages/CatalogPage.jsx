@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ToastRegion from '../components/ToastRegion';
+import FilterDropdown from '../components/FilterDropdown';
 import { catalogItemsDemo } from '../data/adminRemainingDemo';
 
 export default function CatalogPage() {
@@ -22,9 +23,23 @@ export default function CatalogPage() {
   const pageSize = 12;
   const [isLoading, setIsLoading] = useState(true);
 
+  const [activeKebabId, setActiveKebabId] = useState(null);
+  const kebabRef = useRef(null);
+  const [failedImages, setFailedImages] = useState({});
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (kebabRef.current && !kebabRef.current.contains(event.target)) {
+        setActiveKebabId(null);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
   }, []);
 
   function showToast(type, title, message) {
@@ -190,7 +205,22 @@ export default function CatalogPage() {
       .cat-catalog-card:hover { transform: scale(1.05); }
       .cat-catalog-image-container { position: relative; }
       .cat-catalog-image { width: 100%; height: 160px; object-fit: cover; }
+      .cat-catalog-image-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; color: #90a4ae; font-size: 40px; background-color: #e9edf0; background-image: repeating-linear-gradient(45deg, rgba(148, 163, 184, 0.28) 0, rgba(148, 163, 184, 0.28) 10px, transparent 10px, transparent 20px); }
+      .cat-catalog-image-fallback span { font-size: 12px; font-weight: 500; color: #78909c; }
       .cat-catalog-badge { position: absolute; top: 10px; left: 10px; padding: 5px 10px; font-size: 12px; font-weight: bold; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); z-index: 10; }
+      .cat-catalog-card.kebab-open:hover { transform: none; }
+      .cat-kebab-container { position: absolute; top: 10px; right: 10px; z-index: 20; }
+      .cat-kebab-button { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.92); color: #475569; font-size: 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s, background 0.2s; }
+      .cat-catalog-card:hover .cat-kebab-button, .cat-catalog-card.kebab-open .cat-kebab-button { opacity: 1; visibility: visible; }
+      .cat-kebab-button:hover { background: #ffffff; color: #1e293b; }
+      .cat-kebab-dropdown { position: absolute; top: calc(100% + 6px); right: 0; min-width: 190px; display: none; overflow: hidden; border: 1px solid #d9e2e7; border-radius: 8px; background: white; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18); }
+      .cat-kebab-dropdown.active { display: block; }
+      .cat-kebab-item { display: flex; width: 100%; align-items: center; gap: 10px; padding: 11px 14px; border: 0; background: transparent; color: #334155; cursor: pointer; font: inherit; font-size: 14px; text-align: left; }
+      .cat-kebab-item:hover { background: #f8fafc; }
+      .cat-kebab-item:disabled { color: #b0bec5; cursor: not-allowed; }
+      .cat-kebab-item.danger-action { color: #b91c1c; }
+      .cat-kebab-item.enable-action { color: #0f766e; }
+      .cat-kebab-item i { font-size: 16px; width: 18px; text-align: center; }
       .cat-badge-admission { background-color: #e8f5e9; color: #2e7d32; }
       .cat-badge-official { background-color: #fff3e0; color: #e65100; }
       .cat-badge-offer { background-color: #fce4ec; color: #c2185b; }
@@ -204,6 +234,9 @@ export default function CatalogPage() {
       .cat-catalog-admin-actions { display: flex; gap: 8px; padding: 10px 15px; background: #f5f5f5; border-top: 1px solid #e0e0e0; justify-content: center; }
       .cat-catalog-actions { display: flex; gap: 8px; }
       .cat-catalog-actions .cat-btn { padding: 6px 12px; font-size: 14px; border-radius: 5px; border: none; cursor: pointer; transition: all 0.2s; }
+      .cat-btn-view { background: #006073; color: white; }
+      .cat-btn-view:hover { background: #00505f; }
+      .cat-btn-view:disabled { background: #b0bec5; cursor: not-allowed; }
       .cat-btn-edit { background: #2196F3; color: white; }
       .cat-btn-edit:hover { background: #1976D2; }
       .cat-btn-active { background: #9E9E9E; color: white; }
@@ -292,17 +325,29 @@ export default function CatalogPage() {
             <input type="text" className="search-input" placeholder="Search catalog items by title, code, or description..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
          </div>
 
-         <select className="filter-select" value={filterType} onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }} aria-label="Filter by type">
-            <option value="">All Types</option>
-            <option value="1">Course</option>
-            <option value="2">Exam</option>
-         </select>
+         <FilterDropdown
+            label="All Types"
+            ariaLabel="Filter by type"
+            value={filterType}
+            options={[
+              { value: '', label: 'All Types' },
+              { value: '1', label: 'Course' },
+              { value: '2', label: 'Exam' },
+            ]}
+            onChange={(value) => { setFilterType(value); setCurrentPage(1); }}
+         />
 
-         <select className="filter-select" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }} aria-label="Filter by status">
-            <option value="">All Status</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-         </select>
+         <FilterDropdown
+            label="All Status"
+            ariaLabel="Filter by status"
+            value={filterStatus}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: '1', label: 'Active' },
+              { value: '0', label: 'Inactive' },
+            ]}
+            onChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
+         />
       </div>
 
       {isLoading ? (
@@ -321,16 +366,66 @@ export default function CatalogPage() {
           </div>
       ) : filtered.length > 0 ? (
           <>
-             <div className="cat-catalog-grid">
+             <div className="cat-catalog-grid" ref={kebabRef}>
                 {paginatedCatalog.map(item => (
-                   <div key={item.id} className="cat-catalog-card">
+                   <div key={item.id} className={`cat-catalog-card ${activeKebabId === item.id ? 'kebab-open' : ''}`}>
                       <div className="cat-catalog-image-container">
                          <a href={item.pageUrl} target="_blank" rel="noreferrer">
-                            <img src={item.displayImage || 'assets/img/default_catalog.png'} alt={item.title} className="cat-catalog-image" />
+                            {item.displayImage && !failedImages[item.id] ? (
+                               <img
+                                  src={item.displayImage}
+                                  alt={item.title}
+                                  className="cat-catalog-image"
+                                  onError={() => setFailedImages((prev) => ({ ...prev, [item.id]: true }))}
+                               />
+                            ) : (
+                               <div className="cat-catalog-image cat-catalog-image-fallback" aria-label="Invalid or no image">
+                                  <i className="ti ti-photo"></i>
+                                  <span>Invalid or no image</span>
+                               </div>
+                            )}
                          </a>
                          <span className={`cat-catalog-badge ${getBadgeClass(item)}`}>{item.tagline || getBadgeText(item)}</span>
+
+                         <div className="cat-kebab-container">
+                            <button
+                               type="button"
+                               className="cat-kebab-button"
+                               title="Actions"
+                               onClick={(e) => { e.stopPropagation(); setActiveKebabId(activeKebabId === item.id ? null : item.id); }}
+                            >
+                               <i className="ti ti-more-alt"></i>
+                            </button>
+                            <div className={`cat-kebab-dropdown ${activeKebabId === item.id ? 'active' : ''}`}>
+                               <button
+                                  type="button"
+                                  className="cat-kebab-item"
+                                  disabled={!item.pageUrl}
+                                  onClick={(e) => { e.stopPropagation(); setActiveKebabId(null); window.open(item.pageUrl, '_blank', 'noopener,noreferrer'); }}
+                               >
+                                  <i className="ti ti-eye"></i>
+                                  <span>View Listing Page</span>
+                               </button>
+                               <button
+                                  type="button"
+                                  className="cat-kebab-item"
+                                  onClick={(e) => { e.stopPropagation(); setActiveKebabId(null); editCatalog(item); }}
+                               >
+                                  <i className="ti ti-pencil"></i>
+                                  <span>Edit</span>
+                               </button>
+                               <button
+                                  type="button"
+                                  className={`cat-kebab-item ${item.status === 1 ? 'danger-action' : 'enable-action'}`}
+                                  onClick={(e) => { e.stopPropagation(); setActiveKebabId(null); toggleCatalogStatus(item); }}
+                               >
+                                  <i className={`ti ${item.status === 1 ? 'ti-power-off' : 'ti-reload'}`}></i>
+                                  <span>{item.status === 1 ? 'Disable' : 'Enable'}</span>
+                               </button>
+                            </div>
+                         </div>
                       </div>
-                      
+
                       <div className="cat-catalog-content">
                          <div>
                             <h3 className="cat-catalog-title">{item.title}</h3>
@@ -345,17 +440,6 @@ export default function CatalogPage() {
                             {item.originalPrice > item.sellingPrice && (
                                <span className="cat-catalog-discount-badge">{getDiscountPercentage(item)}% OFF</span>
                             )}
-                         </div>
-                      </div>
-
-                      <div className="cat-catalog-admin-actions">
-                         <div className="cat-catalog-actions">
-                            <button className={`cat-btn ${item.status === 1 ? 'cat-btn-active' : 'cat-btn-inactive'}`} onClick={(e) => { e.stopPropagation(); toggleCatalogStatus(item); }} title={item.status === 1 ? 'Disable' : 'Enable'}>
-                               <i className={`ti ${item.status === 1 ? 'ti-eye' : 'ti-eye-off'}`}></i>
-                            </button>
-                            <button className="cat-btn cat-btn-edit" onClick={(e) => { e.stopPropagation(); editCatalog(item); }} title="Edit">
-                               <i className="ti ti-pencil"></i>
-                            </button>
                          </div>
                       </div>
                    </div>
@@ -391,102 +475,116 @@ export default function CatalogPage() {
           </div>
       )}
 
-      {/* Modals using generic crispr-modal matching classes, we'll implement inline */}
-      {catalogModalOpen && (
-         <div className="modal-scrim" style={{ display: 'grid', background: 'rgba(9, 26, 30, 0.48)' }} onClick={closeCatalogModal}>
-            <div className="modal-card large" style={{ background: '#fff', borderRadius: '12px' }} onClick={e => e.stopPropagation()}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '15px' }}>
-                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-                     <i className={`ti ${isEditing ? 'ti-pencil' : 'ti-plus'}`} style={{ marginRight: '10px' }}></i>
-                     {isEditing ? 'Edit Catalog Item' : 'New Catalog Item'}
-                  </h3>
-                  <button onClick={closeCatalogModal} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#999' }}>
-                     <i className="ti ti-close"></i>
-                  </button>
-               </div>
-               
-               <div className="cat-modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '10px' }}>
-                  <div style={{ marginBottom: '20px' }}>
-                     <h4 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '15px', color: '#333' }}>Basic Information</h4>
-                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                        <div>
-                           <label>Title <span style={{ color: 'red' }}>*</span></label>
-                           <input type="text" className="cat-form-control" value={newCatalog.title} onChange={e => setNewCatalog({...newCatalog, title: e.target.value})} placeholder="e.g., IAT 2026 – Exclusive 1 Year Course" />
-                           <small className="cat-text-muted">Main title of the catalog item</small>
-                        </div>
-                        <div>
-                           <label>Code <span style={{ color: 'red' }}>*</span></label>
-                           <input type="text" className="cat-form-control" value={newCatalog.code} onChange={e => setNewCatalog({...newCatalog, code: e.target.value})} placeholder="e.g., IAT2026" />
-                           <small className="cat-text-muted">Unique identifier</small>
-                        </div>
-                     </div>
-                     <div style={{ marginTop: '15px' }}>
-                        <label>Brief Description <span style={{ color: 'red' }}>*</span></label>
-                        <textarea className="cat-form-control" rows="2" style={{ height: 'auto' }} value={newCatalog.brief} onChange={e => setNewCatalog({...newCatalog, brief: e.target.value})} placeholder="e.g., Dedicated coaching for IAT 2026"></textarea>
-                     </div>
-                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-                        <div>
-                           <label>Page URL <span style={{ color: 'red' }}>*</span></label>
-                           <input type="text" className="cat-form-control" value={newCatalog.pageUrl} onChange={e => setNewCatalog({...newCatalog, pageUrl: e.target.value})} placeholder="https://crisprlearning.com/courses/1-year-course/" />
-                        </div>
-                        <div>
-                           <label>Tagline <span style={{ color: 'red' }}>*</span></label>
-                           <input type="text" className="cat-form-control" value={newCatalog.tagline} onChange={e => setNewCatalog({...newCatalog, tagline: e.target.value})} placeholder="e.g., Enroll Now" />
-                        </div>
-                     </div>
-                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-                        <div>
-                           <label>Type</label>
-                           <select className="cat-form-control" value={newCatalog.type} onChange={e => setNewCatalog({...newCatalog, type: e.target.value})}>
-                              <option value="1">Course</option>
-                              <option value="2">Exam</option>
-                           </select>
-                        </div>
-                        <div>
-                           <label>Status</label>
-                           <select className="cat-form-control" value={newCatalog.status} onChange={e => setNewCatalog({...newCatalog, status: Number(e.target.value)})}>
-                              <option value="1">Active</option>
-                              <option value="0">Inactive</option>
-                           </select>
-                        </div>
+      {/* New / Edit Catalog Item modal — standard legacy-modal design (matches Create New Batch). */}
+      <div className={`legacy-modal-backdrop ${catalogModalOpen ? 'active' : ''}`} onClick={closeCatalogModal}>
+         <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+               <h3>{isEditing ? 'Edit Catalog Item' : 'New Catalog Item'}</h3>
+               <button type="button" className="legacy-modal-close" onClick={closeCatalogModal}>
+                  <i className="ti ti-close" />
+               </button>
+            </div>
+            <form className="catalog-modal-form form-modal" onSubmit={(event) => { event.preventDefault(); saveCatalog(); }}>
+               <div className="legacy-modal-body">
+                  <div className="asset-form-section">
+                     <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Basic Information</div>
+                     <div className="asset-form-grid basic-grid">
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="text" className="float-control" placeholder=" " value={newCatalog.title} onChange={e => setNewCatalog({ ...newCatalog, title: e.target.value })} />
+                              <span className="float-label">Title <span className="req">*</span></span>
+                           </div>
+                           <span className="field-hint">Main title of the catalog item.</span>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="text" className="float-control" placeholder=" " value={newCatalog.code} onChange={e => setNewCatalog({ ...newCatalog, code: e.target.value })} />
+                              <span className="float-label">Code <span className="req">*</span></span>
+                           </div>
+                           <span className="field-hint">Unique identifier.</span>
+                        </label>
+                        <label className="field-cell full-span">
+                           <div className="float-field float-textarea">
+                              <textarea className="float-control" placeholder=" " value={newCatalog.brief} onChange={e => setNewCatalog({ ...newCatalog, brief: e.target.value })} />
+                              <span className="float-label">Brief Description <span className="req">*</span></span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="text" className="float-control" placeholder=" " value={newCatalog.pageUrl} onChange={e => setNewCatalog({ ...newCatalog, pageUrl: e.target.value })} />
+                              <span className="float-label">Page URL <span className="req">*</span></span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="text" className="float-control" placeholder=" " value={newCatalog.tagline} onChange={e => setNewCatalog({ ...newCatalog, tagline: e.target.value })} />
+                              <span className="float-label">Tagline <span className="req">*</span></span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field float-always">
+                              <select className="float-control" value={newCatalog.type} onChange={e => setNewCatalog({ ...newCatalog, type: e.target.value })}>
+                                 <option value="1">Course</option>
+                                 <option value="2">Exam</option>
+                              </select>
+                              <span className="float-label">Type</span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field float-always">
+                              <select className="float-control" value={newCatalog.status} onChange={e => setNewCatalog({ ...newCatalog, status: Number(e.target.value) })}>
+                                 <option value="1">Active</option>
+                                 <option value="0">Inactive</option>
+                              </select>
+                              <span className="float-label">Status</span>
+                           </div>
+                        </label>
                      </div>
                   </div>
 
-                  <div style={{ marginBottom: '20px' }}>
-                     <h4 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '15px', color: '#333' }}>Display Image</h4>
-                     <div style={{ display: 'flex', gap: '20px' }}>
-                        <div style={{ width: '150px', height: '100px', background: '#f5f5f5', border: '1px dashed #ccc', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="asset-form-section">
+                     <div className="asset-form-section-title"><i className="ti ti-photo" /> Display Image</div>
+                     <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                        <div style={{ width: '150px', height: '100px', background: '#f5f5f5', border: '1px dashed #ccc', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                            {newCatalog.displayImage ? <img src={newCatalog.displayImage} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <i className="ti ti-image" style={{ fontSize: '32px', color: '#ccc' }}></i>}
                         </div>
-                        <div style={{ flex: 1 }}>
-                           <label>Or Image URL</label>
-                           <input type="text" className="cat-form-control" value={newCatalog.displayImage || ''} onChange={e => setNewCatalog({...newCatalog, displayImage: e.target.value})} placeholder="https://example.com/image.jpg" />
-                        </div>
+                        <label className="field-cell" style={{ flex: 1 }}>
+                           <div className="float-field">
+                              <input type="text" className="float-control" placeholder=" " value={newCatalog.displayImage || ''} onChange={e => setNewCatalog({ ...newCatalog, displayImage: e.target.value })} />
+                              <span className="float-label">Image URL</span>
+                           </div>
+                        </label>
                      </div>
                   </div>
 
-                  <div style={{ marginBottom: '20px' }}>
-                     <h4 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '15px', color: '#333' }}>Pricing Information</h4>
-                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-                        <div>
-                           <label>Original Price (₹) <span style={{ color: 'red' }}>*</span></label>
-                           <input type="number" className="cat-form-control" value={newCatalog.originalPrice} onChange={e => setNewCatalog({...newCatalog, originalPrice: Number(e.target.value)})} />
-                        </div>
-                        <div>
-                           <label>Selling Price (₹) <span style={{ color: 'red' }}>*</span></label>
-                           <input type="number" className="cat-form-control" value={newCatalog.sellingPrice} onChange={e => setNewCatalog({...newCatalog, sellingPrice: Number(e.target.value)})} />
-                        </div>
-                        <div>
-                           <label>Discount Percentage</label>
-                           <input type="text" className="cat-form-control" value={`${calculateDiscountPercentageForNew()}%`} disabled />
-                        </div>
+                  <div className="asset-form-section">
+                     <div className="asset-form-section-title"><i className="ti ti-tag" /> Pricing Information</div>
+                     <div className="asset-form-grid config-grid">
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="number" className="float-control" placeholder=" " value={newCatalog.originalPrice} onChange={e => setNewCatalog({ ...newCatalog, originalPrice: Number(e.target.value) })} />
+                              <span className="float-label">Original Price (₹) <span className="req">*</span></span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field">
+                              <input type="number" className="float-control" placeholder=" " value={newCatalog.sellingPrice} onChange={e => setNewCatalog({ ...newCatalog, sellingPrice: Number(e.target.value) })} />
+                              <span className="float-label">Selling Price (₹) <span className="req">*</span></span>
+                           </div>
+                        </label>
+                        <label className="field-cell">
+                           <div className="float-field float-always">
+                              <input type="text" className="float-control" value={`${calculateDiscountPercentageForNew()}%`} disabled />
+                              <span className="float-label">Discount Percentage</span>
+                           </div>
+                        </label>
                      </div>
                      <div className="cat-alert cat-alert-warning" style={{ marginTop: '15px' }}>
                         <strong style={{ color: '#856404' }}>💡 Pricing Preview:</strong><br />
                         {newCatalog.originalPrice && newCatalog.sellingPrice ? (
                            <span style={{ color: '#856404' }}>
                               Original: <span style={{ textDecoration: 'line-through' }}>₹{newCatalog.originalPrice}</span>
-                              → Selling: <strong>₹{newCatalog.sellingPrice}</strong> 
+                              → Selling: <strong>₹{newCatalog.sellingPrice}</strong>
                               {newCatalog.originalPrice > newCatalog.sellingPrice && ` (Save ₹${newCatalog.originalPrice - newCatalog.sellingPrice})`}
                            </span>
                         ) : (
@@ -494,45 +592,42 @@ export default function CatalogPage() {
                         )}
                      </div>
                   </div>
-
                </div>
-               
-               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
-                  <button className="cat-btn cat-btn-default" onClick={closeCatalogModal}><i className="ti ti-close"></i> Cancel</button>
-                  <button className="cat-btn" style={{ background: '#006073', color: 'white' }} onClick={saveCatalog}><i className="ti ti-check"></i> {isEditing ? 'Update' : 'Create'} Catalog Item</button>
-               </div>
-            </div>
-         </div>
-      )}
-
-      {/* Status Toggle Modal */}
-      {statusToggleModalOpen && (
-         <div className="modal-scrim" style={{ display: 'grid', background: 'rgba(9, 26, 30, 0.48)' }} onClick={() => setStatusToggleModalOpen(false)}>
-            <div className="modal-card" style={{ maxWidth: '450px', background: '#fff', borderRadius: '12px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-               <div style={{ background: selectedItemForToggle.status === 1 ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 'linear-gradient(135deg, #006073 0%, #005a6b 100%)', color: 'white', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0 }}><i className="ti ti-alert" style={{ marginRight: '10px' }}></i> Confirm Action</h3>
-                  <button onClick={() => setStatusToggleModalOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}><i className="ti ti-close"></i></button>
-               </div>
-               <div style={{ textAlign: 'center', padding: '40px' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '20px', color: selectedItemForToggle.status === 1 ? '#ef4444' : '#ff9800' }}>
-                     <i className={`ti ${selectedItemForToggle.status === 1 ? 'ti-alert' : 'ti-info-alt'}`}></i>
-                  </div>
-                  <h4 style={{ marginBottom: '15px', color: '#333', fontWeight: 600 }}>
-                     {selectedItemForToggle.status === 1 ? 'Disable Catalog Item?' : 'Enable Catalog Item?'}
-                  </h4>
-                  <p style={{ color: '#666', margin: 0 }}>
-                     {selectedItemForToggle.status === 1 ? 'Do you really want to Disable this catalog item? It would make it unavailable for any users to purchase this.' : 'Do you really want to Enable this catalog item back? Users would be able to purchase this item.'}
-                  </p>
-               </div>
-               <div style={{ background: '#f5f5f5', padding: '15px 20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                  <button className="cat-btn cat-btn-default" onClick={() => setStatusToggleModalOpen(false)}>Cancel</button>
-                  <button className="cat-btn" style={{ background: selectedItemForToggle.status === 1 ? '#ef4444' : '#006073', color: 'white' }} onClick={confirmToggleStatus}>
-                     Confirm
+               <div className="legacy-modal-footer">
+                  <button type="button" className="legacy-btn legacy-btn-default" onClick={closeCatalogModal}>Cancel</button>
+                  <button type="submit" className="legacy-btn legacy-btn-success">
+                     {isEditing ? 'Update Catalog Item' : 'Create Catalog Item'}
                   </button>
                </div>
+            </form>
+         </div>
+      </div>
+
+      {/* Status Toggle confirmation — standard legacy-confirm design. */}
+      <div className={`legacy-modal-backdrop ${statusToggleModalOpen ? 'active' : ''}`} onClick={() => setStatusToggleModalOpen(false)}>
+         <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <div className={`legacy-modal-header ${selectedItemForToggle.status === 1 ? 'legacy-danger-header' : ''}`}>
+               <h3>{selectedItemForToggle.status === 1 ? 'Disable Catalog Item' : 'Enable Catalog Item'}</h3>
+               <button type="button" className="legacy-modal-close" onClick={() => setStatusToggleModalOpen(false)}>
+                  <i className="ti ti-close" />
+               </button>
+            </div>
+            <div className="legacy-modal-body">
+               <p>
+                  {selectedItemForToggle.status === 1
+                     ? `Do you want to disable "${selectedItemForToggle.title || 'this catalog item'}"? It will become unavailable for users to purchase.`
+                     : `Do you want to enable "${selectedItemForToggle.title || 'this catalog item'}" again? Users will be able to purchase it.`}
+               </p>
+            </div>
+            <div className="legacy-modal-footer">
+               <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setStatusToggleModalOpen(false)}>Cancel</button>
+               <button type="button" className={`legacy-btn ${selectedItemForToggle.status === 1 ? 'legacy-btn-danger' : 'legacy-btn-success'}`} onClick={confirmToggleStatus}>
+                  <i className={`ti ${selectedItemForToggle.status === 1 ? 'ti-power-off' : 'ti-reload'}`} />
+                  {selectedItemForToggle.status === 1 ? 'Disable Item' : 'Enable Item'}
+               </button>
             </div>
          </div>
-      )}
+      </div>
     </div>
   );
 }
