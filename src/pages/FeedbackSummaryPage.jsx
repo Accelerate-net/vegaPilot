@@ -52,6 +52,27 @@ function formatDateTime(value) {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${h12}:${mm} ${ampm}`;
 }
 
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatDateLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${day} ${MONTH_LABELS[month - 1]}, ${year}`;
+}
+
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return; // keep keyboard navigation working
+    event.preventDefault(); // block manual text entry into the segments
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function getPageNumbers(currentPage, totalPages) {
   const pages = [];
   if (totalPages <= 7) {
@@ -620,158 +641,189 @@ export default function FeedbackSummaryPage() {
       {/* ── Filter Modal ── */}
       {showFilterModal && (
         <div
-          className="crispr-modal-backdrop active"
+          className="legacy-modal-backdrop active"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setShowFilterModal(false); }}
         >
-          <div className="crispr-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
-            <div className="crispr-modal-header">
-              <h3><i className="ti ti-filter" /> Filter Feedback</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setShowFilterModal(false)}>
+          <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3>Filter Feedback</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setShowFilterModal(false)}>
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="crispr-modal-body">
-              <div className="ear-filter-row-1">
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-calendar" /> From</label>
-                  <input
-                    type="date"
-                    className="ear-filter-input"
-                    value={dateFrom}
-                    onChange={(event) => { setDateFrom(event.target.value); setCurrentPage(1); }}
-                  />
+            <form className="form-modal" onSubmit={(event) => { event.preventDefault(); setShowFilterModal(false); }}>
+              <div className="legacy-modal-body">
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-calendar" /> Date Range</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="date"
+                          className="float-control"
+                          value={dateFrom}
+                          onChange={(event) => { setDateFrom(event.target.value); setCurrentPage(1); }}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                        />
+                        <span className="float-label">From</span>
+                        <span className={`date-display ${!dateFrom ? 'is-empty' : ''}`}>
+                          {dateFrom ? formatDateLabel(dateFrom) : 'Set a Date'}
+                        </span>
+                      </div>
+                    </label>
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="date"
+                          className="float-control"
+                          min={dateFrom || undefined}
+                          value={dateTo}
+                          onChange={(event) => { setDateTo(event.target.value); setCurrentPage(1); }}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                        />
+                        <span className="float-label">To</span>
+                        <span className={`date-display ${!dateTo ? 'is-empty' : ''}`}>
+                          {dateTo ? formatDateLabel(dateTo) : 'Set a Date'}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-calendar" /> To</label>
-                  <input
-                    type="date"
-                    className="ear-filter-input"
-                    value={dateTo}
-                    onChange={(event) => { setDateTo(event.target.value); setCurrentPage(1); }}
-                  />
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-filter" /> Filters</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell">
+                      <div className="float-field float-always">
+                        <select
+                          className="float-control"
+                          value={selectedCourseFilter}
+                          onChange={(event) => {
+                            setSelectedCourseFilter(event.target.value);
+                            setSelectedChapterFilter('');
+                            if (event.target.value) setSelectedExamFilter('');
+                            setSelectedBatchFilters([]);
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <option value="">All Courses</option>
+                          {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+                        </select>
+                        <span className="float-label">Course</span>
+                      </div>
+                    </label>
+
+                    <label className="field-cell">
+                      <div className="float-field float-always">
+                        <select
+                          className="float-control"
+                          value={selectedChapterFilter}
+                          onChange={(event) => { setSelectedChapterFilter(event.target.value); setCurrentPage(1); }}
+                          disabled={!selectedCourseFilter}
+                        >
+                          <option value="">All Chapters</option>
+                          {availableChaptersForCourse.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
+                        </select>
+                        <span className="float-label">Chapter</span>
+                      </div>
+                    </label>
+
+                    <label className="field-cell">
+                      <div className={`float-field float-always float-multiselect${!selectedCourseFilter ? ' is-disabled' : ''}`}>
+                        <BatchMultiselect
+                          batches={filteredBatches}
+                          selected={selectedBatchFilters}
+                          onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
+                          disabled={!selectedCourseFilter}
+                        />
+                        <span className="float-label">Batch</span>
+                      </div>
+                    </label>
+
+                    <label className="field-cell">
+                      <div className="float-field float-always">
+                        <select
+                          className="float-control"
+                          value={selectedExamFilter}
+                          onChange={(event) => {
+                            setSelectedExamFilter(event.target.value);
+                            if (event.target.value) {
+                              setSelectedCourseFilter('');
+                              setSelectedBatchFilters([]);
+                            }
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <option value="">All Exams</option>
+                          {examsDemo.map((ex) => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
+                        </select>
+                        <span className="float-label">Exam</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
+
+                {/* Active Filters */}
+                {hasActiveFilters && (
+                  <div className="ear-active-filters">
+                    <span className="ear-active-filters-label">Active Filters:</span>
+                    {searchQuery && (
+                      <span className="ear-filter-badge">
+                        Search: &ldquo;{searchQuery}&rdquo;
+                        <button type="button" onClick={() => setSearchQuery('')}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {dateFrom && (
+                      <span className="ear-filter-badge">
+                        From: {new Date(dateFrom).toLocaleDateString()}
+                        <button type="button" onClick={() => setDateFrom('')}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {dateTo && (
+                      <span className="ear-filter-badge">
+                        To: {new Date(dateTo).toLocaleDateString()}
+                        <button type="button" onClick={() => setDateTo('')}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {selectedCourseFilter && (
+                      <span className="ear-filter-badge">
+                        Course: {getCourseName(selectedCourseFilter)}
+                        <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedChapterFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {selectedChapterFilter && (
+                      <span className="ear-filter-badge">
+                        Chapter: {selectedChapterFilter}
+                        <button type="button" onClick={() => setSelectedChapterFilter('')}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {selectedExamFilter && (
+                      <span className="ear-filter-badge">
+                        Exam: {getExamName(selectedExamFilter)}
+                        <button type="button" onClick={() => setSelectedExamFilter('')}><i className="ti ti-close" /></button>
+                      </span>
+                    )}
+                    {selectedBatchFilters.map((batchId) => (
+                      <span key={batchId} className="ear-filter-badge">
+                        Batch: {getBatchName(batchId)}
+                        <button type="button" onClick={() => setSelectedBatchFilters((c) => c.filter((id) => id !== batchId))}><i className="ti ti-close" /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <div className="ear-filter-row-2">
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-book" /> Course</label>
-                  <select
-                    className="ear-filter-input"
-                    value={selectedCourseFilter}
-                    onChange={(event) => {
-                      setSelectedCourseFilter(event.target.value);
-                      setSelectedChapterFilter('');
-                      if (event.target.value) setSelectedExamFilter('');
-                      setSelectedBatchFilters([]);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <option value="">All Courses</option>
-                    {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
-                  </select>
-                </div>
-
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-bookmark" /> Chapter</label>
-                  <select
-                    className="ear-filter-input"
-                    value={selectedChapterFilter}
-                    onChange={(event) => { setSelectedChapterFilter(event.target.value); setCurrentPage(1); }}
-                    disabled={!selectedCourseFilter}
-                  >
-                    <option value="">All Chapters</option>
-                    {availableChaptersForCourse.map((ch) => <option key={ch} value={ch}>{ch}</option>)}
-                  </select>
-                </div>
-
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-layout-grid2" /> Batch</label>
-                  <BatchMultiselect
-                    batches={filteredBatches}
-                    selected={selectedBatchFilters}
-                    onChange={(next) => { setSelectedBatchFilters(next); setCurrentPage(1); }}
-                    disabled={!selectedCourseFilter}
-                  />
-                </div>
-
-                <div className="ear-filter-group">
-                  <label className="ear-filter-label"><i className="ti ti-receipt" /> Exam</label>
-                  <select
-                    className="ear-filter-input"
-                    value={selectedExamFilter}
-                    onChange={(event) => {
-                      setSelectedExamFilter(event.target.value);
-                      if (event.target.value) {
-                        setSelectedCourseFilter('');
-                        setSelectedBatchFilters([]);
-                      }
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <option value="">All Exams</option>
-                    {examsDemo.map((ex) => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
-                  </select>
-                </div>
+              <div className="legacy-modal-footer">
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={clearFilters}>
+                  <i className="ti ti-reload" /> Clear Filters
+                </button>
+                <button type="submit" className="legacy-btn legacy-btn-success">
+                  <i className="ti ti-check" /> Apply Filters
+                </button>
               </div>
-
-              {/* Active Filters */}
-              {hasActiveFilters && (
-                <div className="ear-active-filters">
-                  <span className="ear-active-filters-label">Active Filters:</span>
-                  {searchQuery && (
-                    <span className="ear-filter-badge">
-                      Search: &ldquo;{searchQuery}&rdquo;
-                      <button type="button" onClick={() => setSearchQuery('')}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {dateFrom && (
-                    <span className="ear-filter-badge">
-                      From: {new Date(dateFrom).toLocaleDateString()}
-                      <button type="button" onClick={() => setDateFrom('')}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {dateTo && (
-                    <span className="ear-filter-badge">
-                      To: {new Date(dateTo).toLocaleDateString()}
-                      <button type="button" onClick={() => setDateTo('')}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {selectedCourseFilter && (
-                    <span className="ear-filter-badge">
-                      Course: {getCourseName(selectedCourseFilter)}
-                      <button type="button" onClick={() => { setSelectedCourseFilter(''); setSelectedChapterFilter(''); setSelectedBatchFilters([]); }}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {selectedChapterFilter && (
-                    <span className="ear-filter-badge">
-                      Chapter: {selectedChapterFilter}
-                      <button type="button" onClick={() => setSelectedChapterFilter('')}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {selectedExamFilter && (
-                    <span className="ear-filter-badge">
-                      Exam: {getExamName(selectedExamFilter)}
-                      <button type="button" onClick={() => setSelectedExamFilter('')}><i className="ti ti-close" /></button>
-                    </span>
-                  )}
-                  {selectedBatchFilters.map((batchId) => (
-                    <span key={batchId} className="ear-filter-badge">
-                      Batch: {getBatchName(batchId)}
-                      <button type="button" onClick={() => setSelectedBatchFilters((c) => c.filter((id) => id !== batchId))}><i className="ti ti-close" /></button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={clearFilters}>
-                <i className="ti ti-reload" /> Clear Filters
-              </button>
-              <button type="button" className="btn btn-success" onClick={() => setShowFilterModal(false)}>
-                <i className="ti ti-check" /> Apply Filters
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -928,27 +980,26 @@ export default function FeedbackSummaryPage() {
 
       {/* Export Modal */}
       {showExportModal && (
-        <div className="ear-modal-scrim" role="presentation" onClick={() => setShowExportModal(false)}>
-          <div className="ear-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <div className="ear-modal-header ear-modal-header-teal">
-              <h3><i className="ti ti-download" /> Export Feedback Report</h3>
-              <button type="button" className="ear-modal-close" onClick={() => setShowExportModal(false)}>
+        <div className="legacy-modal-backdrop active" role="presentation" onClick={() => setShowExportModal(false)}>
+          <div className="legacy-modal-dialog legacy-confirm" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
+              <h3>Export Feedback Report</h3>
+              <button type="button" className="legacy-modal-close" onClick={() => setShowExportModal(false)}>
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="ear-modal-body">
+            <div className="legacy-modal-body">
               <div className="ear-modal-center">
                 <i className="ti ti-file-pdf" style={{ fontSize: 48, color: '#00a8cc', marginBottom: 12 }} />
                 <h4 className="ear-modal-heading">Generate PDF Report</h4>
                 <p className="ear-modal-subtext">You are about to export <strong>{listTotal}</strong> feedback(s) based on your current filters.</p>
               </div>
             </div>
-            <div className="ear-modal-footer">
-              <button type="button" className="ear-btn-default" onClick={() => setShowExportModal(false)}>Cancel</button>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setShowExportModal(false)}>Cancel</button>
               <button
                 type="button"
-                className="ear-btn-export"
-                style={{ background: '#004d5c', color: 'white', borderColor: 'transparent' }}
+                className="legacy-btn legacy-btn-success"
                 onClick={() => {
                   setShowExportModal(false);
                   showToast('success', 'Download Started', 'Your PDF export is being generated.');

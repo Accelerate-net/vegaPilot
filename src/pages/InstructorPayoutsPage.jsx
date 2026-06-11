@@ -66,6 +66,11 @@ export default function InstructorPayoutsPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDesc, setPaymentDesc] = useState('');
 
+  const [recordHoursModalOpen, setRecordHoursModalOpen] = useState(false);
+  const [hoursDesc, setHoursDesc] = useState('');
+  const [hoursWorked, setHoursWorked] = useState('');
+  const [hourlyRate, setHourlyRate] = useState('');
+
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Close dropdown on outside click
@@ -125,6 +130,12 @@ export default function InstructorPayoutsPage() {
   const openPaymentModal = (instructorId) => {
       setSelectedInstructorId(instructorId);
       setMakePaymentModalOpen(true);
+      setActiveDropdown(null);
+  };
+
+  const openRecordHoursModal = (instructorId) => {
+      setSelectedInstructorId(instructorId);
+      setRecordHoursModalOpen(true);
       setActiveDropdown(null);
   };
 
@@ -194,6 +205,34 @@ export default function InstructorPayoutsPage() {
       setPaymentAmount('');
       setPaymentDesc('');
       showToast('success', 'Payment Recorded', `Payment of Rs. ${paymentAmount} has been recorded.`);
+  };
+
+  const handleRecordHours = (e) => {
+      e.preventDefault();
+      const hours = Number(hoursWorked);
+      const rate = Number(hourlyRate);
+      if (!hoursDesc.trim() || !hours || hours <= 0 || !rate || rate <= 0) return;
+
+      const amount = Math.round(hours * rate);
+      const newEntry = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+          type: 'WORK',
+          description: hoursDesc.trim(),
+          hours: `${hours} ${hours === 1 ? 'hour' : 'hours'}`,
+          amount
+      };
+
+      setLedgerData(prev => ({
+          ...prev,
+          [selectedInstructorId]: [...(prev[selectedInstructorId] || []), newEntry]
+      }));
+
+      setRecordHoursModalOpen(false);
+      setHoursDesc('');
+      setHoursWorked('');
+      setHourlyRate('');
+      showToast('success', 'Hours Recorded', `${hours} ${hours === 1 ? 'hour' : 'hours'} (Rs. ${amount.toLocaleString()}) added.`);
   };
 
   return (
@@ -277,6 +316,9 @@ export default function InstructorPayoutsPage() {
                                     <div className={`kebab-dropdown${activeDropdown === index ? ' active' : ''}`} onClick={e => e.stopPropagation()}>
                                         <button type="button" className="kebab-dropdown-item" onClick={() => openLedgerModal(inst.id)}>
                                             <i className="ti ti-eye" /> View Details
+                                        </button>
+                                        <button type="button" className="kebab-dropdown-item" onClick={() => openRecordHoursModal(inst.id)}>
+                                            <i className="ti ti-time" /> Record Hours
                                         </button>
                                         <button type="button" className="kebab-dropdown-item" onClick={() => openPaymentModal(inst.id)}>
                                             <i className="ti ti-money" /> Record Payment
@@ -397,6 +439,9 @@ export default function InstructorPayoutsPage() {
                     </div>
                     <div className="crispr-modal-footer">
                         <button type="button" className="btn btn-default" onClick={() => setLedgerModalOpen(false)}>Close Ledger</button>
+                        <button type="button" className="btn btn-default" onClick={() => { setLedgerModalOpen(false); openRecordHoursModal(selectedInstructorInfo.id); }}>
+                             <i className="ti ti-time"></i> Record Hours
+                        </button>
                         <button type="button" className="btn btn-success" onClick={() => { setLedgerModalOpen(false); openPaymentModal(selectedInstructorInfo.id); }}>
                              <i className="ti ti-plus"></i> Record New Payment
                         </button>
@@ -437,6 +482,58 @@ export default function InstructorPayoutsPage() {
                             <button type="button" className="btn btn-default" onClick={() => setMakePaymentModalOpen(false)}>Cancel</button>
                             <button type="submit" style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
                                 Confirm Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+
+        {/* Record Hours Modal */}
+        {recordHoursModalOpen && selectedInstructorInfo && (
+            <div className="crispr-modal-backdrop active" onClick={() => setRecordHoursModalOpen(false)}>
+                <div className="crispr-modal-dialog" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
+                    <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #006073 0%, #00424f 100%)', color: 'white' }}>
+                        <h3 style={{ margin: 0, fontWeight: 600 }}><i className="ti ti-time"></i> Record Hours</h3>
+                        <button className="crispr-modal-close" style={{ color: 'white' }} onClick={() => setRecordHoursModalOpen(false)}>
+                            <i className="ti ti-close"></i>
+                        </button>
+                    </div>
+                    <form onSubmit={handleRecordHours}>
+                        <div className="crispr-modal-body" style={{ padding: '25px' }}>
+                            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                                <p style={{ margin: '0 0 5px 0', color: '#6b7280' }}>Logging work for</p>
+                                <h4 style={{ margin: 0, color: '#111827', fontSize: '18px', fontWeight: 700 }}>{selectedInstructorInfo.name}</h4>
+                                <p style={{ margin: '5px 0 0 0', color: '#6b7280', fontWeight: 600 }}>{selectedInstructorInfo.specialization}</p>
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Description *</label>
+                                <input type="text" required value={hoursDesc} onChange={e => setHoursDesc(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '15px' }} placeholder="e.g. Chapter 3 — Thermodynamics" />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', marginBottom: '15px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Hours *</label>
+                                    <input type="number" required min="0.5" step="0.5" value={hoursWorked} onChange={e => setHoursWorked(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '15px' }} placeholder="e.g. 5" />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Rate / hr (Rs.) *</label>
+                                    <input type="number" required min="1" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '15px' }} placeholder="e.g. 1000" />
+                                </div>
+                            </div>
+
+                            {hoursWorked && hourlyRate && Number(hoursWorked) > 0 && Number(hourlyRate) > 0 && (
+                                <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '6px', padding: '12px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: '#0f766e', fontWeight: 600 }}>Amount to add</span>
+                                    <span style={{ color: '#0f172a', fontWeight: 700, fontSize: '18px' }}>Rs. {Math.round(Number(hoursWorked) * Number(hourlyRate)).toLocaleString()}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="crispr-modal-footer">
+                            <button type="button" className="btn btn-default" onClick={() => setRecordHoursModalOpen(false)}>Cancel</button>
+                            <button type="submit" style={{ background: '#006073', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                                Record Hours
                             </button>
                         </div>
                     </form>

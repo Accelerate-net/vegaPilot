@@ -522,131 +522,150 @@ function AddMappingModal({ submitting, onClose, onSubmit }) {
     });
   }
 
+  const captionStyle = { fontSize: 11, fontWeight: 600, letterSpacing: '0.2px', color: '#64748b' };
+
   return (
     <div
-      className="crispr-modal-backdrop active"
+      className="legacy-modal-backdrop active"
       role="presentation"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+      <div className="legacy-modal-dialog" style={{ maxWidth: 640 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
           <h3><i className="ti ti-plus" /> Add Attendance Mapping</h3>
-          <button type="button" className="crispr-modal-close" onClick={onClose}>
+          <button type="button" className="legacy-modal-close" onClick={onClose}>
             <i className="ti ti-close" />
           </button>
         </div>
-        <div className="crispr-modal-body">
-          <div className="qar-modal-grid">
-            {/* Device key */}
-            <div className="qar-filter-field">
-              <label className="qar-filter-label"><i className="ti ti-key" /> Device Key</label>
-              <input
-                type="text"
-                className="qar-input"
-                placeholder="e.g. 10001"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-              />
-            </div>
-
-            {/* User type */}
-            <div className="qar-filter-field">
-              <label className="qar-filter-label"><i className="ti ti-users" /> User Type</label>
-              <select className="qar-select" value={userType} onChange={(e) => setUserType(e.target.value)}>
-                {Object.entries(USER_TYPES).map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* User picker */}
-          <div className="qar-filter-field" style={{ position: 'relative', margin: '18px 0' }}>
-            <label className="qar-filter-label"><i className="ti ti-user" /> User</label>
-            {selected ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', border: '1px solid #d7e1e7', borderRadius: 6, background: '#f8f9fa' }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#2c3e50' }}>{selected.name}</div>
-                  <div style={{ fontSize: 12, color: '#6c757d' }}>User ID: {selected.userId}</div>
-                </div>
-                <button type="button" className="qar-clear-btn" onClick={() => { setSelected(null); setQuery(''); }}>Change</button>
-              </div>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  className="qar-input"
-                  placeholder="Search by name, mobile or ID…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onFocus={() => { if (results.length) setOpen(true); }}
-                />
-                {open && query.trim().length >= 2 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 5, background: '#fff', border: '1px solid #d7e1e7', borderRadius: 6, marginTop: 4, maxHeight: 240, overflowY: 'auto', boxShadow: '0 8px 20px rgba(0,0,0,0.12)' }}>
-                    {searching ? (
-                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>Searching…</div>
-                    ) : results.length === 0 ? (
-                      <div style={{ padding: '12px 14px', color: '#6c757d', fontSize: 13 }}>No users found.</div>
-                    ) : results.map((c) => {
-                      const id = c.candidateKey || c.id;
-                      const mobile = c.mobile || c.registeredMobile || c.communicationMobile || '';
-                      return (
-                        <button
-                          type="button"
-                          key={id}
-                          onClick={() => pick(c)}
-                          style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: '1px solid #f1f3f5', background: '#fff', cursor: 'pointer' }}
-                        >
-                          <div style={{ fontWeight: 600, color: '#2c3e50', fontSize: 14 }}>{c.name || 'Unknown'}</div>
-                          <div style={{ fontSize: 12, color: '#6c757d' }}>ID: {id}{mobile ? ` · ${mobile}` : ''}</div>
-                        </button>
-                      );
-                    })}
+        <form className="batch-modal-form form-modal" onSubmit={(e) => { e.preventDefault(); if (canSubmit) submit(); }}>
+          <div className="legacy-modal-body">
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-device-desktop" /> Device & User</div>
+              <div className="asset-form-grid">
+                {/* Device key */}
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input
+                      type="text"
+                      className="float-control"
+                      placeholder=" "
+                      value={key}
+                      onChange={(e) => setKey(e.target.value)}
+                    />
+                    <span className="float-label">Device Key <span className="req">*</span></span>
                   </div>
-                )}
-              </>
-            )}
-          </div>
+                  <span className="field-hint">The biometric device identifier, e.g. 10001.</span>
+                </label>
 
-          <div className="qar-modal-grid">
-            {/* Location */}
-            <div className="qar-filter-field">
-              <label className="qar-filter-label"><i className="ti ti-location-pin" /> Location *</label>
-              <LocationPicker
-                value={locationId || null}
-                initialLabel={locationLabel}
-                placeholder="Search & select a location…"
-                onChange={(sel) => {
-                  setLocationId(sel ? sel.id : '');
-                  setLocationLabel(sel ? sel.name : '');
-                }}
-              />
+                {/* User type */}
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={userType} onChange={(e) => setUserType(e.target.value)}>
+                      {Object.entries(USER_TYPES).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">User Type</span>
+                  </div>
+                </label>
+
+                {/* User picker */}
+                <div className="field-cell full-span" style={{ position: 'relative' }}>
+                  <span style={captionStyle}>User <span className="req">*</span></span>
+                  {selected ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, background: '#f8fafc' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{selected.name}</div>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>User ID: {selected.userId}</div>
+                      </div>
+                      <button type="button" className="legacy-btn legacy-btn-default" style={{ padding: '6px 12px' }} onClick={() => { setSelected(null); setQuery(''); }}>Change</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="float-field">
+                        <input
+                          type="text"
+                          className="float-control"
+                          placeholder=" "
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          onFocus={() => { if (results.length) setOpen(true); }}
+                        />
+                        <span className="float-label">Search by name, mobile or ID…</span>
+                      </div>
+                      {open && query.trim().length >= 2 && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 5, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, marginTop: 4, maxHeight: 240, overflowY: 'auto', boxShadow: '0 8px 20px rgba(0,0,0,0.12)' }}>
+                          {searching ? (
+                            <div style={{ padding: '12px 14px', color: '#64748b', fontSize: 13 }}>Searching…</div>
+                          ) : results.length === 0 ? (
+                            <div style={{ padding: '12px 14px', color: '#64748b', fontSize: 13 }}>No users found.</div>
+                          ) : results.map((c) => {
+                            const id = c.candidateKey || c.id;
+                            const mobile = c.mobile || c.registeredMobile || c.communicationMobile || '';
+                            return (
+                              <button
+                                type="button"
+                                key={id}
+                                onClick={() => pick(c)}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: '1px solid #f1f3f5', background: '#fff', cursor: 'pointer' }}
+                              >
+                                <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 14 }}>{c.name || 'Unknown'}</div>
+                                <div style={{ fontSize: 12, color: '#64748b' }}>ID: {id}{mobile ? ` · ${mobile}` : ''}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* Access expiry */}
-            <div className="qar-filter-field">
-              <label className="qar-filter-label"><i className="ti ti-calendar-off" /> Access Expiry *</label>
-              <input
-                type="datetime-local"
-                className="qar-input"
-                value={accessExpiryAt}
-                onChange={(e) => setAccessExpiryAt(e.target.value)}
-              />
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-map-pin" /> Location & Access</div>
+              <div className="asset-form-grid">
+                {/* Location */}
+                <div className="field-cell">
+                  <span style={captionStyle}>Location <span className="req">*</span></span>
+                  <LocationPicker
+                    value={locationId || null}
+                    initialLabel={locationLabel}
+                    placeholder="Search & select a location…"
+                    onChange={(sel) => {
+                      setLocationId(sel ? sel.id : '');
+                      setLocationLabel(sel ? sel.name : '');
+                    }}
+                  />
+                </div>
+
+                {/* Access expiry */}
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <input
+                      type="datetime-local"
+                      className="float-control"
+                      value={accessExpiryAt}
+                      onChange={(e) => setAccessExpiryAt(e.target.value)}
+                    />
+                    <span className="float-label">Access Expiry <span className="req">*</span></span>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="crispr-modal-footer">
-          <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
-          <button
-            type="button"
-            className="btn btn-success"
-            disabled={!canSubmit}
-            style={!canSubmit ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
-            onClick={submit}
-          >
-            <i className="ti ti-check" /> {submitting ? 'Saving…' : 'Add Mapping'}
-          </button>
-        </div>
+          <div className="legacy-modal-footer">
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button
+              type="submit"
+              className="legacy-btn legacy-btn-success"
+              disabled={!canSubmit}
+              style={!canSubmit ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            >
+              <i className="ti ti-check" /> {submitting ? 'Saving…' : 'Add Mapping'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

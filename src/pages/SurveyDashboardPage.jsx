@@ -28,6 +28,34 @@ function formatDateTime(value) {
   return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+const DEADLINE_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Render a datetime-local value (e.g. "2026-06-23T02:17") as "23 Jun, 2026 02:17 am".
+function formatDeadlineLabel(value) {
+  if (!value) return '';
+  const [datePart, timePart = '00:00'] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  const [rawH, rawM] = timePart.split(':').map(Number);
+  const ampm = rawH >= 12 ? 'pm' : 'am';
+  const hour12 = rawH % 12 === 0 ? 12 : rawH % 12;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${day} ${DEADLINE_MONTHS[month - 1]}, ${year} ${pad(hour12)}:${pad(rawM)} ${ampm}`;
+}
+
+// Open the native date/time picker on click; block manual text entry on key down.
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 // ─── BatchMultiSelect ──────────────────────────────────────────────────────────
 function BatchMultiSelect({ batches, selected, onChange, disabled }) {
   const [open, setOpen] = useState(false);
@@ -204,10 +232,21 @@ function KebabMenu({ survey, onAction, can }) {
 }
 
 // ── status visual mapping ────────────────────────────────────────────────────
-function statusBadgeClass(statusInt) {
-  if (statusInt === SURVEY_STATUS.ACTIVE) return 'ear-stat-teal';
-  if (statusInt === SURVEY_STATUS.RECALLED) return 'ear-stat-indigo';
-  return 'ear-status-in-progress';
+// Active → Live (green), Recalled → Revoked (red), anything else → Completed (grey).
+function statusDisplay(statusInt) {
+  if (statusInt === SURVEY_STATUS.ACTIVE) return { label: 'Live', tone: 'live' };
+  if (statusInt === SURVEY_STATUS.RECALLED) return { label: 'Revoked', tone: 'revoked' };
+  return { label: 'Completed', tone: 'completed' };
+}
+
+function SurveyStatus({ statusInt }) {
+  const { label, tone } = statusDisplay(statusInt);
+  return (
+    <span className={`survey-status survey-status-${tone}`}>
+      <span className="survey-status-dot" />
+      {label}
+    </span>
+  );
 }
 
 function timeWindowLabel(survey) {
@@ -704,9 +743,7 @@ export default function SurveyDashboardPage() {
                     </td>
                     <td>{s.anonymousSubmissionsAllowed ? <span style={{ color: '#006073', fontWeight: 'bold' }}>Yes</span> : <span style={{ color: '#dc2626', fontWeight: 'bold' }}>No</span>}</td>
                     <td>
-                      <span className={`ear-status-badge ${statusBadgeClass(s.status)}`} style={{ textTransform: 'uppercase' }}>
-                        {s.statusLabel}
-                      </span>
+                      <SurveyStatus statusInt={s.status} />
                     </td>
                     <td>
                       <span className="courses-badge" style={{ fontWeight: 'bold', background: '#eef4f5', color: '#006073', padding: '4px 12px', borderRadius: '12px' }}>
@@ -764,144 +801,191 @@ export default function SurveyDashboardPage() {
       )}
 
       {currentView === 'create' && (
-        <div className="crispr-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget && !csSaving) setCurrentView('list'); }}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 860 }}>
-            <div className="crispr-modal-header">
+        <div className="legacy-modal-backdrop active" onMouseDown={(e) => { if (e.target === e.currentTarget && !csSaving) setCurrentView('list'); }}>
+          <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
               <h3><i className="ti ti-pencil" /> Create a New Survey</h3>
-              <button type="button" className="crispr-modal-close" onClick={() => setCurrentView('list')}><i className="ti ti-close" /></button>
+              <button type="button" className="legacy-modal-close" onClick={() => setCurrentView('list')}><i className="ti ti-close" /></button>
             </div>
 
-          <form onSubmit={handleCreateSurvey}>
-            <div className="crispr-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontWeight: 'bold' }}>Survey Title <span style={{ color: 'red' }}>*</span></label>
-                <input type="text" className="ear-filter-input" value={csTitle} onChange={e => setCsTitle(e.target.value)} required />
-                <label style={{ fontWeight: 'bold', marginTop: '8px' }}>Brief</label>
-                <textarea className="ear-filter-input" rows={2} value={csBrief} onChange={(e) => setCsBrief(e.target.value)} placeholder="Short description shown to respondents" />
-              </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontWeight: 'bold' }}>Target Audience</label>
-                <select className="ear-filter-input" value={csAudience} onChange={e => setCsAudience(e.target.value)}>
-                  <option value="All Registered Students">All Registered Students</option>
-                  <option value="All Enrolled Students">All Enrolled Students</option>
-                  <option value="Multi Selected Courses">Multi Selected Courses</option>
-                  <option value="Multi Selected Batches">Multi Selected Batches</option>
-                </select>
-              </div>
-              {csAudience === 'Multi Selected Courses' && (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontWeight: 'bold' }}>Select Courses</label>
-                  <CourseMultiSelect courses={availableCourses} selected={csSelectedCourses} onChange={setCsSelectedCourses} />
-                </div>
-              )}
-              {csAudience === 'Multi Selected Batches' && (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontWeight: 'bold' }}>Select Batches</label>
-                  <BatchMultiSelect batches={availableBatches} selected={csSelectedBatches} onChange={setCsSelectedBatches} />
-                </div>
-              )}
-            </div>
+          <form className="survey-modal-form form-modal" onSubmit={handleCreateSurvey}>
+            <div className="legacy-modal-body">
 
-            <div style={{ display: 'flex', gap: '20px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--line)' }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontWeight: 'bold' }}>Time Window</label>
-                <select className="ear-filter-input" value={csWindowType} onChange={e => setCsWindowType(e.target.value)}>
-                  <option value="open">Open Ended</option>
-                  <option value="strict">Strict Deadline</option>
-                </select>
-              </div>
-              {csWindowType === 'strict' && (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontWeight: 'bold' }}>Deadline Date & Time</label>
-                  <input type="datetime-local" className="ear-filter-input" value={csDeadline} onChange={e => setCsDeadline(e.target.value)} required />
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-info-circle" /> Survey Details</div>
+                <div className="asset-form-grid basic-grid">
+                  <label className="field-cell">
+                    <div className="float-field">
+                      <input type="text" className="float-control" placeholder=" " value={csTitle} onChange={e => setCsTitle(e.target.value)} required />
+                      <span className="float-label">Survey Title <span className="req">*</span></span>
+                    </div>
+                  </label>
+                  <label className="field-cell">
+                    <div className="float-field float-always">
+                      <select className="float-control" value={csAudience} onChange={e => setCsAudience(e.target.value)}>
+                        <option value="All Registered Students">All Registered Students</option>
+                        <option value="All Enrolled Students">All Enrolled Students</option>
+                        <option value="Multi Selected Courses">Multi Selected Courses</option>
+                        <option value="Multi Selected Batches">Multi Selected Batches</option>
+                      </select>
+                      <span className="float-label">Target Audience</span>
+                    </div>
+                  </label>
+                  <label className="field-cell full-span">
+                    <div className="float-field float-textarea">
+                      <textarea className="float-control" rows={2} placeholder=" " value={csBrief} onChange={(e) => setCsBrief(e.target.value)} />
+                      <span className="float-label">Brief</span>
+                    </div>
+                    <span className="field-hint">Short description shown to respondents.</span>
+                  </label>
+                  {csAudience === 'Multi Selected Courses' && (
+                    <label className="field-cell full-span">
+                      <span className="field-static-label">Select Courses</span>
+                      <CourseMultiSelect courses={availableCourses} selected={csSelectedCourses} onChange={setCsSelectedCourses} />
+                    </label>
+                  )}
+                  {csAudience === 'Multi Selected Batches' && (
+                    <label className="field-cell full-span">
+                      <span className="field-static-label">Select Batches</span>
+                      <BatchMultiSelect batches={availableBatches} selected={csSelectedBatches} onChange={setCsSelectedBatches} />
+                    </label>
+                  )}
                 </div>
-              )}
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <input type="checkbox" id="anonToggle" checked={csAnonymous} onChange={e => setCsAnonymous(e.target.checked)} style={{ width: '20px', height: '20px' }} />
-                <label htmlFor="anonToggle" style={{ fontWeight: 'bold', cursor: 'pointer' }}>Accept Anonymous Responses</label>
               </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <input type="checkbox" id="multiToggle" checked={csMultipleAllowed} onChange={(e) => setCsMultipleAllowed(e.target.checked)} style={{ width: '20px', height: '20px' }} />
-                <label htmlFor="multiToggle" style={{ fontWeight: 'bold', cursor: 'pointer' }}>Allow Multiple Submissions per User</label>
-              </div>
-            </div>
 
-            <div>
-              <h3 style={{ margin: '0 0 16px', color: '#006073' }}>Questions Base</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {csQuestions.map((q, idx) => (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#fff', border: '1px solid var(--line)', padding: '16px', borderRadius: '8px' }}>
-                    
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#59757b' }}>Question {idx + 1}</label>
-                        <input type="text" className="ear-filter-input" value={q.text} onChange={e => {
-                          const n = [...csQuestions]; n[idx].text = e.target.value; setCsQuestions(n);
-                        }} placeholder="What would you like to ask?" required />
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-settings" /> Availability &amp; Access</div>
+                <div className="asset-form-grid">
+                  <label className="field-cell">
+                    <div className="float-field float-always">
+                      <select className="float-control" value={csWindowType} onChange={e => setCsWindowType(e.target.value)}>
+                        <option value="open">Open Ended</option>
+                        <option value="strict">Strict Deadline</option>
+                      </select>
+                      <span className="float-label">Time Window</span>
+                    </div>
+                  </label>
+                  {csWindowType === 'strict' && (
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="datetime-local"
+                          className="float-control"
+                          value={csDeadline}
+                          onChange={e => setCsDeadline(e.target.value)}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                          required
+                        />
+                        <span className="float-label">Deadline Date &amp; Time <span className="req">*</span></span>
+                        <span className={`date-display ${!csDeadline ? 'is-empty' : ''}`}>
+                          {csDeadline ? formatDeadlineLabel(csDeadline) : 'Set Date & Time'}
+                        </span>
                       </div>
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#59757b' }}>Type</label>
-                        <select className="ear-filter-input" value={q.type} onChange={e => {
-                          const n = [...csQuestions]; n[idx].type = e.target.value; setCsQuestions(n);
-                        }}>
-                          <option>Text Input</option>
-                          <option>Star Rating</option>
-                          <option>Multi Select</option>
-                        </select>
+                    </label>
+                  )}
+                  <div className="full-span survey-toggle-grid">
+                    <label className="field-cell survey-toggle-row" htmlFor="anonToggle">
+                      <input type="checkbox" id="anonToggle" className="survey-toggle-check" checked={csAnonymous} onChange={e => setCsAnonymous(e.target.checked)} />
+                      <span>
+                        <strong>Accept Anonymous Responses</strong>
+                        <small>Collect feedback without recording who submitted it.</small>
+                      </span>
+                    </label>
+                    <label className="field-cell survey-toggle-row" htmlFor="multiToggle">
+                      <input type="checkbox" id="multiToggle" className="survey-toggle-check" checked={csMultipleAllowed} onChange={(e) => setCsMultipleAllowed(e.target.checked)} />
+                      <span>
+                        <strong>Allow Multiple Submissions per User</strong>
+                        <small>Let the same respondent submit more than once.</small>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="asset-form-section">
+                <div className="asset-form-section-title"><i className="ti ti-list-check" /> Questions Base</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {csQuestions.map((q, idx) => (
+                    <div key={idx} className="survey-question-card">
+
+                      <div className="asset-form-grid" style={{ gridTemplateColumns: '3fr 1fr auto auto', alignItems: 'start' }}>
+                        <label className="field-cell">
+                          <div className="float-field">
+                            <input type="text" className="float-control" placeholder=" " value={q.text} onChange={e => {
+                              const n = [...csQuestions]; n[idx].text = e.target.value; setCsQuestions(n);
+                            }} required />
+                            <span className="float-label">Question {idx + 1} <span className="req">*</span></span>
+                          </div>
+                        </label>
+                        <label className="field-cell">
+                          <div className="float-field float-always">
+                            <select className="float-control" value={q.type} onChange={e => {
+                              const n = [...csQuestions]; n[idx].type = e.target.value; setCsQuestions(n);
+                            }}>
+                              <option>Text Input</option>
+                              <option>Star Rating</option>
+                              <option>Multi Select</option>
+                            </select>
+                            <span className="float-label">Type</span>
+                          </div>
+                        </label>
+                        <label className="field-cell survey-required-cell">
+                          <span className="field-static-label">Required</span>
+                          <input type="checkbox" className="survey-toggle-check" checked={q.required} onChange={e => {
+                            const n = [...csQuestions]; n[idx].required = e.target.checked; setCsQuestions(n);
+                          }} />
+                        </label>
+                        {csQuestions.length > 1 && (
+                          <button type="button" className="survey-icon-btn danger" onClick={() => setCsQuestions(csQuestions.filter((_, i) => i !== idx))}>
+                            <i className="ti ti-trash" />
+                          </button>
+                        )}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#59757b' }}>Required</label>
-                        <input type="checkbox" checked={q.required} onChange={e => {
-                          const n = [...csQuestions]; n[idx].required = e.target.checked; setCsQuestions(n);
-                        }} />
-                      </div>
-                      {csQuestions.length > 1 && (
-                        <button type="button" onClick={() => setCsQuestions(csQuestions.filter((_, i) => i !== idx))} style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '6px', padding: '8px', cursor: 'pointer', marginTop: '20px' }}>
-                          <i className="ti ti-trash" />
-                        </button>
+
+                      {q.type === 'Multi Select' && (
+                        <div className="survey-options-box">
+                          <span className="field-static-label">Define Options</span>
+                          {(q.options || []).map((opt, oIdx) => (
+                            <div key={oIdx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <div className="float-field" style={{ flex: 1 }}>
+                                <input type="text" className="float-control" placeholder=" " value={opt} onChange={e => {
+                                  const n = [...csQuestions]; n[idx].options[oIdx] = e.target.value; setCsQuestions(n);
+                                }} />
+                                <span className="float-label">Option {oIdx + 1}</span>
+                              </div>
+                              {(q.options || []).length > 2 && (
+                                <button type="button" className="survey-icon-btn danger" onClick={() => {
+                                  const n = [...csQuestions]; n[idx].options = n[idx].options.filter((_, i) => i !== oIdx); setCsQuestions(n);
+                                }}>
+                                  <i className="ti ti-trash" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button type="button" className="survey-add-btn" style={{ alignSelf: 'flex-start' }} onClick={() => {
+                            const n = [...csQuestions];
+                            if (!n[idx].options) n[idx].options = [];
+                            n[idx].options.push('');
+                            setCsQuestions(n);
+                          }}>
+                            <i className="ti ti-plus" /> Add Option
+                          </button>
+                        </div>
                       )}
                     </div>
-
-                    {q.type === 'Multi Select' && (
-                      <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#59757b' }}>Define Options</label>
-                        {(q.options || []).map((opt, oIdx) => (
-                           <div key={oIdx} style={{ display: 'flex', gap: '8px' }}>
-                             <input type="text" className="ear-filter-input" value={opt} onChange={e => {
-                               const n = [...csQuestions]; n[idx].options[oIdx] = e.target.value; setCsQuestions(n);
-                             }} placeholder={`Option ${oIdx + 1}`} style={{ flex: 1 }} />
-                             {(q.options || []).length > 2 && (
-                               <button type="button" onClick={() => {
-                                 const n = [...csQuestions]; n[idx].options = n[idx].options.filter((_, i) => i !== oIdx); setCsQuestions(n);
-                               }} style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', padding: '0 12px', borderRadius: '8px', cursor: 'pointer' }}>
-                                 <i className="ti ti-trash" />
-                               </button>
-                             )}
-                           </div>
-                        ))}
-                        <button type="button" onClick={() => {
-                           const n = [...csQuestions]; 
-                           if(!n[idx].options) n[idx].options = [];
-                           n[idx].options.push(''); 
-                           setCsQuestions(n);
-                        }} style={{ alignSelf: 'flex-start', background: 'transparent', border: '1px dashed #006073', color: '#006073', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', marginTop: '4px' }}>
-                          <i className="ti ti-plus" /> Add Option
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <button type="button" className="survey-add-btn block" onClick={() => setCsQuestions([...csQuestions, { text: '', type: 'Text Input', required: true, options: ['', ''] }])}>
+                  <i className="ti ti-plus" /> Add Next Question
+                </button>
               </div>
-              <button type="button" onClick={() => setCsQuestions([...csQuestions, { text: '', type: 'Text Input', required: true, options: ['', ''] }])} style={{ marginTop: '16px', background: '#eef4f5', color: '#006073', border: '1px dashed #006073', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                <i className="ti ti-plus" /> Add Next Question
-              </button>
-            </div>
+
             </div>
 
-            <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={() => setCurrentView('list')}>Cancel</button>
-              <button type="submit" className="btn btn-success" disabled={csSaving}>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setCurrentView('list')}>Cancel</button>
+              <button type="submit" className="legacy-btn legacy-btn-success" disabled={csSaving}>
                 {csSaving ? 'Creating...' : <><i className="ti ti-check" /> Create Survey</>}
               </button>
             </div>
@@ -1133,55 +1217,83 @@ export default function SurveyDashboardPage() {
 
       {/* ── Responses Filter Modal ── */}
       {showRsFilterModal && (
-        <div className="crispr-modal-backdrop active" onClick={() => setShowRsFilterModal(false)}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crispr-modal-header">
+        <div className="legacy-modal-backdrop active" onClick={() => setShowRsFilterModal(false)}>
+          <div className="legacy-modal-dialog" role="dialog" aria-modal="true" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="legacy-modal-header">
               <h3><i className="ti ti-filter" /> Filter Responses</h3>
-              <button className="crispr-modal-close" onClick={() => setShowRsFilterModal(false)}>
+              <button type="button" className="legacy-modal-close" onClick={() => setShowRsFilterModal(false)}>
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="crispr-modal-body rsf-filter-body">
-              <style>{`
-                .rsf-filter-body { display: flex; flex-direction: column; gap: 20px; }
-                .rsf-fld { display: flex; flex-direction: column; gap: 8px; }
-                .rsf-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
-                .rsf-fld-label i { color: #006073; font-size: 15px; }
-                .rsf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-                .rsf-input { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--ink); background: #fff; outline: none; width: 100%; }
-              `}</style>
+            <div className="survey-filter-form form-modal">
+              <div className="legacy-modal-body">
 
-              <div className="rsf-grid-2">
-                <div className="rsf-fld">
-                  <label className="rsf-fld-label"><i className="ti ti-calendar" /> From Date</label>
-                  <input type="datetime-local" className="rsf-input" value={rsFrom} onChange={(e) => setRsFrom(e.target.value)} />
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-calendar" /> Date Range</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="datetime-local"
+                          className="float-control"
+                          value={rsFrom}
+                          onChange={(e) => setRsFrom(e.target.value)}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                        />
+                        <span className="float-label">From Date</span>
+                        <span className={`date-display ${!rsFrom ? 'is-empty' : ''}`}>
+                          {rsFrom ? formatDeadlineLabel(rsFrom) : 'Set Date & Time'}
+                        </span>
+                      </div>
+                    </label>
+                    <label className="field-cell">
+                      <div className="float-field float-always date-custom">
+                        <input
+                          type="datetime-local"
+                          className="float-control"
+                          value={rsTo}
+                          onChange={(e) => setRsTo(e.target.value)}
+                          onClick={openDatePicker}
+                          onKeyDown={openDatePicker}
+                        />
+                        <span className="float-label">To Date</span>
+                        <span className={`date-display ${!rsTo ? 'is-empty' : ''}`}>
+                          {rsTo ? formatDeadlineLabel(rsTo) : 'Set Date & Time'}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
-                <div className="rsf-fld">
-                  <label className="rsf-fld-label"><i className="ti ti-calendar" /> To Date</label>
-                  <input type="datetime-local" className="rsf-input" value={rsTo} onChange={(e) => setRsTo(e.target.value)} />
+
+                <div className="asset-form-section">
+                  <div className="asset-form-section-title"><i className="ti ti-book" /> Course &amp; Batch</div>
+                  <div className="asset-form-grid">
+                    <label className="field-cell full-span">
+                      <div className="float-field float-always">
+                        <select className="float-control" value={rsCourse} onChange={(e) => { setRsCourse(e.target.value); setRsBatches([]); }}>
+                          <option value="">All Courses</option>
+                          {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <span className="float-label">Course</span>
+                      </div>
+                    </label>
+                    <label className="field-cell full-span">
+                      <span className="field-static-label">Batch</span>
+                      <BatchMultiSelect batches={filteredBatchesForCourse} selected={rsBatches} onChange={(val) => setRsBatches(val)} disabled={!rsCourse} />
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              <div className="rsf-fld">
-                <label className="rsf-fld-label"><i className="ti ti-book" /> Course</label>
-                <select className="rsf-input" value={rsCourse} onChange={(e) => { setRsCourse(e.target.value); setRsBatches([]); }}>
-                  <option value="">All Courses</option>
-                  {availableCourses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
               </div>
-
-              <div className="rsf-fld">
-                <label className="rsf-fld-label"><i className="ti ti-layout-grid2" /> Batch</label>
-                <BatchMultiSelect batches={filteredBatchesForCourse} selected={rsBatches} onChange={(val) => setRsBatches(val)} disabled={!rsCourse} />
+              <div className="legacy-modal-footer">
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => { setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo(''); }}>
+                  <i className="ti ti-reload" /> Clear Filters
+                </button>
+                <button type="button" className="legacy-btn legacy-btn-success" onClick={() => setShowRsFilterModal(false)}>
+                  <i className="ti ti-check" /> Apply Filters
+                </button>
               </div>
-            </div>
-            <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" onClick={() => { setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo(''); }}>
-                <i className="ti ti-reload" /> Clear Filters
-              </button>
-              <button type="button" className="btn btn-success" onClick={() => setShowRsFilterModal(false)}>
-                <i className="ti ti-check" /> Apply Filters
-              </button>
             </div>
           </div>
         </div>
@@ -1199,18 +1311,34 @@ export default function SurveyDashboardPage() {
             </div>
 
             <div className="legacy-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--line)', paddingBottom: '16px' }}>
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', color: 'var(--ink)' }}>{surveyToView.title}</h4>
-                  <div style={{ fontSize: '13px', color: '#59757b' }}>Audience: {surveyToView.audienceLabel}</div>
-                  <div style={{ fontSize: '13px', color: '#59757b' }}>Anonymous: {surveyToView.anonymousSubmissionsAllowed ? 'Allowed' : 'Disabled'}</div>
-                  <div style={{ fontSize: '13px', color: '#59757b' }}>Multiple Submissions: {surveyToView.multipleSubmissionsAllowed ? 'Allowed' : 'Disabled'}</div>
-                  {surveyToView.brief ? <div style={{ fontSize: '13px', color: '#59757b', marginTop: 6 }}>{surveyToView.brief}</div> : null}
+              <div className="survey-preview-head">
+                <div className="survey-preview-head-top">
+                  <h4 className="survey-preview-title">{surveyToView.title}</h4>
+                  <SurveyStatus statusInt={surveyToView.status} />
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span className={`ear-status-badge ${statusBadgeClass(surveyToView.status)}`} style={{ textTransform: 'uppercase' }}>
-                    {surveyToView.statusLabel}
-                  </span>
+                {surveyToView.brief ? <p className="survey-preview-brief">{surveyToView.brief}</p> : null}
+                <div className="survey-meta-chips">
+                  <div className="survey-meta-chip">
+                    <span className="survey-meta-icon"><i className="ti ti-user" /></span>
+                    <span className="survey-meta-text">
+                      <small>Audience</small>
+                      <strong>{surveyToView.audienceLabel}</strong>
+                    </span>
+                  </div>
+                  <div className="survey-meta-chip">
+                    <span className="survey-meta-icon"><i className="ti ti-eye" /></span>
+                    <span className="survey-meta-text">
+                      <small>Anonymous</small>
+                      <strong>{surveyToView.anonymousSubmissionsAllowed ? 'Allowed' : 'Disabled'}</strong>
+                    </span>
+                  </div>
+                  <div className="survey-meta-chip">
+                    <span className="survey-meta-icon"><i className="ti ti-reload" /></span>
+                    <span className="survey-meta-text">
+                      <small>Multiple Submissions</small>
+                      <strong>{surveyToView.multipleSubmissionsAllowed ? 'Allowed' : 'Disabled'}</strong>
+                    </span>
+                  </div>
                 </div>
               </div>
 

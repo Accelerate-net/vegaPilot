@@ -701,9 +701,14 @@ export default function FormsPage() {
             <p>Configure fixed forms, dispatch them to your audiences, and review submissions.</p>
           </div>
         </div>
-        <button type="button" className="create-quiz-button" onClick={openNewConfig}>
-          <i className="ti ti-plus" /> Configure New Form
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button type="button" className="create-quiz-button" onClick={openNewSet}>
+            <i className="ti ti-plus" /> Create Set
+          </button>
+          <button type="button" className="create-quiz-button" onClick={openNewConfig}>
+            <i className="ti ti-plus" /> Configure New Form
+          </button>
+        </div>
       </div>
 
       <div className="filter-bar">
@@ -818,19 +823,9 @@ export default function FormsPage() {
       </div>
 
       {/* ── Forms Set Section ── */}
-      <div className="page-header-section" style={{ marginTop: 36 }}>
-        <div className="page-header-title-group">
-          <span className="page-header-icon-box"><i className="ti ti-layers-alt" /></span>
-          <div>
-            <h2>Forms Set</h2>
-            <p>Bundle multiple forms into a set and dispatch them all at once.</p>
-          </div>
-        </div>
-        <button type="button" className="create-quiz-button" onClick={openNewSet}>
-          <i className="ti ti-plus" /> Create Set
-        </button>
-      </div>
-
+      <h3 className="asset-form-section-title" style={{ marginTop: 36 }}>
+        <i className="ti ti-layers-alt" /> Forms Set
+      </h3>
       <div className="students-table-container">
         <table className="students-table">
           <thead>

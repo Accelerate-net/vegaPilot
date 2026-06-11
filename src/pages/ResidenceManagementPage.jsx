@@ -1108,25 +1108,10 @@ export default function ResidenceManagementPage() {
                     {isOperational(selectedResidence) ? 'Operational' : 'Shut Down'}
                   </span>
                 </div>
-                {(() => {
-                  const cap = getCapacity(selectedResidence);
-                  const occ = getOccupied(selectedResidence);
-                  const pct = cap > 0 ? Math.min(100, Math.round((occ / cap) * 100)) : 0;
-                  return (
-                    <div className="rd-occupancy-progress">
-                      <div className="rd-progress">
-                        <div
-                          className="rd-progress-fill"
-                          style={{ width: `${pct}%`, background: pct >= 90 ? '#dc2626' : pct >= 70 ? '#d97706' : '#059669' }}
-                        />
-                      </div>
-                      <div className="rd-progress-label">{pct}% occupied</div>
-                    </div>
-                  );
-                })()}
+                <hr className="rd-divider" />
 
                 <div className="rd-info-grid">
-                  <InfoItem icon="ti-map-pin" label="Location" value={selectedResidence.location} />
+                  <InfoItem icon="ti-location-pin" label="Location" value={selectedResidence.location} />
                   <InfoItem icon="ti-home" label="Address" value={selectedResidence.address} />
                   <InfoItem
                     icon="ti-user"

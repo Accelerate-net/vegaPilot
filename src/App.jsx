@@ -32,6 +32,7 @@ import VideoContentPage from './pages/VideoContentPage';
 import LegacyScreenPage from './pages/LegacyScreenPage';
 import SurveyDashboardPage from './pages/SurveyDashboardPage';
 import StudentManagementPage from './pages/StudentManagementPage';
+import Student360Page from './pages/Student360Page';
 import TestSeriesListPage from './pages/TestSeriesListPage';
 import VerifyTokenPage from './pages/VerifyTokenPage';
 import WebContentManagerPage from './pages/WebContentManagerPage';
@@ -114,6 +115,9 @@ export default function App() {
     }
     if (screen.path === '/candidate-detail') {
       return <CandidateDetailPage />;
+    }
+    if (screen.path === '/student-360') {
+      return <Student360Page />;
     }
     if (screen.path === '/courses-list') {
       return <CoursesListPage />;

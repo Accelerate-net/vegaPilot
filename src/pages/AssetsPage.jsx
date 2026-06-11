@@ -67,6 +67,31 @@ function formatDate(value) {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Formats an ISO `YYYY-MM-DD` string as e.g. "24 Jun, 2026" for the
+// date-custom display overlay used in the Create New Batch modal.
+function formatISOLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = String(value).split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${day} ${MONTH_SHORT[month - 1]}, ${year}`;
+}
+
+// Opens the native date picker on click/Enter while blocking manual segment
+// typing — mirrors the date control behaviour in the Create New Batch modal.
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function getPageNumbers(currentPage, totalPages) {
   const out = [];
   if (totalPages <= 7) {
@@ -166,7 +191,7 @@ export default function AssetsPage() {
   const [assets, setAssets] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
   // Modal
@@ -245,6 +270,7 @@ export default function AssetsPage() {
 
   useEffect(() => {
     const signal = { cancelled: false };
+    setIsLoading(true);
     const timer = setTimeout(() => loadAssetsList(signal), 250);
     return () => { signal.cancelled = true; clearTimeout(timer); };
   }, [loadAssetsList]);
@@ -561,7 +587,7 @@ export default function AssetsPage() {
       {/* ── Page Header ── */}
       <div className="page-header-section">
         <div className="page-header-title-group">
-          <span className="page-header-icon-box"><i className="fa fa-cube" /></span>
+          <span className="page-header-icon-box"><i className="ti ti-package" /></span>
           <div>
             <h2>Assets</h2>
             <p>Track asset inventory, valuation, depreciation and location assignment.</p>
@@ -880,20 +906,15 @@ export default function AssetsPage() {
                 <i className="ti ti-close" />
               </button>
             </div>
-            <div className="crispr-modal-body af-filter-body">
+            <div className="crispr-modal-body af-filter-body form-modal">
               <style>{`
-                .af-filter-body { display: flex; flex-direction: column; gap: 20px; }
-                .af-fld { display: flex; flex-direction: column; gap: 8px; }
-                .af-fld-label { font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px; }
-                .af-fld-label i { color: #006073; font-size: 15px; }
-                .af-segment { display: inline-flex; background: #f1f5f8; border: 1px solid #d7e1e7; border-radius: 8px; padding: 3px; gap: 3px; }
-                .af-seg-btn { border: none; background: transparent; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #52606d; cursor: pointer; transition: all .15s ease; }
-                .af-seg-btn:hover { color: #006073; }
-                .af-seg-btn.active { background: #006073; color: #fff; box-shadow: 0 1px 3px rgba(0,96,115,.3); }
+                .af-filter-body { display: flex; flex-direction: column; gap: 18px; }
                 .af-range { display: flex; align-items: center; gap: 10px; }
-                .af-range .search-input { flex: 1; min-width: 0; }
+                .af-range .field-cell { flex: 1; min-width: 0; }
                 .af-range-sep { color: #94a3b8; font-size: 13px; font-weight: 500; flex-shrink: 0; }
                 .af-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                .af-field-label { font-size: 11px; font-weight: 600; letter-spacing: .2px; color: #64748b; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+                .af-field-label i { color: #006073; font-size: 14px; }
                 .af-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 16px; border-top: 1px dashed #e2e8f0; }
                 .af-chips .qar-active-label { font-size: 13px; font-weight: 600; color: #52606d; margin-right: 2px; }
                 .af-chips .qar-filter-badge { display: inline-flex; align-items: center; gap: 6px; background: #eef6f8; color: #006073; border: 1px solid #cfe6ec; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; line-height: 1; }
@@ -902,27 +923,31 @@ export default function AssetsPage() {
               `}</style>
 
               <div className="af-grid-2">
-                <div className="af-fld">
-                  <label className="af-fld-label"><i className="ti ti-info-alt" /> Status</label>
-                  <select className="search-input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="all">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-                <div className="af-fld">
-                  <label className="af-fld-label"><i className="ti ti-tag" /> Asset Type</label>
-                  <select className="search-input" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-                    <option value="">All Types</option>
-                    {ASSET_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                      <option value="all">All Statuses</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                    <span className="float-label">Status</span>
+                  </div>
+                </label>
+                <label className="field-cell">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                      <option value="">All Types</option>
+                      {ASSET_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">Asset Type</span>
+                  </div>
+                </label>
               </div>
 
-              <div className="af-fld">
-                <label className="af-fld-label"><i className="ti ti-location-pin" /> Location</label>
+              <label className="field-cell">
+                <span className="af-field-label"><i className="ti ti-location-pin" /> Location</span>
                 <LocationPicker
                   value={locationId || null}
                   initialLabel={locationLabel}
@@ -932,24 +957,58 @@ export default function AssetsPage() {
                     else { setLocationId(''); setLocationLabel(''); }
                   }}
                 />
+              </label>
+
+              <div className="af-range">
+                <label className="field-cell">
+                  <div className="float-field float-always date-custom">
+                    <input
+                      type="date"
+                      className="float-control"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
+                    />
+                    <span className="float-label">Purchased From</span>
+                    <span className={`date-display ${!dateFrom ? 'is-empty' : ''}`}>
+                      {dateFrom ? formatISOLabel(dateFrom) : 'Any date'}
+                    </span>
+                  </div>
+                </label>
+                <span className="af-range-sep">to</span>
+                <label className="field-cell">
+                  <div className="float-field float-always date-custom">
+                    <input
+                      type="date"
+                      className="float-control"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
+                    />
+                    <span className="float-label">Purchased To</span>
+                    <span className={`date-display ${!dateTo ? 'is-empty' : ''}`}>
+                      {dateTo ? formatISOLabel(dateTo) : 'Any date'}
+                    </span>
+                  </div>
+                </label>
               </div>
 
-              <div className="af-fld">
-                <label className="af-fld-label"><i className="ti ti-calendar" /> Purchase Date</label>
-                <div className="af-range">
-                  <input type="date" className="search-input" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-                  <span className="af-range-sep">to</span>
-                  <input type="date" className="search-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="af-fld">
-                <label className="af-fld-label"><i className="ti ti-money" /> Current Value (₹)</label>
-                <div className="af-range">
-                  <input type="number" min="0" className="search-input" value={valueMin} onChange={(e) => setValueMin(e.target.value)} placeholder="Min" />
-                  <span className="af-range-sep">–</span>
-                  <input type="number" min="0" className="search-input" value={valueMax} onChange={(e) => setValueMax(e.target.value)} placeholder="Max" />
-                </div>
+              <div className="af-range">
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="number" min="0" className="float-control" placeholder=" " value={valueMin} onChange={(e) => setValueMin(e.target.value)} />
+                    <span className="float-label">Min Value (₹)</span>
+                  </div>
+                </label>
+                <span className="af-range-sep">–</span>
+                <label className="field-cell">
+                  <div className="float-field">
+                    <input type="number" min="0" className="float-control" placeholder=" " value={valueMax} onChange={(e) => setValueMax(e.target.value)} />
+                    <span className="float-label">Max Value (₹)</span>
+                  </div>
+                </label>
               </div>
 
               {hasModalFilters && (
@@ -1006,40 +1065,58 @@ export default function AssetsPage() {
       )}
 
       {/* ── Create / Edit Modal ─────────────────────────────────────── */}
-      {formOpen && (
-        <div className="crispr-modal-backdrop active" onClick={() => !isSaving && setFormOpen(false)}>
-          <div className="crispr-modal-dialog" style={{ maxWidth: 720 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crispr-modal-header" style={{ background: 'linear-gradient(135deg, #006073 0%, #005a6b 100%)' }}>
-              <h3><i className={`ti ${isEditing ? 'ti-pencil' : 'ti-plus'}`} /> {isEditing ? 'Edit Asset' : 'Add Asset'}</h3>
-              <button className="crispr-modal-close" onClick={() => !isSaving && setFormOpen(false)}>
-                <i className="ti ti-close" />
-              </button>
-            </div>
-            <div className="crispr-modal-body">
+      <div className={`legacy-modal-backdrop ${formOpen ? 'active' : ''}`} onClick={() => !isSaving && setFormOpen(false)}>
+        <div className="legacy-modal-dialog legacy-large" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="legacy-modal-header">
+            <h3><i className={`ti ${isEditing ? 'ti-pencil' : 'ti-plus'}`} /> {isEditing ? 'Edit Asset' : 'Add Asset'}</h3>
+            <button type="button" className="legacy-modal-close" onClick={() => !isSaving && setFormOpen(false)}>
+              <i className="ti ti-close" />
+            </button>
+          </div>
+          <form className="asset-modal-form form-modal" onSubmit={(e) => { e.preventDefault(); saveAsset(); }}>
+            <div className="legacy-modal-body">
               <div className="asset-form-section">
                 <div className="asset-form-section-title"><i className="ti ti-package" /> Asset Details</div>
-                <div className="asset-form-grid">
-                  <label className="full-span">
-                    <span>Name <span className="req">*</span></span>
-                    <input type="text" className="search-input" placeholder="e.g. Dell Latitude Laptop" value={draft.name} onChange={(e) => updateDraft('name', e.target.value)} />
-                    {formErrors.name ? <small className="field-error">{formErrors.name}</small> : null}
+                <div className="asset-form-grid basic-grid">
+                  <label className="field-cell full-span">
+                    <div className={`float-field ${formErrors.name ? 'has-error' : ''}`}>
+                      <input
+                        type="text"
+                        className="float-control"
+                        placeholder=" "
+                        value={draft.name}
+                        onChange={(e) => updateDraft('name', e.target.value)}
+                      />
+                      <span className="float-label">Name <span className="req">*</span></span>
+                    </div>
+                    {formErrors.name && <span className="field-error">{formErrors.name}</span>}
                   </label>
-                  <label>
-                    <span>Type <span className="req">*</span></span>
-                    <select className="search-input" value={draft.type} onChange={(e) => updateDraft('type', e.target.value)}>
-                      <option value="">Select Type</option>
-                      {ASSET_TYPE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    {formErrors.type ? <small className="field-error">{formErrors.type}</small> : null}
+                  <label className="field-cell">
+                    <div className={`float-field float-always ${formErrors.type ? 'has-error' : ''}`}>
+                      <select className="float-control" value={draft.type} onChange={(e) => updateDraft('type', e.target.value)}>
+                        <option value="">Select Type</option>
+                        {ASSET_TYPE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <span className="float-label">Type <span className="req">*</span></span>
+                    </div>
+                    {formErrors.type && <span className="field-error">{formErrors.type}</span>}
                   </label>
-                  <label>
-                    <span>Code / Serial</span>
-                    <input type="text" className="search-input" placeholder="Serial or asset tag" value={draft.code} onChange={(e) => updateDraft('code', e.target.value)} />
+                  <label className="field-cell">
+                    <div className="float-field">
+                      <input
+                        type="text"
+                        className="float-control"
+                        placeholder=" "
+                        value={draft.code}
+                        onChange={(e) => updateDraft('code', e.target.value)}
+                      />
+                      <span className="float-label">Code / Serial</span>
+                    </div>
                   </label>
-                  <label>
-                    <span>Location</span>
+                  <label className="field-cell full-span">
+                    <span className="field-static-label">Location</span>
                     <LocationPicker
                       value={draft.locationId || null}
                       initialLabel={draft.locationLabel}
@@ -1059,25 +1136,68 @@ export default function AssetsPage() {
               <div className="asset-form-section">
                 <div className="asset-form-section-title"><i className="ti ti-coin" /> Valuation</div>
                 <div className="asset-form-grid">
-                  <label>
-                    <span>Original Value (₹) <span className="req">*</span></span>
-                    <input type="number" min="0" step="0.01" className="search-input" value={draft.valueOriginal} onChange={(e) => updateDraft('valueOriginal', e.target.value)} />
-                    {formErrors.valueOriginal ? <small className="field-error">{formErrors.valueOriginal}</small> : null}
+                  <label className="field-cell">
+                    <div className={`float-field ${formErrors.valueOriginal ? 'has-error' : ''}`}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="float-control"
+                        placeholder=" "
+                        value={draft.valueOriginal}
+                        onChange={(e) => updateDraft('valueOriginal', e.target.value)}
+                      />
+                      <span className="float-label">Original Value (₹) <span className="req">*</span></span>
+                    </div>
+                    {formErrors.valueOriginal && <span className="field-error">{formErrors.valueOriginal}</span>}
                   </label>
-                  <label>
-                    <span>Current Value (₹) <span className="req">*</span></span>
-                    <input type="number" min="0" step="0.01" className="search-input" value={draft.valueAtPurchase} onChange={(e) => updateDraft('valueAtPurchase', e.target.value)} />
-                    {formErrors.valueAtPurchase ? <small className="field-error">{formErrors.valueAtPurchase}</small> : null}
+                  <label className="field-cell">
+                    <div className={`float-field ${formErrors.valueAtPurchase ? 'has-error' : ''}`}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="float-control"
+                        placeholder=" "
+                        value={draft.valueAtPurchase}
+                        onChange={(e) => updateDraft('valueAtPurchase', e.target.value)}
+                      />
+                      <span className="float-label">Current Value (₹) <span className="req">*</span></span>
+                    </div>
+                    {formErrors.valueAtPurchase && <span className="field-error">{formErrors.valueAtPurchase}</span>}
                   </label>
-                  <label>
-                    <span>Yearly Depreciation % <span className="req">*</span></span>
-                    <input type="number" min="0" max="100" step="0.01" className="search-input" value={draft.yearlyDepreciationPercentage} onChange={(e) => updateDraft('yearlyDepreciationPercentage', e.target.value)} />
-                    {formErrors.yearlyDepreciationPercentage ? <small className="field-error">{formErrors.yearlyDepreciationPercentage}</small> : null}
+                  <label className="field-cell">
+                    <div className={`float-field ${formErrors.yearlyDepreciationPercentage ? 'has-error' : ''}`}>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className="float-control"
+                        placeholder=" "
+                        value={draft.yearlyDepreciationPercentage}
+                        onChange={(e) => updateDraft('yearlyDepreciationPercentage', e.target.value)}
+                      />
+                      <span className="float-label">Yearly Depreciation % <span className="req">*</span></span>
+                    </div>
+                    {formErrors.yearlyDepreciationPercentage && <span className="field-error">{formErrors.yearlyDepreciationPercentage}</span>}
                   </label>
-                  <label>
-                    <span>Purchase Date <span className="req">*</span></span>
-                    <input type="date" className="search-input" value={draft.purchasedDate} onChange={(e) => updateDraft('purchasedDate', e.target.value)} />
-                    {formErrors.purchasedDate ? <small className="field-error">{formErrors.purchasedDate}</small> : null}
+                  <label className="field-cell">
+                    <div className={`float-field float-always date-custom ${formErrors.purchasedDate ? 'has-error' : ''}`}>
+                      <input
+                        type="date"
+                        className="float-control"
+                        value={draft.purchasedDate}
+                        onChange={(e) => updateDraft('purchasedDate', e.target.value)}
+                        onClick={openDatePicker}
+                        onKeyDown={openDatePicker}
+                      />
+                      <span className="float-label">Purchase Date <span className="req">*</span></span>
+                      <span className={`date-display ${!draft.purchasedDate ? 'is-empty' : ''}`}>
+                        {draft.purchasedDate ? formatISOLabel(draft.purchasedDate) : 'Set a Date'}
+                      </span>
+                    </div>
+                    {formErrors.purchasedDate && <span className="field-error">{formErrors.purchasedDate}</span>}
                   </label>
                 </div>
               </div>
@@ -1086,26 +1206,28 @@ export default function AssetsPage() {
                 <div className="asset-form-section">
                   <div className="asset-form-section-title"><i className="ti ti-toggle-right" /> Status</div>
                   <div className="asset-form-grid">
-                    <label>
-                      <span>Status</span>
-                      <select className="search-input" value={draft.status} onChange={(e) => updateDraft('status', Number(e.target.value))}>
-                        <option value={1}>Active</option>
-                        <option value={0}>Inactive</option>
-                      </select>
+                    <label className="field-cell">
+                      <div className="float-field float-always">
+                        <select className="float-control" value={draft.status} onChange={(e) => updateDraft('status', Number(e.target.value))}>
+                          <option value={1}>Active</option>
+                          <option value={0}>Inactive</option>
+                        </select>
+                        <span className="float-label">Status</span>
+                      </div>
                     </label>
                   </div>
                 </div>
               )}
             </div>
-            <div className="crispr-modal-footer">
-              <button type="button" className="btn btn-default" disabled={isSaving} onClick={() => setFormOpen(false)}>Cancel</button>
-              <button type="button" className="btn btn-success" disabled={isSaving} onClick={saveAsset}>
+            <div className="legacy-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" disabled={isSaving} onClick={() => setFormOpen(false)}>Cancel</button>
+              <button type="submit" className="legacy-btn legacy-btn-success" disabled={isSaving}>
                 {isSaving ? (<><i className="ti ti-reload" /> Saving...</>) : (<><i className="ti ti-check" /> {isEditing ? 'Save Changes' : 'Create Asset'}</>)}
               </button>
             </div>
-          </div>
+          </form>
         </div>
-      )}
+      </div>
 
       {/* ── Export Modal ────────────────────────────────────────────── */}
       {exportOpen && (

@@ -169,6 +169,17 @@ const screens = [
     summary: 'Student listing, enrollment actions, and search.',
   },
   {
+    path: '/student-360',
+    title: 'Student 360',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'people',
+    icon: 'fa-user-circle-o',
+    shortCode: 'S360',
+    summary: 'A 360° view of a student — prep journey, performance, engagement and activity.',
+  },
+  {
     path: '/mentor-profiles',
     title: 'Mentors',
     legacyHtml: 'mentor-profiles.html',
@@ -528,6 +539,7 @@ const VIEW_PERMISSIONS = {
   // People
   '/candidate-profile': 'students.view',
   '/candidate-detail': 'studentDetail.view',
+  '/student-360': 'studentDetail.view',
   '/mentor-profiles': 'mentors.view',
   '/instructor-portfolio': 'instructors.view',
   '/residences': 'residences.view',

@@ -24,6 +24,27 @@ function getPageNumbers(currentPage, totalPages) {
   return pages;
 }
 
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatDateLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return '';
+  return `${day} ${MONTH_LABELS[month - 1]}, ${year}`;
+}
+
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return; // keep keyboard navigation working
+    event.preventDefault(); // block manual text entry into the segments
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function VoucherKebabMenu({ voucher, onViewUsers, onRevoke }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -107,6 +128,9 @@ export default function WebContentManagerPage() {
   
   const [viewUsersModalOpen, setViewUsersModalOpen] = useState(false);
   const [selectedVoucherForUsers, setSelectedVoucherForUsers] = useState(null);
+  const [voucherUserSearch, setVoucherUserSearch] = useState('');
+  const [voucherUserPage, setVoucherUserPage] = useState(1);
+  const voucherUsersPerPage = 10;
   
   const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [voucherToRevoke, setVoucherToRevoke] = useState(null);
@@ -186,8 +210,25 @@ export default function WebContentManagerPage() {
 
   const openViewUsers = (voucher) => {
     setSelectedVoucherForUsers(voucher);
+    setVoucherUserSearch('');
+    setVoucherUserPage(1);
     setViewUsersModalOpen(true);
   };
+
+  // Voucher users: search + pagination
+  const voucherUsersAll = selectedVoucherForUsers?.users || [];
+  const filteredVoucherUsers = useMemo(() => {
+    const q = voucherUserSearch.trim().toLowerCase();
+    if (!q) return voucherUsersAll;
+    return voucherUsersAll.filter(u =>
+      (u.name || '').toLowerCase().includes(q) || (u.phone || '').toLowerCase().includes(q)
+    );
+  }, [voucherUsersAll, voucherUserSearch]);
+  const totalVoucherUserPages = Math.ceil(filteredVoucherUsers.length / voucherUsersPerPage) || 1;
+  const paginatedVoucherUsers = filteredVoucherUsers.slice(
+    (voucherUserPage - 1) * voucherUsersPerPage,
+    voucherUserPage * voucherUsersPerPage
+  );
 
   return (
     <div className="container-fluid data-table-page" style={{ paddingTop: '1%' }}>
@@ -377,141 +418,215 @@ export default function WebContentManagerPage() {
 
         {/* Add Discount Modal */}
         {discountModalOpen && (
-            <div className="crispr-modal-backdrop active" onClick={() => setDiscountModalOpen(false)}>
-                <div className="crispr-modal-dialog" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
-                    <div className="crispr-modal-header">
+            <div className="legacy-modal-backdrop active" onClick={() => setDiscountModalOpen(false)}>
+                <div className="legacy-modal-dialog" role="dialog" aria-modal="true" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
+                    <div className="legacy-modal-header">
                         <h3>Add Discount Code</h3>
-                        <button className="crispr-modal-close" onClick={() => setDiscountModalOpen(false)}>
+                        <button type="button" className="legacy-modal-close" onClick={() => setDiscountModalOpen(false)}>
                             <i className="ti ti-close"></i>
                         </button>
                     </div>
-                    
-                    <div className="crispr-modal-body">
-                        <form id="wcmDiscountForm" onSubmit={handleCreateDiscount}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label><i className="ti ti-tag" style={{ marginRight: '5px' }}></i>Discount Code <span style={{ color: 'red' }}>*</span></label>
-                                <input type="text" className="wcm-form-control" value={newDiscount.code} onChange={e => setNewDiscount({...newDiscount, code: e.target.value})} placeholder="e.g. WELCOME20" required style={{ textTransform: 'uppercase', fontFamily: 'monospace', letterSpacing: '1px', fontWeight: 600 }} />
+
+                    <form id="wcmDiscountForm" className="batch-modal-form form-modal" onSubmit={handleCreateDiscount}>
+                      <div className="legacy-modal-body">
+                        <div className="asset-form-section">
+                            <div className="asset-form-section-title"><i className="ti ti-ticket" /> Discount Details</div>
+                            <div className="asset-form-grid">
+                                <label className="field-cell full-span">
+                                    <div className="float-field">
+                                        <input
+                                            type="text"
+                                            className="float-control"
+                                            placeholder=" "
+                                            value={newDiscount.code}
+                                            onChange={e => setNewDiscount({...newDiscount, code: e.target.value})}
+                                            required
+                                            style={{ textTransform: 'uppercase', fontFamily: 'monospace', letterSpacing: '1px', fontWeight: 600 }}
+                                        />
+                                        <span className="float-label">Discount Code <span className="req">*</span></span>
+                                    </div>
+                                    <span className="field-hint">A unique code, e.g. WELCOME20.</span>
+                                </label>
+                                <label className="field-cell">
+                                    <div className="float-field float-always">
+                                        <select
+                                            className="float-control"
+                                            value={newDiscount.type}
+                                            onChange={e => setNewDiscount({...newDiscount, type: e.target.value})}
+                                        >
+                                            <option value="percentage">Percentage (%)</option>
+                                            <option value="fixed">Fixed Amount (₹)</option>
+                                        </select>
+                                        <span className="float-label">Discount Type</span>
+                                    </div>
+                                </label>
+                                <label className="field-cell">
+                                    <div className="float-field">
+                                        <input
+                                            type="number"
+                                            className="float-control"
+                                            placeholder=" "
+                                            min="0"
+                                            value={newDiscount.value}
+                                            onChange={e => setNewDiscount({...newDiscount, value: e.target.value})}
+                                            required
+                                        />
+                                        <span className="float-label">Discount Value <span className="req">*</span></span>
+                                    </div>
+                                </label>
+                                <label className="field-cell">
+                                    <div className="float-field float-always date-custom">
+                                        <input
+                                            type="date"
+                                            className="float-control"
+                                            value={newDiscount.validUntil}
+                                            onChange={e => setNewDiscount({...newDiscount, validUntil: e.target.value})}
+                                            onClick={openDatePicker}
+                                            onKeyDown={openDatePicker}
+                                            required
+                                        />
+                                        <span className="float-label">Valid Until <span className="req">*</span></span>
+                                        <span className={`date-display ${!newDiscount.validUntil ? 'is-empty' : ''}`}>
+                                            {newDiscount.validUntil ? formatDateLabel(newDiscount.validUntil) : 'Set a Date'}
+                                        </span>
+                                    </div>
+                                </label>
                             </div>
-                            
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                                <div>
-                                    <label><i className="ti ti-settings" style={{ marginRight: '5px' }}></i>Discount Type</label>
-                                    <select className="wcm-form-control" value={newDiscount.type} onChange={e => setNewDiscount({...newDiscount, type: e.target.value})}>
-                                        <option value="percentage">Percentage (%)</option>
-                                        <option value="fixed">Fixed Amount (₹)</option>
-                                    </select>
+                        </div>
+
+                        <div className="asset-form-section">
+                            <div className="asset-form-section-title"><i className="ti ti-users" /> Usage Restriction</div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', cursor: 'pointer', margin: 0, fontWeight: 600, color: '#475569' }}>
+                                <input type="checkbox" checked={newDiscount.limitUsers} onChange={e => { setNewDiscount({...newDiscount, limitUsers: e.target.checked}); if (!e.target.checked) { setSelectedUsers([]); setUserSearchQuery(''); } }} style={{ margin: 0, width: '18px', height: '18px', cursor: 'pointer' }} />
+                                Limit to Specific User(s)
+                            </label>
+
+                            {/* User search section - shown when limitUsers is checked */}
+                            {newDiscount.limitUsers && (
+                                <div style={{ marginTop: '15px' }}>
+                                    {/* Search Input */}
+                                    <div style={{ position: 'relative', marginBottom: '10px' }}>
+                                        <input type="text" className="form-control" value={userSearchQuery} onChange={e => setUserSearchQuery(e.target.value)} placeholder="Search user by name, email, or mobile..." style={{ width: '100%', padding: '12px 16px 12px 40px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px' }} />
+                                        <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '16px' }}></i>
+                                    </div>
+
+                                    {/* Selected Users Tags */}
+                                    {selectedUsers.length > 0 && (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                                            {selectedUsers.map(u => (
+                                                <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#e0f2f1', color: '#006073', borderRadius: '20px', fontSize: '13px', fontWeight: 500 }}>
+                                                    {u.name}
+                                                    <button type="button" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#dc2626', fontSize: '14px', lineHeight: 1 }}>
+                                                        <i className="ti ti-close"></i>
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Search Results Dropdown */}
+                                    {filteredUsers.length > 0 && (
+                                        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto', background: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                            {filteredUsers.map(u => (
+                                                <div key={u.id} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s' }} className="wcm-user-result-hover" onClick={() => { setSelectedUsers([...selectedUsers, u]); setUserSearchQuery(''); }}>
+                                                    <div>
+                                                        <strong style={{ fontSize: '14px' }}>{u.name}</strong>
+                                                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{u.email} · {u.phone}</div>
+                                                    </div>
+                                                    <i className="ti ti-plus" style={{ color: '#006073' }}></i>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {userSearchQuery && filteredUsers.length === 0 && (
+                                        <div style={{ textAlign: 'center', padding: '15px', color: '#9ca3af', fontSize: '13px' }}>
+                                            No users found matching "{userSearchQuery}"
+                                        </div>
+                                    )}
                                 </div>
-                                <div>
-                                    <label><i className="ti ti-money" style={{ marginRight: '5px' }}></i>Discount Value <span style={{ color: 'red' }}>*</span></label>
-                                    <input type="number" className="wcm-form-control" value={newDiscount.value} onChange={e => setNewDiscount({...newDiscount, value: e.target.value})} required min="0" placeholder="0" />
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                                <div>
-                                    <label><i className="ti ti-calendar" style={{ marginRight: '5px' }}></i>Valid Until <span style={{ color: 'red' }}>*</span></label>
-                                    <input type="date" className="wcm-form-control" value={newDiscount.validUntil} onChange={e => setNewDiscount({...newDiscount, validUntil: e.target.value})} required />
-                                </div>
-                            </div>
-
-                            <div style={{ marginTop: '10px', paddingTop: '15px', borderTop: '1px dashed #e2e8f0' }}>
-                                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', margin: 0, fontWeight: 600, color: '#475569' }}>
-                                     <input type="checkbox" checked={newDiscount.limitUsers} onChange={e => { setNewDiscount({...newDiscount, limitUsers: e.target.checked}); if (!e.target.checked) { setSelectedUsers([]); setUserSearchQuery(''); } }} style={{ margin: 0, width: '18px', height: '18px', cursor: 'pointer' }} />
-                                     Limit to Specific User(s)
-                                 </label>
-
-                                 {/* User search section - shown when limitUsers is checked */}
-                                 {newDiscount.limitUsers && (
-                                     <div style={{ paddingLeft: '5px', marginTop: '15px' }}>
-                                         {/* Search Input */}
-                                         <div style={{ position: 'relative', marginBottom: '10px' }}>
-                                             <input type="text" className="form-control" value={userSearchQuery} onChange={e => setUserSearchQuery(e.target.value)} placeholder="Search user by name, email, or mobile..." style={{ paddingLeft: '40px', width: '100%', padding: '12px 16px 12px 40px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '14px' }} />
-                                             <i className="ti ti-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '16px' }}></i>
-                                         </div>
-
-                                         {/* Selected Users Tags */}
-                                         {selectedUsers.length > 0 && (
-                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-                                                 {selectedUsers.map(u => (
-                                                     <span key={u.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#e0f2f1', color: '#006073', borderRadius: '20px', fontSize: '13px', fontWeight: 500 }}>
-                                                         {u.name}
-                                                         <button type="button" onClick={() => setSelectedUsers(selectedUsers.filter(s => s.id !== u.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#dc2626', fontSize: '14px', lineHeight: 1 }}>
-                                                             <i className="ti ti-close"></i>
-                                                         </button>
-                                                     </span>
-                                                 ))}
-                                             </div>
-                                         )}
-
-                                         {/* Search Results Dropdown */}
-                                         {filteredUsers.length > 0 && (
-                                             <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto', background: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                                                 {filteredUsers.map(u => (
-                                                     <div key={u.id} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s' }} className="wcm-user-result-hover" onClick={() => { setSelectedUsers([...selectedUsers, u]); setUserSearchQuery(''); }}>
-                                                         <div>
-                                                             <strong style={{ fontSize: '14px' }}>{u.name}</strong>
-                                                             <div style={{ fontSize: '12px', color: '#6b7280' }}>{u.email} · {u.phone}</div>
-                                                         </div>
-                                                         <i className="ti ti-plus" style={{ color: '#006073' }}></i>
-                                                     </div>
-                                                 ))}
-                                             </div>
-                                         )}
-
-                                         {userSearchQuery && filteredUsers.length === 0 && (
-                                             <div style={{ textAlign: 'center', padding: '15px', color: '#9ca3af', fontSize: '13px' }}>
-                                                 No users found matching "{userSearchQuery}"
-                                             </div>
-                                         )}
-                                     </div>
-                                 )}
-                            </div>
-                        </form>
-                    </div>
-                    <div className="crispr-modal-footer">
-                        <button type="button" className="btn btn-default" onClick={() => setDiscountModalOpen(false)}>Cancel</button>
-                        <button type="submit" form="wcmDiscountForm" className="btn wcm-btn-primary-custom">Create Code</button>
-                    </div>
+                            )}
+                        </div>
+                      </div>
+                      <div className="legacy-modal-footer">
+                          <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setDiscountModalOpen(false)}>Cancel</button>
+                          <button type="submit" className="legacy-btn legacy-btn-success">Create Code</button>
+                      </div>
+                    </form>
                 </div>
             </div>
         )}
 
         {/* View Users Modal */}
         {viewUsersModalOpen && selectedVoucherForUsers && (
-            <div className="crispr-modal-backdrop active" onClick={() => setViewUsersModalOpen(false)}>
-                <div className="crispr-modal-dialog" style={{ maxWidth: '700px', width: '100%' }} onClick={e => e.stopPropagation()}>
-                    <div className="crispr-modal-header">
+            <div className="legacy-modal-backdrop active" onClick={() => setViewUsersModalOpen(false)}>
+                <div className="legacy-modal-dialog" role="dialog" aria-modal="true" style={{ maxWidth: '720px' }} onClick={e => e.stopPropagation()}>
+                    <div className="legacy-modal-header">
                         <h3>Users Associated with Voucher</h3>
-                        <button className="crispr-modal-close" onClick={() => setViewUsersModalOpen(false)}>
+                        <button type="button" className="legacy-modal-close" onClick={() => setViewUsersModalOpen(false)}>
                             <i className="ti ti-close"></i>
                         </button>
                     </div>
-                    <div className="crispr-modal-body">
-                        <div className="students-table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                            <table className="students-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {selectedVoucherForUsers.users && selectedVoucherForUsers.users.length > 0 ? (
-                                       selectedVoucherForUsers.users.map((u, i) => (
-                                           <tr key={i}>
-                                               <td>{u.name}</td>
-                                               <td>{u.phone}</td>
-                                           </tr>
-                                       ))
-                                    ) : (
-                                       <tr><td colSpan="2" style={{ textAlign: 'center', padding: '20px' }}>No users found for this voucher.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+                    <div className="legacy-modal-body">
+                        <div className="asset-form-section">
+                            <div className="asset-form-section-title"><i className="ti ti-users" /> {selectedVoucherForUsers.code}</div>
+                            <div className="search-wrapper" style={{ marginBottom: '16px' }}>
+                                <i className={`ti ${voucherUserSearch ? 'ti-close' : 'ti-search'}`} onClick={() => { setVoucherUserSearch(''); setVoucherUserPage(1); }} aria-hidden="true" />
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    value={voucherUserSearch}
+                                    onChange={(e) => { setVoucherUserSearch(e.target.value); setVoucherUserPage(1); }}
+                                    placeholder="Search by name or mobile…"
+                                />
+                            </div>
+                            <div className="students-table-container">
+                                <table className="students-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Mobile</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {paginatedVoucherUsers.length > 0 ? (
+                                           paginatedVoucherUsers.map((u, i) => (
+                                               <tr key={i}>
+                                                   <td>{u.name}</td>
+                                                   <td>{u.phone}</td>
+                                               </tr>
+                                           ))
+                                        ) : (
+                                           <tr><td colSpan="2" style={{ textAlign: 'center', padding: '20px' }}>No users found for this voucher.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {filteredVoucherUsers.length > 0 && (
+                                    <div className="pagination-container">
+                                        <div className="pagination-info">
+                                            <span>Showing {(voucherUserPage - 1) * voucherUsersPerPage + 1} to {Math.min(voucherUserPage * voucherUsersPerPage, filteredVoucherUsers.length)} of {filteredVoucherUsers.length} entries</span>
+                                        </div>
+                                        <div className="pagination-controls">
+                                            <button type="button" className="pagination-btn" onClick={() => setVoucherUserPage(p => Math.max(1, p - 1))} disabled={voucherUserPage === 1}>
+                                                <i className="ti ti-angle-left"></i> Previous
+                                            </button>
+                                            {getPageNumbers(voucherUserPage, totalVoucherUserPages).map((page, idx) => (
+                                                page === '...'
+                                                    ? <span key={`vu-ellipsis-${idx}`} className="pagination-ellipsis">...</span>
+                                                    : <button key={page} type="button" className={`pagination-btn ${voucherUserPage === page ? 'active' : ''}`} onClick={() => setVoucherUserPage(page)}>{page}</button>
+                                            ))}
+                                            <button type="button" className="pagination-btn" onClick={() => setVoucherUserPage(p => Math.min(totalVoucherUserPages, p + 1))} disabled={voucherUserPage >= totalVoucherUserPages}>
+                                                Next <i className="ti ti-angle-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    <div className="crispr-modal-footer">
-                        <button className="btn btn-default" onClick={() => setViewUsersModalOpen(false)}>Close</button>
+                    <div className="legacy-modal-footer">
+                        <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setViewUsersModalOpen(false)}>Close</button>
                     </div>
                 </div>
             </div>

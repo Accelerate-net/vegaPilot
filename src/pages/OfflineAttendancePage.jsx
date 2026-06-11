@@ -115,6 +115,26 @@ function formatDateParts(year, month, day) {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+// Render a date-input value ("2026-06-16") as "16 Jun, 2026".
+function formatDateLabel(value) {
+  if (!value) return '';
+  const [year, month, day] = value.split('-').map(Number);
+  return formatDateParts(year, month, day) === '—' ? '' : formatDateParts(year, month, day);
+}
+
+// Open the native date picker on click; block manual text entry on key down.
+function openDatePicker(event) {
+  if (event.type === 'keydown') {
+    if (event.key === 'Tab') return;
+    event.preventDefault();
+  }
+  try {
+    event.currentTarget.showPicker?.();
+  } catch (_) {
+    // showPicker throws if already open or unsupported — safe to ignore.
+  }
+}
+
 function getPageNumbers(currentPage, totalPages) {
   const out = [];
   if (totalPages <= 7) {
@@ -1594,7 +1614,7 @@ function MonthlyReportModal({ onClose, showToast }) {
   }
 
   return (
-    <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="legacy-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{`
         .att-cal-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
         .att-cal-tab { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid var(--line,#d7e5e8); border-radius:8px; background:#fff; cursor:pointer; font-size:12px; font-weight:600; color:var(--ink,#16353c); }
@@ -1617,81 +1637,105 @@ function MonthlyReportModal({ onClose, showToast }) {
         .att-selectall-link:hover { text-decoration:underline; }
         .att-selectall-link i { font-size:14px; }
       `}</style>
-      <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+      <div className="legacy-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
           <h3><i className="ti ti-calendar-stats" /> Monthly Report</h3>
-          <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
-        <div className="crispr-modal-body">
-          <div className="qar-filter-field" style={{ marginBottom: 16 }}>
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Month &amp; Year</label>
-            <input type="month" className="qar-input" value={monthValue} onChange={(e) => setMonthValue(e.target.value)} />
-          </div>
+        <div className="mr-modal-form form-modal">
+          <div className="legacy-modal-body">
 
-          <div className="qar-filter-field" style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <label className="qar-filter-label" style={{ marginBottom: 0 }}><i className="ti ti-filter" /> Report Criteria</label>
-              {needBatches && filteredBatches.length > 0 && (
-                <button type="button" className="att-selectall-link" onClick={toggleSelectAllBatches}>
-                  {allBatchesSelected ? 'Clear all' : 'Select all'}
-                </button>
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-calendar" /> Report Period</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field float-always">
+                    <input
+                      type="month"
+                      className="float-control"
+                      value={monthValue}
+                      onChange={(e) => setMonthValue(e.target.value)}
+                      onClick={openDatePicker}
+                    />
+                    <span className="float-label">Month &amp; Year</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title" style={{ justifyContent: 'space-between' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><i className="ti ti-filter" /> Report Criteria</span>
+                {needBatches && filteredBatches.length > 0 && (
+                  <button type="button" className="att-selectall-link" onClick={toggleSelectAllBatches}>
+                    {allBatchesSelected ? 'Clear all' : 'Select all'}
+                  </button>
+                )}
+              </div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field float-always">
+                    <select className="float-control" value={criteria} onChange={(e) => setCriteria(e.target.value)}>
+                      {REPORT_CRITERIA.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                    <span className="float-label">Criteria</span>
+                  </div>
+                </label>
+              </div>
+
+              {needBatches && (
+                <>
+                  <div className="search-wrapper" style={{ margin: '12px 0' }}>
+                    <i className="ti ti-search search-icon" />
+                    <input
+                      type="text"
+                      className="search-input"
+                      value={batchSearch}
+                      onChange={(e) => setBatchSearch(e.target.value)}
+                      placeholder="Search batches…"
+                    />
+                  </div>
+                  <div className="att-cal-list">
+                    {loadingBatches ? (
+                      <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Loading batches…</div>
+                    ) : filteredBatches.length === 0 ? (
+                      <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No batches found.</div>
+                    ) : filteredBatches.map((b) => {
+                      const checked = batchIds.includes(b.id);
+                      return (
+                        <div key={b.id} className="att-cal-person" onClick={() => toggleBatch(b.id)}>
+                          <span className={`att-cal-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
+                          <div>
+                            <div className="att-cal-name">{b.name || 'Unnamed batch'}</div>
+                            {b.description ? <div className="att-cal-detail">{b.description}</div> : null}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
-            <select className="qar-input" style={{ marginTop: 8 }} value={criteria} onChange={(e) => setCriteria(e.target.value)}>
-              {REPORT_CRITERIA.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-          </div>
 
-          {needBatches && (
-            <>
-              <div className="search-wrapper" style={{ marginBottom: 12 }}>
-                <i className="ti ti-search search-icon" />
-                <input
-                  type="text"
-                  className="search-input"
-                  value={batchSearch}
-                  onChange={(e) => setBatchSearch(e.target.value)}
-                  placeholder="Search batches…"
-                />
-              </div>
-              <div className="att-cal-list">
-                {loadingBatches ? (
-                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Loading batches…</div>
-                ) : filteredBatches.length === 0 ? (
-                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No batches found.</div>
-                ) : filteredBatches.map((b) => {
-                  const checked = batchIds.includes(b.id);
-                  return (
-                    <div key={b.id} className="att-cal-person" onClick={() => toggleBatch(b.id)}>
-                      <span className={`att-cal-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
-                      <div>
-                        <div className="att-cal-name">{b.name || 'Unnamed batch'}</div>
-                        {b.description ? <div className="att-cal-detail">{b.description}</div> : null}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
-        <div className="crispr-modal-footer">
-          <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-            {needBatches
-              ? `${batchIds.length} batch${batchIds.length === 1 ? '' : 'es'} selected`
-              : REPORT_CRITERIA.find((c) => c.value === criteria)?.label}
-          </span>
-          <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
-          <button
-            type="button"
-            className="btn btn-success"
-            disabled={building || (needBatches && batchIds.length === 0)}
-            onClick={downloadReport}
-          >
-            <i className="ti ti-download" /> {building ? 'Building…' : 'Download PDF'}
-          </button>
+          </div>
+          <div className="legacy-modal-footer">
+            <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+              {needBatches
+                ? `${batchIds.length} batch${batchIds.length === 1 ? '' : 'es'} selected`
+                : REPORT_CRITERIA.find((c) => c.value === criteria)?.label}
+            </span>
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            <button
+              type="button"
+              className="legacy-btn legacy-btn-success"
+              disabled={building || (needBatches && batchIds.length === 0)}
+              onClick={downloadReport}
+            >
+              <i className="ti ti-download" /> {building ? 'Building…' : 'Download PDF'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1866,7 +1910,7 @@ function NotifyParentsModal({ onClose, showToast }) {
   }
 
   return (
-    <div className="crispr-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="legacy-modal-backdrop active" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{`
         .np-selectall { background:none; border:none; color:#006073; font-size:12px; font-weight:700; cursor:pointer; padding:0; }
         .np-selectall:disabled { color:#94a3b8; cursor:default; }
@@ -1891,107 +1935,128 @@ function NotifyParentsModal({ onClose, showToast }) {
         .np-grp-id { display:inline-block; min-width:48px; font-weight:600; color:#64748b; }
         .np-empty { font-size:13px; color:#16a34a; font-weight:600; }
       `}</style>
-      <div className="crispr-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
-        <div className="crispr-modal-header">
+      <div className="legacy-modal-dialog" style={{ maxWidth: 560 }} role="dialog" aria-modal="true">
+        <div className="legacy-modal-header">
           <h3><i className="ti ti-send" /> Notify Parents</h3>
-          <button type="button" className="crispr-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
+          <button type="button" className="legacy-modal-close" onClick={onClose}><i className="ti ti-close" /></button>
         </div>
-        <div className="crispr-modal-body">
-          <div className="qar-filter-field" style={{ marginBottom: 16 }}>
-            <label className="qar-filter-label"><i className="ti ti-calendar" /> Date</label>
-            <input type="date" className="qar-input" value={dateValue} onChange={(e) => { setDateValue(e.target.value); setPreview(null); }} />
-          </div>
+        <div className="np-modal-form form-modal">
+          <div className="legacy-modal-body">
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <label className="qar-filter-label" style={{ margin: 0 }}>
-              <i className="ti ti-users-group" /> Batches
-            </label>
-            <button
-              type="button"
-              className="np-selectall"
-              disabled={loadingBatches || filteredBatches.length === 0}
-              onClick={toggleSelectAll}
-            >
-              {allFilteredSelected ? 'Clear All' : 'Select All'}
-            </button>
-          </div>
-          <div className="search-wrapper np-bsearch">
-            <i className="ti ti-search search-icon" />
-            <input
-              type="text"
-              className="search-input"
-              value={batchSearch}
-              onChange={(e) => setBatchSearch(e.target.value)}
-              placeholder="Search batches…"
-            />
-          </div>
-          <div className="np-blist">
-            {loadingBatches ? (
-              <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Loading batches…</div>
-            ) : filteredBatches.length === 0 ? (
-              <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No batches found.</div>
-            ) : filteredBatches.map((b) => {
-              const checked = selectedBatchIds.includes(String(b.id));
-              return (
-                <div key={b.id} className="np-bcheck" onClick={() => toggleBatch(b.id)}>
-                  <span className={`np-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
-                  <div>
-                    <div className="np-bname">{b.name}</div>
-                    {b.description ? <div className="np-bdesc">{b.description}</div> : null}
+            <div className="asset-form-section">
+              <div className="asset-form-section-title"><i className="ti ti-calendar" /> Attendance Date</div>
+              <div className="asset-form-grid">
+                <label className="field-cell full-span">
+                  <div className="float-field float-always date-custom">
+                    <input
+                      type="date"
+                      className="float-control"
+                      value={dateValue}
+                      onChange={(e) => { setDateValue(e.target.value); setPreview(null); }}
+                      onClick={openDatePicker}
+                      onKeyDown={openDatePicker}
+                    />
+                    <span className="float-label">Date</span>
+                    <span className={`date-display ${!dateValue ? 'is-empty' : ''}`}>
+                      {dateValue ? formatDateLabel(dateValue) : 'Set a Date'}
+                    </span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {preview && (
-            <div className="np-preview">
-              <div className="np-preview-head">
-                Absentees <span className="np-count">{preview.total}</span>
+                </label>
               </div>
-              {preview.total === 0 ? (
-                <div className="np-empty"><i className="ti ti-circle-check" /> No absentees for the selected batches.</div>
-              ) : (
-                preview.groups.map((g) => (
-                  <div key={g.batchId} className="np-grp">
-                    <div className="np-grp-name">{g.batchName}</div>
-                    <div className="np-grp-students">
-                      {g.students.map((s) => (
-                        <div key={s.id} className="np-grp-student">
-                          <span className="np-grp-id">{s.id}</span> {s.name}
-                        </div>
-                      ))}
+            </div>
+
+            <div className="asset-form-section">
+              <div className="asset-form-section-title" style={{ justifyContent: 'space-between' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><i className="ti ti-user" /> Batches</span>
+                <button
+                  type="button"
+                  className="np-selectall"
+                  disabled={loadingBatches || filteredBatches.length === 0}
+                  onClick={toggleSelectAll}
+                >
+                  {allFilteredSelected ? 'Clear All' : 'Select All'}
+                </button>
+              </div>
+              <div className="search-wrapper np-bsearch">
+                <i className="ti ti-search search-icon" />
+                <input
+                  type="text"
+                  className="search-input"
+                  value={batchSearch}
+                  onChange={(e) => setBatchSearch(e.target.value)}
+                  placeholder="Search batches…"
+                />
+              </div>
+              <div className="np-blist">
+                {loadingBatches ? (
+                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>Loading batches…</div>
+                ) : filteredBatches.length === 0 ? (
+                  <div style={{ padding: '14px', color: '#6c757d', fontSize: 13, textAlign: 'center' }}>No batches found.</div>
+                ) : filteredBatches.map((b) => {
+                  const checked = selectedBatchIds.includes(String(b.id));
+                  return (
+                    <div key={b.id} className="np-bcheck" onClick={() => toggleBatch(b.id)}>
+                      <span className={`np-check${checked ? ' on' : ''}`}>{checked && <i className="ti ti-check" />}</span>
+                      <div>
+                        <div className="np-bname">{b.name}</div>
+                        {b.description ? <div className="np-bdesc">{b.description}</div> : null}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {preview && (
+                <div className="np-preview">
+                  <div className="np-preview-head">
+                    Absentees <span className="np-count">{preview.total}</span>
                   </div>
-                ))
+                  {preview.total === 0 ? (
+                    <div className="np-empty"><i className="ti ti-circle-check" /> No absentees for the selected batches.</div>
+                  ) : (
+                    preview.groups.map((g) => (
+                      <div key={g.batchId} className="np-grp">
+                        <div className="np-grp-name">{g.batchName}</div>
+                        <div className="np-grp-students">
+                          {g.students.map((s) => (
+                            <div key={s.id} className="np-grp-student">
+                              <span className="np-grp-id">{s.id}</span> {s.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-        <div className="crispr-modal-footer">
-          <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-            {selectedBatchIds.length} {selectedBatchIds.length === 1 ? 'batch' : 'batches'} selected
-          </span>
-          <button type="button" className="btn btn-default" onClick={onClose}>Cancel</button>
-          {!preview || preview.total === 0 ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={selectedBatchIds.length === 0 || building}
-              onClick={runPreview}
-            >
-              <i className="ti ti-eye" /> {building ? 'Loading…' : 'Preview'}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-success"
-              disabled={sending}
-              onClick={notifyParents}
-            >
-              <i className="ti ti-brand-whatsapp" /> {sending ? 'Sending…' : `Notify Parents (${preview.total})`}
-            </button>
-          )}
+
+          </div>
+          <div className="legacy-modal-footer">
+            <span style={{ marginRight: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+              {selectedBatchIds.length} {selectedBatchIds.length === 1 ? 'batch' : 'batches'} selected
+            </span>
+            <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Cancel</button>
+            {!preview || preview.total === 0 ? (
+              <button
+                type="button"
+                className="legacy-btn legacy-btn-primary"
+                disabled={selectedBatchIds.length === 0 || building}
+                onClick={runPreview}
+              >
+                <i className="ti ti-eye" /> {building ? 'Loading…' : 'Preview'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="legacy-btn legacy-btn-success"
+                disabled={sending}
+                onClick={notifyParents}
+              >
+                <i className="ti ti-brand-whatsapp" /> {sending ? 'Sending…' : `Notify Parents (${preview.total})`}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
