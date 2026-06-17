@@ -18,7 +18,7 @@ export const ROLES = {
       '/courses-list', '/course-view', '/course-management', '/catalog', '/video-content', '/bunny-admin',
       '/quiz-listing', '/quiz-creation', '/quiz-attempt-report', '/question-bank', '/practice-questions',
       '/exam-listing', '/exam-creation-wizard', '/exam-attempt-report', '/test-series-list',
-      '/mentor-profiles', '/instructor-portfolio',
+      '/mentor-profiles', '/mentor-sessions', '/instructor-portfolio',
       '/leads-management', '/batch',
       '/residences',
       '/offline-attendance',
@@ -54,7 +54,7 @@ export const ROLES = {
     paths: [
       '/landing',
       '/candidate-profile', '/candidate-detail',
-      '/mentor-profiles',
+      '/mentor-profiles', '/mentor-sessions',
     ],
   },
 };

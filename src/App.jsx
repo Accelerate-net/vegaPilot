@@ -22,6 +22,7 @@ import SchedulesPage from './pages/SchedulesPage';
 import SchedulesListPage from './pages/SchedulesListPage';
 import LoginPage from './pages/LoginPage';
 import MentorProfilesPage from './pages/MentorProfilesPage';
+import MentorSessionsPage from './pages/MentorSessionsPage';
 import OrdersPage from './pages/OrdersPage';
 import PracticeQuestionsPage from './pages/PracticeQuestionsPage';
 import QuestionBankPage from './pages/QuestionBankPage';
@@ -169,6 +170,9 @@ export default function App() {
     }
     if (screen.path === '/mentor-profiles') {
       return <MentorProfilesPage />;
+    }
+    if (screen.path === '/mentor-sessions') {
+      return <MentorSessionsPage />;
     }
     if (screen.path === '/instructor-portfolio') {
       return <InstructorPortfolioPage />;

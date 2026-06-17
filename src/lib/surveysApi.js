@@ -104,6 +104,18 @@ export async function listResponses(surveyId, { q, candidateId, dateFrom, dateTo
   return ensureOk(data);
 }
 
+// Consolidated, server-side aggregation over ALL responses matching the filters
+// (not just the current page). Accepts the same filter params as listResponses,
+// minus paging. Returns { surveyId, totalResponses, anonymousCount,
+// identifiedCount, lastResponseAt, questions: [{ o, t, answered, ... }] }.
+// See docs/survey-dashboard-contract.md §4.3.
+export async function getSurveySummary(surveyId, { q, candidateId, dateFrom, dateTo, batchId } = {}) {
+  const { data } = await api.get(`${BASE}/${surveyId}/summary`, {
+    params: clean({ q, candidateId, dateFrom, dateTo, batchId }),
+  });
+  return ensureOk(data);
+}
+
 // ── Shape converters ─────────────────────────────────────────────────────────
 
 // UI question (text/type/required/options) → schema question {o, q, t, l?, r?}

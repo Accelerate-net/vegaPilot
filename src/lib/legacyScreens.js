@@ -191,6 +191,17 @@ const screens = [
     summary: 'Mentor CRUD plus assigned-student workflows.',
   },
   {
+    path: '/mentor-sessions',
+    title: 'Mentor Sessions',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'people',
+    icon: 'fa-microphone',
+    shortCode: 'MS',
+    summary: 'Schedule and track mentor-led Audio Rooms (getstream.io) for student mentees.',
+  },
+  {
     path: '/residences',
     title: 'Residences',
     legacyHtml: null,
@@ -541,6 +552,7 @@ const VIEW_PERMISSIONS = {
   '/candidate-detail': 'studentDetail.view',
   '/student-360': 'studentDetail.view',
   '/mentor-profiles': 'mentors.view',
+  '/mentor-sessions': 'mentorSessions.view',
   '/instructor-portfolio': 'instructors.view',
   '/residences': 'residences.view',
   // Commerce

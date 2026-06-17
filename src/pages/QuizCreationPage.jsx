@@ -1,6 +1,16 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
+import { createQuiz, quizError } from '../lib/quizApi';
+
+/* Map the UI marking-scheme preset to the backend's numeric code. */
+const MARKING_SCHEME_CODE = { default: 1, 'no-negative': 2, custom: 3 };
+
+/* Convert a date (YYYY-MM-DD) + time (HH:MM) pair to a unix-seconds timestamp. */
+function toUnixSeconds(dateVal, timeVal) {
+  const t = new Date(`${dateVal}T${timeVal}`).getTime();
+  return Number.isNaN(t) ? 0 : Math.floor(t / 1000);
+}
 
 /* ── Helpers ── */
 function genUUID() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
@@ -202,18 +212,58 @@ export default function QuizCreationPage() {
     });
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   /* ── Save / Publish ── */
-  const persistQuiz = (status) => {
+  const persistQuiz = async (status) => {
     if (!quizConfig.title.trim()) { showToast('error', 'Error', 'Quiz title is required.'); return; }
     if (totalQuestions === 0) { showToast('error', 'Error', 'Add at least one question.'); return; }
     if (status === 'published' && !window.confirm('Publish this quiz? Students will be able to access it.')) return;
+    if (submitting) return;
 
     const resolvedUrl = quizUrl || `https://candidate.crisprlearning.com/quiz/${shortId()}`;
     if (!quizUrl) setQuizUrl(resolvedUrl);
 
     const allQ = [...questionsFromBatches, ...customQuestions];
+    const uniqueID = resolvedUrl.split('/').pop();
+
+    // On publish, create the quiz on the backend before persisting locally so the
+    // listing only shows quizzes the server accepted.
+    if (status === 'published') {
+      const payload = {
+        title: quizConfig.title,
+        brief: quizConfig.description || '',
+        terms: '',
+        duration: Number(quizConfig.duration),
+        totalQuestions: allQ.length,
+        markingScheme: MARKING_SCHEME_CODE[quizConfig.markingScheme] ?? 1,
+        challengeQuestionAllowed: 1,
+        multipleAttemptsAllowed: quizConfig.allowMultipleAttempts ? 1 : 0,
+        uniqueID,
+        quizLimitedToBatches: selectedBatchIds,
+        scheduledStart: toUnixSeconds(quizConfig.startDate, quizConfig.startTime),
+        scheduledEnd: toUnixSeconds(quizConfig.endDate, quizConfig.endTime),
+        questionsData: allQ.map((q, i) => ({
+          o: i + 1,
+          qi: q.qi ?? q.questionId ?? q.id,
+          ms: 1,
+        })),
+      };
+
+      setSubmitting(true);
+      try {
+        await createQuiz(payload);
+      } catch (err) {
+        const e = quizError(err);
+        showToast('error', 'Publish failed', e.message);
+        return;
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
     const quiz = {
-      id: resolvedUrl.split('/').pop(),
+      id: uniqueID,
       uuid: genUUID(),
       title: quizConfig.title,
       description: quizConfig.description,
@@ -578,8 +628,8 @@ export default function QuizCreationPage() {
               <button onClick={() => persistQuiz('draft')} style={{ padding: '12px 28px', fontSize: '14px', fontWeight: 600, background: '#e9ecef', color: '#495057', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
                 <i className="ti ti-save"></i> Save as Draft
               </button>
-              <button onClick={() => persistQuiz('published')} style={{ padding: '12px 28px', fontSize: '14px', fontWeight: 600, background: '#28a745', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                <i className="ti ti-check"></i> Publish Quiz
+              <button onClick={() => persistQuiz('published')} disabled={submitting} style={{ padding: '12px 28px', fontSize: '14px', fontWeight: 600, background: '#28a745', color: 'white', border: 'none', borderRadius: '6px', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+                <i className={`ti ${submitting ? 'ti-reload' : 'ti-check'}`}></i> {submitting ? 'Publishing…' : 'Publish Quiz'}
               </button>
             </div>
           </div>

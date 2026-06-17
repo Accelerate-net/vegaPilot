@@ -16525,3 +16525,195 @@ input {
   .student360-page .s360-pagehead-title p { color: var(--muted) !important; }
   .student360-page .s360-donut-sub { color: var(--brand) !important; }
 }
+
+/* ============================================================================
+   MENTOR SESSIONS (Audio Rooms) — modal styling
+   Follows the standard modal design (.legacy-modal-* + .form-modal +
+   .asset-form-section + floating-label fields), mirroring "Create New Batch".
+   ========================================================================== */
+
+/* Let the create/participants wrapper pass the height constraint through so the
+   modal body scrolls (same role as .batch-modal-form et al). */
+.audio-room-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Multi-select styled as a floating-label field ── */
+.form-modal .ms-field { padding: 0; }
+
+.form-modal .ms-field .ms-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 41px;
+  padding: 8px 12px 7px;
+  cursor: text;
+}
+
+.form-modal .ms-field .ms-control input {
+  flex: 1;
+  min-width: 90px;
+  margin: 0;
+  padding: 2px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.ms-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px 2px 10px;
+  border-radius: 999px;
+  background: #e6f2f5;
+  color: #006073;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ms-chip i {
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.65;
+  transition: opacity 0.15s ease;
+}
+
+.ms-chip i:hover { opacity: 1; }
+
+.ms-dropdown {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.ms-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  color: #334155;
+  text-align: left;
+}
+
+.ms-option:hover { background: #f1f5f9; }
+.ms-option .ms-option-detail { margin-left: auto; color: #94a3b8; font-size: 11px; }
+.ms-empty { padding: 10px 12px; color: #94a3b8; font-size: 13px; }
+
+.ms-avatar {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #006073;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ── Request-to-Join toggle row ── */
+.ar-toggle-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.ar-toggle-copy strong { display: block; font-size: 13px; color: #1e293b; }
+.ar-toggle-copy span { font-size: 12px; font-weight: 400; color: #64748b; }
+
+/* ── Participants modal ── */
+.ar-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.ar-stat {
+  text-align: center;
+  padding: 16px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.ar-stat i { color: #006073; font-size: 18px; }
+.ar-stat-value { font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 4px; }
+.ar-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+
+.ar-people-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.ar-people-row + .ar-people-row { border-top: 1px solid #f1f5f9; }
+.ar-people-row .ar-people-name { font-size: 13px; color: #334155; }
+
+.ar-role-pill {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.ar-role-host { color: #006073; background: #e6f2f5; }
+.ar-role-cohost { color: #7c3aed; background: #f3e8ff; }
+
+.ar-batch-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ar-batch-chip {
+  font-size: 12px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: #334155;
+}
+
+.ar-note {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #7c3aed;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  padding: 10px 12px;
+}

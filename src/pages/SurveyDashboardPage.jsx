@@ -12,6 +12,8 @@ import {
   SURVEY_STATUS,
   SURVEY_STATUS_LABEL,
   createSurvey,
+  getSurvey,
+  getSurveySummary,
   listResponses,
   listSurveys,
   questionsToSchema,
@@ -303,6 +305,30 @@ export default function SurveyDashboardPage() {
 
   useEffect(() => { loadSurveys(); }, [loadSurveys]);
 
+  // Deep link: landing on /survey-dashboard?id=<surveyId> opens that survey's
+  // responses view directly (fetch the survey definition, then let the responses
+  // effect load rows + summary). Runs once on mount; in-app navigation manages
+  // the `id` param itself.
+  useEffect(() => {
+    const idParam = searchParams.get('id');
+    if (!idParam) return;
+    (async () => {
+      try {
+        const resp = await getSurvey(idParam);
+        const survey = surveyFromSchema(resp?.data || resp);
+        if (!survey) throw new Error('Survey not found.');
+        setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
+        setRsPage(1);
+        setSummary(null);
+        setActiveSurvey({ ...survey, responses: [] });
+        setCurrentView('responses');
+      } catch (error) {
+        showToast('error', 'Load failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not open that survey.');
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filteredSurveys = useMemo(() => {
     let next = [...surveys];
     if (listResponseFilter === 'zero_responses') next = next.filter((s) => (s.responseCount || 0) === 0);
@@ -358,6 +384,11 @@ export default function SurveyDashboardPage() {
   const [rsTotal, setRsTotal] = useState(0);
   const [rsServerLastPage, setRsServerLastPage] = useState(1);
 
+  // Server-side consolidated summary for the analytics cards (see §4.3). Covers
+  // the whole filtered response set, not just the page shown in the table.
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
   const filteredBatchesForCourse = useMemo(
     () => availableBatches.filter((b) => !rsCourse || b.courseId === rsCourse),
     [rsCourse]
@@ -406,6 +437,18 @@ export default function SurveyDashboardPage() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, activeSurvey?.id, rsPage, rsPageSize, rsSearch, rsBatches, rsFrom, rsTo]);
+
+  // Summary tracks the same filters as the table but not paging — the server
+  // aggregates over the whole filtered set, so the cards stay correct as the
+  // user pages through responses.
+  useEffect(() => {
+    if (currentView !== 'responses' || !activeSurvey?.id) return;
+    const timer = setTimeout(() => {
+      fetchSummary(activeSurvey.id);
+    }, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView, activeSurvey?.id, rsSearch, rsBatches, rsFrom, rsTo]);
 
   function rsPageNumbers() {
     const total = rsTotalPages;
@@ -481,6 +524,7 @@ export default function SurveyDashboardPage() {
         setActiveSurvey({ ...survey, responses: [] });
         setRsSearch(''); setRsCourse(''); setRsBatches([]); setRsFrom(''); setRsTo('');
         setRsPage(1);
+        setSummary(null);
         setCurrentView('responses');
         setSearchParams((sp) => {
           const next = new URLSearchParams(sp);
@@ -542,6 +586,24 @@ export default function SurveyDashboardPage() {
       setActiveSurvey((cur) => (cur ? { ...cur, responses: ui } : cur));
     } catch (error) {
       showToast('error', 'Load failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not load responses.');
+    }
+  }
+
+  async function fetchSummary(surveyId) {
+    setSummaryLoading(true);
+    try {
+      const resp = await getSurveySummary(surveyId, {
+        q: rsSearch || undefined,
+        batchId: (rsBatches && rsBatches.length === 1) ? rsBatches[0] : undefined,
+        dateFrom: rsFrom ? rsFrom.slice(0, 10) : undefined,
+        dateTo: rsTo ? rsTo.slice(0, 10) : undefined,
+      });
+      setSummary(resp?.data || resp || null);
+    } catch (error) {
+      showToast('error', 'Summary failed', error?.response?.data?.error?.message || error?.response?.data?.message || error.message || 'Could not load summary.');
+      setSummary(null);
+    } finally {
+      setSummaryLoading(false);
     }
   }
 
@@ -1006,82 +1068,83 @@ export default function SurveyDashboardPage() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-            {activeSurvey.questions.map((q, qIndex) => {
-              if (q.type === 'Text Input') return null;
+          {/* Consolidated summary — aggregated server-side over the whole
+              filtered response set (§4.3), so it stays correct across pages. */}
+          {summary && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '20px', fontSize: '13px', color: '#59757b' }}>
+              <span><strong style={{ color: '#006073', fontSize: '16px' }}>{summary.totalResponses ?? rsTotal}</strong> total responses</span>
+              {Number(summary.anonymousCount) > 0 && <span><strong style={{ color: 'var(--ink)' }}>{summary.anonymousCount}</strong> anonymous</span>}
+              {summary.lastResponseAt && <span>Last response {formatDateTime(new Date(Number(summary.lastResponseAt) * 1000).toISOString())}</span>}
+            </div>
+          )}
 
-              if (q.type === 'Star Rating' || q.type === 'Rating') {
-                let totalRating = 0;
-                let count = 0;
-                filteredResponses.forEach(r => {
-                  const val = Number(r.answers[qIndex]);
-                  if (!isNaN(val) && val > 0) {
-                    totalRating += val;
-                    count++;
-                  }
-                });
-                if (count === 0) return null;
-                const avg = (totalRating / count).toFixed(1);
-                return (
-                  <div key={qIndex} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
-                    <div style={{ fontSize: '13px', color: '#59757b', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>Avg. Rating on QN #{qIndex + 1}</div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '16px', color: 'var(--ink)' }}>{q.text}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '32px', fontWeight: 'bold', color: '#006073', lineHeight: 1 }}>{avg}</span>
-                      <div style={{ display: 'flex', color: '#fbbf24', fontSize: '20px', gap: '2px' }}>
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <i key={star} className="fa fa-star" style={{ color: star <= Math.round(Number(avg)) ? '#fbbf24' : '#d6dde0' }} />
-                        ))}
+          {summaryLoading && !summary ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+              {Array.from({ length: 2 }, (_, i) => (
+                <div key={i} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+                  <div className="table-skeleton medium" style={{ marginBottom: '12px' }} />
+                  <div className="table-skeleton medium" />
+                </div>
+              ))}
+            </div>
+          ) : summary && Array.isArray(summary.questions) ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+              {summary.questions.map((sq) => {
+                const qIndex = Number(sq.o) - 1;
+                const q = activeSurvey.questions[qIndex];
+                if (!q) return null;
+
+                if (sq.t === 'RATING') {
+                  if (!sq.answered) return null;
+                  const avg = Number(sq.average || 0).toFixed(1);
+                  return (
+                    <div key={sq.o} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+                      <div style={{ fontSize: '13px', color: '#59757b', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>Avg. Rating on QN #{sq.o}</div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '16px', color: 'var(--ink)' }}>{q.text}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '32px', fontWeight: 'bold', color: '#006073', lineHeight: 1 }}>{avg}</span>
+                        <div style={{ display: 'flex', color: '#fbbf24', fontSize: '20px', gap: '2px' }}>
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <i key={star} className="fa fa-star" style={{ color: star <= Math.round(Number(avg)) ? '#fbbf24' : '#d6dde0' }} />
+                          ))}
+                        </div>
+                        <span style={{ fontSize: '12px', color: '#59757b', marginLeft: 'auto' }}>{sq.answered} responses</span>
                       </div>
-                      <span style={{ fontSize: '12px', color: '#59757b', marginLeft: 'auto' }}>{count} responses</span>
                     </div>
-                  </div>
-                );
-              }
+                  );
+                }
 
-              if (q.type === 'Multi Select' && q.options) {
-                const counts = {};
-                q.options.forEach(opt => counts[opt] = 0);
-                let total = 0;
-                filteredResponses.forEach(r => {
-                  const ans = r.answers[qIndex] || '';
-                  q.options.forEach(opt => {
-                    if (ans.includes(opt)) {
-                      counts[opt]++;
-                      total++;
-                    }
-                  });
-                });
-                
-                if (total === 0) return null;
-                return (
-                  <div key={qIndex} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
-                    <div style={{ fontSize: '13px', color: '#59757b', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>Summary of QN #{qIndex + 1}</div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '16px', color: 'var(--ink)' }}>{q.text}</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {q.options.map(opt => {
-                        const c = counts[opt] || 0;
-                        const pct = Math.round((c / total) * 100);
-                        return (
-                          <div key={opt} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                              <span style={{ fontWeight: '500' }}>{opt}</span>
-                              <span style={{ color: '#59757b' }}><strong>{pct}%</strong> <span style={{ opacity: 0.7 }}>({c} responses)</span></span>
+                if (sq.t === 'MULTI') {
+                  if (!sq.answered) return null;
+                  const options = Array.isArray(sq.options) ? sq.options : [];
+                  return (
+                    <div key={sq.o} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+                      <div style={{ fontSize: '13px', color: '#59757b', marginBottom: '4px', fontWeight: 'bold', textTransform: 'uppercase' }}>Summary of QN #{sq.o}</div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '16px', color: 'var(--ink)' }}>{q.text}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {options.map((opt) => {
+                          const pct = Math.round(Number(opt.percent ?? 0));
+                          return (
+                            <div key={opt.label} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                                <span style={{ fontWeight: '500' }}>{opt.label}</span>
+                                <span style={{ color: '#59757b' }}><strong>{pct}%</strong> <span style={{ opacity: 0.7 }}>({opt.count} responses)</span></span>
+                              </div>
+                              <div style={{ width: '100%', height: '8px', background: '#eef4f5', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: '#00a8cc', borderRadius: '4px' }}></div>
+                              </div>
                             </div>
-                            <div style={{ width: '100%', height: '8px', background: '#eef4f5', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct}%`, height: '100%', background: '#00a8cc', borderRadius: '4px' }}></div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              }
+                  );
+                }
 
-              return null;
-            })}
-          </div>
+                return null;
+              })}
+            </div>
+          ) : null}
 
           <div className="filter-bar" style={{ marginBottom: '12px' }}>
             <div className="search-wrapper">
