@@ -28,7 +28,7 @@ export async function recordIcardAudit(entries) {
 }
 
 export async function getCandidateProfile(id) {
-  const { data } = await api.get('/restricted/people/candidate/profile', { params: { id } });
+  const { data } = await api.get('/restricted/people/candidate/profile-from-forms', { params: { id } });
   return data;
 }
 
@@ -51,11 +51,25 @@ export async function listCandidates({ page = 1, size = 50, searchKey } = {}) {
   return data;
 }
 
-export async function listCandidatesInBatches(batchIds) {
+export async function listCandidatesInBatches(batchIds, { size = 200 } = {}) {
   const ids = Array.isArray(batchIds) ? batchIds.filter(Boolean) : [];
   if (ids.length === 0) return { data: [] };
-  const { data } = await api.get('/restricted/enrollment/list-candidates-in-batches', {
-    params: { batchIds: ids.join(',') },
-  });
-  return data;
+  // Page through the roster — the endpoint otherwise returns only its default
+  // page size (10), silently dropping students in larger batches.
+  const all = [];
+  let page = 1;
+  let meta;
+  for (;;) {
+    const { data } = await api.get('/restricted/enrollment/list-candidates-in-batches', {
+      params: { batchIds: ids.join(','), page, size },
+    });
+    const rows = data?.data || [];
+    all.push(...rows);
+    meta = data?.meta;
+    const total = meta?.total;
+    if (rows.length < size) break;
+    if (typeof total === 'number' && all.length >= total) break;
+    page += 1;
+  }
+  return { data: all, meta };
 }

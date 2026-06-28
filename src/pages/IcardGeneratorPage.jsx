@@ -95,6 +95,26 @@ function autoMatch(placeholder, fieldPaths) {
   return contains[0] || '';
 }
 
+// Explicit placeholder → profile-field bindings. These take priority over the
+// generic name heuristic so the card always sources from the intended field
+// even when the names don't line up (e.g. the Guardian line ← parentMobile).
+// `match` is tested against the template placeholder; `field` is matched against
+// a profile field's last path segment.
+const FIELD_BINDINGS = [
+  { match: /(PHOTO|AVATAR|IMAGE|PIC)/i, field: 'idPhoto' },
+  { match: /ADDRESS/i,                  field: 'address' },
+  { match: /(GUARDIAN|PARENT)/i,        field: 'parentMobile' },
+  { match: /(DOB|BIRTH)/i,              field: 'studentDOB' },
+];
+
+// Resolve a forced field path for a placeholder via FIELD_BINDINGS, returning
+// '' when there's no binding or the bound field isn't present in the profile.
+function boundFieldPath(placeholder, fieldPaths) {
+  const binding = FIELD_BINDINGS.find((b) => b.match.test(placeholder));
+  if (!binding) return '';
+  return fieldPaths.find((p) => p.split('.').pop() === binding.field) || '';
+}
+
 function getByPath(obj, path) {
   if (!obj || !path) return undefined;
   return path.split('.').reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
@@ -249,7 +269,11 @@ export default function IcardGeneratorPage() {
         setTemplate(tpl);
         const fieldPaths = studentFields.map((f) => f.path);
         const seed = {};
-        tpl.placeholders.forEach((p) => { seed[p] = autoMatch(p, fieldPaths); });
+        tpl.placeholders.forEach((p) => {
+          // Forced bindings (photo→idPhoto, address, guardian→parentMobile,
+          // dob→studentDOB) win; otherwise fall back to the name heuristic.
+          seed[p] = boundFieldPath(p, fieldPaths) || autoMatch(p, fieldPaths);
+        });
         setMapping(seed);
       })
       .catch((err) => {
@@ -999,7 +1023,7 @@ export default function IcardGeneratorPage() {
             </div>
             <div className="legacy-modal-body">
               <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
-                Pick one or more batches. A PDF with one page per student (front &amp; back side-by-side) will open in a new tab.
+                Pick one or more batches. A PDF with front and back on separate pages (page 1, page 2…) per student will open in a new tab.
               </p>
               <input
                 type="search"
@@ -1057,7 +1081,7 @@ export default function IcardGeneratorPage() {
             </div>
             <div className="legacy-modal-body">
             <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 13 }}>
-              Search and pick one or more students. A PDF with one page per student (front &amp; back side-by-side) will open in a new tab.
+              Search and pick one or more students. A PDF with front and back on separate pages (page 1, page 2…) per student will open in a new tab.
             </p>
             {Object.keys(selectedCandidates).length > 0 && (
               <div style={{ background: '#eff6ff', color: '#1d4ed8', padding: '6px 10px', borderRadius: 4, fontSize: 12, marginBottom: 10 }}>

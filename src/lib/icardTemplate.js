@@ -216,8 +216,6 @@ function attr(value) {
 // untouched.
 export function buildPrintDocument({ template, students, valuesFor, title = 'ID Cards' }) {
   const { width, height, canvasWidth, canvasHeight } = template.metadata;
-  const gutter = '4mm';
-  const pageWidth = `calc(${width} + ${width} + ${gutter})`;
 
   // If the template declares an intrinsic pixel canvas, render the iframe at
   // those exact dimensions and scale it down to the physical card size so the
@@ -230,14 +228,19 @@ export function buildPrintDocument({ template, students, valuesFor, title = 'ID 
        transform-origin:top left;`
     : `width:${width};height:${height};`;
 
+  // One page per side: front on its own page, back on the next, repeated per
+  // student.  For N students this yields 2N pages in front, back, front, back…
+  // order.
   const pages = students
     .map((student, idx) => {
       const values = valuesFor(student);
       const front = absolutifyAssets(renderTemplate(template.front, values), template.baseHref);
       const back = absolutifyAssets(renderTemplate(template.back, values), template.baseHref);
       return `
-        <section class="ic-page" data-idx="${idx + 1}">
+        <section class="ic-page" data-idx="${idx + 1}" data-side="front">
           <div class="ic-slot"><div class="ic-canvas">${front}</div></div>
+        </section>
+        <section class="ic-page" data-idx="${idx + 1}" data-side="back">
           <div class="ic-slot"><div class="ic-canvas">${back}</div></div>
         </section>`;
     })
@@ -249,7 +252,7 @@ export function buildPrintDocument({ template, students, valuesFor, title = 'ID 
 <meta charset="utf-8" />
 <title>${title}</title>
 <style>
-  @page { size: ${pageWidth} ${height}; margin: 0; }
+  @page { size: ${width} ${height}; margin: 0; }
   html, body { margin: 0; padding: 0; background: #eef1f5; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; }
   .ic-toolbar { position: sticky; top:0; z-index:10; background:#0b1220; color:#fff;
@@ -257,8 +260,8 @@ export function buildPrintDocument({ template, students, valuesFor, title = 'ID 
   .ic-toolbar button { background:#2563eb; color:#fff; border:none; padding:6px 14px;
     border-radius:4px; font-weight:600; cursor:pointer; }
   .ic-page {
-    width: ${pageWidth}; height: ${height};
-    display: flex; gap: ${gutter}; padding: 0;
+    width: ${width}; height: ${height};
+    display: flex; padding: 0;
     page-break-after: always; break-after: page;
     background: #fff; margin: 8px auto;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
