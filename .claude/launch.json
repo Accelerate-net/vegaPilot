@@ -14,6 +14,13 @@
       "runtimeArgs": ["-c", "VITE_USE_MOCK=true npx vite --host --port 5176"],
       "port": 5176,
       "autoPort": true
+    },
+    {
+      "name": "forms-app",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd forms-app && npx vite --host --port 5177"],
+      "port": 5177,
+      "autoPort": true
     }
   ]
 }
