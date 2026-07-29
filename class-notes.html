@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8">
+   <title>Class Notes - VegaPilot</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+   <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-touch-fullscreen" content="yes">
+   <meta name="description" content="VegaPilot Class Notes">
+   <meta name="author" content="VegaPilot">
+   <link type='text/css' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400italic,600'
+      rel='stylesheet'>
+   <link type="text/css" href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+   <link type="text/css" href="assets/fonts/themify-icons/themify-icons.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/styles.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/scroll-fix.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/codeprettifier/prettify.css" rel="stylesheet">
+   <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-table.css" rel="stylesheet">
+   <link type="text/css" href="assets/css/crispr-modals.css" rel="stylesheet">
+
+   <style type="text/css">
+      /* Stats Cards */
+      .stat-info h3 {
+         margin: 0;
+         font-size: 28px;
+         font-weight: 700;
+         color: #333;
+      }
+
+      .stat-info p {
+         margin: 0;
+         font-size: 13px;
+         color: #666;
+      }
+
+      /* Upload Card */
+      .upload-card {
+         background: white;
+         border: 1px solid #f3f4f6;
+         border-radius: 12px;
+         padding: 25px;
+         margin-bottom: 30px;
+         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      }
+
+      .upload-card h4 {
+         margin: 0 0 20px 0;
+         font-size: 18px;
+         font-weight: 700;
+         color: #006073;
+      }
+
+      .upload-card h4 i {
+         margin-right: 8px;
+      }
+
+      .upload-grid {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         gap: 20px;
+         align-items: start;
+      }
+
+      @media (max-width: 768px) {
+         .upload-grid {
+            grid-template-columns: 1fr;
+         }
+      }
+
+      .field-label {
+         display: block;
+         font-size: 13px;
+         font-weight: 600;
+         color: #374151;
+         margin-bottom: 8px;
+      }
+
+      .field-label .required {
+         color: #dc2626;
+      }
+
+      .cn-select,
+      .cn-file {
+         width: 100%;
+         padding: 10px 12px;
+         border: 1px solid #d1d5db;
+         border-radius: 8px;
+         font-size: 14px;
+         color: #333;
+         background: white;
+      }
+
+      .cn-select:focus,
+      .cn-file:focus {
+         outline: none;
+         border-color: #006073;
+         box-shadow: 0 0 0 3px rgba(0, 96, 115, 0.1);
+      }
+
+      /* Drop / file zone */
+      .file-drop {
+         border: 2px dashed #cbd5e1;
+         border-radius: 10px;
+         padding: 20px;
+         text-align: center;
+         transition: all 0.2s ease;
+         position: relative;
+      }
+
+      .file-drop:hover {
+         border-color: #006073;
+         background: #f8fafc;
+      }
+
+      .file-drop i {
+         font-size: 32px;
+         color: #94a3b8;
+         margin-bottom: 8px;
+         display: block;
+      }
+
+      .file-drop .cn-file {
+         position: absolute;
+         inset: 0;
+         width: 100%;
+         height: 100%;
+         opacity: 0;
+         cursor: pointer;
+      }
+
+      .file-drop small {
+         color: #94a3b8;
+         font-size: 12px;
+      }
+
+      .file-picked {
+         margin-top: 10px;
+         font-size: 13px;
+         color: #006073;
+         font-weight: 600;
+      }
+
+      .upload-actions {
+         margin-top: 20px;
+         display: flex;
+         align-items: center;
+         gap: 15px;
+      }
+
+      .btn-upload {
+         background: linear-gradient(135deg, #006073 0%, #004d5c 100%);
+         color: white;
+         border: none;
+         padding: 12px 28px;
+         border-radius: 8px;
+         font-size: 14px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.2s ease;
+      }
+
+      .btn-upload:hover:not(:disabled) {
+         box-shadow: 0 6px 16px -4px rgba(0, 96, 115, 0.5);
+      }
+
+      .btn-upload:disabled {
+         opacity: 0.6;
+         cursor: not-allowed;
+      }
+
+      .progress-wrap {
+         flex: 1;
+         max-width: 300px;
+      }
+
+      .progress-track {
+         height: 8px;
+         background: #e2e8f0;
+         border-radius: 4px;
+         overflow: hidden;
+      }
+
+      .progress-fill {
+         height: 100%;
+         background: linear-gradient(135deg, #006073 0%, #00a8cc 100%);
+         transition: width 0.2s ease;
+      }
+
+      .empty-state {
+         text-align: center;
+         padding: 60px 20px;
+         color: #666;
+      }
+
+      .empty-state i {
+         font-size: 64px;
+         color: #ddd;
+         margin-bottom: 20px;
+      }
+
+      .empty-state h4 {
+         color: #999;
+         margin-bottom: 10px;
+      }
+
+      /* Navbar Styling - Match other pages */
+      #topnav {
+         display: flex !important;
+         align-items: center !important;
+         justify-content: flex-start !important;
+         background: linear-gradient(135deg, #006073 0%, #005a6b 100%) !important;
+         position: relative !important;
+      }
+
+      #topnav .navbar-brand,
+      #topnav h2,
+      #topnav .toolbar-icon-bg a {
+         color: white !important;
+      }
+
+      #topnav .logo-area .navbar-brand {
+         color: white !important;
+      }
+
+      #topnav .toolbar-icon-bg .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
+
+      #topnav .toolbar-icon-bg:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+         border-color: rgba(255, 255, 255, 0.3) !important;
+      }
+
+      #topnav .toolbar-icon-bg i {
+         color: white !important;
+      }
+
+      #topnav #trigger-sidebar .icon-bg {
+         background: rgba(255, 255, 255, 0.15) !important;
+         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      }
+
+      #topnav #trigger-sidebar:hover .icon-bg {
+         background: rgba(255, 255, 255, 0.25) !important;
+      }
+
+      .acc-menu li a.active {
+         border-left: 5px solid #005e70 !important;
+         color: #005e6f !important;
+         font-weight: bold !important;
+         background: rgba(0, 94, 112, 0.1) !important;
+      }
+
+      .acc-menu li a.active i {
+         color: #005e6f !important;
+      }
+
+      #wrapper {
+         padding: 0 !important;
+      }
+   </style>
+
+   <script src="assets/js/jquery.js"></script>
+   <script src="assets/js/angular.min.js"></script>
+   <script src="assets/js/angular-cookies.min.js"></script>
+   <script src="controllers/class-notes.js"></script>
+</head>
+
+<body class="animated-content" ng-app="classNotesApp" ng-controller="classNotesController" ng-cloak ng-init="init()">
+   <header id="topnav" class="navbar navbar-default navbar-fixed-top" role="banner">
+      <div class="logo-area">
+         <span id="trigger-sidebar" class="toolbar-trigger toolbar-icon-bg">
+            <a data-toggle="tooltips" data-placement="right" title="Toggle Sidebar">
+               <span class="icon-bg"><i class="ti ti-menu"></i></span>
+            </a>
+         </span>
+         <span class="navbar-brand animated-brand" style="width: 125px" id="animatedBrand">VegaPilot</span>
+      </div>
+
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+         <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: white;">
+            <i class="ti ti-notepad" style="margin-right: 8px; color: white;"></i> Class Notes
+         </h2>
+      </div>
+
+      <div style="flex: 1;"></div>
+
+      <ul class="nav navbar-nav toolbar pull-right">
+         <li class="toolbar-icon-bg hidden-xs" id="trigger-fullscreen">
+            <a href="#" class="toggle-fullscreen"><span class="icon-bg"><i class="ti ti-zoom-in"></i></span></a>
+         </li>
+         <li class="dropdown toolbar-icon-bg">
+            <a href="#" class="dropdown-toggle username" data-toggle="dropdown">
+               <img class="img-circle" src="assets/img/default_user.png" alt="" />
+            </a>
+            <ul class="dropdown-menu userinfo arrow">
+               <li ng-click="logoutNow()"><a href="#/"><i class="ti ti-shift-right"></i><span>Sign Out</span></a></li>
+            </ul>
+         </li>
+      </ul>
+   </header>
+
+   <div id="wrapper">
+      <div id="layout-static">
+         <div class="static-sidebar-wrapper sidebar-default">
+            <div class="static-sidebar">
+               <div class="sidebar">
+                  <div class="widget stay-on-collapse" id="widget-sidebar">
+                     <nav role="navigation" class="widget-body">
+                        <ul class="acc-menu">
+                           <li class="nav-separator"><span>Programs</span></li>
+                           <li><a href="courses-list.html"><i class="ti ti-book"></i><span>Courses</span></a></li>
+                           <li><a href="test-series-list.html"><i class="ti ti-layers"></i><span>Test Series</span></a>
+                           </li>
+                           <li><a href="candidate-profile.html"><i class="ti ti-user"></i><span>Students</span></a></li>
+                           <li><a href="batch.html"><i class="ti ti-layout-grid2"></i><span>Batches</span></a></li>
+
+                           <li class="nav-separator"><span>Exams & Quizzes</span></li>
+                           <li><a href="quiz-listing.html"><i class="ti ti-files"></i><span>Practice Quizzes</span></a>
+                           </li>
+                           <li><a href="exam-listing.html"><i class="ti ti-clipboard"></i><span>Exams</span></a></li>
+
+                           <li class="nav-separator"><span>Content Library</span></li>
+                           <li><a href="question-bank.html"><i class="ti ti-help-alt"></i><span>Question Bank</span></a>
+                           </li>
+                           <li><a href="video-content.html"><i class="ti ti-video-clapper"></i><span>Video
+                                    Library</span></a></li>
+                           <li><a href="practice-questions.html"><i class="ti ti-write"></i><span>Practice
+                                    Questions</span></a></li>
+                           <li><a href="class-notes.html" class="active"><i class="ti ti-notepad"></i><span>Class
+                                    Notes</span></a></li>
+                           <li><a href="bunny-admin.html"><i class="ti ti-cloud-up"></i><span>Video Hosting</span></a>
+                           </li>
+
+                           <li class="nav-separator"><span>Commerce</span></li>
+                           <li><a href="catalog.html"><i class="ti ti-shopping-cart"></i><span>Catalog</span></a></li>
+                           <li><a href="orders.html"><i class="ti ti-receipt"></i><span>Orders</span></a>
+                           </li>
+                           <li><a href="instructor-payouts.html"><i class="ti ti-time"></i><span>Instructor
+                                    Payouts</span></a></li>
+
+                           <li class="nav-separator"><span>Marketing</span></li>
+                           <li><a href="web-content-manager.html"><i class="ti ti-world"></i><span>Web Content
+                                    Manager</span></a></li>
+                           <li><a href="leads-management.html"><i class="ti ti-target"></i><span>Leads</span></a></li>
+                           <li class="nav-separator"><span>People</span></li>
+                           <li><a href="instructor-portfolio.html"><i
+                                    class="ti ti-id-badge"></i><span>Instructors</span></a></li>
+                           <li><a href="mentor-profiles.html"><i
+                                    class="ti ti-comments-smiley"></i><span>Mentors</span></a></li>
+                        </ul>
+                     </nav>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div class="static-content-wrapper">
+            <div class="static-content">
+               <div class="page-content">
+                  <div class="container-fluid" style="padding-top: 1%;">
+
+                     <!-- Statistics Cards -->
+                     <div class="stats-row"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 35px;">
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; align-items: center; gap: 20px; border: 1px solid #f3f4f6;">
+                           <div class="stat-icon"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                              <i class="ti ti-notepad"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0;">
+                                 {{summaryData.totalNotes}}</h3>
+                              <p style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Total Notes</p>
+                           </div>
+                        </div>
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; align-items: center; gap: 20px; border: 1px solid #f3f4f6;">
+                           <div class="stat-icon"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                              <i class="ti ti-book"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0;">
+                                 {{summaryData.totalChapters}}</h3>
+                              <p style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Chapters</p>
+                           </div>
+                        </div>
+                        <div class="stat-card"
+                           style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; align-items: center; gap: 20px; border: 1px solid #f3f4f6;">
+                           <div class="stat-icon"
+                              style="width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; background: linear-gradient(135deg, #006073 0%, #004d5c 100%);">
+                              <i class="ti ti-harddrive"></i>
+                           </div>
+                           <div class="stat-info" style="flex: 1;">
+                              <h3 style="font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 5px 0;">
+                                 {{formatBytes(summaryData.totalSize)}}</h3>
+                              <p style="font-size: 14px; color: #6b7280; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                 Storage Used</p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Upload Card -->
+                     <div class="upload-card">
+                        <h4><i class="ti ti-cloud-up"></i> Upload Class Note</h4>
+                        <div class="upload-grid">
+                           <div>
+                              <label class="field-label">Chapter <span class="required">*</span></label>
+                              <select class="cn-select" ng-model="form.chapterId"
+                                 ng-options="chapter.id as chapter.label for chapter in chapters">
+                                 <option value="">-- Select a Chapter --</option>
+                              </select>
+                           </div>
+                           <div>
+                              <label class="field-label">PDF Attachment <span class="required">*</span></label>
+                              <div class="file-drop">
+                                 <i class="ti ti-file"></i>
+                                 <span ng-if="!form.file">Click to browse or drop a PDF here</span>
+                                 <span ng-if="form.file" class="file-picked">{{form.file.name}}</span>
+                                 <br>
+                                 <small>PDF only • Max 200 MB</small>
+                                 <input type="file" id="classNoteFile" class="cn-file" accept="application/pdf,.pdf"
+                                    file-model="form.file" ng-change="onFileSelected()">
+                              </div>
+                           </div>
+                        </div>
+                        <div class="upload-actions">
+                           <button class="btn-upload" ng-click="uploadClassNote()"
+                              ng-disabled="isUploading || !form.chapterId || !form.file">
+                              <i class="ti ti-upload"></i>
+                              {{isUploading ? 'Uploading...' : 'Upload Note'}}
+                           </button>
+                           <div class="progress-wrap" ng-if="isUploading">
+                              <div class="progress-track">
+                                 <div class="progress-fill" style="width: {{uploadProgress}}%;"></div>
+                              </div>
+                              <small style="color: #6b7280;">{{uploadProgress}}%</small>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Filter Bar -->
+                     <div class="filter-bar">
+                        <div class="search-wrapper">
+                           <i class="ti" ng-class="{'ti-search': !searchQuery, 'ti-close': searchQuery}"
+                              ng-click="searchQuery = ''; applyFilters()"></i>
+                           <input type="text" class="search-input"
+                              placeholder="Search by chapter, subject, or file name..." ng-model="searchQuery"
+                              ng-change="applyFilters()">
+                        </div>
+
+                        <div class="filter-dropdown dropdown">
+                           <select class="cn-select" style="min-width: 220px;" ng-model="filterChapterId"
+                              ng-change="reloadNotes()"
+                              ng-options="chapter.id as chapter.label for chapter in chapters">
+                              <option value="">All Chapters</option>
+                           </select>
+                        </div>
+
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #374151; margin: 0; cursor: pointer;">
+                           <input type="checkbox" ng-model="includeHidden" ng-change="reloadNotes()"> Show hidden
+                        </label>
+                     </div>
+
+                     <!-- Notes Listing -->
+                     <div class="row" style="margin-top: 20px;" ng-show="filteredNotes.length > 0 || isLoading">
+                        <div class="col-md-12">
+                           <div class="crispr-table-container">
+                              <table class="crispr-table">
+                                 <thead>
+                                    <tr>
+                                       <th>Chapter</th>
+                                       <th>Subject</th>
+                                       <th>File</th>
+                                       <th>Size</th>
+                                       <th>Uploaded</th>
+                                       <th style="width: 80px;">Actions</th>
+                                    </tr>
+                                 </thead>
+                                 <!-- Skeleton Body -->
+                                 <tbody ng-if="isLoading">
+                                    <tr ng-repeat="i in getSkeletonRows() track by $index">
+                                       <td colspan="6">
+                                          <div class="skeleton-col text-medium" style="width: 100%;">
+                                             <div class="skeleton-shimmer"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+
+                                 <tbody ng-if="!isLoading">
+                                    <tr ng-repeat="note in filteredNotes" ng-click="openNote(note)"
+                                       style="cursor: pointer;">
+                                       <td>
+                                          <span style="font-weight: 600; color: #006073;">{{note.chapterTitle ||
+                                             'Chapter ' + note.chapterId}}</span>
+                                       </td>
+                                       <td>
+                                          <span class="crispr-badge">{{note.subject || '—'}}</span>
+                                       </td>
+                                       <td>
+                                          <div class="info-cell">
+                                             <i class="ti ti-file" style="color: #dc3545;"></i>
+                                             {{note.displayName}}
+                                          </div>
+                                       </td>
+                                       <td>{{formatBytes(note.fileSize)}}</td>
+                                       <td>
+                                          <div class="info-cell">
+                                             <i class="ti ti-calendar"></i> {{formatDate(note.uploadedOn)}}
+                                          </div>
+                                       </td>
+                                       <td onclick="event.stopPropagation();">
+                                          <a class="btn btn-default btn-sm" ng-href="{{note.fileUrl}}" target="_blank"
+                                             title="Open PDF">
+                                             <i class="ti ti-eye"></i>
+                                          </a>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+
+                              <!-- Pagination -->
+                              <div class="pagination-container" ng-show="!isLoading && totalItems > 0">
+                                 <div class="pagination-info">
+                                    <span>Showing {{getStartIndex()}} to {{getEndIndex()}} of {{totalItems}}
+                                       entries</span>
+                                    <select class="page-size-select" ng-model="pageSize" ng-change="changePageSize()"
+                                       ng-options="size as 'Show ' + size for size in [10, 20, 50, 100]">
+                                    </select>
+                                 </div>
+                                 <div class="pagination-controls">
+                                    <button class="pagination-btn" ng-click="previousPage()"
+                                       ng-disabled="currentPage === 1">
+                                       <i class="ti ti-angle-left"></i> Previous
+                                    </button>
+                                    <button class="pagination-btn" ng-repeat="page in getPageNumbers()"
+                                       ng-class="{active: page === currentPage}" ng-click="goToPage(page)">
+                                       {{page}}
+                                    </button>
+                                    <button class="pagination-btn" ng-click="nextPage()"
+                                       ng-disabled="currentPage >= totalPages">
+                                       Next <i class="ti ti-angle-right"></i>
+                                    </button>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- Empty State -->
+                     <div class="row" ng-show="filteredNotes.length === 0 && !isLoading">
+                        <div class="col-md-12">
+                           <div class="empty-state">
+                              <i class="ti ti-notepad"></i>
+                              <h4>No Class Notes Found</h4>
+                              <p ng-if="searchQuery || filterChapterId">
+                                 No notes match your search or filter.
+                                 <a href="#" ng-click="clearAllFilters(); $event.preventDefault()">Clear filters</a>.
+                              </p>
+                              <p ng-if="!searchQuery && !filterChapterId">
+                                 Upload a chapter PDF above to get started.
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div ng-show="toasterVisible" class="appToaster"
+      ng-class="{'toaster-fade-in': toasterVisible, 'toaster-fade-out': !toasterVisible}" ng-bind-html="toasterMessage">
+   </div>
+
+   <script type="text/javascript" src="assets/js/jquery-1.10.2.min.js"></script>
+   <script type="text/javascript" src="assets/js/jqueryui-1.10.3.min.js"></script>
+   <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+   <script type="text/javascript" src="assets/js/enquire.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/velocityjs/velocity.ui.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/wijets/wijets.js"></script>
+   <script type="text/javascript" src="assets/plugins/codeprettifier/prettify.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-switch/bootstrap-switch.js"></script>
+   <script type="text/javascript" src="assets/plugins/bootstrap-tabdrop/js/bootstrap-tabdrop.js"></script>
+   <script type="text/javascript" src="assets/plugins/iCheck/icheck.min.js"></script>
+   <script type="text/javascript" src="assets/plugins/nanoScroller/js/jquery.nanoscroller.min.js"></script>
+   <script type="text/javascript" src="assets/js/application.js"></script>
+   <script type="text/javascript" src="assets/js/toaster.js"></script>
+   <script type="text/javascript" src="assets/demo/demo.js"></script>
+
+</body>
+
+</html>
