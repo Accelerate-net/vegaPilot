@@ -18,11 +18,15 @@ app.directive('fileModel', ['$parse', function ($parse) {
     return {
         restrict: 'A',
         link: function (scope, element, attrs) {
-            var model = $parse(attrs.fileModel);
-            var setter = model.assign;
+            var setter = $parse(attrs.fileModel).assign;
+            // Optional callback expression, run after the model is set. We can't
+            // use ng-change here because that requires ngModel, which a file
+            // input bound via this directive doesn't have.
+            var onChange = attrs.fileChange ? $parse(attrs.fileChange) : null;
             element.bind('change', function () {
                 scope.$apply(function () {
                     setter(scope, element[0].files[0]);
+                    if (onChange) onChange(scope);
                 });
             });
         }
