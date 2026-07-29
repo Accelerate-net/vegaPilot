@@ -446,7 +446,7 @@
                                        <th>File</th>
                                        <th>Size</th>
                                        <th>Uploaded</th>
-                                       <th style="width: 80px;">Actions</th>
+                                       <th style="width: 110px;">Actions</th>
                                     </tr>
                                  </thead>
                                  <!-- Skeleton Body -->
@@ -487,6 +487,10 @@
                                              title="Open PDF">
                                              <i class="ti ti-eye"></i>
                                           </a>
+                                          <button class="btn btn-default btn-sm" ng-click="confirmDelete(note)"
+                                             title="Delete Note" style="color: #dc3545;">
+                                             <i class="ti ti-trash"></i>
+                                          </button>
                                        </td>
                                     </tr>
                                  </tbody>
@@ -540,6 +544,34 @@
                   </div>
                </div>
             </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Delete Confirmation Modal -->
+   <div class="crispr-modal-backdrop" ng-class="{active: deleteModalOpen}">
+      <div class="crispr-modal-dialog" style="max-width: 500px;">
+         <div class="crispr-modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
+            <h3><i class="ti ti-alert"></i> Confirm Delete</h3>
+            <button class="crispr-modal-close" ng-click="closeDeleteModal()">
+               <i class="ti ti-close"></i>
+            </button>
+         </div>
+         <div class="crispr-modal-body">
+            <div style="text-align: center; padding: 20px 0;">
+               <i class="ti ti-alert" style="font-size: 48px; color: #ef4444; margin-bottom: 20px; display: block;"></i>
+               <p style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">Are you sure you want to delete
+                  <strong>{{noteToDelete.displayName}}</strong>?
+               </p>
+               <p style="color: #6b7280; font-size: 14px;">This action cannot be undone and will permanently remove this
+                  note.</p>
+            </div>
+         </div>
+         <div class="crispr-modal-footer">
+            <button class="btn btn-default" ng-click="closeDeleteModal()" ng-disabled="isDeleting">Cancel</button>
+            <button class="btn btn-danger" ng-click="deleteNote()" ng-disabled="isDeleting">
+               <i class="ti ti-trash"></i> {{isDeleting ? 'Deleting...' : 'Delete Note'}}
+            </button>
          </div>
       </div>
    </div>

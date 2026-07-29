@@ -342,30 +342,37 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
         return null;
     }
 
-    // ===== Filename convention: {uuid}_{ddmmYYYY}_{safeBase}.{ext} =====
+    // ===== Filename convention: {safeBase}_{rand4}.{ext} =====
+    // e.g. "Class Notes(1).pdf" -> "Class_Notes_xldo.pdf". Spaces become "_",
+    // all other special characters are stripped, and a random 4-char suffix keeps
+    // uploads with the same name from colliding in storage.
     function buildFileName(originalName) {
-        var uuid = (window.crypto && window.crypto.randomUUID)
-            ? window.crypto.randomUUID()
-            : fallbackUuid();
-        var d = new Date();
-        var dd = String(d.getDate()).padStart(2, '0');
-        var mm = String(d.getMonth() + 1).padStart(2, '0');
-        var yyyy = d.getFullYear();
-        var datePart = '' + dd + mm + yyyy;
-
         var dot = originalName.lastIndexOf('.');
         var rawBase = dot > 0 ? originalName.slice(0, dot) : originalName;
-        var safeBase = rawBase.replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[-_.]+|[-_.]+$/g, '') || 'file';
         var ext = (dot > 0 ? originalName.slice(dot + 1) : 'pdf').toLowerCase();
-        return uuid + '_' + datePart + '_' + safeBase + '.' + ext;
+
+        var safeBase = rawBase
+            .replace(/\s*\(\d+\)\s*$/, '')   // drop OS "copy" markers like " (1)"
+            .replace(/\s+/g, '_')            // spaces -> underscore
+            .replace(/[^A-Za-z0-9_]+/g, '')  // strip every other special character
+            .replace(/_+/g, '_')             // collapse repeated underscores
+            .replace(/^_+|_+$/g, '')         // trim leading/trailing underscores
+            || 'file';
+
+        return safeBase + '_' + randomSuffix(4) + '.' + ext;
     }
 
-    function fallbackUuid() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (Math.random() * 16) | 0;
-            var v = c === 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
+    // 4 random lowercase alphanumerics, e.g. "xldo".
+    function randomSuffix(len) {
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        var hasCrypto = window.crypto && window.crypto.getRandomValues;
+        var bytes = hasCrypto ? window.crypto.getRandomValues(new Uint8Array(len)) : null;
+        var out = '';
+        for (var i = 0; i < len; i++) {
+            var r = bytes ? bytes[i] : Math.floor(Math.random() * 256);
+            out += chars.charAt(r % chars.length);
+        }
+        return out;
     }
 
     // ===== Upload =====
@@ -495,6 +502,48 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
         } else {
             $scope.showToaster('No file URL available for this note.', 'error');
         }
+    };
+
+    // ===== Delete =====
+    $scope.deleteModalOpen = false;
+    $scope.noteToDelete = null;
+    $scope.isDeleting = false;
+
+    $scope.confirmDelete = function (note) {
+        $scope.noteToDelete = note;
+        $scope.deleteModalOpen = true;
+    };
+
+    $scope.closeDeleteModal = function () {
+        $scope.deleteModalOpen = false;
+        $scope.noteToDelete = null;
+    };
+
+    $scope.deleteNote = function () {
+        var note = $scope.noteToDelete;
+        if (!note || $scope.isDeleting) return;
+
+        $scope.isDeleting = true;
+        // Backend removes the metadata row and its stored PDF; it keys off the
+        // note id (fileUrl sent so the storage object can be cleaned up too).
+        $http({
+            method: 'POST',
+            url: $scope.apiBaseUrl + '/delete-classnotes-metadata.php',
+            headers: {
+                'X-Access-Token': getAdminTokenFromCookie(),
+                'Content-Type': 'application/json'
+            },
+            data: { id: note.id, fileUrl: note.fileUrl }
+        }).then(function () {
+            $scope.showToaster('Class note deleted.', 'success');
+            $scope.closeDeleteModal();
+            $scope.loadNotes();
+        }).catch(function (error) {
+            console.error('Class note delete failed:', error);
+            $scope.showToaster(bunnyErrorMessage(error, 'Delete failed. Please try again.'), 'error');
+        }).finally(function () {
+            $scope.isDeleting = false;
+        });
     };
 
     // ===== Toaster =====
