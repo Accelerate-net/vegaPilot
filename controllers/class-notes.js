@@ -342,10 +342,10 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
         return null;
     }
 
-    // ===== Filename convention: {safeBase}_{rand4}.{ext} =====
-    // e.g. "Class Notes(1).pdf" -> "Class_Notes_xldo.pdf". Spaces become "_",
-    // all other special characters are stripped, and a random 4-char suffix keeps
-    // uploads with the same name from colliding in storage.
+    // ===== Filename convention: {safeBase}.{ext} =====
+    // e.g. "Class Notes(1).pdf" -> "Class_Notes.pdf". Spaces become "_" and all
+    // other special characters are stripped. The backend appends a random suffix
+    // to keep same-named uploads from colliding in storage.
     function buildFileName(originalName) {
         var dot = originalName.lastIndexOf('.');
         var rawBase = dot > 0 ? originalName.slice(0, dot) : originalName;
@@ -359,20 +359,7 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
             .replace(/^_+|_+$/g, '')         // trim leading/trailing underscores
             || 'file';
 
-        return safeBase + '_' + randomSuffix(4) + '.' + ext;
-    }
-
-    // 4 random lowercase alphanumerics, e.g. "xldo".
-    function randomSuffix(len) {
-        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        var hasCrypto = window.crypto && window.crypto.getRandomValues;
-        var bytes = hasCrypto ? window.crypto.getRandomValues(new Uint8Array(len)) : null;
-        var out = '';
-        for (var i = 0; i < len; i++) {
-            var r = bytes ? bytes[i] : Math.floor(Math.random() * 256);
-            out += chars.charAt(r % chars.length);
-        }
-        return out;
+        return safeBase + '.' + ext;
     }
 
     // ===== Upload =====
