@@ -4,8 +4,9 @@
 # Dependencies
 node_modules/
 
-# Nested standalone app (separate repo, deployed on its own)
+# Nested standalone apps (separate repos, deployed on their own)
 forms-app/
+meeting-room-app/
 
 # Upload directory
 uploads/
