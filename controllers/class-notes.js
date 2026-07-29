@@ -33,7 +33,7 @@ app.directive('fileModel', ['$parse', function ($parse) {
     };
 }]);
 
-app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout', function ($scope, $http, $cookies, $timeout) {
+app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout', '$sce', function ($scope, $http, $cookies, $timeout, $sce) {
     // Initialize Toaster Service
     if (typeof initToaster === 'function') initToaster($scope, $timeout);
 
@@ -392,9 +392,10 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
             uploadEventHandlers: {
                 progress: function (e) {
                     if (e.lengthComputable) {
-                        $scope.$apply(function () {
-                            $scope.uploadProgress = Math.round((e.loaded / e.total) * 100);
-                        });
+                        // The progress event can fire mid-digest; $applyAsync
+                        // schedules the update safely and coalesces rapid ticks.
+                        $scope.uploadProgress = Math.round((e.loaded / e.total) * 100);
+                        $scope.$applyAsync();
                     }
                 }
             }
@@ -497,7 +498,9 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
             case 'warning': icon = '<i class="ti ti-alert" style="margin-right: 8px;"></i>'; break;
             default: icon = '<i class="ti ti-info-alt" style="margin-right: 8px;"></i>';
         }
-        $scope.toasterMessage = icon + message;
+        // Trusted because the markup is built here from a fixed icon + our own
+        // message string — ng-bind-html needs a trusted value (no ngSanitize).
+        $scope.toasterMessage = $sce.trustAsHtml(icon + message);
         $scope.toasterVisible = true;
         $timeout(function () {
             $scope.toasterVisible = false;
