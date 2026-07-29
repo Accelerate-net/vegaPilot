@@ -379,7 +379,7 @@
                            <div>
                               <label class="field-label">Chapter <span class="required">*</span></label>
                               <select class="cn-select" ng-model="form.chapterId"
-                                 ng-options="chapter.id as chapter.label for chapter in chapters">
+                                 ng-options="chapter.id as chapter.label group by chapter.group for chapter in chapters">
                                  <option value="">-- Select a Chapter --</option>
                               </select>
                            </div>
@@ -424,7 +424,7 @@
                         <div class="filter-dropdown dropdown">
                            <select class="cn-select" style="min-width: 220px;" ng-model="filterChapterId"
                               ng-change="reloadNotes()"
-                              ng-options="chapter.id as chapter.label for chapter in chapters">
+                              ng-options="chapter.id as chapter.label group by chapter.group for chapter in chapters">
                               <option value="">All Chapters</option>
                            </select>
                         </div>

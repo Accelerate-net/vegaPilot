@@ -114,8 +114,10 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
     };
 
     // ===== Chapters (from chapter-list API) =====
-    // The endpoint returns { status, data: { "<id>": "<title>", ... } }. Flatten
-    // that map into a list suitable for a <select>.
+    // The endpoint returns chapters nested by course then subject:
+    //   { status, data: { "<course>": { "<subject>": [{ name, code }, ...] } } }
+    // Flatten into a single list, tagging each row with its course/subject so the
+    // <select> can render grouped <optgroup>s and rows can be enriched by id.
     $scope.loadChapters = function () {
         return $http({
             method: 'GET',
@@ -126,14 +128,22 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
             }
         })
             .then(function (response) {
-                var map = (response.data && response.data.data) || {};
-                var flat = Object.keys(map).map(function (id) {
-                    var title = map[id];
-                    return {
-                        id: id,
-                        title: title,
-                        label: title
-                    };
+                var courses = (response.data && response.data.data) || {};
+                var flat = [];
+                Object.keys(courses).forEach(function (courseName) {
+                    var subjects = courses[courseName] || {};
+                    Object.keys(subjects).forEach(function (subjectName) {
+                        (subjects[subjectName] || []).forEach(function (chapter) {
+                            flat.push({
+                                id: chapter.code,
+                                title: chapter.name,
+                                subject: subjectName,
+                                course: courseName,
+                                group: courseName + ' • ' + subjectName,
+                                label: chapter.name
+                            });
+                        });
+                    });
                 });
                 $scope.chapters = flat;
                 $scope.summaryData.totalChapters = flat.length;
