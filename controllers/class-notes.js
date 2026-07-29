@@ -109,33 +109,33 @@ app.controller('classNotesController', ['$scope', '$http', '$cookies', '$timeout
         });
     };
 
-    // ===== Chapters (from syllabus) =====
-    // Flatten SYLLABUS_FIXED.json (segment -> module(subject) -> chapters) into a
-    // single list suitable for a <select>.
+    // ===== Chapters (from chapter-list API) =====
+    // The endpoint returns { status, data: { "<id>": "<title>", ... } }. Flatten
+    // that map into a list suitable for a <select>.
     $scope.loadChapters = function () {
-        return $http.get('SYLLABUS_FIXED.json')
+        return $http({
+            method: 'GET',
+            url: $scope.apiBaseUrl + '/chapter-list.php',
+            headers: {
+                'X-Access-Token': getAdminTokenFromCookie(),
+                'Content-Type': 'application/json'
+            }
+        })
             .then(function (response) {
-                var flat = [];
-                var segments = (response.data && response.data.syllabus) || [];
-                segments.forEach(function (segment) {
-                    (segment.modules || []).forEach(function (module) {
-                        (module.chapters || []).forEach(function (chapter) {
-                            flat.push({
-                                id: chapter.id,
-                                subject: module.moduleName,
-                                segment: segment.name,
-                                chapterNumber: chapter.chapterNumber,
-                                title: chapter.title,
-                                label: module.moduleName + ' • Ch ' + chapter.chapterNumber + ' — ' + chapter.title
-                            });
-                        });
-                    });
+                var map = (response.data && response.data.data) || {};
+                var flat = Object.keys(map).map(function (id) {
+                    var title = map[id];
+                    return {
+                        id: id,
+                        title: title,
+                        label: title
+                    };
                 });
                 $scope.chapters = flat;
                 $scope.summaryData.totalChapters = flat.length;
             })
             .catch(function (error) {
-                console.warn('Could not load SYLLABUS_FIXED.json:', error);
+                console.warn('Could not load chapter list:', error);
                 $scope.showToaster('Could not load chapters list.', 'error');
             });
     };

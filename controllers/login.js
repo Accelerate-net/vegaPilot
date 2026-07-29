@@ -85,7 +85,7 @@ angular.module('AdminLoginApp', ['ngCookies'])
 
                         // Redirect after showing success animation
                         $timeout(function () {
-                            window.location = "candidate-profile.html";
+                            window.location = "class-notes.html";
                         }, 1500);
 
                     } else {
