@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import ToastRegion from '../components/ToastRegion';
 import FilterDropdown from '../components/FilterDropdown';
@@ -144,6 +145,11 @@ export default function InstructorPortfolioPage() {
   const [editMode, setEditMode] = useState(false);
   const [currentInstructor, setCurrentInstructor] = useState(null);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  // Direct link / Spotlight result: /instructor-portfolio?id=<id>
+  const [searchParams] = useSearchParams();
+  const instructorIdFromUrl = searchParams.get('id');
+  const autoOpenedIdRef = useRef(null);
+  const [listLoadedOnce, setListLoadedOnce] = useState(false);
   const [instructorToDelete, setInstructorToDelete] = useState(null);
   const [selectedInstructorForLessons, setSelectedInstructorForLessons] = useState(null);
   const [toasts, setToasts] = useState([]);
@@ -231,7 +237,7 @@ export default function InstructorPortfolioPage() {
         }
       }
     } finally {
-      if (!isCancelled.current) setIsLoading(false);
+      if (!isCancelled.current) { setIsLoading(false); setListLoadedOnce(true); }
     }
   }, [currentPage, pageSize, sortColumn, sortReverse, debouncedSearchQuery, filterSubject]);
 
@@ -402,6 +408,25 @@ export default function InstructorPortfolioPage() {
     setViewModalOpen(true);
     setActiveKebabId(null);
   }
+
+  // Open the profile modal when ?id is present (once per id, after the list
+  // has loaded so the row can prime the modal before the profile fetch).
+  useEffect(() => {
+    if (!instructorIdFromUrl) {
+      autoOpenedIdRef.current = null;
+      return;
+    }
+    if (autoOpenedIdRef.current === instructorIdFromUrl) return;
+    const found = instructors.find((i) => String(i.id) === String(instructorIdFromUrl));
+    if (!found && (isLoading || !listLoadedOnce)) return;
+    autoOpenedIdRef.current = instructorIdFromUrl;
+    if (!found && isDemoMode) {
+      showToast('error', 'Teacher Not Found', `No instructor profile found for ID ${instructorIdFromUrl}.`);
+      return;
+    }
+    setSelectedInstructor(found || { id: instructorIdFromUrl });
+    setViewModalOpen(true);
+  }, [instructorIdFromUrl, instructors, isLoading, listLoadedOnce, isDemoMode]);
 
   function editFromView() {
     if (!selectedInstructor) return;

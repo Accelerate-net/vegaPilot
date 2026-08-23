@@ -31,25 +31,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, the session is no longer valid — clear it and bounce to /login.
-// Skip this for:
-//  - the login endpoint itself (the form renders its own error)
-//  - requests that opt out via `config.skipAuthRedirect` (passive identity probes
-//    like /me that shouldn't tear down the session if they fail in isolation)
+// Global rule: ANY 401 from ANY API call means the session is dead — clear the
+// token and send the user to /login. This is unconditional (no per-request
+// opt-out); the only exception is the login endpoint itself, whose form
+// renders its own "invalid credentials" error.
+export function handleUnauthorized() {
+  clearToken();
+  if (window.location.pathname !== '/login') {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.replace(`/login?next=${next}`);
+  }
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    const cfg = error?.config || {};
-    const url = cfg.url || '';
+    const url = error?.config?.url || '';
     const isAuthCall = url.includes('/admin-auth/authenticate');
-    const skip = cfg.skipAuthRedirect === true;
-    if (status === 401 && !isAuthCall && !skip) {
-      clearToken();
-      if (window.location.pathname !== '/login') {
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.replace(`/login?next=${next}`);
-      }
+    if (status === 401 && !isAuthCall) {
+      handleUnauthorized();
     }
     return Promise.reject(error);
   }

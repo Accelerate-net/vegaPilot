@@ -19,7 +19,7 @@ export default function UserProvider({ children }) {
     const token = getToken();
     if (!token) return;
 
-    api.get('/restricted/user-profile', { skipAuthRedirect: true })
+    api.get('/restricted/user-profile')
       .then((res) => {
         if (res.data?.status && res.data?.response) {
           const raw = res.data.response;
@@ -47,9 +47,9 @@ export default function UserProvider({ children }) {
       });
 
     // Also fetch RBAC identity so `roles` / `permissions` are available for guards.
-    // This is a passive probe — don't tear down the session if it 401s on its own;
-    // a real API call will trigger the global logout if the token is genuinely dead.
-    api.get('/restricted/admin-auth/me', { skipAuthRedirect: true })
+    // A 401 here (like any other API call) logs the user out via the global
+    // interceptor in lib/api.js.
+    api.get('/restricted/admin-auth/me')
       .then((res) => {
         const me = res.data?.user;
         if (!me) return;

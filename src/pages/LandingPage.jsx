@@ -232,7 +232,15 @@ export default function LandingPage() {
             )}
           </div>
 
-          <h2 className="landing-greeting">{getGreeting(now)}, <span className="landing-greeting-name">{displayName}!</span></h2>
+          <div className="landing-greeting-block">
+            <h2 className="landing-greeting">{getGreeting(now)}, <span className="landing-greeting-name">{displayName}!</span></h2>
+            <div className="landing-greeting-sub">
+              <span>Here's what's happening across your workspace today.</span>
+              {displayRole && (
+                <span className="landing-role-chip"><i className="fa fa-shield" /> {displayRole}</span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="landing-datetime">
           <span className="landing-time">
@@ -251,8 +259,9 @@ export default function LandingPage() {
             <>
               <div className="landing-section-head">
                 <h3>
-                  <i className="ti ti-thumb-tack" style={{ color: 'rgba(255, 255, 255, 0.6)' }} /> Your Pinned Pages
+                  <i className="ti ti-thumb-tack" /> Your Pinned Pages
                 </h3>
+                <span className="landing-section-hint">{pinnedScreens.length} shortcut{pinnedScreens.length === 1 ? '' : 's'}</span>
               </div>
               <div className="landing-tiles">
                 {pinnedScreens.map((s) => (
@@ -273,6 +282,7 @@ export default function LandingPage() {
                 <h3>
                   Quick Insights for You
                 </h3>
+                <span className="landing-section-hint">Tap a card to open the page</span>
               </div>
               <div className="landing-summary-tiles">
                 {summaryTiles.map((it) => (
@@ -280,6 +290,7 @@ export default function LandingPage() {
                     key={it.path}
                     type="button"
                     className="landing-summary-tile"
+                    style={{ '--tile-accent': it.color }}
                     onClick={() => navigate(it.path)}
                   >
                     {it.alert >= 1 && <span className="landing-summary-alert-dot" />}

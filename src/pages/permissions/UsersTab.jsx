@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser, getCachedUser } from '../../lib/userStore';
 import MultiRoleSelect from './MultiRoleSelect';
 import FilterDropdown from '../../components/FilterDropdown';
@@ -86,8 +86,11 @@ export default function UsersTab({ roles, showToast }) {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  // ?q= (set by Spotlight alongside ?id=) pre-fills the search so the target
+  // user is guaranteed to be in the first page of results.
+  const initialSearch = new URLSearchParams(window.location.search).get('q') || '';
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [filterRoleId, setFilterRoleId] = useState('');
   const [sortColumn, setSortColumn] = useState('name');
   const [sortReverse, setSortReverse] = useState(false);
@@ -101,6 +104,11 @@ export default function UsersTab({ roles, showToast }) {
 
   const [activeKebabId, setActiveKebabId] = useState(null);
   const kebabRef = useRef(null);
+
+  // Direct link / Spotlight result: /user-accounts?id=<id> opens that user.
+  const [searchParams] = useSearchParams();
+  const userIdFromUrl = searchParams.get('id');
+  const autoOpenedIdRef = useRef(null);
 
   const roleLookup = useMemo(() => {
     const map = new Map();
@@ -194,6 +202,15 @@ export default function UsersTab({ roles, showToast }) {
     setModalOpen(true);
     setActiveKebabId(null);
   }
+
+  useEffect(() => {
+    if (!userIdFromUrl) { autoOpenedIdRef.current = null; return; }
+    if (autoOpenedIdRef.current === userIdFromUrl) return;
+    const found = users.find((u) => String(u.id) === String(userIdFromUrl));
+    if (!found) return; // wait for the list (or a later page) to contain it
+    autoOpenedIdRef.current = userIdFromUrl;
+    openEditModal(found);
+  }, [userIdFromUrl, users]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function sameSet(a, b) {
     if (a.length !== b.length) return false;

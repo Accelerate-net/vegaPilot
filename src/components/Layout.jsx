@@ -8,6 +8,7 @@ import { canAccess, isSuperAdmin } from '../lib/roles';
 import { has as permHas } from '../lib/permissions';
 import { consumeFlash } from '../lib/flash';
 import ToastRegion from './ToastRegion';
+import SpotlightSearch from './SpotlightSearch';
 
 export default function Layout({ children, currentScreen }) {
   const navigate  = useNavigate();
@@ -804,6 +805,7 @@ export default function Layout({ children, currentScreen }) {
         </div>
       </div>
 
+      <SpotlightSearch />
     </div>
   );
 }

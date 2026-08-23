@@ -15,7 +15,8 @@ function ensureOk(body) {
 }
 
 export async function listUsers(params = {}) {
-  const { data } = await api.get(`${BASE}/list`, { params });
+  const { signal, ...query } = params;
+  const { data } = await api.get(`${BASE}/list`, { params: query, signal });
   return ensureOk(data);
 }
 
