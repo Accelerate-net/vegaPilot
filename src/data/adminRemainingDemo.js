@@ -80,8 +80,8 @@ export const leadsDemo = [
 ];
 
 export const batchesDemo = [
-  { id: 'BATCH-001', batchName: 'IAT 2026 - Batch A', numberOfStudents: 45, description: 'Primary batch for IAT 2026 preparation.', startDate: '2026-01-15', endDate: '2026-05-30', active: 1, isFrozen: false, enrolledCourses: ['IAT 2026 - Exclusive 1 Year Course'], students: ['Aarav Nair', 'Diya Joseph', 'Sneha Menon'] },
-  { id: 'BATCH-002', batchName: 'NEET 2026 - Morning Batch', numberOfStudents: 30, description: 'Morning session for NEET aspirants.', startDate: '2026-02-01', endDate: '2026-05-15', active: 1, isFrozen: false, enrolledCourses: ['NEET 2026 Complete Preparation'], students: ['Rahul Prasad', 'Amit Patel'] },
+  { id: 'BATCH-001', batchName: 'IAT 2026 - Batch A', numberOfStudents: 45, description: 'Primary batch for IAT 2026 preparation.', startDate: '2026-01-15', endDate: '2026-05-30', active: 1, isFrozen: false, enrolledCourses: ['IAT 2026 - Exclusive 1 Year Course'], students: ['Aarav Nair', 'Diya Joseph', 'Sneha Menon', 'Rahul Sharma', 'Priya Patel'] },
+  { id: 'BATCH-002', batchName: 'NEET 2026 - Morning Batch', numberOfStudents: 30, description: 'Morning session for NEET aspirants.', startDate: '2026-02-01', endDate: '2026-05-15', active: 1, isFrozen: false, enrolledCourses: ['NEET 2026 Complete Preparation'], students: ['Rahul Prasad', 'Amit Patel', 'Amit Kumar', 'Sneha Reddy'] },
   { id: 'BATCH-003', batchName: 'Foundation 2026', numberOfStudents: 18, description: 'Foundation intake for class 11.', startDate: '2026-03-05', endDate: '2027-02-20', active: 0, isFrozen: true, enrolledCourses: [], students: ['Divya Iyer'] },
 ];
 

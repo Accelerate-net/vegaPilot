@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import ToastRegion from '../components/ToastRegion';
 import Avatar from '../components/Avatar';
 import { availableMentors, candidateDetailFallback } from '../data/candidateDetailDemo';
+import OrderPaymentsCard from '../components/OrderPaymentsCard';
+import { commerceOrdersDemo } from '../data/paymentsDemo';
+import { usePayments } from '../lib/paymentsStore';
+import { orderStateMeta, statusMeta, summarizeOrder } from '../lib/paymentsModel';
 
 /* ── Helpers ── */
 function fmtDate(ts) {
@@ -26,6 +30,172 @@ function getScoreColor(pct) {
   if (pct >= 75) return '#28a745';
   if (pct >= 50) return '#ffc107';
   return '#dc3545';
+}
+
+const INR = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+function courseTypeIcon(type) {
+  const t = String(type || '').toLowerCase();
+  if (t.includes('test')) return 'ti-write';
+  if (t.includes('bundle')) return 'ti-package';
+  if (t.includes('live')) return 'ti-video-camera';
+  return 'ti-book';
+}
+
+function validityMeta(validFrom, validUntil) {
+  const now = Date.now() / 1000;
+  const status = getValidityStatus(validUntil);
+  const daysLeft = validUntil ? Math.ceil((validUntil - now) / 86400) : null;
+  let elapsedPct = 0;
+  if (validFrom && validUntil && validUntil > validFrom) {
+    elapsedPct = Math.min(100, Math.max(0, ((now - validFrom) / (validUntil - validFrom)) * 100));
+  }
+  const tone = status === 'ACTIVE' ? 'active' : status === 'EXPIRING SOON' ? 'expiring' : 'expired';
+  const label = daysLeft == null ? 'Unknown validity'
+    : daysLeft < 0 ? `Expired ${Math.abs(daysLeft)} day${Math.abs(daysLeft) === 1 ? '' : 's'} ago`
+    : daysLeft === 0 ? 'Expires today'
+    : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`;
+  return { status, tone, elapsedPct, label };
+}
+
+function EnrolledCourseCard({ en, order, payments, onViewPayments }) {
+  const v = validityMeta(en.validFrom, en.validUntil);
+  const progress = Math.min(100, Math.max(0, Number(en.progress) || 0));
+  const pay = en.payment;
+  const os = order ? summarizeOrder(order, payments) : null;
+  const osMeta = os ? orderStateMeta(os.state) : null;
+  return (
+    <div className={`cd-course is-${v.tone}`}>
+      <div className="cd-course-head">
+        <div className="cd-course-badge"><i className={`ti ${courseTypeIcon(en.courseType)}`} /></div>
+        <div className="cd-course-title">
+          <h3>{en.courseName}</h3>
+          <div className="cd-course-chips">
+            <span className="cd-chip"><i className="ti ti-bookmark" /> {en.courseCode}</span>
+            <span className="cd-chip"><i className="ti ti-tag" /> {en.courseType}</span>
+            <span className={`cd-status is-${v.tone}`}>
+              <span className="cd-status-dot" /> {v.status}
+            </span>
+          </div>
+        </div>
+        <div className="cd-course-actions">
+          <button type="button" className="cd-btn cd-btn-primary"><i className="ti ti-eye" /> View Course</button>
+          <button type="button" className="cd-btn cd-btn-ghost"><i className="ti ti-receipt" /> View Invoice</button>
+        </div>
+      </div>
+
+      <div className="cd-course-body">
+        <div className="cd-course-main">
+          {/* Progress */}
+          <div className="cd-block">
+            <div className="cd-block-head">
+              <span className="cd-block-title"><i className="ti ti-bar-chart" /> Learning progress</span>
+              <span className="cd-progress-pct">{progress}<small>%</small></span>
+            </div>
+            <div className="cd-progress-track" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100">
+              <div className="cd-progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="cd-stats">
+              <div className="cd-stat">
+                <i className="ti ti-layers" />
+                <div>
+                  <div className="cd-stat-value">{en.completedModules} <span>/ {en.totalModules}</span></div>
+                  <div className="cd-stat-label">Modules completed</div>
+                </div>
+              </div>
+              <div className="cd-stat">
+                <i className="ti ti-time" />
+                <div>
+                  <div className="cd-stat-value">{en.hoursSpent} <span>hrs</span></div>
+                  <div className="cd-stat-label">Time spent</div>
+                </div>
+              </div>
+              <div className="cd-stat">
+                <i className="ti ti-reload" />
+                <div>
+                  <div className="cd-stat-value">{en.lastAccessed ? fmtDate(en.lastAccessed) : '—'}</div>
+                  <div className="cd-stat-label">Last accessed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Validity */}
+          <div className="cd-block">
+            <div className="cd-block-head">
+              <span className="cd-block-title"><i className="ti ti-calendar" /> Validity period</span>
+              <span className={`cd-validity-left is-${v.tone}`}>{v.label}</span>
+            </div>
+            <div className="cd-validity-track">
+              <div className="cd-validity-fill" style={{ width: `${v.elapsedPct}%` }} />
+            </div>
+            <div className="cd-validity-dates">
+              <span><small>Starts</small>{fmtDate(en.validFrom)}</span>
+              <span><small>Ends</small>{fmtDate(en.validUntil)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment */}
+        {(pay || os) && (
+          <aside className="cd-course-aside">
+            <div className="cd-pay-head">
+              <span className="cd-block-title"><i className="ti ti-credit-card" /> Payment</span>
+              {order ? (
+                <span className={`cd-pay-method is-${order.paymentMode.toLowerCase()}`}>{order.paymentMode === 'INSTALLMENTS' ? 'Installments' : 'Full'}</span>
+              ) : <span className="cd-pay-method">{pay.method || '—'}</span>}
+            </div>
+            {os ? (
+              <>
+                <div className="cd-pay-amount">
+                  <small>Paid so far</small>
+                  <strong>{INR(os.paid)}</strong>
+                  <span className={`cd-pay-state is-${osMeta.tone}`}><span className="cd-status-dot" /> {osMeta.label}</span>
+                </div>
+                <div className="cd-pay-track" title={`${os.paidPct}% of order settled`}>
+                  <div className={`cd-pay-track-fill is-${osMeta.tone}`} style={{ width: `${os.paidPct}%` }} />
+                </div>
+                <dl className="cd-pay-rows">
+                  <div><dt>Order</dt><dd className="is-strong">{order.orderNumber}</dd></div>
+                  <div><dt>Order total</dt><dd>{INR(os.total)}</dd></div>
+                  <div><dt>Outstanding</dt><dd className={os.outstanding > 0 ? (os.state === 'overdue' ? 'is-bad' : 'is-warn') : 'is-good'}>{INR(os.outstanding)}</dd></div>
+                  <div className="cd-pay-sep" />
+                  {os.nextDue ? (
+                    <div>
+                      <dt>{os.nextDue.status === 'overdue' ? 'Overdue' : 'Next due'}</dt>
+                      <dd className={os.nextDue.status === 'overdue' ? 'is-bad' : 'is-strong'}>{fmtDate(os.nextDue.dueDate)} · {INR(os.nextDue.amount)}</dd>
+                    </div>
+                  ) : (
+                    <div><dt>{order.paymentMode === 'INSTALLMENTS' ? 'Installments' : 'Payments'}</dt><dd className="is-good">{os.rows.filter((p) => p.status === 'paid').length}/{os.rows.length} settled</dd></div>
+                  )}
+                  {os.overdue.length > 1 ? <div><dt>Overdue items</dt><dd className="is-bad">{os.overdue.length}</dd></div> : null}
+                </dl>
+                <button type="button" className="cd-btn cd-btn-ghost cd-pay-link" onClick={() => onViewPayments?.(order)}>
+                  <i className="ti ti-list" /> Track all payments
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="cd-pay-amount">
+                  <small>Amount paid</small>
+                  <strong>{INR(pay.amountPaid)}</strong>
+                </div>
+                <dl className="cd-pay-rows">
+                  <div><dt>Order</dt><dd className="is-strong">{pay.orderNumber || '—'}</dd></div>
+                  {pay.orderDate ? <div><dt>Date</dt><dd>{fmtDate(pay.orderDate)}</dd></div> : null}
+                  {pay.paymentReference ? <div><dt>Reference</dt><dd className="is-mono">{pay.paymentReference}</dd></div> : null}
+                  <div className="cd-pay-sep" />
+                  <div><dt>Original price</dt><dd className="is-strike">{INR(pay.originalPrice)}</dd></div>
+                  {pay.discountApplied ? <div><dt>Discount</dt><dd className="is-good">− {INR(pay.discountApplied)}</dd></div> : null}
+                  {pay.taxAmount ? <div><dt>Tax</dt><dd>{INR(pay.taxAmount)}</dd></div> : null}
+                </dl>
+              </>
+            )}
+          </aside>
+        )}
+      </div>
+    </div>
+  );
 }
 function getStarClass(rating, idx) {
   const sv = idx + 1;
@@ -69,6 +239,7 @@ export default function CandidateDetailPage() {
   const [selectedNewMentor, setSelectedNewMentor] = useState(null);
   const [toasts, setToasts] = useState([]);
 
+  const payments = usePayments();
   const [candidate, setCandidate] = useState(() => {
     const stored = window.localStorage.getItem('selectedStudent');
     if (!stored) return candidateDetailFallback;
@@ -106,6 +277,28 @@ export default function CandidateDetailPage() {
     [...(candidate.feedbacks || [])].sort((a, b) => b.submittedDate - a.submittedDate),
   [candidate.feedbacks]);
 
+  // Orders belonging to this student: by customer id, plus any order referenced
+  // from an enrolled course (enrollments are granted per order).
+  const studentOrders = useMemo(() => {
+    const refs = new Set((candidate.enrolledCourses || []).map((c) => c.payment?.orderNumber).filter(Boolean));
+    return commerceOrdersDemo
+      .filter((o) => o.customer.id === candidate.id || refs.has(o.orderNumber))
+      .sort((a, b) => b.orderDate - a.orderDate);
+  }, [candidate.id, candidate.enrolledCourses]);
+  const orderByNumber = useMemo(() => Object.fromEntries(studentOrders.map((o) => [o.orderNumber, o])), [studentOrders]);
+  const paymentTotals = useMemo(() => {
+    const sums = studentOrders.map((o) => summarizeOrder(o, payments));
+    const nextDue = sums.map((x) => x.nextDue).filter(Boolean).sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0))[0] || null;
+    return {
+      billed: sums.reduce((t, x) => t + x.total, 0),
+      paid: sums.reduce((t, x) => t + x.paid, 0),
+      outstanding: sums.reduce((t, x) => t + x.outstanding, 0),
+      overdueCount: sums.reduce((t, x) => t + x.overdue.length, 0),
+      nextDue,
+    };
+  }, [studentOrders, payments]);
+  const openPaymentsFor = (order) => navigate(`/payments?order=${encodeURIComponent(order.orderNumber)}`);
+
   return (
     <div className="container-fluid" style={{ paddingTop: '1%' }}>
       <ToastRegion toasts={toasts} onDismiss={id => setToasts(c => c.filter(t => t.id !== id))} />
@@ -131,7 +324,7 @@ export default function CandidateDetailPage() {
                 { val: candidate.enrolledCourses.length, lbl: 'Courses' },
                 { val: candidate.examsTaken, lbl: 'Exams' },
                 { val: `${candidate.averageScore}%`, lbl: 'Avg Score' },
-                { val: `₹${candidate.totalSpent}`, lbl: 'Total Spent' },
+                { val: INR(studentOrders.length ? paymentTotals.paid : candidate.totalSpent), lbl: 'Total Spent' },
               ].map(s => (
                 <div key={s.lbl} style={{ background: 'rgba(255,255,255,0.1)', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
                   <div style={{ fontSize: '28px', fontWeight: 700 }}>{s.val}</div>
@@ -200,71 +393,54 @@ export default function CandidateDetailPage() {
       )}
 
       {/* ═══ Courses Tab ═══ */}
-      {activeTab === 'courses' && candidate.enrolledCourses.map((en, idx) => (
-        <div key={`${en.courseCode}-${idx}`} style={{ background: 'white', border: '1px solid #e9ecef', borderRadius: '8px', marginBottom: '20px', overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', padding: '20px', borderBottom: '1px solid #dee2e6' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#006073', margin: '0 0 8px 0' }}>{en.courseName}</h3>
-            <div style={{ display: 'flex', gap: '15px', fontSize: '12px', color: '#6c757d' }}>
-              <span><i className="ti ti-bookmark"></i> {en.courseCode}</span>
-              <span><i className="ti ti-tag"></i> {en.courseType}</span>
-            </div>
-          </div>
-          <div style={{ padding: '20px' }}>
-            {/* Validity */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f8f9fa', padding: '15px', borderRadius: '6px', marginBottom: '15px', alignItems: 'center' }}>
-              <div>
-                <strong>Validity Period</strong><br />
-                <span style={{ fontSize: '13px', color: '#6c757d' }}>{fmtDate(en.validFrom)} to {fmtDate(en.validUntil)}</span>
+      {activeTab === 'courses' && (
+        <div className="cd-courses">
+          {studentOrders.length > 0 && (
+            <section className="cd-orders">
+              <div className="cd-orders-head">
+                <div>
+                  <h4><i className="ti ti-receipt" /> Orders &amp; payments</h4>
+                  <p>Order-wise record of what has been paid and what is still due. Enrollments are granted against these orders.</p>
+                </div>
+                <button type="button" className="cd-btn cd-btn-ghost" onClick={() => navigate(`/payments?student=${encodeURIComponent(candidate.id)}`)}>
+                  <i className="ti ti-list" /> All payments by {candidate.name.split(' ')[0]}
+                </button>
               </div>
-              <span style={{ ...getValidityClass(en.validUntil), padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>
-                {getValidityStatus(en.validUntil)}
-              </span>
-            </div>
-
-            {/* Progress */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}>
-                <span><strong>Progress</strong></span>
-                <span><strong>{en.progress}%</strong></span>
-              </div>
-              <div style={{ height: '12px', background: '#e9ecef', borderRadius: '6px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: 'linear-gradient(90deg, #006073 0%, #00a8cc 100%)', borderRadius: '6px', width: `${en.progress}%` }}></div>
-              </div>
-              <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px' }}>
-                {en.completedModules} / {en.totalModules} modules • {en.hoursSpent} hours
-              </div>
-            </div>
-
-            {/* Payment */}
-            {en.payment && (
-              <div style={{ background: '#e7f3ff', borderLeft: '3px solid #007bff', padding: '12px 15px', borderRadius: '4px', marginTop: '15px' }}>
-                <h6 style={{ margin: '0 0 10px 0', color: '#007bff', fontWeight: 600 }}><i className="ti ti-credit-card"></i> Payment Details</h6>
-                {[
-                  ['Order Number:', en.payment.orderNumber, { fontWeight: 600 }],
-                  ['Payment Method:', en.payment.method],
-                  ['Original Price:', `₹${en.payment.originalPrice}`, { textDecoration: 'line-through' }],
-                ].map(([l, v, s]) => (
-                  <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                    <span>{l}</span><span style={s}>{v}</span>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid rgba(0,123,255,0.2)', paddingTop: '8px', fontWeight: 600 }}>
-                  <span>Amount Paid:</span><span style={{ color: '#007bff' }}>₹{en.payment.amountPaid}</span>
+              <div className="cd-orders-strip">
+                <div className="cd-orders-tile"><small>Total billed</small><strong>{INR(paymentTotals.billed)}</strong></div>
+                <div className="cd-orders-tile is-good"><small>Paid so far</small><strong>{INR(paymentTotals.paid)}</strong></div>
+                <div className={`cd-orders-tile ${paymentTotals.overdueCount ? 'is-bad' : paymentTotals.outstanding > 0 ? 'is-warn' : 'is-good'}`}>
+                  <small>Outstanding{paymentTotals.overdueCount ? ` · ${paymentTotals.overdueCount} overdue` : ''}</small>
+                  <strong>{INR(paymentTotals.outstanding)}</strong>
+                </div>
+                <div className={`cd-orders-tile ${paymentTotals.nextDue ? `is-${statusMeta(paymentTotals.nextDue.status).tone}` : ''}`}>
+                  <small>{paymentTotals.nextDue?.status === 'overdue' ? 'Overdue since' : 'Next due'}</small>
+                  <strong>{paymentTotals.nextDue ? `${fmtDate(paymentTotals.nextDue.dueDate)} · ${INR(paymentTotals.nextDue.amount)}` : 'Nothing pending'}</strong>
                 </div>
               </div>
-            )}
+              <div className="cd-orders-list">
+                {studentOrders.map((o) => (
+                  <OrderPaymentsCard key={o.id} order={o} payments={payments} onViewPayments={openPaymentsFor} />
+                ))}
+              </div>
+            </section>
+          )}
 
-            <div style={{ marginTop: '15px' }}>
-              <button style={{ padding: '6px 14px', fontSize: '13px', background: '#006073', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}>
-                <i className="ti ti-eye"></i> View Course
-              </button>
-              <button style={{ padding: '6px 14px', fontSize: '13px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                <i className="ti ti-receipt"></i> View Invoice
-              </button>
-            </div>
+          <div className="cd-courses-head">
+            <h4><i className="ti ti-book" /> Enrolled courses</h4>
+            <span>{candidate.enrolledCourses.length} course{candidate.enrolledCourses.length === 1 ? '' : 's'}</span>
           </div>
+          {candidate.enrolledCourses.map((en, idx) => (
+            <EnrolledCourseCard
+              key={`${en.courseCode}-${idx}`}
+              en={en}
+              order={orderByNumber[en.payment?.orderNumber]}
+              payments={payments}
+              onViewPayments={openPaymentsFor}
+            />
+          ))}
         </div>
-      ))}
+      )}
 
       {/* ═══ Performance Tab ═══ */}
       {activeTab === 'performance' && (

@@ -60,16 +60,19 @@ export default function LandingPage() {
 
   // ── "Your day at a glance" summary tiles (only shown if user can view the page) ──
   const summaryTiles = useMemo(() => {
+    // `trend` is the last 7 days (oldest → today); `delta` is % change vs
+    // yesterday; `deltaGood` says whether that direction is desirable, so the
+    // tile can colour it green/red independent of the arrow direction.
     const items = [
-      { path: '/support',              label: 'Support Tickets', count: '13',     unit: 'open tickets',         icon: 'fa fa-life-ring',       color: '#f97316', alert: 13 },
-      { path: '/leads-management',     label: 'Leads',           count: '34',     unit: 'to address today',     icon: 'fa fa-user-plus',       color: '#16a34a', alert: 34 },
-      { path: '/orders',               label: 'Orders',          count: '34',     unit: 'orders received',      icon: 'fa fa-shopping-cart',   color: '#22c55e' },
-      { path: '/offline-attendance',   label: 'Attendance',      count: '34/355', unit: 'absentees today',      icon: 'fa fa-check-square-o',  color: '#ef4444' },
-      { path: '/live-class-scheduler', label: 'Live Classes',    count: '3',      unit: 'classes today',        icon: 'fa fa-video-camera',    color: '#94a3b8' },
-      { path: '/schedule-list',        label: 'Schedules',       count: '2',      unit: 'active schedules',     icon: 'fa fa-calendar',        color: '#94a3b8' },
-      { path: '/quiz-listing',         label: 'Quizzes',         count: '240',    unit: 'students completed',   icon: 'fa fa-question-circle', color: '#94a3b8' },
-      { path: '/feedback-summary',     label: 'Feedbacks',       count: '449',    unit: 'received today',       icon: 'fa fa-comments-o',      color: '#94a3b8' },
-      { path: '/survey-dashboard',     label: 'Surveys',         count: '12',     unit: 'new submissions',      icon: 'fa fa-list-alt',        color: '#94a3b8' },
+      { path: '/support',              label: 'Support Tickets', count: '13',  unit: 'open tickets',       icon: 'fa fa-life-ring',       color: '#f97316', alert: 13, trend: [9, 11, 10, 14, 12, 12, 13],        delta: 8,   deltaGood: false },
+      { path: '/leads-management',     label: 'Leads',           count: '34',  unit: 'to address today',   icon: 'fa fa-user-plus',       color: '#16a34a', alert: 34, trend: [22, 25, 24, 30, 28, 30, 34],      delta: 12,  deltaGood: true },
+      { path: '/orders',               label: 'Orders',          count: '34',  unit: 'orders received',    icon: 'fa fa-shopping-cart',   color: '#22c55e',            trend: [28, 30, 27, 33, 31, 32, 34],      delta: 5,   deltaGood: true },
+      { path: '/offline-attendance',   label: 'Attendance',      count: '34',  total: '355', unit: 'absentees today', icon: 'fa fa-check-square-o', color: '#ef4444', trend: [40, 36, 38, 30, 33, 33, 34], delta: 3, deltaGood: false },
+      { path: '/live-class-scheduler', label: 'Live Classes',    count: '3',   unit: 'classes today',      icon: 'fa fa-video-camera',    color: '#0ea5e9',            trend: [2, 3, 2, 4, 3, 3, 3],             delta: 0,   deltaGood: true },
+      { path: '/schedule-list',        label: 'Schedules',       count: '2',   unit: 'active schedules',   icon: 'fa fa-calendar',        color: '#8b5cf6',            trend: [3, 3, 2, 2, 2, 2, 2],             delta: 0,   deltaGood: true },
+      { path: '/quiz-listing',         label: 'Quizzes',         count: '240', unit: 'students completed', icon: 'fa fa-question-circle', color: '#6366f1',            trend: [180, 210, 195, 225, 230, 228, 240], delta: 5, deltaGood: true },
+      { path: '/feedback-summary',     label: 'Feedbacks',       count: '449', unit: 'received today',     icon: 'fa fa-comments-o',      color: '#14b8a6',            trend: [380, 410, 400, 430, 445, 440, 449], delta: 2, deltaGood: true },
+      { path: '/survey-dashboard',     label: 'Surveys',         count: '12',  unit: 'new submissions',    icon: 'fa fa-list-alt',        color: '#64748b',            trend: [15, 14, 16, 13, 12, 13, 12],      delta: -8,  deltaGood: false },
     ];
     return items.filter((it) => {
       const screen = allScreens.find((s) => s.path === it.path);
@@ -293,15 +296,22 @@ export default function LandingPage() {
                     style={{ '--tile-accent': it.color }}
                     onClick={() => navigate(it.path)}
                   >
-                    {it.alert >= 1 && <span className="landing-summary-alert-dot" />}
-                    <div className="landing-summary-icon" style={{ background: `${it.color}22` }}>
-                      <i className={it.icon} style={{ color: it.color }} />
+                    {it.alert >= 1 && <span className="landing-summary-alert-dot" title="Needs attention" />}
+                    <div className="landing-summary-head">
+                      <div className="landing-summary-icon" style={{ background: `${it.color}1f` }}>
+                        <i className={it.icon} style={{ color: it.color }} />
+                      </div>
+                      <div className="landing-summary-body">
+                        <div className="landing-summary-label">{it.label}</div>
+                        <div className="landing-summary-count">
+                          {it.count}
+                          {it.total ? <span className="landing-summary-total"> / {it.total}</span> : null}
+                        </div>
+                        <div className="landing-summary-unit">{it.unit}</div>
+                      </div>
                     </div>
-                    <div className="landing-summary-body">
-                      <div className="landing-summary-label" style={{ color: it.color }}>{it.label}</div>
-                      <div className="landing-summary-count" style={{ color: it.color }}>{it.count}</div>
-                      <div className="landing-summary-unit">{it.unit}</div>
-                    </div>
+                    <Sparkline values={it.trend} color={it.color} />
+                    <DeltaLine delta={it.delta} good={it.deltaGood} />
                   </button>
                 ))}
               </div>
@@ -382,6 +392,56 @@ export default function LandingPage() {
         </div>
       )}
     </section>
+  );
+}
+
+// Tiny 7-point trend line. Single series, so no legend — the tile label names it.
+function Sparkline({ values, color }) {
+  const pts = Array.isArray(values) ? values.filter((v) => Number.isFinite(v)) : [];
+  if (pts.length < 2) return null;
+  const W = 100;
+  const H = 28;
+  const PAD = 2;
+  const min = Math.min(...pts);
+  const max = Math.max(...pts);
+  const span = max - min || 1;
+  const coords = pts.map((v, i) => [
+    PAD + (i / (pts.length - 1)) * (W - PAD * 2),
+    PAD + (1 - (v - min) / span) * (H - PAD * 2),
+  ]);
+  const line = coords.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const area = `${line} L${coords[coords.length - 1][0].toFixed(1)},${H} L${coords[0][0].toFixed(1)},${H} Z`;
+  const gradId = `spark-${String(color).replace('#', '')}`;
+  return (
+    <svg className="landing-sparkline" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gradId})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+function DeltaLine({ delta, good }) {
+  if (!Number.isFinite(delta)) return null;
+  const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+  const tone = dir === 'flat' ? 'neutral' : good ? 'good' : 'bad';
+  const icon = dir === 'up' ? 'fa-arrow-up' : dir === 'down' ? 'fa-arrow-down' : 'fa-minus';
+  return (
+    <div className="landing-summary-foot">
+      <div className={`landing-summary-delta is-${tone}`}>
+        <span className="landing-summary-delta-pill">
+          <i className={`fa ${icon}`} aria-hidden="true" />
+          {dir === 'flat' ? 'No change' : `${Math.abs(delta)}%`}
+        </span>
+        <span>vs yesterday</span>
+      </div>
+      <span className="landing-summary-range">Last 7 days</span>
+    </div>
   );
 }
 

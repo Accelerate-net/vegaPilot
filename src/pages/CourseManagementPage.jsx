@@ -837,7 +837,14 @@ export default function CourseManagementPage() {
                                                                                                     {chapter.teacher && (
                                                                                                         <div className="teacher-info-compact">
                                                                                                             <Avatar src={chapter.teacher.photo} name={chapter.teacher.name} className="teacher-photo-tiny" placeholderClassName="teacher-photo-tiny placeholder" />
-                                                                                                            <span>{chapter.teacher.name}</span>
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                className="name-link"
+                                                                                                                title="View teacher profile"
+                                                                                                                onClick={(e) => { e.stopPropagation(); showTeacherProfile(chapter); }}
+                                                                                                            >
+                                                                                                                {chapter.teacher.name}
+                                                                                                            </button>
                                                                                                         </div>
                                                                                                     )}
                                                                                                 </td>

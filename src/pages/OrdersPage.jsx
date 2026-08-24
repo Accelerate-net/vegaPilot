@@ -3,7 +3,11 @@ import ToastRegion from '../components/ToastRegion';
 import FilterDropdown from '../components/FilterDropdown';
 import { Can, usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
-import { ordersDemo } from '../data/ordersDemo';
+import RecordPaymentModal from '../components/RecordPaymentModal';
+import UpdateDueDatesModal from '../components/UpdateDueDatesModal';
+import OrderPaymentSummary from '../components/OrderPaymentSummary';
+import CreateOrderBundleModal from '../components/CreateOrderBundleModal';
+import { buildOrdersView, useManualOrders, usePayments } from '../lib/paymentsStore';
 
 function formatDate(timestamp) {
   if (!timestamp) return 'Unknown';
@@ -92,7 +96,32 @@ function sortOrders(rows, sortColumn, sortReverse) {
 
 export default function OrdersPage() {
   const { can } = usePermission();
-  const [orders, setOrders] = useState(ordersDemo);
+  const payments = usePayments();
+  const manualOrders = useManualOrders();
+  const [statusOverrides, setStatusOverrides] = useState({});
+  const orders = useMemo(() => buildOrdersView(payments, statusOverrides), [payments, statusOverrides, manualOrders]);
+  const bundleCounts = useMemo(() => {
+    const counts = {};
+    orders.forEach((order) => { counts[order.bundleNumber] = (counts[order.bundleNumber] || 0) + 1; });
+    return counts;
+  }, [orders]);
+
+  // One cart checkout ("Order Bundle") may hold several orders — invoices are
+  // issued at bundle level, aggregating every order in the bundle.
+  const round2 = (n) => Math.round(n * 100) / 100;
+  function bundleAggregate(order) {
+    const members = orders.filter((o) => o.bundleNumber === order.bundleNumber);
+    return {
+      ...order,
+      orderNumber: order.bundleNumber,
+      items: members.map((o) => o.items[0]),
+      subtotal: round2(members.reduce((sum, o) => sum + o.subtotal, 0)),
+      taxAmount: round2(members.reduce((sum, o) => sum + o.taxAmount, 0)),
+      discountAmount: round2(members.reduce((sum, o) => sum + o.discountAmount, 0)),
+      totalAmount: round2(members.reduce((sum, o) => sum + o.totalAmount, 0)),
+      discounts: members.flatMap((o) => o.discounts || []),
+    };
+  }
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -109,6 +138,11 @@ export default function OrdersPage() {
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [emailData, setEmailData] = useState({ to: '', subject: '', orderNumber: '' });
   const [refundData, setRefundData] = useState({ order: null, code: ['', '', '', ''], error: '' });
+  const [recordOrder, setRecordOrder] = useState(null);
+  const [summaryOrder, setSummaryOrder] = useState(null);
+  const [dueDatesOrder, setDueDatesOrder] = useState(null);
+  const [bundleOrder, setBundleOrder] = useState(null);
+  const [createBundleOpen, setCreateBundleOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const menuRef = useRef(null);
   const toastIdRef = useRef(0);
@@ -159,18 +193,33 @@ export default function OrdersPage() {
   }
 
   function viewInvoice(order) {
-    setSelectedOrder(order);
+    setSelectedOrder(bundleAggregate(order));
     setInvoiceModalOpen(true);
+    setOpenKebabId(null);
+  }
+
+  function openPaymentSummary(order) {
+    setSummaryOrder(order.commerceOrder);
+    setOpenKebabId(null);
+  }
+
+  function openDueDates(order) {
+    setDueDatesOrder(order.commerceOrder);
     setOpenKebabId(null);
   }
 
   function sendInvoiceEmail(order) {
     setEmailData({
       to: order.customer.email,
-      subject: `Invoice for Order #${order.orderNumber}`,
-      orderNumber: order.orderNumber,
+      subject: `Invoice for Order Bundle #${order.bundleNumber}`,
+      orderNumber: order.bundleNumber,
     });
     setEmailModalOpen(true);
+    setOpenKebabId(null);
+  }
+
+  function openRecordPayment(order) {
+    setRecordOrder(order.commerceOrder);
     setOpenKebabId(null);
   }
 
@@ -262,7 +311,7 @@ export default function OrdersPage() {
       return;
     }
 
-    setOrders((current) => current.map((order) => (order.id === refundData.order.id ? { ...order, status: 'refunded' } : order)));
+    setStatusOverrides((current) => ({ ...current, [refundData.order.id]: 'refunded' }));
     showToast('success', 'Refund', `Refund initiated for ₹${formatMoney(refundData.order.totalAmount)}`);
     setRefundModalOpen(false);
   }
@@ -272,6 +321,7 @@ export default function OrdersPage() {
     const filtered = orders.filter((order) => {
       const matchesSearch = !query || [
         order.orderNumber,
+        order.bundleNumber,
         order.customer.name,
         order.customer.email,
         order.customer.phone,
@@ -288,8 +338,8 @@ export default function OrdersPage() {
     totalOrders: orders.length,
     completedOrders: orders.filter((order) => order.status === 'completed').length,
     pendingOrders: orders.filter((order) => order.status === 'pending').length,
-    totalRevenue: orders.filter((order) => order.status === 'completed').reduce((sum, order) => sum + order.totalAmount, 0),
-  }), [orders]);
+    totalRevenue: payments.filter((p) => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0),
+  }), [orders, payments]);
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
   const page = Math.min(currentPage, totalPages);
@@ -308,13 +358,18 @@ export default function OrdersPage() {
             <p>Review transactions, customer purchases, invoice state, and refund actions.</p>
           </div>
         </div>
+        <Can permission={PERMS.ORDERS_CREATE}>
+          <button type="button" className="page-action-button" onClick={() => setCreateBundleOpen(true)}>
+            <i className="ti ti-plus" /> Create Order Bundle
+          </button>
+        </Can>
       </div>
 
       <div className="orders-stats-row">
         <StatCard icon="ti-receipt" tone="indigo" value={summary.totalOrders} label="Total Orders" />
         <StatCard icon="ti-check" tone="green" value={summary.completedOrders} label="Completed" />
         <StatCard icon="ti-time" tone="orange" value={summary.pendingOrders} label="Pending" />
-        <StatCard icon="ti-money" tone="teal" value={`₹${Math.round(summary.totalRevenue).toLocaleString('en-IN')}`} label="Total Revenue" />
+        <StatCard icon="ti-money" tone="teal" value={`₹${Math.round(summary.totalRevenue).toLocaleString('en-IN')}`} label="Collected" />
       </div>
 
       <div className="filter-bar" ref={menuRef}>
@@ -363,6 +418,7 @@ export default function OrdersPage() {
             <thead>
               <tr>
                 <th className={`sortable ${sortColumn === 'orderNumber' ? 'active' : ''}`} onClick={() => handleSort('orderNumber')}>Order ID <i className={`sort-icon ti ${sortIcon('orderNumber', sortColumn, sortReverse)}`} /></th>
+                <th>Order Bundle</th>
                 <th className={`sortable ${sortColumn === 'customer' ? 'active' : ''}`} onClick={() => handleSort('customer')}>Customer <i className={`sort-icon ti ${sortIcon('customer', sortColumn, sortReverse)}`} /></th>
                 <th className={`sortable ${sortColumn === 'orderDate' ? 'active' : ''}`} onClick={() => handleSort('orderDate')}>Date <i className={`sort-icon ti ${sortIcon('orderDate', sortColumn, sortReverse)}`} /></th>
                 <th>Items Summary</th>
@@ -376,6 +432,7 @@ export default function OrdersPage() {
               <tbody>
                 {Array.from({ length: pageSize > 5 ? 5 : pageSize }).map((_, index) => (
                   <tr key={`skel-${index}`}>
+                    <td><div className="orders-skeleton short"><div className="orders-skeleton-shimmer" /></div></td>
                     <td><div className="orders-skeleton short"><div className="orders-skeleton-shimmer" /></div></td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -400,6 +457,14 @@ export default function OrdersPage() {
                 {paginatedOrders.map((order) => (
                   <tr key={order.id} onClick={() => viewOrder(order)} className={openKebabId === order.id ? 'row-active-menu' : ''}>
                     <td><span className="order-number-link">{order.orderNumber}</span></td>
+                    <td onClick={(event) => event.stopPropagation()}>
+                      <button type="button" className="payments-order-link" title="View bundle contents" onClick={() => setBundleOrder(order)}>
+                        <i className="ti ti-package" /> {order.bundleNumber}
+                      </button>
+                      {bundleCounts[order.bundleNumber] > 1 ? (
+                        <div className="profile-subtext">{bundleCounts[order.bundleNumber]} orders in bundle</div>
+                      ) : null}
+                    </td>
                     <td>
                       <div className="profile-cell">
                         <div className="profile-info">
@@ -410,7 +475,12 @@ export default function OrdersPage() {
                     </td>
                     <td><div className="info-cell"><i className="ti ti-calendar" /> {formatDate(order.orderDate)}</div></td>
                     <td><div className="info-cell" title={order.items?.[0]?.title}>{getItemsSummary(order)}</div></td>
-                    <td><span className="order-amount">₹{formatMoney(order.totalAmount)}</span></td>
+                    <td>
+                      <span className="order-amount">₹{formatMoney(order.totalAmount)}</span>
+                      {order.outstandingAmount > 0 && order.paidAmount > 0 ? (
+                        <div className="order-amount-due">₹{formatMoney(order.paidAmount)} paid · ₹{formatMoney(order.outstandingAmount)} due</div>
+                      ) : null}
+                    </td>
                     <td><span className={`status-pill status-${statusClass(order.status)}`}>{order.status}</span></td>
                     <td><span className="crispr-badge"><i className={`ti ${paymentIcon(order.paymentMethod)}`} /> {order.paymentMethod.toUpperCase()}</span></td>
                     <td className={`actions-column ${openKebabId === order.id ? 'cell-active-menu' : ''}`} onClick={(event) => event.stopPropagation()}>
@@ -420,12 +490,19 @@ export default function OrdersPage() {
                         </button>
                         <div className={`kebab-dropdown ${openKebabId === order.id ? 'active' : ''}`}>
                           <button type="button" className="kebab-dropdown-item" onClick={() => viewOrder(order)}><i className="ti ti-eye" /> View Order</button>
+                          <button type="button" className="kebab-dropdown-item" onClick={() => openPaymentSummary(order)}><i className="ti ti-wallet" /> View Payment Summary</button>
                           {can(PERMS.ORDERS_INVOICE_DOWNLOAD) && (
-                            <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Invoice</button>
+                            <button type="button" className="kebab-dropdown-item" onClick={() => viewInvoice(order)}><i className="ti ti-receipt" /> View Order Bundle Invoice</button>
                           )}
                           {can(PERMS.ORDERS_INVOICE_SEND) && (
-                            <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Invoice</button>
+                            <button type="button" className="kebab-dropdown-item" onClick={() => sendInvoiceEmail(order)}><i className="ti ti-email" /> Email Order Bundle Invoice</button>
                           )}
+                          {order.outstandingAmount > 0 && order.status !== 'refunded' && can(PERMS.PAYMENTS_RECORD) ? (
+                            <button type="button" className="kebab-dropdown-item" onClick={() => openRecordPayment(order)}><i className="ti ti-pencil-alt" /> Record Payment</button>
+                          ) : null}
+                          {order.scheduledCount > 0 && order.status !== 'refunded' && can(PERMS.PAYMENTS_RECORD) ? (
+                            <button type="button" className="kebab-dropdown-item" onClick={() => openDueDates(order)}><i className="ti ti-calendar" /> Update Due Dates</button>
+                          ) : null}
                           {order.status === 'completed' && can(PERMS.ORDERS_REFUND) ? (
                             <button type="button" className="kebab-dropdown-item refund-action" onClick={() => initiateRefund(order)}><i className="ti ti-back-left" /> Initiate Refund</button>
                           ) : null}
@@ -470,6 +547,117 @@ export default function OrdersPage() {
       {invoiceModalOpen && selectedOrder ? <InvoiceModal order={selectedOrder} onClose={() => setInvoiceModalOpen(false)} onDownload={() => downloadInvoice(selectedOrder)} /> : null}
       {emailModalOpen ? <EmailModal emailData={emailData} setEmailData={setEmailData} onClose={() => setEmailModalOpen(false)} onSend={() => { if (!emailData.to) { showToast('error', 'Email', 'Please enter an email address'); return; } setEmailModalOpen(false); showToast('success', 'Email Sent', `Invoice email sent to ${emailData.to}`); }} /> : null}
       {refundModalOpen && refundData.order ? <RefundModal refundData={refundData} setRefundData={setRefundData} onClose={() => setRefundModalOpen(false)} onConfirm={confirmRefund} /> : null}
+      {bundleOrder ? (() => {
+        const members = orders.filter((o) => o.bundleNumber === bundleOrder.bundleNumber);
+        const totals = {
+          total: members.reduce((sum, o) => sum + o.totalAmount, 0),
+          paid: members.reduce((sum, o) => sum + o.paidAmount, 0),
+          outstanding: members.reduce((sum, o) => sum + o.outstandingAmount, 0),
+          discount: members.reduce((sum, o) => sum + o.discountAmount, 0),
+          subtotal: members.reduce((sum, o) => sum + o.subtotal, 0),
+          tax: members.reduce((sum, o) => sum + o.taxAmount, 0),
+        };
+        return (
+          <div className="crispr-modal-backdrop active" role="presentation" onClick={() => setBundleOrder(null)}>
+            <div className="crispr-modal-dialog order-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+              <div className="crispr-modal-header">
+                <h3><i className="ti ti-package" /> Order Bundle {bundleOrder.bundleNumber}</h3>
+                <button type="button" className="crispr-modal-close" onClick={() => setBundleOrder(null)}><i className="ti ti-close" /></button>
+              </div>
+              <div className="crispr-modal-body">
+                <div className="order-modal-header">
+                  <div>
+                    <i className="ti ti-calendar" /> {formatDate(bundleOrder.orderDate)}
+                    <span><i className="ti ti-user" /> {bundleOrder.customer.name}</span>
+                    <span><i className="ti ti-shopping-cart" /> {members.length} order{members.length === 1 ? '' : 's'} in bundle</span>
+                  </div>
+                  <span className={`status-badge ${totals.outstanding > 0 ? 'status-pending' : 'status-completed'}`}>
+                    {totals.outstanding > 0 ? `₹${formatMoney(totals.outstanding)} due` : 'Fully paid'}
+                  </span>
+                </div>
+                <div className="order-modal-grid">
+                  <div>
+                    <h5>Orders in this Bundle</h5>
+                    {members.map((member) => (
+                      <div key={member.id} className="order-item">
+                        <div className="order-item-details">
+                          <h5>{member.items[0].title}</h5>
+                          <div>{member.orderNumber} | Code: {member.items[0].code} | {member.paymentMode === 'INSTALLMENTS' ? 'Installments' : 'Full payment'}</div>
+                          <div className="profile-subtext">₹{formatMoney(member.paidAmount)} paid{member.outstandingAmount > 0 ? ` · ₹${formatMoney(member.outstandingAmount)} due` : ''}</div>
+                        </div>
+                        <div className="order-item-price">
+                          <strong>₹{formatMoney(member.totalAmount)}</strong>
+                          <span className={`status-badge ${member.outstandingAmount > 0 ? 'status-pending' : 'status-completed'}`}>{member.outstandingAmount > 0 ? 'Partially paid' : 'Paid'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <aside>
+                    <div className="customer-info">
+                      <h5>Student Details</h5>
+                      <p><i className="ti ti-user" /> {bundleOrder.customer.name}</p>
+                      <p><i className="ti ti-email" /> {bundleOrder.customer.email}</p>
+                      <p><i className="ti ti-id-badge" /> ID: {bundleOrder.customer.id}</p>
+                    </div>
+                    <div className="order-summary">
+                      <div className="summary-row"><span>Subtotal</span><span>₹{formatMoney(totals.subtotal)}</span></div>
+                      {totals.discount > 0 ? <div className="summary-row discount"><span>Discount</span><span>-₹{formatMoney(totals.discount)}</span></div> : null}
+                      <div className="summary-row"><span>GST</span><span>₹{formatMoney(totals.tax)}</span></div>
+                      <div className="summary-row total"><span>Bundle Total</span><span>₹{formatMoney(totals.total)}</span></div>
+                      <div className="summary-row discount"><span>Total Paid</span><span>₹{formatMoney(totals.paid)}</span></div>
+                      <div className={`summary-row ${totals.outstanding > 0 ? 'outstanding' : ''}`}><span>Outstanding</span><span>₹{formatMoney(totals.outstanding)}</span></div>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+              <div className="crispr-modal-footer">
+                <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setBundleOrder(null)}>Close</button>
+                {can(PERMS.ORDERS_INVOICE_DOWNLOAD) && (
+                  <button type="button" className="legacy-btn legacy-btn-success" onClick={() => { const target = bundleOrder; setBundleOrder(null); viewInvoice(target); }}><i className="ti ti-receipt" /> View Bundle Invoice</button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })() : null}
+      {summaryOrder ? (
+        <div className="crispr-modal-backdrop active" role="presentation" onClick={() => setSummaryOrder(null)}>
+          <div className="crispr-modal-dialog order-dialog payments-dialog" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <div className="crispr-modal-header">
+              <h3><i className="ti ti-wallet" /> Payment Summary - {summaryOrder.orderNumber}</h3>
+              <button type="button" className="crispr-modal-close" onClick={() => setSummaryOrder(null)}><i className="ti ti-close" /></button>
+            </div>
+            <div className="crispr-modal-body">
+              <OrderPaymentSummary order={summaryOrder} payments={payments} />
+            </div>
+            <div className="crispr-modal-footer">
+              <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSummaryOrder(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {dueDatesOrder ? (
+        <UpdateDueDatesModal
+          order={dueDatesOrder}
+          payments={payments}
+          onClose={() => setDueDatesOrder(null)}
+          onSaved={(count) => showToast('success', 'Due Dates Updated', `${count} installment due date${count === 1 ? '' : 's'} updated on ${dueDatesOrder.orderNumber}`)}
+        />
+      ) : null}
+      {createBundleOpen ? (
+        <CreateOrderBundleModal
+          onClose={() => setCreateBundleOpen(false)}
+          onCreated={({ bundleNumber, orders: created }) => showToast('success', 'Order Bundle Created', `${bundleNumber} created with ${created.length} order${created.length === 1 ? '' : 's'} for ${created[0].customer.name}`)}
+        />
+      ) : null}
+      {recordOrder ? (
+        <RecordPaymentModal
+          order={recordOrder}
+          payments={payments}
+          onClose={() => setRecordOrder(null)}
+          onRecorded={(p) => showToast('success', 'Payment Recorded', `${p.paymentNumber} · ₹${formatMoney(p.amount)} recorded against ${recordOrder.orderNumber}`)}
+        />
+      ) : null}
     </section>
   );
 }
@@ -514,7 +702,7 @@ function OrderModal({ order, onClose, onInvoice }) {
         </div>
         <div className="crispr-modal-footer">
           <button type="button" className="legacy-btn legacy-btn-default" onClick={onClose}>Close</button>
-          <button type="button" className="legacy-btn legacy-btn-success" onClick={onInvoice}><i className="ti ti-receipt" /> View Invoice</button>
+          <button type="button" className="legacy-btn legacy-btn-success" onClick={onInvoice}><i className="ti ti-receipt" /> View Bundle Invoice</button>
         </div>
       </div>
     </div>

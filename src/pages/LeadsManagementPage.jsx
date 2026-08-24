@@ -718,7 +718,15 @@ export default function LeadsManagementPage() {
                           {lead.name.charAt(0)}
                         </div>
                         <div>
-                          <strong style={{ display: 'block', fontSize: '14px', color: '#1e293b' }}>{lead.name}</strong>
+                          <button
+                            type="button"
+                            className="name-link"
+                            title="View lead"
+                            style={{ display: 'block', fontSize: '14px' }}
+                            onClick={(e) => { e.stopPropagation(); openLeadDetail(lead); }}
+                          >
+                            {lead.name}
+                          </button>
                           <span style={{ fontSize: '12px', color: '#6b7280' }}>{lead.phone}{lead.email ? ` · ${lead.email}` : ''}</span>
                         </div>
                       </div>

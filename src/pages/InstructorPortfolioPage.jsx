@@ -558,7 +558,14 @@ export default function InstructorPortfolioPage() {
                           placeholderClassName="avatar-placeholder"
                         />
                         <div>
-                          <div className="profile-name">{instructor.name}</div>
+                          <button
+                            type="button"
+                            className="profile-name name-link"
+                            title="View profile"
+                            onClick={(e) => { e.stopPropagation(); viewInstructor(instructor); }}
+                          >
+                            {instructor.name}
+                          </button>
                         </div>
                       </div>
                     </td>

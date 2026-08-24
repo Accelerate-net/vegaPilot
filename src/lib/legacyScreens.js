@@ -155,6 +155,17 @@ const screens = [
     shortCode: 'VH',
     summary: 'Folder-oriented Bunny.net admin surface.',
   },
+  {
+    path: '/class-notes',
+    title: 'Class Notes',
+    legacyHtml: 'class-notes.html',
+    controller: 'controllers/class-notes.js',
+    protected: true,
+    group: 'academics',
+    icon: 'fa-file-pdf-o',
+    shortCode: 'CN',
+    summary: 'Chapter-wise PDF class notes with batch visibility for the mobile app.',
+  },
 
   // ── People ────────────────────────────────────────────────────────────
   {
@@ -237,6 +248,17 @@ const screens = [
     summary: 'Order tracking, invoice actions, and student drill-down.',
   },
   {
+    path: '/payments',
+    title: 'Payments',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'commerce',
+    icon: 'fa-credit-card',
+    shortCode: 'PY',
+    summary: 'All payments across orders — initial, installments, and dues.',
+  },
+  {
     path: '/catalog',
     title: 'Catalog',
     legacyHtml: 'catalog.html',
@@ -246,6 +268,17 @@ const screens = [
     icon: 'fa-th-large',
     shortCode: 'CT',
     summary: 'Catalog entries, publishing, and asset upload workflow.',
+  },
+  {
+    path: '/commerce-reports',
+    title: 'Reports',
+    legacyHtml: null,
+    controller: null,
+    protected: true,
+    group: 'commerce',
+    icon: 'fa-bar-chart',
+    shortCode: 'RP',
+    summary: 'Order and payment reports by period, course, method, or batch.',
   },
 
   // ── Marketing ─────────────────────────────────────────────────────────
@@ -547,6 +580,7 @@ const VIEW_PERMISSIONS = {
   '/practice-questions': 'practiceQuestions.view',
   '/video-content': 'videos.view',
   '/bunny-admin': 'videoHosting.view',
+  '/class-notes': 'classNotes.view',
   // People
   '/candidate-profile': 'students.view',
   '/candidate-detail': 'studentDetail.view',
@@ -557,6 +591,8 @@ const VIEW_PERMISSIONS = {
   '/residences': 'residences.view',
   // Commerce
   '/orders': 'orders.view',
+  '/payments': 'orders.view',
+  '/commerce-reports': 'orders.view',
   '/catalog': 'catalog.view',
   // Marketing
   '/leads-management': 'leads.view',

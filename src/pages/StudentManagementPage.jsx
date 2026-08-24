@@ -515,7 +515,14 @@ export default function StudentManagementPage() {
                         placeholderClassName="student-avatar-placeholder"
                       />
                       <div>
-                        <div className="student-name">{student.name}</div>
+                        <button
+                          type="button"
+                          className="student-name name-link"
+                          title="View profile"
+                          onClick={(event) => { event.stopPropagation(); openStudentDetail(student); }}
+                        >
+                          {student.name}
+                        </button>
                         <div className="student-id">ID: {student.id}</div>
                       </div>
                     </div>

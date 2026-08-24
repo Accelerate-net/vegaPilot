@@ -8,6 +8,7 @@ import ExamAttemptReportPage from './pages/ExamAttemptReportPage';
 import ExamCreationWizardPage from './pages/ExamCreationWizardPage';
 import BatchManagementPage from './pages/BatchManagementPage';
 import BunnyAdminPage from './pages/BunnyAdminPage';
+import ClassNotesPage from './pages/ClassNotesPage';
 import CourseManagementPage from './pages/CourseManagementPage';
 import CourseViewPage from './pages/CourseViewPage';
 import CoursesListPage from './pages/CoursesListPage';
@@ -24,6 +25,8 @@ import LoginPage from './pages/LoginPage';
 import MentorProfilesPage from './pages/MentorProfilesPage';
 import MentorSessionsPage from './pages/MentorSessionsPage';
 import OrdersPage from './pages/OrdersPage';
+import PaymentsPage from './pages/PaymentsPage';
+import CommerceReportsPage from './pages/CommerceReportsPage';
 import PracticeQuestionsPage from './pages/PracticeQuestionsPage';
 import QuestionBankPage from './pages/QuestionBankPage';
 import QuizAttemptReportPage from './pages/QuizAttemptReportPage';
@@ -138,8 +141,17 @@ export default function App() {
     if (screen.path === '/bunny-admin') {
       return <BunnyAdminPage />;
     }
+    if (screen.path === '/class-notes') {
+      return <ClassNotesPage />;
+    }
     if (screen.path === '/orders') {
       return <OrdersPage />;
+    }
+    if (screen.path === '/payments') {
+      return <PaymentsPage />;
+    }
+    if (screen.path === '/commerce-reports') {
+      return <CommerceReportsPage />;
     }
     if (screen.path === '/question-bank') {
       return <QuestionBankPage />;

@@ -766,7 +766,14 @@ export default function MentorProfilesPage() {
                           placeholderClassName="avatar-placeholder"
                         />
                         <div>
-                          <div className="profile-name">{mentor.name}</div>
+                          <button
+                            type="button"
+                            className="profile-name name-link"
+                            title="View profile"
+                            onClick={(e) => { e.stopPropagation(); viewMentor(mentor); }}
+                          >
+                            {mentor.name}
+                          </button>
                         </div>
                       </div>
                     </td>

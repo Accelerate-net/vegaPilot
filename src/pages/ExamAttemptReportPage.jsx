@@ -640,7 +640,16 @@ export default function ExamAttemptReportPage() {
                   <td>
                     <div className={`ear-rank-badge ${getRankClass(ranking.rank)}`}>{ranking.rank}</div>
                   </td>
-                  <td><strong>{ranking.studentName}</strong></td>
+                  <td>
+                    <button
+                      type="button"
+                      className="name-link"
+                      title="View attempt"
+                      onClick={(e) => { e.stopPropagation(); setViewAttemptItem(ranking); }}
+                    >
+                      {ranking.studentName}
+                    </button>
+                  </td>
                   <td className="ear-td-mono">{ranking.rollNumber}</td>
                   <td className="ear-td-muted">{ranking.studentEmail}</td>
                   <td>

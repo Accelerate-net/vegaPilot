@@ -14,8 +14,8 @@ export const ROLES = {
     paths: [
       '/landing',
       '/candidate-profile', '/candidate-detail',
-      '/orders',
-      '/courses-list', '/course-view', '/course-management', '/catalog', '/video-content', '/bunny-admin',
+      '/orders', '/payments', '/commerce-reports',
+      '/courses-list', '/course-view', '/course-management', '/catalog', '/video-content', '/bunny-admin', '/class-notes',
       '/quiz-listing', '/quiz-creation', '/quiz-attempt-report', '/question-bank', '/practice-questions',
       '/exam-listing', '/exam-creation-wizard', '/exam-attempt-report', '/test-series-list',
       '/mentor-profiles', '/mentor-sessions', '/instructor-portfolio',
@@ -31,7 +31,7 @@ export const ROLES = {
     paths: [
       '/landing',
       '/courses-list', '/course-view', '/course-management', '/catalog',
-      '/video-content', '/bunny-admin',
+      '/video-content', '/bunny-admin', '/class-notes',
       '/question-bank', '/practice-questions',
       '/quiz-listing', '/quiz-creation', '/quiz-attempt-report',
       '/exam-listing', '/exam-creation-wizard', '/exam-attempt-report',

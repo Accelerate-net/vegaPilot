@@ -296,7 +296,15 @@ export default function InstructorPayoutsPage() {
                                          {inst.name.charAt(4)}
                                     </div>
                                     <div>
-                                        <strong style={{ display: 'block', fontSize: '15px', color: '#2c3e50' }}>{inst.name}</strong>
+                                        <button
+                                            type="button"
+                                            className="name-link"
+                                            title="View details"
+                                            style={{ display: 'block', fontSize: '15px' }}
+                                            onClick={(e) => { e.stopPropagation(); openLedgerModal(inst.id); }}
+                                        >
+                                            {inst.name}
+                                        </button>
                                         <span style={{ fontSize: '12px', color: '#6b7280' }}>{inst.specialization}</span>
                                     </div>
                                 </div>
