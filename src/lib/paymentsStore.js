@@ -5,7 +5,7 @@
 // backend endpoints land.
 import { useSyncExternalStore } from 'react';
 import { commerceOrdersDemo, paymentsDemo } from '../data/paymentsDemo';
-import { effectiveStatus, nowSec } from './paymentsModel';
+import { effectiveStatus, nowSec, paymentLabel } from './paymentsModel';
 
 const STORAGE_KEY = 'crisprPilotPaymentsDemo.v1';
 
@@ -383,4 +383,45 @@ export function updateDueDates(order, changes) {
   payments = next;
   emit();
   return touched;
+}
+
+/**
+ * Merges two or more of an order's unpaid (scheduled/overdue) installments
+ * into a single installment with a new due date. The earliest installment
+ * becomes the merged row (amounts summed, GST recomputed); the others are
+ * removed. The merged row keeps `mergedFrom` so the history stays visible.
+ * Returns the merged row, or null if fewer than two valid rows were given.
+ */
+export function mergeInstallments(order, ids, dueDate) {
+  const idSet = new Set(ids);
+  const mergeable = payments
+    .filter((p) => p.orderId === order.id && idSet.has(p.id)
+      && (effectiveStatus(p) === 'scheduled' || effectiveStatus(p) === 'overdue'))
+    .sort((a, b) => (a.installmentNo || 0) - (b.installmentNo || 0));
+  if (mergeable.length < 2) return null;
+
+  const gstRate = order.gstPercent / 100;
+  const base = round2(mergeable.reduce((s, p) => s + p.baseAmount, 0));
+  const gst = round2(base * gstRate);
+  const numbers = mergeable.map((p) => p.installmentNo || 0);
+  const survivor = mergeable[0];
+  const merged = {
+    ...survivor,
+    baseAmount: base,
+    gstAmount: gst,
+    amount: round2(base + gst),
+    dueDate,
+    status: 'scheduled',
+    label: `Installments ${numbers.join(' + ')} (merged)`,
+    mergedFrom: mergeable.map((p) => ({ label: paymentLabel(p), amount: p.amount, dueDate: p.dueDate })),
+  };
+  // The merge supersedes earlier amount/date adjustments on the survivor.
+  delete merged.originalBaseAmount;
+  delete merged.originalDueDate;
+
+  payments = payments
+    .filter((p) => p.id === survivor.id || !idSet.has(p.id) || p.orderId !== order.id)
+    .map((p) => (p.id === survivor.id ? merged : p));
+  emit();
+  return merged;
 }

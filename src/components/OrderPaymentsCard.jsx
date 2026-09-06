@@ -120,6 +120,12 @@ export default function OrderPaymentsCard({ order, payments, compact = false, on
                       {p.originalBaseAmount != null && p.originalBaseAmount !== p.baseAmount ? (
                         <span className="opc-adjusted" title={`Adjusted from ${INR(p.originalBaseAmount)} + GST`}>adjusted from <s>{INR(p.originalBaseAmount)}</s></span>
                       ) : null}
+                      {p.originalDueDate != null && p.originalDueDate !== p.dueDate ? (
+                        <span className="opc-adjusted">rescheduled from {fmtDate(p.originalDueDate)}</span>
+                      ) : null}
+                      {p.mergedFrom?.length ? (
+                        <span className="opc-adjusted" title={p.mergedFrom.map((m) => `${m.label} (${INR(m.amount)})`).join(' + ')}>merged from {p.mergedFrom.length} installments</span>
+                      ) : null}
                       <span className="opc-step-gst">{INR(p.baseAmount)} + GST {INR(p.gstAmount)}</span>
                     </div>
                   </div>

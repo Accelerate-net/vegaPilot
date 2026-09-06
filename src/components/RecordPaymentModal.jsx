@@ -21,12 +21,13 @@ const METHODS = [
  * Styled after the Orders page modals (order-modal-header strip + the
  * form-modal float-label fields used by its Email Invoice dialog).
  */
-export default function RecordPaymentModal({ order, payments, onClose, onRecorded }) {
+export default function RecordPaymentModal({ order, payments, onClose, onRecorded, initialApplyToId = null }) {
   const summary = useMemo(() => summarizeOrder(order, payments), [order, payments]);
   const payable = summary.rows.filter((p) => p.status !== 'paid');
   const due = outstandingBase(order);
 
-  const defaultTarget = summary.nextDue && summary.nextDue.status !== 'pending' ? summary.nextDue.id : (payable[0]?.id ?? '');
+  const preselected = initialApplyToId != null && payable.some((p) => p.id === initialApplyToId) ? initialApplyToId : null;
+  const defaultTarget = preselected ?? (summary.nextDue && summary.nextDue.status !== 'pending' ? summary.nextDue.id : (payable[0]?.id ?? ''));
   const [applyTo, setApplyTo] = useState(defaultTarget === '' ? '' : String(defaultTarget));
   const targetRow = payable.find((p) => String(p.id) === applyTo) || null;
   const [amount, setAmount] = useState(targetRow ? String(targetRow.baseAmount) : '');

@@ -4,10 +4,10 @@ import FilterDropdown from '../components/FilterDropdown';
 import ToastRegion from '../components/ToastRegion';
 import OrderPaymentSummary, { paymentBadgeClass } from '../components/OrderPaymentSummary';
 import UpdateDueDatesModal from '../components/UpdateDueDatesModal';
+import RecordPaymentModal from '../components/RecordPaymentModal';
 import { usePermission } from '../lib/userStore';
 import { PERMS } from '../lib/permissions';
-import { commerceOrdersDemo } from '../data/paymentsDemo';
-import { usePayments } from '../lib/paymentsStore';
+import { getAllOrders, useManualOrders, usePayments } from '../lib/paymentsStore';
 import {
   effectiveStatus, methodIcon, methodLabel, paymentLabel, statusMeta,
 } from '../lib/paymentsModel';
@@ -45,6 +45,7 @@ export default function PaymentsPage() {
   const [invoicePayment, setInvoicePayment] = useState(null);
   const [emailState, setEmailState] = useState(null);
   const [dueOrder, setDueOrder] = useState(null);
+  const [recordState, setRecordState] = useState(null); // { order, applyToId }
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
   const { can } = usePermission();
@@ -87,18 +88,20 @@ export default function PaymentsPage() {
   }, []);
 
   const allPayments = usePayments();
-  const ordersById = useMemo(() => Object.fromEntries(commerceOrdersDemo.map((o) => [o.id, o])), []);
+  const manualOrders = useManualOrders();
+  const allOrders = useMemo(() => getAllOrders(), [manualOrders]);
+  const ordersById = useMemo(() => Object.fromEntries(allOrders.map((o) => [o.id, o])), [allOrders]);
   const payments = useMemo(() => allPayments.map((p) => ({ ...p, status: effectiveStatus(p) })), [allPayments]);
 
   const orderOptions = useMemo(() => [
     { value: '', label: 'All Orders' },
-    ...commerceOrdersDemo.map((o) => ({ value: o.orderNumber, label: `${o.orderNumber} · ${o.customer.name}` })),
-  ], []);
+    ...allOrders.map((o) => ({ value: o.orderNumber, label: `${o.orderNumber} · ${o.customer.name}` })),
+  ], [allOrders]);
   const studentOptions = useMemo(() => {
     const seen = new Map();
-    commerceOrdersDemo.forEach((o) => seen.set(o.customer.id, o.customer.name));
+    allOrders.forEach((o) => seen.set(o.customer.id, o.customer.name));
     return [{ value: '', label: 'All Students' }, ...[...seen].map(([id, name]) => ({ value: id, label: name }))];
-  }, []);
+  }, [allOrders]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -298,6 +301,9 @@ export default function PaymentsPage() {
                             <button type="button" className="kebab-dropdown-item" onClick={() => { setSelected(p); setOpenKebabId(null); }}><i className="ti ti-wallet" /> View Payment Summary</button>
                             <button type="button" className="kebab-dropdown-item" onClick={() => { setInvoicePayment(p); setOpenKebabId(null); }}><i className="ti ti-receipt" /> View Payment Invoice</button>
                             <button type="button" className="kebab-dropdown-item" onClick={() => { setEmailState({ payment: p, to: p.customer.email, subject: `Payment Invoice ${p.paymentNumber} — ${p.orderNumber}` }); setOpenKebabId(null); }}><i className="ti ti-email" /> Email Payment Invoice</button>
+                            {p.status !== 'paid' && ordersById[p.orderId] && can(PERMS.PAYMENTS_RECORD) ? (
+                              <button type="button" className="kebab-dropdown-item" onClick={() => { setRecordState({ order: ordersById[p.orderId], applyToId: p.id }); setOpenKebabId(null); }}><i className="ti ti-check" /> Mark as Paid</button>
+                            ) : null}
                           </div>
                         </div>
                       </td>
@@ -338,6 +344,7 @@ export default function PaymentsPage() {
 
       {selected ? (() => {
         const order = ordersById[selected.orderId];
+        if (!order) return null;
         const hasReschedulable = payments.some((p) => p.orderId === order.id && (p.status === 'scheduled' || p.status === 'overdue'));
         return (
           <div className="crispr-modal-backdrop active" role="presentation" onClick={() => setSelected(null)}>
@@ -347,7 +354,14 @@ export default function PaymentsPage() {
                 <button type="button" className="crispr-modal-close" onClick={() => setSelected(null)}><i className="ti ti-close" /></button>
               </div>
               <div className="crispr-modal-body">
-                <OrderPaymentSummary order={order} payments={payments} highlightPaymentId={selected.id} />
+                <OrderPaymentSummary
+                  order={order}
+                  payments={payments}
+                  highlightPaymentId={selected.id}
+                  onMarkPaid={can(PERMS.PAYMENTS_RECORD) ? (p) => { setSelected(null); setRecordState({ order, applyToId: p.id }); } : undefined}
+                  canMerge={can(PERMS.PAYMENTS_RECORD)}
+                  onMerged={(merged) => showToast('success', 'Installments Merged', `${merged.label} · ₹${money(merged.amount)} due ${fmtDate(merged.dueDate)}`)}
+                />
               </div>
               <div className="crispr-modal-footer">
                 <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSelected(null)}>Close</button>
@@ -362,7 +376,7 @@ export default function PaymentsPage() {
         );
       })() : null}
 
-      {invoicePayment ? (
+      {invoicePayment && ordersById[invoicePayment.orderId] ? (
         <PaymentInvoiceModal
           payment={invoicePayment}
           order={ordersById[invoicePayment.orderId]}
@@ -382,6 +396,16 @@ export default function PaymentsPage() {
             setEmailState(null);
             showToast('success', 'Email Sent', `Payment invoice ${emailState.payment.paymentNumber} sent to ${emailState.to}`);
           }}
+        />
+      ) : null}
+
+      {recordState ? (
+        <RecordPaymentModal
+          order={recordState.order}
+          payments={allPayments}
+          initialApplyToId={recordState.applyToId}
+          onClose={() => setRecordState(null)}
+          onRecorded={(rec) => showToast('success', 'Payment Recorded', `${rec.paymentNumber} · ₹${money(rec.amount)} recorded against ${recordState.order.orderNumber}`)}
         />
       ) : null}
 

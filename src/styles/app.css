@@ -18902,3 +18902,62 @@ input {
 /* Class Notes — visibility modal */
 .cn-visibility-dialog { max-width: 520px; width: 92vw; }
 .cn-visibility-body { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Installment merge (Payment Summary modal) ── */
+.orders-page .merge-check {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin: 0;
+  cursor: pointer;
+}
+.orders-page .merge-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #006073;
+  cursor: pointer;
+}
+.orders-page .merge-check input:disabled { opacity: 0.35; cursor: not-allowed; }
+.orders-page .payment-schedule-item.is-selected {
+  background: #f4f9fa;
+  border-radius: 6px;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 12px;
+}
+.orders-page .merge-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #cfe0e4;
+  border-radius: 8px;
+  background: #f4f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.orders-page .merge-panel-info { display: flex; flex-direction: column; gap: 3px; }
+.orders-page .merge-panel-info > strong { font-size: 13.5px; color: #006073; }
+.orders-page .merge-panel-info > span { font-size: 12.5px; color: #475569; font-variant-numeric: tabular-nums; }
+.orders-page .merge-panel-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.orders-page .merge-panel-controls .field-cell { width: 190px; flex-shrink: 0; }
+.orders-page .merge-panel .float-field { background: #fff; }
+.orders-page .merge-panel-hint { margin: 10px 0 0; font-size: 12px; color: #6c757d; font-style: italic; }
+.orders-page .mark-paid-btn {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid #b7dfc4;
+  border-radius: 6px;
+  background: #f0faf3;
+  color: #1f8a4c;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.orders-page .mark-paid-btn:hover { background: #d4edda; }

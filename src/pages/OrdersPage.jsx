@@ -139,6 +139,7 @@ export default function OrdersPage() {
   const [emailData, setEmailData] = useState({ to: '', subject: '', orderNumber: '' });
   const [refundData, setRefundData] = useState({ order: null, code: ['', '', '', ''], error: '' });
   const [recordOrder, setRecordOrder] = useState(null);
+  const [recordApplyTo, setRecordApplyTo] = useState(null);
   const [summaryOrder, setSummaryOrder] = useState(null);
   const [dueDatesOrder, setDueDatesOrder] = useState(null);
   const [bundleOrder, setBundleOrder] = useState(null);
@@ -219,6 +220,7 @@ export default function OrdersPage() {
   }
 
   function openRecordPayment(order) {
+    setRecordApplyTo(null);
     setRecordOrder(order.commerceOrder);
     setOpenKebabId(null);
   }
@@ -628,7 +630,13 @@ export default function OrdersPage() {
               <button type="button" className="crispr-modal-close" onClick={() => setSummaryOrder(null)}><i className="ti ti-close" /></button>
             </div>
             <div className="crispr-modal-body">
-              <OrderPaymentSummary order={summaryOrder} payments={payments} />
+              <OrderPaymentSummary
+                order={summaryOrder}
+                payments={payments}
+                onMarkPaid={can(PERMS.PAYMENTS_RECORD) ? (p) => { const target = summaryOrder; setSummaryOrder(null); setRecordApplyTo(p.id); setRecordOrder(target); } : undefined}
+                canMerge={can(PERMS.PAYMENTS_RECORD)}
+                onMerged={(merged) => showToast('success', 'Installments Merged', `${merged.label} · ₹${formatMoney(merged.amount)} due ${new Date(merged.dueDate * 1000).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}`)}
+              />
             </div>
             <div className="crispr-modal-footer">
               <button type="button" className="legacy-btn legacy-btn-default" onClick={() => setSummaryOrder(null)}>Close</button>
@@ -654,7 +662,8 @@ export default function OrdersPage() {
         <RecordPaymentModal
           order={recordOrder}
           payments={payments}
-          onClose={() => setRecordOrder(null)}
+          initialApplyToId={recordApplyTo}
+          onClose={() => { setRecordOrder(null); setRecordApplyTo(null); }}
           onRecorded={(p) => showToast('success', 'Payment Recorded', `${p.paymentNumber} · ₹${formatMoney(p.amount)} recorded against ${recordOrder.orderNumber}`)}
         />
       ) : null}

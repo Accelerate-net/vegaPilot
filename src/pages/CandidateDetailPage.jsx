@@ -4,8 +4,7 @@ import ToastRegion from '../components/ToastRegion';
 import Avatar from '../components/Avatar';
 import { availableMentors, candidateDetailFallback } from '../data/candidateDetailDemo';
 import OrderPaymentsCard from '../components/OrderPaymentsCard';
-import { commerceOrdersDemo } from '../data/paymentsDemo';
-import { usePayments } from '../lib/paymentsStore';
+import { getAllOrders, useManualOrders, usePayments } from '../lib/paymentsStore';
 import { orderStateMeta, statusMeta, summarizeOrder } from '../lib/paymentsModel';
 
 /* ── Helpers ── */
@@ -279,12 +278,13 @@ export default function CandidateDetailPage() {
 
   // Orders belonging to this student: by customer id, plus any order referenced
   // from an enrolled course (enrollments are granted per order).
+  const manualOrders = useManualOrders();
   const studentOrders = useMemo(() => {
     const refs = new Set((candidate.enrolledCourses || []).map((c) => c.payment?.orderNumber).filter(Boolean));
-    return commerceOrdersDemo
+    return getAllOrders()
       .filter((o) => o.customer.id === candidate.id || refs.has(o.orderNumber))
       .sort((a, b) => b.orderDate - a.orderDate);
-  }, [candidate.id, candidate.enrolledCourses]);
+  }, [candidate.id, candidate.enrolledCourses, manualOrders]);
   const orderByNumber = useMemo(() => Object.fromEntries(studentOrders.map((o) => [o.orderNumber, o])), [studentOrders]);
   const paymentTotals = useMemo(() => {
     const sums = studentOrders.map((o) => summarizeOrder(o, payments));
